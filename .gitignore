@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dev.db
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Testes / E2E
+playwright-report/
+test-results/
+coverage/
+
+# Expo
+.expo/
+*.expo/
+
+# Ambiente / segredos
+.env
+.env.*
+!.env.example
+
+# Artefatos de demonstracao pesados (gerados)
+examples/resultado-*.html
+
+# Logs/utilitarios locais
+*.log
+apply.txt
+diag.txt

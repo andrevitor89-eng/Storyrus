@@ -1,0 +1,106 @@
+# Stack completa para desenvolvimento/demonstração:
+#   docker compose up --build         # sobe db, redis, api, worker e web
+#   docker compose run --rm api python scripts/seed.py
+#   API:  http://localhost:8000/docs   ·   Web: http://localhost:5173
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: stories
+      POSTGRES_PASSWORD: stories
+      POSTGRES_DB: stories
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U stories"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  # Storage S3 local (substitui Cloudflare R2 em dev)
+  minio:
+    image: minio/minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: storyrus
+      MINIO_ROOT_PASSWORD: storyrus123
+    ports:
+      - "9000:9000"   # API S3 (navegador + containers)
+      - "9001:9001"   # console web do MinIO
+    volumes:
+      - miniodata:/data
+
+  # Cria o bucket automaticamente quando o MinIO sobe
+  minio-setup:
+    image: minio/mc
+    depends_on:
+      minio:
+        condition: service_started
+    restart: "no"
+    entrypoint: >
+      /bin/sh -c "
+      until /usr/bin/mc alias set local http://minio:9000 storyrus storyrus123; do echo 'aguardando minio...'; sleep 2; done;
+      /usr/bin/mc mb -p local/storyrus || true;
+      echo 'bucket pronto'
+      "
+
+  api:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
+      REDIS_URL: redis://redis:6379/0
+      APP_ENV: dev
+      # URL que o NAVEGADOR usa para abrir os arquivos (presign). Interno = minio:9000.
+      STORAGE_ENDPOINT_URL: http://minio:9000
+      STORAGE_PUBLIC_ENDPOINT_URL: http://localhost:9000
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      minio:
+        condition: service_started
+    ports:
+      - "8000:8000"
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000"
+
+  worker:
+    build: ./backend
+    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      api:
+        condition: service_started
+      minio:
+        condition: service_started
+    command: ["python", "-m", "app.workers.runner"]
+
+  web:
+    build: ./apps/web
+    environment:
+      VITE_API_PROXY: http://api:8000
+    depends_on:
+      api:
+        condition: service_started
+    ports:
+      - "5173:5173"
+
+volumes:
+  pgdata:
+  miniodata:
