@@ -19,6 +19,7 @@ apps/web/e2e/
 
 # Backend fora deste repositorio (mantido localmente)
 backend/
+render.yaml
 
 # Expo
 .expo/
