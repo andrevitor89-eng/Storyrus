@@ -37,3 +37,12 @@ examples/resultado-*.html
 *.log
 apply.txt
 diag.txt
+
+# Repositorio so frontend: utilitarios, orquestracao local, docs e artefatos
+# (mantidos no PC, fora do GitHub)
+*.bat
+/docker-compose.yml
+/Makefile
+/logo.png
+*.docx
+examples/
