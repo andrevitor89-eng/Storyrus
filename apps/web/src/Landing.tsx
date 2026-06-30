@@ -6,24 +6,24 @@ import "./landing.css";
 type Lang = "pt" | "en";
 
 const ICONS = {
-  nav: ["🏡", "📖", "🎨", "⭐", "👨‍👩‍👧"],
-  steps: ["📷", "🎨", "🤖", "📖", "🎬", "🎁"],
+  nav: ["🏡", "📖", "🎨", "⭐", "💞"],
+  steps: ["📷", "🎨", "🖌️", "📖", "🎬", "🎁"],
   areas: ["🏠", "🎨", "🎮", "📚", "⭐"],
   area_c: ["a1", "a2", "a3", "a4", "a5"],
-  family: ["🔒", "💛", "👨‍👩‍👧‍👦"],
+  family: ["🔒", "💛", "🤝"],
 };
 
 const I18N = {
   pt: {
     nav: ["Início", "Histórias", "Criatividade", "Novidades", "Para famílias"],
     explore: "🚀 Explorar agora",
-    eyebrow: "✨ Histórias mágicas com IA",
+    eyebrow: "✨ Histórias encantadas com IA",
     h_pre: "Um mundo de ", w1: "histórias", c1: ", ", w2: "descobertas", c2: " e ",
     w3: "aventuras", h_suf: " começa aqui!",
     lead: "Envie uma foto e veja a criança virar o herói da própria história — em e-books ilustrados e vídeos cheios de imaginação.",
     cta_play: "🎈 Vamos brincar", cta_disc: "📖 Descobrir histórias",
     trust: "Encantando famílias do início ao fim",
-    steps_title: "Da foto à magia ✨", steps_sub: "Simples para você. Mágico no resultado.",
+    steps_title: "Da foto ao encanto ✨", steps_sub: "Simples para você. Encantador no resultado.",
     steps: [
       { t: "Envie uma foto", p: "É só uma foto para a magia começar." },
       { t: "Escolha a aventura", p: "Aventura, princesas, espaço, dinossauros e muito mais." },
@@ -40,14 +40,14 @@ const I18N = {
       { title: "Casa das histórias", desc: "Onde toda aventura começa." },
       { title: "Área criativa", desc: "Crie, pinte e invente." },
       { title: "Jogos", desc: "Brincadeiras para explorar." },
-      { title: "Biblioteca", desc: "Seus livros mágicos." },
+      { title: "Biblioteca", desc: "Seus livros encantados." },
       { title: "Desafios", desc: "Conquiste estrelas e medalhas." },
     ],
     badge_tap: "tocar", badge_done: "⭐ descoberto",
     band_title: "Pronto para virar protagonista?",
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
     band_cta: "✨ Criar minha história",
-    fam_title: "Para as famílias 👨‍👩‍👧", fam_sub: "Diversão para as crianças, tranquilidade para você.",
+    fam_title: "Para as famílias 💞", fam_sub: "Diversão para as crianças, tranquilidade para você.",
     family: [
       { t: "Seguro", p: "Ambiente protegido, sem anúncios e pensado para crianças." },
       { t: "Feito com carinho", p: "Conteúdo gentil, positivo e adequado à idade." },
@@ -59,13 +59,13 @@ const I18N = {
   en: {
     nav: ["Home", "Stories", "Creativity", "What's new", "For families"],
     explore: "🚀 Explore now",
-    eyebrow: "✨ Magical AI stories",
+    eyebrow: "✨ Enchanting AI stories",
     h_pre: "A world of ", w1: "stories", c1: ", ", w2: "discoveries", c2: " and ",
     w3: "adventures", h_suf: " begins here!",
     lead: "Send a photo and watch your child become the hero of their own story — in illustrated e-books and videos full of imagination.",
     cta_play: "🎈 Let's play", cta_disc: "📖 Discover stories",
     trust: "Delighting families from start to finish",
-    steps_title: "From photo to magic ✨", steps_sub: "Simple for you. Magical in the result.",
+    steps_title: "From photo to wonder ✨", steps_sub: "Simple for you. Wonderful in the result.",
     steps: [
       { t: "Send a photo", p: "One photo is all it takes for the magic to begin." },
       { t: "Pick the adventure", p: "Adventure, princesses, space, dinosaurs and more." },
@@ -82,7 +82,7 @@ const I18N = {
       { title: "Story house", desc: "Where every adventure begins." },
       { title: "Creative zone", desc: "Create, paint and invent." },
       { title: "Games", desc: "Playful ways to explore." },
-      { title: "Library", desc: "Your magical books." },
+      { title: "Library", desc: "Your enchanted books." },
       { title: "Challenges", desc: "Earn stars and medals." },
     ],
     badge_tap: "tap", badge_done: "⭐ found",
@@ -197,7 +197,7 @@ export function Landing() {
             </svg>
             <span className="floaty f1">⭐</span>
             <span className="floaty f2">🚀</span>
-            <span className="floaty f3">🦄</span>
+            <span className="floaty f3">🎈</span>
             <span className="floaty f4">🌈</span>
           </div>
         </div>

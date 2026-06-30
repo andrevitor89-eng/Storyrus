@@ -47,7 +47,7 @@
 .klinks a {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 14px; border-radius: 999px; text-decoration: none;
-  color: var(--ink); font-weight: 700; font-size: .95rem;
+  color: var(--ink); font-weight: 700; font-size: 1.05rem;
   transition: transform .15s ease, background .2s ease;
 }
 .klinks a:hover { background: #fff; transform: translateY(-2px) scale(1.05); }
@@ -62,7 +62,7 @@
 .kbtn {
   display: inline-flex; align-items: center; gap: 8px;
   border: none; cursor: pointer; text-decoration: none;
-  padding: 14px 26px; border-radius: 999px; font-weight: 800; font-size: 1.05rem;
+  padding: 15px 28px; border-radius: 999px; font-weight: 800; font-size: 1.18rem;
   color: #fff; box-shadow: 0 8px 0 rgba(0,0,0,.08), 0 12px 24px rgba(124,92,255,.18);
   transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease;
 }
@@ -81,12 +81,12 @@
 }
 .keyebrow {
   display: inline-block; background: #fff; color: var(--purple);
-  font-weight: 800; padding: 7px 14px; border-radius: 999px; font-size: .85rem;
+  font-weight: 800; padding: 8px 16px; border-radius: 999px; font-size: 1rem;
   box-shadow: 0 6px 16px rgba(0,0,0,.06);
 }
-.khero h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); line-height: 1.05; margin: 16px 0; }
+.khero h1 { font-size: clamp(2.8rem, 6.2vw, 4.6rem); line-height: 1.05; margin: 18px 0; }
 .g1 { color: var(--coral); } .g2 { color: var(--mint); } .g3 { color: var(--purple); }
-.klead { font-size: 1.15rem; max-width: 30ch; line-height: 1.6; color: #5b5878; }
+.klead { font-size: 1.4rem; max-width: 32ch; line-height: 1.55; color: #4a5170; }
 .khero-cta { display: flex; gap: 14px; flex-wrap: wrap; margin: 22px 0 14px; }
 .ktrust { font-weight: 600; color: #6b6890; } .stars { color: var(--yellow); letter-spacing: 2px; }
 
@@ -103,8 +103,8 @@
 /* ---------- seções ---------- */
 .ksection { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 50px 22px; text-align: center; }
 .ksection.play { background: rgba(255,255,255,.55); border-radius: 40px; margin: 20px auto; }
-.ktitle { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 6px; }
-.ksub { color: #6b6890; font-size: 1.1rem; margin: 0 0 28px; }
+.ktitle { font-size: clamp(2.2rem, 5vw, 3.2rem); margin: 0 0 8px; }
+.ksub { color: #6b6890; font-size: 1.3rem; margin: 0 0 30px; }
 
 .kgrid { display: grid; gap: 18px; }
 .kgrid.steps { grid-template-columns: repeat(3, 1fr); }
@@ -118,9 +118,9 @@
 }
 .kcard:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: 0 18px 36px rgba(0,0,0,.1); border-color: #ffe6a3; }
 .kcard.soft { background: var(--cream); }
-.kemoji { font-size: 2.6rem; margin-bottom: 8px; }
-.kcard h3 { margin: 4px 0 6px; font-size: 1.2rem; }
-.kcard p { color: #6b6890; line-height: 1.5; margin: 0; }
+.kemoji { font-size: 3rem; margin-bottom: 8px; }
+.kcard h3 { margin: 4px 0 6px; font-size: 1.4rem; }
+.kcard p { color: #6b6890; line-height: 1.5; margin: 0; font-size: 1.08rem; }
 
 /* gamificação */
 .reward {
@@ -139,8 +139,8 @@
 .area:hover { transform: translateY(-8px) scale(1.04); box-shadow: 0 20px 40px rgba(0,0,0,.18); }
 .area.done { outline: 4px solid #fff; }
 .area .aemoji { font-size: 2.8rem; display: block; }
-.area h3 { margin: 8px 0 4px; font-size: 1.1rem; }
-.area p { margin: 0; font-size: .9rem; opacity: .95; }
+.area h3 { margin: 8px 0 4px; font-size: 1.3rem; }
+.area p { margin: 0; font-size: 1.05rem; opacity: .95; }
 .area .badge {
   display: inline-block; margin-top: 10px; background: rgba(255,255,255,.3);
   padding: 4px 12px; border-radius: 999px; font-weight: 700; font-size: .8rem;
@@ -158,8 +158,8 @@
   background: linear-gradient(135deg, var(--purple), var(--blue));
   box-shadow: 0 20px 50px rgba(124,92,255,.25); overflow: hidden;
 }
-.kband h2 { font-size: clamp(1.8rem, 4vw, 2.6rem); margin: 0 0 8px; }
-.kband p { margin: 0 0 22px; opacity: .95; font-size: 1.1rem; }
+.kband h2 { font-size: clamp(2.2rem, 5vw, 3.2rem); margin: 0 0 10px; }
+.kband p { margin: 0 0 24px; opacity: .95; font-size: 1.3rem; }
 .kband .b1 { left: 10%; top: 20%; color: #fff; } .kband .b2 { right: 12%; bottom: 18%; color: #ffe6a3; }
 
 /* footer */
