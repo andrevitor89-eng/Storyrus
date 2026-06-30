@@ -9,6 +9,7 @@ dev.db
 node_modules/
 dist/
 .vite/
+*.tsbuildinfo
 
 # Testes / E2E
 playwright-report/
