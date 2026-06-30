@@ -5,8 +5,8 @@
   "buildCommand": "cd apps/web && npm run build",
   "outputDirectory": "apps/web/dist",
   "rewrites": [
-    { "source": "/v1/:path*", "destination": "https://SEU-BACKEND.exemplo.com/v1/:path*" },
-    { "source": "/health", "destination": "https://SEU-BACKEND.exemplo.com/health" },
+    { "source": "/v1/:path*", "destination": "https://storyrus-api.onrender.com/v1/:path*" },
+    { "source": "/health", "destination": "https://storyrus-api.onrender.com/health" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
