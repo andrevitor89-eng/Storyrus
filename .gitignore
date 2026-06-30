@@ -11,10 +11,14 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# Testes / E2E
+# Testes / E2E (fora do repositorio; mantidos localmente)
 playwright-report/
 test-results/
 coverage/
+apps/web/e2e/
+
+# Backend fora deste repositorio (mantido localmente)
+backend/
 
 # Expo
 .expo/
