@@ -46,3 +46,12 @@ diag.txt
 /logo.png
 *.docx
 examples/
+
+# Exemplos da landing: versionar apenas as 6 imagens usadas
+apps/web/public/exemplos/*
+!apps/web/public/exemplos/foto-bebe.jpg
+!apps/web/public/exemplos/arte-bebe.jpg
+!apps/web/public/exemplos/foto-menino.jpg
+!apps/web/public/exemplos/arte-menino.jpg
+!apps/web/public/exemplos/foto-pai.jpg
+!apps/web/public/exemplos/arte-pai.jpg
