@@ -58,6 +58,14 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     video_url: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // aplica o tema (claro/escuro) salvo na landing
+  useEffect(() => {
+    try {
+      const s = localStorage.getItem("theme");
+      document.documentElement.setAttribute("data-theme", s === "light" ? "light" : "dark");
+    } catch { /* ignore */ }
+  }, []);
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<number | null>(null);
 
@@ -194,6 +202,17 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         <img className="hdr-logo" src={logo} alt="Story.R.Us" />
         <strong>Plataforma de Histórias</strong>
         <span className="spacer" />
+        <button
+          className="chip"
+          onClick={() => {
+            const cur = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+            document.documentElement.setAttribute("data-theme", cur);
+            try { localStorage.setItem("theme", cur); } catch { /* ignore */ }
+          }}
+          aria-label="Alternar tema claro/escuro"
+        >
+          Tema
+        </button>
         <span className="credits">Créditos: {credits ?? "…"}</span>
         {onLogout && (
           <button className="link" onClick={onLogout}>

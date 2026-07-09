@@ -150,3 +150,43 @@ button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff
 .story { white-space: pre-wrap; background: #fffdf8; border: 1px solid var(--line); padding: 1rem; border-radius: 12px; color: var(--txt); }
 details { margin: 1rem 0; }
 summary { cursor: pointer; color: var(--teal-deep); font-weight: 700; }
+
+/* =========================================================
+   TEMA ESCURO (login + estúdio)
+   ========================================================= */
+:root {
+  --bg: #0a1022;
+  --bg-grad-1: #17233f;
+  --bg-grad-2: #101a33;
+  --panel: #16203c;
+  --line: #28335c;
+  --line-soft: #222d51;
+  --navy: #e9eefb;
+  --navy-soft: #c3ccec;
+  --txt: #e4e9f7;
+  --muted: #9aa6c8;
+  --shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 8px 20px rgba(0, 0, 0, 0.45);
+}
+input, input[type="file"] { background: #101a34; color: var(--txt); border-color: var(--line); }
+input[type="file"] { background: #101a34; }
+.story { background: #101a34; color: var(--txt); border-color: var(--line); }
+.credits { background: #101a34; border-color: var(--line); color: var(--navy); }
+button.chip { background: #17213f; border-color: var(--line); color: var(--txt); }
+button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
+/* logo continua sobre um selo claro para boa leitura */
+.auth-logo, .hdr-logo { background: #f5f2ea; }
+
+/* ===== TEMA CLARO (studio) — o escuro é o padrão ===== */
+html[data-theme="light"] {
+  --bg: #fbf6ec; --bg-grad-1: #fbe9b8; --bg-grad-2: #e7eefb; --panel: #ffffff;
+  --line: #ece3d2; --line-soft: #f1ebde; --navy: #1d2b63; --navy-soft: #34427e;
+  --txt: #21305f; --muted: #6b7596;
+  --shadow: 0 14px 36px rgba(29,43,99,.12); --shadow-sm: 0 6px 18px rgba(29,43,99,.1);
+}
+[data-theme="light"] input { background: #fffdf8; color: var(--txt); border-color: var(--line); }
+[data-theme="light"] input[type="file"] { background: #fff; }
+[data-theme="light"] .story { background: #fffdf8; color: var(--txt); border-color: var(--line); }
+[data-theme="light"] .credits { background: #fff; border-color: var(--line); color: var(--navy); }
+[data-theme="light"] button.chip { background: #fff; border-color: var(--line); color: var(--navy); }
+[data-theme="light"] .auth-logo, [data-theme="light"] .hdr-logo { background: #fff; }
