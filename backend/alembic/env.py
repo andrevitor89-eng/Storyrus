@@ -5,11 +5,14 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from app.config import settings
-from app.database import Base
+from app.database import Base, _normalize_db_url
 import app.models  # noqa: F401  (garante registro das tabelas)
 
+# Render entrega DATABASE_URL como postgres://...; normaliza para postgresql+psycopg://
+DB_URL = _normalize_db_url(settings.database_url)
+
 config = context.config
-config.set_main_option("sqlalchemy.url", settings.database_url)
+config.set_main_option("sqlalchemy.url", DB_URL)
 
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
@@ -19,7 +22,7 @@ target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:
     context.configure(
-        url=settings.database_url,
+        url=DB_URL,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -31,7 +34,7 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     section = config.get_section(config.config_ini_section, {})
-    section["sqlalchemy.url"] = settings.database_url
+    section["sqlalchemy.url"] = DB_URL
     connectable = engine_from_config(section, prefix="sqlalchemy.", poolclass=pool.NullPool)
 
     with connectable.connect() as connection:
