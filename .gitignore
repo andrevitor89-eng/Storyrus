@@ -17,9 +17,15 @@ test-results/
 coverage/
 apps/web/e2e/
 
-# Backend fora deste repositorio (mantido localmente)
-backend/
-render.yaml
+# Backend + render.yaml versionados (deploy no Render).
+# Os segredos ficam em backend/.env, que continua ignorado.
+
+# Artefatos locais do pipeline (nao versionar)
+pipeline_out/
+livro_menino/
+livro_menino2/
+run_book.py
+run_example.py
 
 # Expo
 .expo/
