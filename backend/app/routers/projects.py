@@ -42,6 +42,7 @@ def create_project(
     project = Project(
         user_id=user.id, style=body.style.value, theme=body.theme,
         child_name=(body.child_name or None), dedication=(body.dedication or None),
+        language=(body.language or "pt-BR"),
     )
     db.add(project)
     db.commit()

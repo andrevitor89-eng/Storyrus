@@ -6,7 +6,7 @@ sao reprocessadas pelo runner; demais erros -> FAILED + estorno.
 
 Pre-condicoes entre etapas (ex.: ebook exige avatar+story) sao validadas aqui e,
 quando faltam, levantam ProviderError(transient=False) -> falha definitiva clara.
-"""
+"""  # pipeline v2 (livro estilo referencia)
 from __future__ import annotations
 
 import re
@@ -38,6 +38,20 @@ def _payload(job: Job) -> dict:
     return (job.result or {}).get("payload", {}) if job.result else {}
 
 
+def _parse_title(story: str) -> str | None:
+    """Extrai o título gerado pela IA (linha 'Título: ...' no começo da história)."""
+    m = re.match(r"(?is)\s*t[íi]tulo\s*[:\-]\s*(.+?)\s*(?:\n|$)", story or "")
+    if not m:
+        return None
+    title = m.group(1).strip().strip('"“”')
+    return title[:120] or None
+
+
+def _strip_title(story: str) -> str:
+    """Remove a linha 'Título: ...' para que não vire página."""
+    return re.sub(r"(?is)^\s*t[íi]tulo\s*[:\-].*?(?:\n+|$)", "", story or "", count=1)
+
+
 def _parse_pages(story: str, limit: int = 200) -> list[str]:
     """Interpreta o texto enviado e divide em paginas para o e-book (sem limite fixo).
 
@@ -48,7 +62,7 @@ def _parse_pages(story: str, limit: int = 200) -> list[str]:
     Usa TODA a historia (limite alto so como protecao). Cada item retornado e o
     TEXTO INTEGRAL daquele trecho (contexto completo para a ilustracao).
     """
-    story = (story or "").strip()
+    story = _strip_title((story or "").strip())
     # remove blocos de sugestao de imagem que a IA possa ter incluido,
     # ex.: "*(Imagem sugerida: ...)*" — nao devem virar pagina nem texto impresso
     story = re.sub(r"(?is)\*?\(\s*imagem[^)]*\)\*?", "", story).strip()
@@ -238,14 +252,23 @@ async def handle_story(db: Session, job: Job) -> None:
 
     theme = project.theme or "aventura"
     name = (project.child_name or "").strip()
-    who = f"a crianca chamada {name}" if name else "o personagem da foto"
-    brief = (_payload(job).get("brief")
-             or f"Uma historia no tema '{theme}', calorosa, emocionante e divertida, "
-                f"onde {who} e o heroi/protagonista da propria aventura."
-                + (f" Use o nome '{name}' como protagonista ao longo de toda a historia." if name else ""))
+    language = project.language or "pt-BR"
+    if (language or "").lower().startswith("en"):
+        who = f"the child named {name}" if name else "the child from the photo"
+        brief = (_payload(job).get("brief")
+                 or f"A warm, exciting and fun story about the theme '{theme}', where {who} "
+                    "is the hero of their own adventure."
+                    + (f" Use the name '{name}' for the hero throughout the whole story." if name else ""))
+    else:
+        who = f"a crianca chamada {name}" if name else "o personagem da foto"
+        brief = (_payload(job).get("brief")
+                 or f"Uma historia no tema '{theme}', calorosa, emocionante e divertida, "
+                    f"onde {who} e o heroi/protagonista da propria aventura."
+                    + (f" Use o nome '{name}' como protagonista ao longo de toda a historia." if name else ""))
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(
-        brief=brief, style=project.style or "realistic", pages=settings.ebook_pages
+        brief=brief, style=project.style or "realistic", pages=settings.ebook_pages,
+        language=language,
     )
     project.story_text = result.text
     job.cost_usd = result.cost_usd
@@ -266,28 +289,38 @@ async def handle_ebook(db: Session, job: Job) -> None:
     char_bytes = storage.get_bytes(project.character_ref["storage_key"])
     image_provider = get_image_provider()
 
+    language = project.language or "pt-BR"
+
     # 1) Divide a historia em paginas (toda a historia, sem limite fixo).
     pages_text = _parse_pages(project.story_text)
 
-    # 2) Legenda curta (resumo) por pagina — o texto integral segue para a ilustracao.
-    captions = _short_captions(pages_text)
-    try:
-        ai_caps = await get_text_provider().summarize_pages(
-            pages=pages_text, style=project.style or ""
-        )
-        if len(ai_caps) == len(pages_text) and all(c.strip() for c in ai_caps):
-            captions = [c.strip() for c in ai_caps]
-    except Exception:  # noqa: BLE001 - se o resumo falhar, usa o fallback local
-        pass
+    # 2) Texto impresso por pagina. Historias geradas pelo pipeline ja vem como
+    #    estrofes curtas rimadas (estilo WonderWraps) -> imprime o verso integral.
+    #    Historias importadas/longas -> resume em legenda curta.
+    if all(len(p) <= 260 for p in pages_text):
+        captions = list(pages_text)
+    else:
+        captions = _short_captions(pages_text)
+        try:
+            ai_caps = await get_text_provider().summarize_pages(
+                pages=pages_text, style=project.style or "", language=language
+            )
+            if len(ai_caps) == len(pages_text) and all(c.strip() for c in ai_caps):
+                captions = [c.strip() for c in ai_caps]
+        except Exception:  # noqa: BLE001 - se o resumo falhar, usa o fallback local
+            pass
 
-    # 3) Uma pagina = ilustracao (contexto completo do trecho) + legenda (resumo).
+    # 3) Uma pagina = ilustracao (contexto completo do trecho) + texto da pagina.
     pages: list[dict] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
         scene = await image_provider.generate_scene(
             prompt=(
                 f"Pagina {idx} da historia. Ilustre exatamente esta cena (contexto completo), "
                 f"com o personagem principal (da imagem de referencia) como protagonista, "
-                f"mantendo rosto/roupa identicos. Trecho: {full_text[:900]}"
+                f"mantendo rosto/roupa identicos. Composicao QUADRADA (1:1), pintura digital "
+                f"quente e luminosa de livro infantil premium, luz dourada suave; deixe uma "
+                f"area mais calma/limpa (ceu, campo, parede) para receber o texto impresso. "
+                f"Trecho: {full_text[:900]}"
             ),
             character_ref=char_bytes,
             style=project.style or "realistic",
@@ -301,8 +334,19 @@ async def handle_ebook(db: Session, job: Job) -> None:
     db.commit()
 
     name = (project.child_name or "").strip()
-    title = f"A História de {name}" if name else "A Minha História"
-    blob = ebook_builder.build_pdf(title=title, pages=pages, dedication=(project.dedication or None))
+    is_en = (language or "").lower().startswith("en")
+    title = _parse_title(project.story_text) or (
+        (f"The Adventure of {name}" if name else "My Great Adventure") if is_en
+        else (f"A Grande Aventura de {name}" if name else "A Minha Grande Aventura")
+    )
+    blob = ebook_builder.build_pdf(
+        title=title,
+        pages=pages,
+        dedication=(project.dedication or None),
+        portrait=char_bytes,
+        child_name=(name or None),
+        language=language,
+    )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
     storage.put_bytes(ebook_key, blob, mime)

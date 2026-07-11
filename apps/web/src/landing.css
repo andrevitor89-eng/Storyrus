@@ -362,9 +362,9 @@
 
 /* ---------- Banners narrativos ---------- */
 .banners { position: relative; z-index: 1; max-width: 1180px; margin: 8px auto 0; padding: 12px 22px 4px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.banner-card { position: relative; margin: 0; border-radius: 22px; overflow: hidden; min-height: 260px; display: flex; align-items: flex-end; box-shadow: 0 16px 34px rgba(0,0,0,.4); border: 2px solid #26315a; }
-.banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; }
-.banner-card figcaption { position: relative; z-index: 1; padding: 20px 18px 16px; width: 100%; background: linear-gradient(to top, rgba(10,14,32,.92) 22%, rgba(10,14,32,.55) 60%, rgba(10,14,32,0)); }
+.banner-card { position: relative; margin: 0; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 5; display: flex; align-items: flex-end; box-shadow: 0 16px 34px rgba(0,0,0,.4); border: 2px solid #26315a; }
+.banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 35%; }
+.banner-card figcaption { position: relative; z-index: 1; padding: 22px 18px 16px; width: 100%; background: linear-gradient(to top, rgba(10,14,32,.96) 14%, rgba(10,14,32,.7) 44%, rgba(10,14,32,0)); }
 .banner-card h3 { margin: 0 0 4px; color: #fff; font-size: 1.28rem; }
 .banner-card p { margin: 0; color: #dfe6fb; font-size: .95rem; line-height: 1.4; }
 [data-theme="light"] .kid .banner-card { border-color: #e6ebf5; }

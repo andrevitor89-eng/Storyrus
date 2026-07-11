@@ -84,21 +84,11 @@ class ImageProvider(Protocol):
 class TextProvider(Protocol):
     name: str
 
-    async def generate_story(self, *, brief: str, style: str, pages: int) -> TextResult:
-        """Gera a historia personalizada (etapas 5-8)."""
+    async def generate_story(
+        self, *, brief: str, style: str, pages: int, language: str = "pt-BR"
+    ) -> TextResult:
+        """Gera a historia personalizada (etapas 5-8) no idioma pedido."""
 
-    async def summarize_pages(self, *, pages: list[str], style: str = "") -> list[str]:
-        """Resume cada trecho numa legenda curta (1 por pagina do e-book)."""
-
-
-@runtime_checkable
-class VideoProvider(Protocol):
-    name: str
-
-    async def create_video(
-        self, *, image: bytes, prompt: str, duration_s: int
-    ) -> VideoJob:
-        """Dispara a geracao de video (retorna task PENDING/RUNNING)."""
-
-    async def poll_video(self, *, provider_task_id: str) -> VideoJob:
-        """Consulta o estado da tarefa de video."""
+    async def summarize_pages(
+        self, *, pages: list[str], style: str = "", language: str = "pt-BR"
+    ) -> list[str]

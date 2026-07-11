@@ -30,12 +30,12 @@ const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcGift, IcHeart];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-2.jpg"];
+const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
 const BOOK = ["livro-1.jpg", "livro-2.jpg", "livro-3.jpg", "livro-4.jpg", "livro-5.jpg"];
 const CATALOG_IMGS = ["tema-oceano.jpg", "tema-floresta.jpg", "tema-dino.jpg", "tema-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
 const SURPRISE_IMG = "tema-surpresa.jpg";
-const BANNER_IMGS = ["livro-1.jpg", "livro-3.jpg", "livro-5.jpg"];
+const BANNER_IMGS = ["livro-3.jpg", "livro-2.jpg", "livro-4.jpg"];
 const BA_PAIRS = [
   ["foto-bebe.jpg", "arte-bebe.jpg"],
   ["foto-menina.jpg", "arte-menina.jpg"],

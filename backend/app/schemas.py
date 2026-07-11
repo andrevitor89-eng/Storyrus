@@ -38,6 +38,8 @@ class ProjectCreateIn(BaseModel):
     theme: str | None = Field(default=None, max_length=32)
     child_name: str | None = Field(default=None, max_length=80)
     dedication: str | None = Field(default=None, max_length=500)
+    # Idioma do livro: 'pt-BR' (padrao) ou 'en'.
+    language: str | None = Field(default="pt-BR", max_length=8)
 
 
 class ProjectOut(BaseModel):
@@ -48,6 +50,7 @@ class ProjectOut(BaseModel):
     theme: str | None
     child_name: str | None
     dedication: str | None
+    language: str | None
     story_text: str | None
     ebook_url: str | None
     video_url: str | None
