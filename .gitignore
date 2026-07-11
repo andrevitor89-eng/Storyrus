@@ -28,6 +28,7 @@ run_book.py
 run_example.py
 run_ba.py
 run_books5.py
+run_story.py
 fotos-novas/
 livros5/
 
@@ -79,3 +80,14 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/livro-3.jpg
 !apps/web/public/exemplos/livro-4.jpg
 !apps/web/public/exemplos/livro-5.jpg
+!apps/web/public/exemplos/ebook-1.jpg
+!apps/web/public/exemplos/ebook-2.jpg
+!apps/web/public/exemplos/ebook-3.jpg
+!apps/web/public/exemplos/ebook-4.jpg
+!apps/web/public/exemplos/ebook-5.jpg
+!apps/web/public/exemplos/ebook-6.jpg
+!apps/web/public/exemplos/ebook-7.jpg
+!apps/web/public/exemplos/ebook-8.jpg
+!apps/web/public/exemplos/ebook-9.jpg
+!apps/web/public/exemplos/ebook-10.jpg
+!apps/web/public/exemplos/ebook-11.jpg

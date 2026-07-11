@@ -256,14 +256,18 @@ async def handle_story(db: Session, job: Job) -> None:
     if (language or "").lower().startswith("en"):
         who = f"the child named {name}" if name else "the child from the photo"
         brief = (_payload(job).get("brief")
-                 or f"A warm, exciting and fun story about the theme '{theme}', where {who} "
-                    "is the hero of their own adventure."
+                 or f"Invent an ORIGINAL, coherent story in the theme '{theme}': give {who} "
+                    "a small goal or problem, a journey with one or two obstacles and friends "
+                    "who help, a gentle climax and a warm ending with a subtle lesson (courage, "
+                    f"friendship or kindness). {who} is the hero from beginning to end."
                     + (f" Use the name '{name}' for the hero throughout the whole story." if name else ""))
     else:
         who = f"a crianca chamada {name}" if name else "o personagem da foto"
         brief = (_payload(job).get("brief")
-                 or f"Uma historia no tema '{theme}', calorosa, emocionante e divertida, "
-                    f"onde {who} e o heroi/protagonista da propria aventura."
+                 or f"Invente uma historia ORIGINAL e coerente no tema '{theme}': de a {who} "
+                    "um pequeno objetivo ou problema, uma jornada com um ou dois obstaculos e "
+                    "amiguinhos que ajudam, um climax gentil e um final acolhedor com uma licao "
+                    f"sutil (coragem, amizade ou gentileza). {who} e o protagonista do inicio ao fim."
                     + (f" Use o nome '{name}' como protagonista ao longo de toda a historia." if name else ""))
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(

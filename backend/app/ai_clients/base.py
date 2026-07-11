@@ -91,4 +91,16 @@ class TextProvider(Protocol):
 
     async def summarize_pages(
         self, *, pages: list[str], style: str = "", language: str = "pt-BR"
-    ) -> list[str]
+    ) -> list[str]:
+        """Resume cada pagina em uma legenda curta, no idioma pedido."""
+
+
+@runtime_checkable
+class VideoProvider(Protocol):
+    name: str
+
+    async def create_video(self, *, image: bytes, prompt: str, duration_s: int) -> VideoJob:
+        """Cria a tarefa (assincrona) de video a partir de uma imagem de referencia."""
+
+    async def poll_video(self, *, provider_task_id: str) -> VideoJob:
+        """Consulta o status/resultado de uma tarefa de video."""
