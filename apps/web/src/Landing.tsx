@@ -65,22 +65,33 @@ function FlipBook({ pages }: { pages: string[] }) {
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(0);
-  const flip = (dir: "next" | "prev") => {
-    if (anim) return;
-    const t = dir === "next" ? i + 1 : i - 1;
-    if (t < 0 || t >= pages.length) return;
+  const [paused, setPaused] = useState(false);
+  const busy = useRef(false);
+  const flip = (dir: "next" | "prev", loop = false) => {
+    if (busy.current) return;
+    let t = dir === "next" ? i + 1 : i - 1;
+    if (t >= pages.length) { if (!loop) return; t = 0; }
+    if (t < 0) return;
+    busy.current = true;
     setTarget(t);
     setAnim(dir);
-    window.setTimeout(() => { setI(t); setAnim(null); }, 720);
+    window.setTimeout(() => { setI(t); setAnim(null); busy.current = false; }, 720);
   };
+  // transição automática — vira a página sozinho (pausa ao passar o mouse)
+  useEffect(() => {
+    if (paused) return;
+    const id = window.setTimeout(() => flip("next", true), 3000);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i, paused, pages.length]);
   const baseSrc = anim === "next" ? pages[target] : pages[i];
   const turnSrc = anim === "next" ? pages[i] : pages[target];
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    if (e.clientX - r.left > r.width / 2) flip("next"); else flip("prev");
+    if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
   };
   return (
-    <div className="flipbook">
+    <div className="flipbook" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
       <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0} aria-label="Página anterior">‹</button>
       <div className="fb-stage" onClick={onStage} role="button" tabIndex={0} aria-label="Virar página">
         <span className="fb-spine" />
