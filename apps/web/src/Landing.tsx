@@ -80,7 +80,7 @@ function FlipBook({ pages }: { pages: string[] }) {
   // transição automática — vira a página sozinho (pausa ao passar o mouse)
   useEffect(() => {
     if (paused) return;
-    const id = window.setTimeout(() => flip("next", true), 3000);
+    const id = window.setTimeout(() => flip("next", true), 1500);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i, paused, pages.length]);
