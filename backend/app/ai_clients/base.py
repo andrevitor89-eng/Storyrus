@@ -69,6 +69,16 @@ class ImageProvider(Protocol):
     ) -> ImageResult:
         """Gera a versao realistica/ilustrada a partir da foto, com prompt customizado."""
 
+    async def refine_identity(
+        self, *, photo: bytes, illustration: bytes, style: str = "realistic"
+    ) -> ImageResult:
+        """Segundo passe: corrige a ilustracao para ficar fiel a foto real (opcional)."""
+
+    async def refine_scene(
+        self, *, character_ref: bytes, scene: bytes, style: str = "realistic"
+    ) -> ImageResult:
+        """Segundo passe de cena: corrige o protagonista para bater com o personagem (opcional)."""
+
 
 @runtime_checkable
 class TextProvider(Protocol):

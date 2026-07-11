@@ -39,7 +39,10 @@ def create_project(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> Project:
-    project = Project(user_id=user.id, style=body.style.value, theme=body.theme)
+    project = Project(
+        user_id=user.id, style=body.style.value, theme=body.theme,
+        child_name=(body.child_name or None), dedication=(body.dedication or None),
+    )
     db.add(project)
     db.commit()
     db.refresh(project)

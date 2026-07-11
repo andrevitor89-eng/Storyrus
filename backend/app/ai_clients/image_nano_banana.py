@@ -72,12 +72,63 @@ class NanoBananaImageProvider:
         parts: list[dict] = [
             {
                 "text": (
-                    f"Crie um personagem ilustrado no estilo '{style}' baseado nas fotos. "
-                    f"Mantenha tracos reconheciveis. {prompt}"
+                    f"Crie um personagem ilustrado no estilo '{style}' a partir das fotos de "
+                    "referencia. TRAVE A IDENTIDADE da crianca: mantenha exatamente o mesmo "
+                    "formato de rosto, a mesma cor e formato dos olhos, o mesmo nariz, boca e "
+                    "sobrancelhas, a mesma cor/textura/comprimento do cabelo (incluindo franja e "
+                    "risca), o mesmo tom de pele e a mesma idade aparente, de modo que a crianca "
+                    "permaneca 100% reconhecivel ao lado da foto. Use a mesma roupa das fotos. "
+                    "Nao invente tracos, nao 'embeleze', nao mude a etnia nem a idade. "
+                    "Sem texto, sem moldura, sem marca d'agua. "
+                    f"{prompt}"
                 )
             }
         ]
         parts.extend(_inline(img, "image/jpeg") for img in reference_images)
+        return await self._generate(parts)
+
+    async def refine_scene(
+        self, *, character_ref: bytes, scene: bytes, style: str = "realistic"
+    ) -> ImageResult:
+        """Segundo passe de cena: corrige o protagonista para bater com o personagem-base,
+        sem alterar cenario, pose ou composicao da cena."""
+        parts: list[dict] = [
+            {
+                "text": (
+                    "Voce recebe DUAS imagens: (1) o PERSONAGEM de referencia e (2) uma "
+                    "ILUSTRACAO de cena de um livro infantil. Ajuste APENAS o protagonista da "
+                    "cena para ficar IDENTICO ao personagem de referencia: mesmo rosto (formato, "
+                    "olhos, nariz, boca, sobrancelhas), mesmo cabelo (cor, textura, comprimento, "
+                    "franja), mesmo tom de pele, mesma idade e a mesma roupa. NAO mude o cenario, "
+                    "a composicao, o enquadramento, a pose nem a acao da cena. Mantenha o mesmo "
+                    "estilo de ilustracao. Devolva apenas a cena corrigida."
+                )
+            },
+            _inline(character_ref, "image/png"),
+            _inline(scene, "image/png"),
+        ]
+        return await self._generate(parts)
+
+    async def refine_identity(
+        self, *, photo: bytes, illustration: bytes, style: str = "realistic"
+    ) -> ImageResult:
+        """Segundo passe: corrige a ILUSTRACAO para ficar fiel a FOTO real da crianca."""
+        parts: list[dict] = [
+            {
+                "text": (
+                    "Voce recebe DUAS imagens: (1) a FOTO real de uma crianca e (2) uma "
+                    "ILUSTRACAO dela. Ajuste a ILUSTRACAO para que o ROSTO fique o mais fiel "
+                    "possivel a FOTO: mesmo formato de rosto e bochechas, mesmos olhos (cor, "
+                    "formato e espacamento), mesmo nariz, mesma boca e sorriso, mesmas "
+                    "sobrancelhas, mesmo cabelo (cor, textura, comprimento, franja e risca), "
+                    "mesmo tom de pele e a mesma idade. Preserve o estilo de ilustracao de livro "
+                    "infantil (pintura digital suave), a mesma roupa, a mesma pose e o mesmo "
+                    "fundo. Nao torne a imagem uma foto. Devolva apenas a ilustracao corrigida."
+                )
+            },
+            _inline(photo, "image/jpeg"),
+            _inline(illustration, "image/png"),
+        ]
         return await self._generate(parts)
 
     async def generate_realistic(
@@ -95,8 +146,12 @@ class NanoBananaImageProvider:
         parts = [
             {
                 "text": (
-                    f"Use o personagem da imagem de referencia (mantenha-o identico) e "
-                    f"ilustre a cena no estilo '{style}': {prompt}"
+                    "Use o personagem da IMAGEM DE REFERENCIA como protagonista e mantenha-o "
+                    "IDENTICO em todas as paginas: mesmo rosto (formato, olhos, nariz, boca, "
+                    "sobrancelhas), mesmo cabelo (cor, textura, comprimento, franja), mesmo tom "
+                    "de pele, mesma idade e a mesma roupa. Nao mude a aparencia da crianca de uma "
+                    "cena para outra. Apenas mude a pose, a acao e o cenario conforme a cena. "
+                    f"Ilustre no estilo '{style}', consistente com a referencia: {prompt}"
                 )
             },
             _inline(character_ref, "image/png"),

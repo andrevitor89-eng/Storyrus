@@ -26,6 +26,8 @@ livro_menino/
 livro_menino2/
 run_book.py
 run_example.py
+run_ba.py
+fotos-novas/
 
 # Expo
 .expo/
@@ -61,6 +63,10 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/arte-menino.jpg
 !apps/web/public/exemplos/foto-pai.jpg
 !apps/web/public/exemplos/arte-pai.jpg
+!apps/web/public/exemplos/foto-menina.jpg
+!apps/web/public/exemplos/arte-menina.jpg
+!apps/web/public/exemplos/foto-bebe2.jpg
+!apps/web/public/exemplos/arte-bebe2.jpg
 !apps/web/public/exemplos/hist-personagem.jpg
 !apps/web/public/exemplos/hist-1.jpg
 !apps/web/public/exemplos/hist-2.jpg

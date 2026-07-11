@@ -50,6 +50,8 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [storyMode, setStoryMode] = useState<StoryMode>("invent");
   const [storyText, setStoryText] = useState("");
+  const [childName, setChildName] = useState("");
+  const [dedication, setDedication] = useState("");
   const [assets, setAssets] = useState<{
     character_url: string | null;
     realistic_url: string | null;
@@ -65,6 +67,12 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       const s = localStorage.getItem("theme");
       document.documentElement.setAttribute("data-theme", s === "light" ? "light" : "dark");
     } catch { /* ignore */ }
+  }, []);
+
+  // pré-seleciona o tema da história vindo do catálogo (/app?tema=...)
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search).get("tema");
+    if (q && THEMES.some((x) => x.id === q)) setTheme(q as Theme);
   }, []);
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<number | null>(null);
@@ -114,7 +122,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      const p = await api.createProject(style, theme);
+      const p = await api.createProject(style, theme, childName, dedication);
       setProject(p);
       setJobs([]);
       setPhotoUploaded(false);
@@ -253,6 +261,26 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               </button>
             ))}
           </div>
+
+          <h3 className="field-label">3 · Nome e dedicatória (opcional)</h3>
+          <label>
+            Nome da criança
+            <input
+              value={childName}
+              onChange={(e) => setChildName(e.target.value)}
+              placeholder="Ex.: Lila"
+              maxLength={80}
+            />
+          </label>
+          <label>
+            Dedicatória (aparece na 2ª página do livro)
+            <input
+              value={dedication}
+              onChange={(e) => setDedication(e.target.value)}
+              placeholder="Ex.: Para a Lila, com todo o amor da mamãe."
+              maxLength={200}
+            />
+          </label>
 
           <button disabled={busy} onClick={start}>
             Criar projeto

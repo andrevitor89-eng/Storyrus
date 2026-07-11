@@ -36,6 +36,8 @@ class ProjectCreateIn(BaseModel):
     style: ProjectStyle = ProjectStyle.REALISTIC
     # Tema narrativo da história (aventura, princesas, espaco, ...). Aberto por design.
     theme: str | None = Field(default=None, max_length=32)
+    child_name: str | None = Field(default=None, max_length=80)
+    dedication: str | None = Field(default=None, max_length=500)
 
 
 class ProjectOut(BaseModel):
@@ -44,6 +46,8 @@ class ProjectOut(BaseModel):
     status: str
     style: str | None
     theme: str | None
+    child_name: str | None
+    dedication: str | None
     story_text: str | None
     ebook_url: str | None
     video_url: str | None

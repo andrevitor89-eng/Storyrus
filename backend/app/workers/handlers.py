@@ -49,6 +49,9 @@ def _parse_pages(story: str, limit: int = 200) -> list[str]:
     TEXTO INTEGRAL daquele trecho (contexto completo para a ilustracao).
     """
     story = (story or "").strip()
+    # remove blocos de sugestao de imagem que a IA possa ter incluido,
+    # ex.: "*(Imagem sugerida: ...)*" — nao devem virar pagina nem texto impresso
+    story = re.sub(r"(?is)\*?\(\s*imagem[^)]*\)\*?", "", story).strip()
     if not story:
         return []
 
@@ -108,6 +111,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
         reference_images=refs,
         style=project.style or "realistic",
     )
+    result = await _refine_identity(provider, refs[0], result, project.style or "realistic")
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -116,6 +120,44 @@ async def handle_avatar(db: Session, job: Job) -> None:
     project.character_ref = {"storage_key": key, "mime": result.mime_type}
     job.cost_usd = result.cost_usd
     _set_status(db, project, ProjectStatus.AVATAR_READY)
+
+
+async def _refine_identity(provider, photo_bytes, result, style):
+    """Passe opcional: corrige a ilustracao para ficar mais fiel a foto.
+
+    Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
+    """
+    refine = getattr(provider, "refine_identity", None)
+    if refine is None or not photo_bytes:
+        return result
+    try:
+        refined = await refine(
+            photo=photo_bytes, illustration=result.image_bytes, style=style
+        )
+        if refined and getattr(refined, "image_bytes", None):
+            return refined
+    except Exception:  # noqa: BLE001 - refinamento e opcional
+        pass
+    return result
+
+
+async def _refine_scene(provider, character_ref, result, style):
+    """Passe opcional de cena: corrige o protagonista para bater com o personagem-base.
+
+    Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
+    """
+    refine = getattr(provider, "refine_scene", None)
+    if refine is None or not character_ref:
+        return result
+    try:
+        refined = await refine(
+            character_ref=character_ref, scene=result.image_bytes, style=style
+        )
+        if refined and getattr(refined, "image_bytes", None):
+            return refined
+    except Exception:  # noqa: BLE001 - refinamento e opcional
+        pass
+    return result
 
 
 # Prompt fixo para a imagem realistica (usada como referencia do video).
@@ -154,6 +196,7 @@ async def handle_realistic(db: Session, job: Job) -> None:
     result = await provider.generate_realistic(
         photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
     )
+    result = await _refine_identity(provider, photo_bytes, result, "realistic")
 
     key = storage.new_key(project.id, AssetKind.REALISTIC.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -194,9 +237,12 @@ async def handle_story(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
 
     theme = project.theme or "aventura"
+    name = (project.child_name or "").strip()
+    who = f"a crianca chamada {name}" if name else "o personagem da foto"
     brief = (_payload(job).get("brief")
              or f"Uma historia no tema '{theme}', calorosa, emocionante e divertida, "
-                f"onde o personagem da foto e o heroi/protagonista da propria aventura.")
+                f"onde {who} e o heroi/protagonista da propria aventura."
+                + (f" Use o nome '{name}' como protagonista ao longo de toda a historia." if name else ""))
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(
         brief=brief, style=project.style or "realistic", pages=settings.ebook_pages
@@ -246,6 +292,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
             character_ref=char_bytes,
             style=project.style or "realistic",
         )
+        scene = await _refine_scene(image_provider, char_bytes, scene, project.style or "realistic")
         img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
         storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
         db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
@@ -253,7 +300,9 @@ async def handle_ebook(db: Session, job: Job) -> None:
         pages.append({"text": caption, "image": scene.image_bytes, "mime": scene.mime_type})
     db.commit()
 
-    blob = ebook_builder.build_pdf(title="A Minha História", pages=pages)
+    name = (project.child_name or "").strip()
+    title = f"A História de {name}" if name else "A Minha História"
+    blob = ebook_builder.build_pdf(title=title, pages=pages, dedication=(project.dedication or None))
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
     storage.put_bytes(ebook_key, blob, mime)
@@ -279,6 +328,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
             character_ref=char_bytes,
             style=project.style or "realistic",
         )
+        kf = await _refine_scene(image_provider, char_bytes, kf, project.style or "realistic")
         key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(kf.mime_type))
         storage.put_bytes(key, kf.image_bytes, kf.mime_type)
         db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,

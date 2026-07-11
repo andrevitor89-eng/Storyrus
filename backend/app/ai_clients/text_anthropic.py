@@ -11,9 +11,13 @@ _VERSION = "2023-06-01"
 _MODEL = "claude-opus-4-8"
 
 _SYSTEM = (
-    "Voce e um autor de livros infantis. Escreva uma historia calorosa, "
-    "coerente e adequada a faixa etaria, dividida em paginas curtas. "
-    "Mantenha o personagem principal consistente do inicio ao fim."
+    "Você é um autor brasileiro de livros infantis. Escreva SEMPRE em português "
+    "do Brasil impecável: ortografia, gramática, pontuação e ACENTUAÇÃO corretas "
+    "(nunca omita acentos: coração, você, céu, mãozinha). Escreva uma história "
+    "calorosa, coerente e adequada à faixa etária, dividida em páginas curtas. "
+    "Mantenha o personagem principal consistente do início ao fim. Responda "
+    "APENAS com o texto da história — sem sugestões de imagem, notas, títulos de "
+    "seção ou comentários entre parênteses/asteriscos."
 )
 
 
@@ -29,9 +33,10 @@ class AnthropicTextProvider:
             raise ProviderError("ANTHROPIC_API_KEY ausente", transient=False)
 
         user = (
-            f"Estilo visual: {style}. Numero de paginas: {pages}.\n"
+            f"Estilo visual: {style}. Número de páginas: {pages}.\n"
             f"Brief do personagem/tema: {brief}\n\n"
-            f"Devolva exatamente {pages} paginas, cada uma iniciada por 'Pagina N:'."
+            f"Devolva exatamente {pages} páginas, cada uma iniciada por 'Página N:'. "
+            f"Texto em português do Brasil com acentuação correta, sem sugestões de imagem."
         )
         payload = {
             "model": _MODEL,
