@@ -633,3 +633,34 @@
   box-shadow: inset 0 0 0 1px rgba(244,183,64,.25); }
 [data-theme="light"] .kid .kfoot-nav a { background: #fff; color: var(--ink); box-shadow: 0 6px 14px rgba(0,0,0,.05); }
 [data-theme="light"] .kid .kfoot-copy { color: #9aa3bd; }
+
+/* ===== ilustrações "vivas" (estilo TellMyTale): zoom lento + leve respiração ===== */
+@keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.09); } }
+@keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
+@keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+
+/* banners narrativos: Ken Burns suave */
+.banner-card img { animation: kenburns 16s ease-in-out infinite alternate; will-change: transform; }
+.banner-card:nth-child(2) img { animation-duration: 19s; }
+.banner-card:nth-child(3) img { animation-duration: 22s; }
+
+/* capas do catálogo: Ken Burns + zoom no hover */
+.cat-cover img { animation: kenburns 20s ease-in-out infinite alternate; transition: transform .5s ease; will-change: transform; }
+.cat-card:hover .cat-cover img { animation-play-state: paused; transform: scale(1.07); }
+
+/* como funciona: leve zoom vivo */
+.howex-card img { animation: kenburns 24s ease-in-out infinite alternate; will-change: transform; }
+
+/* antes/depois: respiração sutil (mantém a moldura preenchida) */
+.ba-side img, .bap-side img { animation: breathe 5.5s ease-in-out infinite; will-change: transform; }
+.beforeafter .ba-side:nth-child(3) img { animation-duration: 6.4s; }
+.bapair:nth-child(2) .bap-side img { animation-duration: 6.2s; }
+.bapair:nth-child(3) .bap-side img { animation-duration: 5s; }
+
+/* flutuação suave da legenda/estrelas do hero */
+.ba-caption { animation: floaty 4.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .banner-card img, .cat-cover img, .howex-card img,
+  .ba-side img, .bap-side img, .ba-caption { animation: none; }
+}
