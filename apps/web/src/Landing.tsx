@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -35,6 +35,14 @@ const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
 const CATALOG_IMGS = ["tema-oceano.jpg", "tema-floresta.jpg", "tema-dino.jpg", "tema-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
 const SURPRISE_IMG = "tema-surpresa.jpg";
+/* livro 3D do catálogo: páginas internas + fundo pastel */
+const BOOK3D = [
+  { bg: "#cfe3f0", pages: ["livro-4.jpg", "livro-3.jpg"] },
+  { bg: "#e2e6d1", pages: ["ebook-8.jpg", "ebook-6.jpg"] },
+  { bg: "#ecd8b2", pages: ["ebook-4.jpg", "ebook-7.jpg"] },
+  { bg: "#f4d6da", pages: ["ebook-9.jpg", "ebook-10.jpg"] },
+];
+const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["hist-1.jpg", "hist-4.jpg"] };
 const BANNER_IMGS = ["livro-3.jpg", "livro-2.jpg", "livro-4.jpg"];
 const BA_PAIRS = [
   ["foto-bebe.jpg", "arte-bebe.jpg"],
@@ -104,6 +112,32 @@ function FlipBook({ pages }: { pages: string[] }) {
   );
 }
 
+/* Livro 3D que abre sozinho (estilo vitrine), com frase manuscrita e seta */
+function Book3D({ cover, pages, bg, quote, alt, off, delay }: {
+  cover: string; pages: string[]; bg: string; quote: string; alt: string; off?: string; delay: number;
+}) {
+  return (
+    <div className="b3d" style={{ background: bg, "--d": `${delay}s` } as CSSProperties}>
+      <div className="b3d-quote" aria-hidden>
+        <span>“{quote}”</span>
+        <svg className="b3d-arr" viewBox="0 0 60 44" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M8 6c16 3 30 14 37 28" /><path d="M46.5 25l-1.5 9.5-9.5-2.5" />
+        </svg>
+      </div>
+      <div className="b3d-scene">
+        <div className="b3d-book">
+          <div className="b3d-right"><img src={exUrl(pages[1])} alt="" loading="lazy" /></div>
+          <div className="b3d-cover">
+            <div className="b3d-front"><img src={exUrl(cover)} alt={alt} loading="lazy" /></div>
+            <div className="b3d-back"><img src={exUrl(pages[0])} alt="" loading="lazy" /></div>
+          </div>
+        </div>
+      </div>
+      {off && <span className="b3d-off">{off}</span>}
+    </div>
+  );
+}
+
 const I18N = {
   pt: {
     nav: ["Início", "Livros", "Como funciona", "Avaliações", "Perguntas"],
@@ -140,13 +174,14 @@ const I18N = {
     ],
     cat_title: "Escolha um livro", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
     price: "a partir de R$ 49", price_note: "digital ou impresso", personalize: "Personalizar",
+    save: "ECONOMIZE 33%",
     catalog: [
-      { t: "Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade" },
-      { t: "Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza" },
-      { t: "Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade" },
-      { t: "Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar" },
+      { t: "Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
+      { t: "Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza", quote: "Onde a gentileza acende vaga-lumes." },
+      { t: "Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade", quote: "Uma viagem divertida à era dos dinossauros." },
+      { t: "Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar", quote: "Uma noite feita para sonhar e brilhar." },
     ],
-    surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida" },
+    surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida", quote: "Cada foto guarda uma aventura secreta." },
     promise_title: "Cada detalhe pensado para ser especial",
     promise_sub: "Do envio da foto à entrega, tudo é feito para o livro chegar pronto para presentear.",
     promise: [
@@ -212,13 +247,14 @@ const I18N = {
     ],
     cat_title: "Choose a book", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
     price: "from $29", price_note: "digital or printed", personalize: "Personalize",
+    save: "SAVE 33%",
     catalog: [
-      { t: "Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship" },
-      { t: "Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature" },
-      { t: "Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity" },
-      { t: "Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine" },
+      { t: "Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
+      { t: "Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature", quote: "Where kindness lights up the fireflies." },
+      { t: "Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity", quote: "A fun journey back to the dinosaur age." },
+      { t: "Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine", quote: "A night made to dream and shine." },
     ],
-    surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure" },
+    surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure", quote: "Every photo hides a secret adventure." },
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to delivery, everything is made so the book arrives ready to gift.",
     promise: [
@@ -377,10 +413,8 @@ export function Landing() {
         <div className="cat-grid">
           {t.catalog.map((c, i) => (
             <div className="cat-card reveal" key={c.t}>
-              <div className="cat-cover">
-                <img src={exUrl(CATALOG_IMGS[i])} alt={c.t} loading="lazy" />
-                <span className="cat-off">-33%</span>
-              </div>
+              <Book3D cover={CATALOG_IMGS[i]} pages={BOOK3D[i].pages} bg={BOOK3D[i].bg}
+                quote={c.quote} alt={c.t} off={t.save} delay={-i * 2.3} />
               <div className="cat-body">
                 <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
                 <h3>{c.t}</h3>
@@ -391,10 +425,8 @@ export function Landing() {
             </div>
           ))}
           <div className="cat-card surprise reveal">
-            <div className="cat-cover">
-              <img src={exUrl(SURPRISE_IMG)} alt={t.surprise.t} loading="lazy" />
-              <span className="cat-ia"><IcSparkle /></span>
-            </div>
+            <Book3D cover={SURPRISE_IMG} pages={BOOK3D_SURPRISE.pages} bg={BOOK3D_SURPRISE.bg}
+              quote={t.surprise.quote} alt={t.surprise.t} delay={-9.2} />
             <div className="cat-body">
               <div className="cat-badges"><span className="cat-age">{t.surprise.age}</span><span className="cat-tag">{t.surprise.tag}</span></div>
               <h3>{t.surprise.t}</h3>
