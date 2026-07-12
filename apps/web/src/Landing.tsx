@@ -32,9 +32,9 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
-const CATALOG_IMGS = ["tema-oceano.jpg", "tema-floresta.jpg", "tema-dino.jpg", "tema-circo.jpg"];
+const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
-const SURPRISE_IMG = "tema-surpresa.jpg";
+const SURPRISE_IMG = "capa-surpresa.jpg";
 /* livro 3D do catálogo: páginas internas + fundo pastel */
 const BOOK3D = [
   { bg: "#cfe3f0", pages: ["livro-4.jpg", "livro-3.jpg"] },
