@@ -6,28 +6,38 @@ OUT = "/app/_out"
 os.makedirs(OUT, exist_ok=True)
 
 BASE = (
-    "CAPA de livro infantil premium em pintura digital suave e vibrante, formato RETRATO "
-    "(vertical, proporcao 3:4, como uma capa de livro real). O TITULO '{titulo}' deve aparecer "
-    "escrito na capa, no terco superior, em letras grandes, arredondadas, ludicas e bem "
-    "legiveis (escreva EXATAMENTE '{titulo}', sem erros de grafia). O protagonista e a crianca "
-    "da IMAGEM DE REFERENCIA — mantenha o mesmo rosto, cabelo, tom de pele e idade — em "
-    "destaque no centro da capa, feliz, {cena}. Composicao classica de capa: titulo no topo, "
-    "personagem no centro, cenario envolvente ao redor. Sem nenhum outro texto, sem nome de "
-    "autor, sem moldura, sem bordas, sem marca d'agua."
+    "CAPA de livro infantil com qualidade de BEST-SELLER premium, pintura digital rica e "
+    "vibrante, iluminacao cinematografica quente, profundidade e atmosfera magica. "
+    "Formato RETRATO vertical (proporcao 3:4), a arte preenche TODO o quadro, sem bordas "
+    "brancas, sem margens vazias. "
+    "TITULO '{titulo}' no terco superior, em letras grandes, arredondadas e bem legiveis, "
+    "com acabamento decorativo no estilo do tema: {letras}. Grafia EXATA, letra por letra: "
+    "'{titulo}' — nao invente nem troque letras. "
+    "O protagonista e a crianca da IMAGEM DE REFERENCIA — mesmo rosto, cabelo, tom de pele "
+    "e idade — em POSE DINAMICA e cheia de vida, interagindo com a cena (nunca parada "
+    "posando para a camera): {cena}. "
+    "Composicao de capa profissional: titulo no topo, acao no centro, cenario envolvente "
+    "com detalhes encantadores. Sem nenhum outro texto, sem autor, sem moldura, sem marca d'agua."
 )
 
-# (arquivo de saida, titulo na capa, referencia de personagem, cena)
+# (arquivo, titulo, letras tematicas, referencia, cena)
+CENA_FLORESTA = (
+    "a menina corre descalca por uma trilha magica ao entardecer, cercada por vaga-lumes "
+    "brilhantes, com uma corca, uma raposa e um coelhinho correndo junto dela, arvores "
+    "gigantes com luzinhas e cogumelos coloridos. O titulo esta TODO EM MAIUSCULAS, em duas "
+    "linhas: linha 1 'FLORESTA' e linha 2 'ENCANTADA'. A palavra da linha 2 tem exatamente "
+    "estas 9 letras, nesta ordem: E N C A N T A D A. PROIBIDO usar a letra H — a palavra "
+    "correta em portugues e 'ENCANTADA' (sem H apos o C), nunca 'ENCHANTADA' ou 'ENCHANTED'. "
+    "Copie letra por letra"
+)
+
 JOBS = [
-    ("capa-dino", "MUNDO DOS DINOSSAUROS", "/app/_ref-dino.jpg",
-     "num vale pre-historico ensolarado, ao lado de filhotes de dinossauros doceis e simpaticos. "
-     "O titulo esta TODO EM MAIUSCULAS, em duas linhas: linha 1 'MUNDO DOS' e linha 2 "
-     "'DINOSSAUROS'. A palavra da linha 2 tem exatamente estas 11 letras, nesta ordem: "
-     "D I N O S S A U R O S. Copie letra por letra, nao troque nem invente letras"),
-    ("capa-dino2", "Mundo dos Dinossauros", "/app/_ref-dino.jpg",
-     "num vale pre-historico ensolarado, ao lado de filhotes de dinossauros doceis e simpaticos. "
-     "O titulo esta em duas linhas: linha 1 'Mundo dos' e linha 2 'Dinossauros'. "
-     "A palavra 'Dinossauros' e soletrada assim: D-i-n-o-s-s-a-u-r-o-s (dois S no meio, "
-     "termina em 'auros'). Verifique a grafia antes de desenhar, letra por letra"),
+    ("capa-floresta", "FLORESTA ENCANTADA",
+     "letras verdes com folhinhas, flores e pontos de luz de vaga-lume",
+     "/app/_ref-floresta.jpg", CENA_FLORESTA),
+    ("capa-floresta2", "FLORESTA ENCANTADA",
+     "letras verdes iluminadas com musgo, folhinhas e vaga-lumes",
+     "/app/_ref-floresta.jpg", CENA_FLORESTA),
 ]
 
 
@@ -42,10 +52,10 @@ def to_jpg(raw: bytes, path: str, maxw: int = 900):
 
 async def main():
     img = NanoBananaImageProvider()
-    for base, titulo, ref_path, cena in JOBS:
+    for base, titulo, letras, ref_path, cena in JOBS:
         try:
             ref = open(ref_path, "rb").read()
-            prompt = BASE.format(titulo=titulo, cena=cena)
+            prompt = BASE.format(titulo=titulo, letras=letras, cena=cena)
             r = await img.generate_scene(prompt=prompt, character_ref=ref,
                                          style="pintura digital de livro infantil premium")
             n = to_jpg(r.image_bytes, f"{OUT}/{base}.jpg")

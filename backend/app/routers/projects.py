@@ -102,6 +102,13 @@ def project_assets(
 
     ebook_url = url_for(project.ebook_url) if project.ebook_url else None
 
+    storyboard = db.scalar(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.STORYBOARD.value)
+        .order_by(Asset.created_at.desc())
+    )
+    storyboard_url = url_for(storyboard.storage_key) if storyboard else None
+
     video_url = None
     if project.video_url:
         video_url = (
@@ -115,6 +122,7 @@ def project_assets(
         "realistic_url": realistic_url,
         "page_images": page_images,
         "ebook_url": ebook_url,
+        "storyboard_url": storyboard_url,
         "video_url": video_url,
     }
 
@@ -268,6 +276,16 @@ def set_story_text(
             cost_credits=0,
             attempts=1,
             result={"source": "user"},
+        )
+    )
+    # Em background: gera o roteiro completo (storyboard) do vídeo, sem custo.
+    db.add(
+        Job(
+            project_id=project.id,
+            type=JobType.STORYBOARD.value,
+            status=JobStatus.PENDING.value,
+            cost_credits=0,
+            result={"payload": {"auto": True, "source": "user_story"}},
         )
     )
     db.commit()

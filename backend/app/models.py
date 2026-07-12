@@ -103,6 +103,7 @@ class AssetKind(str, enum.Enum):
     REALISTIC = "realistic_avatar"
     PAGE_IMAGE = "page_image"
     EBOOK = "ebook"
+    STORYBOARD = "storyboard"
     VIDEO = "video"
 
 

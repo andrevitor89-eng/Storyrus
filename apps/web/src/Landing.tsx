@@ -32,17 +32,17 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
-const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
+const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
 const SURPRISE_IMG = "capa-surpresa.jpg";
-/* livro 3D do catálogo: páginas internas + fundo pastel */
+/* livro 3D do catálogo: 6 páginas internas (3 spreads) + fundo pastel */
 const BOOK3D = [
-  { bg: "#cfe3f0", pages: ["livro-4.jpg", "livro-3.jpg"] },
-  { bg: "#e2e6d1", pages: ["ebook-8.jpg", "ebook-6.jpg"] },
-  { bg: "#ecd8b2", pages: ["ebook-4.jpg", "ebook-7.jpg"] },
-  { bg: "#f4d6da", pages: ["ebook-9.jpg", "ebook-10.jpg"] },
+  { bg: "#cfe3f0", pages: ["livro-4.jpg", "livro-3.jpg", "hist-1.jpg", "hist-2.jpg", "hist-3.jpg", "livro-2.jpg"] },
+  { bg: "#e2e6d1", pages: ["ebook-8.jpg", "ebook-6.jpg", "ebook-4.jpg", "ebook-7.jpg", "ebook-9.jpg", "ebook-10.jpg"] },
+  { bg: "#ecd8b2", pages: ["hist-4.jpg", "hist-1.jpg", "livro-3.jpg", "hist-2.jpg", "livro-4.jpg", "hist-3.jpg"] },
+  { bg: "#f4d6da", pages: ["livro-3.jpg", "livro-4.jpg", "hist-2.jpg", "hist-4.jpg", "hist-1.jpg", "livro-2.jpg"] },
 ];
-const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["hist-1.jpg", "hist-4.jpg"] };
+const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-9.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
 const BANNER_IMGS = ["livro-3.jpg", "livro-2.jpg", "livro-4.jpg"];
 const BA_PAIRS = [
   ["foto-bebe.jpg", "arte-bebe.jpg"],
@@ -73,7 +73,6 @@ function FlipBook({ pages }: { pages: string[] }) {
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(0);
-  const [paused, setPaused] = useState(false);
   const busy = useRef(false);
   const flip = (dir: "next" | "prev", loop = false) => {
     if (busy.current) return;
@@ -85,13 +84,12 @@ function FlipBook({ pages }: { pages: string[] }) {
     setAnim(dir);
     window.setTimeout(() => { setI(t); setAnim(null); busy.current = false; }, 720);
   };
-  // transição automática — vira a página sozinho (pausa ao passar o mouse)
+  // transição automática — vira a página sozinho, sem parar com o mouse
   useEffect(() => {
-    if (paused) return;
     const id = window.setTimeout(() => flip("next", true), 1500);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i, paused, pages.length]);
+  }, [i, pages.length]);
   const baseSrc = anim === "next" ? pages[target] : pages[i];
   const turnSrc = anim === "next" ? pages[i] : pages[target];
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
@@ -99,7 +97,7 @@ function FlipBook({ pages }: { pages: string[] }) {
     if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
   };
   return (
-    <div className="flipbook" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
+    <div className="flipbook">
       <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0} aria-label="Página anterior">‹</button>
       <div className="fb-stage" onClick={onStage} role="button" tabIndex={0} aria-label="Virar página">
         <span className="fb-spine" />
@@ -126,7 +124,15 @@ function Book3D({ cover, pages, bg, quote, alt, off, delay }: {
       </div>
       <div className="b3d-scene">
         <div className="b3d-book">
-          <div className="b3d-right"><img src={exUrl(pages[1])} alt="" loading="lazy" /></div>
+          <div className="b3d-right"><img src={exUrl(pages[5])} alt="" loading="lazy" /></div>
+          <div className="b3d-leaf b3d-l2">
+            <div className="b3d-front"><img src={exUrl(pages[3])} alt="" loading="lazy" /></div>
+            <div className="b3d-back"><img src={exUrl(pages[4])} alt="" loading="lazy" /></div>
+          </div>
+          <div className="b3d-leaf b3d-l1">
+            <div className="b3d-front"><img src={exUrl(pages[1])} alt="" loading="lazy" /></div>
+            <div className="b3d-back"><img src={exUrl(pages[2])} alt="" loading="lazy" /></div>
+          </div>
           <div className="b3d-cover">
             <div className="b3d-front"><img src={exUrl(cover)} alt={alt} loading="lazy" /></div>
             <div className="b3d-back"><img src={exUrl(pages[0])} alt="" loading="lazy" /></div>

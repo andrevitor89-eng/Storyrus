@@ -30,6 +30,11 @@ _SYSTEM_PT = (
     "imagens vívidas e inesperadas, palavras sonoras (plim!, zup!, splash!), um toque "
     "de humor ou magia, vocabulário rico e ideias ORIGINAIS — nada de clichês nem "
     "histórias repetidas. Cada livro deve ser único, emocionante e inesquecível.\n\n"
+    "EDUCATIVO: cada história também ENSINA. Entrelace à ação e às falas as "
+    "curiosidades verdadeiras pedidas no brief — a criança aprende brincando, sem "
+    "tom de aula. Use o nome certo das coisas (animais, plantas, planetas, "
+    "instrumentos) com uma explicação simples de 1 frase, e faça o final retomar "
+    "com leveza o que o herói descobriu e aprendeu.\n\n"
     "FORMA: cada página é uma ESTROFE CURTA de 2 a 4 versos RIMADOS (AABB ou ABCB), "
     "musical, no máximo ~40 palavras, descrevendo UMA cena visual clara (lugar + "
     "ação do protagonista). O SENTIDO vem SEMPRE primeiro: a rima nunca pode tornar "
@@ -55,6 +60,11 @@ _SYSTEM_EN = (
     "unexpected imagery, playful sound words (plink!, whoosh!, splash!), a touch of "
     "humor or magic, rich vocabulary and ORIGINAL ideas — no clichés or repeated "
     "plots. Every book must be unique, exciting and unforgettable.\n\n"
+    "EDUCATIONAL: every story also TEACHES. Weave the true facts requested in the "
+    "brief into the action and dialogue — the child learns while playing, never "
+    "lectured. Name things correctly (animals, plants, planets, tools) with a simple "
+    "one-sentence explanation, and let the ending lightly revisit what the hero "
+    "discovered and learned.\n\n"
     "FORM: each page is a SHORT STANZA of 2 to 4 RHYMING lines (AABB or ABCB), "
     "musical, at most ~40 words, depicting ONE clear visual scene (place + the hero's "
     "action). MEANING always comes first: rhyme must never make a line confusing or "
@@ -153,6 +163,106 @@ class AnthropicTextProvider:
         )
         usage = data.get("usage", {})
         return TextResult(text=text, meta={"usage": usage, "model": _MODEL})
+
+    async def generate_storyboard(
+        self, *, story: str, theme: str, title: str = "", language: str = "pt-BR"
+    ) -> TextResult:
+        """Gera o ROTEIRO COMPLETO (storyboard) do vídeo a partir da história pronta.
+
+        Retorna JSON com uma cena por página: narração, cenário, ação, câmera,
+        clima, duração e prompts de imagem/vídeo — insumo para gerar o vídeo depois.
+        """
+        if not self._api_key:
+            raise ProviderError("ANTHROPIC_API_KEY ausente", transient=False)
+
+        if _lang(language) == "en":
+            system = (
+                "You are a senior scriptwriter for children's animation. You receive a "
+                "finished picture-book story and return the COMPLETE storyboard to "
+                "produce a narrated animated video. Reply ONLY with valid UTF-8 JSON — "
+                "no markdown, no comments, no extra text."
+            )
+            user = (
+                f"Title: {title}\nTheme: {theme}\n\nSTORY (one page per stanza):\n{story}\n\n"
+                "Build the full storyboard for the animated video of this story.\n"
+                "Rules:\n"
+                "- One scene per page, in the SAME order (do not skip pages).\n"
+                "- narration: the page text, proofread — it will be read aloud.\n"
+                "- setting and action: concrete and visual (place, light, what the hero does).\n"
+                "- camera: one simple move (slow push-in, pan, lateral tracking, zoom out...).\n"
+                "- mood: the emotional tone of the scene.\n"
+                "- duration_s: integer from 4 to 8.\n"
+                "- image_prompt: detailed prompt to illustrate the scene keyframe (same hero "
+                "as the reference image, same outfit).\n"
+                "- video_prompt: 1-2 sentences describing the scene motion for an "
+                "image-to-video generator.\n"
+                "- logline: one-sentence summary. moral: what the child learns.\n"
+                'Reply ONLY with valid JSON in this format:\n'
+                '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
+                '"narration": "...", "setting": "...", "action": "...", "camera": "...", '
+                '"mood": "...", "duration_s": 5, "image_prompt": "...", "video_prompt": "..."}]}'
+            )
+        else:
+            system = (
+                "Você é roteirista sênior de animações infantis. Recebe a história pronta "
+                "de um livro ilustrado e devolve o ROTEIRO COMPLETO (storyboard) para "
+                "produzir um vídeo animado narrado. Responda APENAS com JSON válido em "
+                "UTF-8 — sem markdown, sem comentários, sem texto extra."
+            )
+            user = (
+                f"Título: {title}\nTema: {theme}\n\nHISTÓRIA (uma página por estrofe):\n{story}\n\n"
+                "Monte o roteiro completo do vídeo animado desta história.\n"
+                "Regras:\n"
+                "- Uma cena por página, na MESMA ordem (não pule páginas).\n"
+                "- narration: o texto da página revisado (ortografia e acentos perfeitos) — "
+                "será narrado em voz alta.\n"
+                "- setting e action: concretos e visuais (lugar, luz, o que o protagonista faz).\n"
+                "- camera: um movimento simples (aproximação lenta, panorâmica, travelling "
+                "lateral, zoom out...).\n"
+                "- mood: o clima emocional da cena.\n"
+                "- duration_s: inteiro de 4 a 8.\n"
+                "- image_prompt: prompt detalhado para ilustrar o keyframe da cena (mesmo "
+                "protagonista da imagem de referência, mesma roupa).\n"
+                "- video_prompt: 1-2 frases descrevendo o movimento da cena para um gerador "
+                "de vídeo image-to-video.\n"
+                "- logline: resumo de 1 frase. moral: o que a criança aprende.\n"
+                'Responda SOMENTE com JSON válido neste formato:\n'
+                '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
+                '"narration": "...", "setting": "...", "action": "...", "camera": "...", '
+                '"mood": "...", "duration_s": 5, "image_prompt": "...", "video_prompt": "..."}]}'
+            )
+
+        payload = {
+            "model": _MODEL,
+            "max_tokens": 6000,
+            "system": system,
+            "messages": [{"role": "user", "content": user}],
+        }
+        headers = {
+            "x-api-key": self._api_key,
+            "anthropic-version": _VERSION,
+            "content-type": "application/json",
+        }
+        try:
+            async with httpx.AsyncClient(timeout=self._timeout) as client:
+                resp = await client.post(_API_URL, json=payload, headers=headers)
+        except httpx.RequestError as exc:
+            raise ProviderError(f"Falha de rede: {exc}", transient=True) from exc
+        if resp.status_code in (429, 500, 502, 503, 504):
+            raise ProviderError(
+                f"Anthropic {resp.status_code}", transient=True, status_code=resp.status_code
+            )
+        if resp.status_code >= 400:
+            raise ProviderError(
+                f"Anthropic {resp.status_code}: {resp.text[:300]}",
+                transient=False,
+                status_code=resp.status_code,
+            )
+        data = resp.json()
+        text = "".join(
+            b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
+        )
+        return TextResult(text=text, meta={"usage": data.get("usage", {}), "model": _MODEL})
 
     async def summarize_pages(
         self, *, pages: list[str], style: str = "", language: str = "pt-BR"
