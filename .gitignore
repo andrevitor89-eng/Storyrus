@@ -96,3 +96,7 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/capa-dino2.jpg
 !apps/web/public/exemplos/capa-circo.jpg
 !apps/web/public/exemplos/capa-surpresa.jpg
+!apps/web/public/exemplos/mar-*.jpg
+!apps/web/public/exemplos/flor-*.jpg
+!apps/web/public/exemplos/dino-*.jpg
+!apps/web/public/exemplos/circo-*.jpg

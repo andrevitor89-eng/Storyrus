@@ -35,12 +35,12 @@ const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
 const SURPRISE_IMG = "capa-surpresa.jpg";
-/* livro 3D do catálogo: 6 páginas internas (3 spreads) + fundo pastel */
+/* livro 3D do catálogo: 6 páginas internas (3 spreads) do livro de exemplo de cada tema */
 const BOOK3D = [
-  { bg: "#cfe3f0", pages: ["livro-4.jpg", "livro-3.jpg", "hist-1.jpg", "hist-2.jpg", "hist-3.jpg", "livro-2.jpg"] },
-  { bg: "#e2e6d1", pages: ["ebook-8.jpg", "ebook-6.jpg", "ebook-4.jpg", "ebook-7.jpg", "ebook-9.jpg", "ebook-10.jpg"] },
-  { bg: "#ecd8b2", pages: ["hist-4.jpg", "hist-1.jpg", "livro-3.jpg", "hist-2.jpg", "livro-4.jpg", "hist-3.jpg"] },
-  { bg: "#f4d6da", pages: ["livro-3.jpg", "livro-4.jpg", "hist-2.jpg", "hist-4.jpg", "hist-1.jpg", "livro-2.jpg"] },
+  { bg: "#cfe3f0", pages: ["mar-1.jpg", "mar-2.jpg", "mar-3.jpg", "mar-4.jpg", "mar-5.jpg", "mar-6.jpg"] },
+  { bg: "#e2e6d1", pages: ["flor-1.jpg", "flor-2.jpg", "flor-3.jpg", "flor-4.jpg", "flor-5.jpg", "flor-6.jpg"] },
+  { bg: "#ecd8b2", pages: ["dino-1.jpg", "dino-2.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"] },
+  { bg: "#f4d6da", pages: ["circo-1.jpg", "circo-2.jpg", "circo-3.jpg", "circo-4.jpg", "circo-5.jpg", "circo-6.jpg"] },
 ];
 const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-9.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
 const BANNER_IMGS = ["livro-3.jpg", "livro-2.jpg", "livro-4.jpg"];
