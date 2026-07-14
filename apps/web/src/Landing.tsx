@@ -34,12 +34,13 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
-// Dicas de enquadramento: 1 exemplo bom (verde) + 3 a evitar (X)
-const SHOTS = [
-  { kind: "good" as const, ok: true },
-  { kind: "multi" as const, ok: false },
-  { kind: "side" as const, ok: false },
-  { kind: "covered" as const, ok: false },
+// Dicas de enquadramento: 1 exemplo bom (verde) + 3 a evitar (X).
+// img = foto real (colocar em public/exemplos/); art = ilustração SVG de fallback.
+const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean }[] = [
+  { img: "dica-boa.png", ok: true },
+  { img: "dica-multi.png", ok: false },
+  { img: "dica-lado.png", ok: false },
+  { art: "covered", ok: false },
 ];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
@@ -582,9 +583,9 @@ export function Landing() {
           <p className="shot-sub">{t.shot_sub}</p>
           <div className="shot-grid">
             {SHOTS.map((s, i) => (
-              <div className={`shot${s.ok ? " ok" : ""}`} key={s.kind}>
+              <div className={`shot${s.ok ? " ok" : ""}`} key={i}>
                 <div className="shot-ava">
-                  <ShotArt kind={s.kind} />
+                  {s.img ? <img src={exUrl(s.img)} alt={t.shots[i]} loading="lazy" /> : <ShotArt kind={s.art ?? "good"} />}
                   <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                 </div>
                 <p>{t.shots[i]}</p>
