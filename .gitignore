@@ -20,6 +20,10 @@ apps/web/e2e/
 # Backend + render.yaml versionados (deploy no Render).
 # Os segredos ficam em backend/.env, que continua ignorado.
 
+# Fontes do ebook (geradas no build por backend/scripts/fetch_fonts.py)
+backend/app/assets/fonts/*.ttf
+backend/app/assets/fonts/OFL.txt
+
 # Artefatos locais do pipeline (nao versionar)
 pipeline_out/
 livro_menino/

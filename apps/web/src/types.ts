@@ -14,6 +14,8 @@ export interface Project {
   status: string;
   style: string | null;
   theme?: string | null;
+  child_name?: string | null;
+  child_age?: number | null;
   story_text: string | null;
   ebook_url: string | null;
   video_url: string | null;

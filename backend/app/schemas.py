@@ -37,6 +37,8 @@ class ProjectCreateIn(BaseModel):
     # Tema narrativo da história (aventura, princesas, espaco, ...). Aberto por design.
     theme: str | None = Field(default=None, max_length=32)
     child_name: str | None = Field(default=None, max_length=80)
+    # Idade da criança em anos; guia tom, vocabulário e complexidade da história.
+    child_age: int | None = Field(default=None, ge=0, le=12)
     dedication: str | None = Field(default=None, max_length=500)
     # Idioma do livro: 'pt-BR' (padrao) ou 'en'.
     language: str | None = Field(default="pt-BR", max_length=8)
@@ -49,6 +51,7 @@ class ProjectOut(BaseModel):
     style: str | None
     theme: str | None
     child_name: str | None
+    child_age: int | None
     dedication: str | None
     language: str | None
     story_text: str | None

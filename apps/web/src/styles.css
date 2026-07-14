@@ -176,7 +176,7 @@ button.chip { background: #17213f; border-color: var(--line); color: var(--txt);
 button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
 /* logo sem selo: fundo do site + contorno branco ao redor das imagens */
 .auth-logo, .hdr-logo { background: none; box-shadow: none; padding: 0;
-  filter: drop-shadow(1.4px 0 0 #fff) drop-shadow(-1.4px 0 0 #fff) drop-shadow(0 1.4px 0 #fff) drop-shadow(0 -1.4px 0 #fff); }
+  filter: drop-shadow(0.7px 0 0 #fff) drop-shadow(-0.7px 0 0 #fff) drop-shadow(0 0.7px 0 #fff) drop-shadow(0 -0.7px 0 #fff); }
 
 /* ===== TEMA CLARO (studio) — o escuro é o padrão ===== */
 html[data-theme="light"] {

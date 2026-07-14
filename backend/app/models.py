@@ -141,6 +141,8 @@ class Project(Base):
     style: Mapped[str | None] = mapped_column(String(16), nullable=True)
     theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
     child_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    # Idade da criança em anos (0-12); orienta tom, vocabulário e forma da história.
+    child_age: Mapped[int | None] = mapped_column(Integer, nullable=True)
     dedication: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Idioma do livro (BCP-47 simplificado: 'pt-BR', 'en'); None => pt-BR.
     language: Mapped[str | None] = mapped_column(String(8), nullable=True)

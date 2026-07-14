@@ -398,7 +398,7 @@ async def handle_story(db: Session, job: Job) -> None:
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(
         brief=brief, style=project.style or "realistic", pages=settings.ebook_pages,
-        language=language,
+        language=language, age=project.child_age,
     )
     project.story_text = result.text
     job.cost_usd = result.cost_usd

@@ -85,9 +85,10 @@ class TextProvider(Protocol):
     name: str
 
     async def generate_story(
-        self, *, brief: str, style: str, pages: int, language: str = "pt-BR"
+        self, *, brief: str, style: str, pages: int, language: str = "pt-BR",
+        age: int | None = None,
     ) -> TextResult:
-        """Gera a historia personalizada (etapas 5-8) no idioma pedido."""
+        """Gera a historia personalizada (etapas 5-8) no idioma e idade pedidos."""
 
     async def summarize_pages(
         self, *, pages: list[str], style: str = "", language: str = "pt-BR"

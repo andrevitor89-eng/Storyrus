@@ -96,12 +96,17 @@ class NanoBananaImageProvider:
             {
                 "text": (
                     "Voce recebe DUAS imagens: (1) o PERSONAGEM de referencia e (2) uma "
-                    "ILUSTRACAO de cena de um livro infantil. Ajuste APENAS o protagonista da "
-                    "cena para ficar IDENTICO ao personagem de referencia: mesmo rosto (formato, "
-                    "olhos, nariz, boca, sobrancelhas), mesmo cabelo (cor, textura, comprimento, "
-                    "franja), mesmo tom de pele, mesma idade e a mesma roupa. NAO mude o cenario, "
-                    "a composicao, o enquadramento, a pose nem a acao da cena. Mantenha o mesmo "
-                    "estilo de ilustracao. Devolva apenas a cena corrigida."
+                    "ILUSTRACAO de cena de um livro infantil. Sua unica tarefa e corrigir a "
+                    "identidade: redesenhe o protagonista da cena para ficar IDENTICO ao "
+                    "personagem de referencia, copiando traco a traco: formato do rosto e "
+                    "bochechas; olhos (cor, formato, tamanho, espacamento); sobrancelhas; "
+                    "nariz; boca e sorriso; cabelo (cor exata, textura, comprimento, franja, "
+                    "risca); tom de pele; idade aparente; e a MESMA ROUPA da referencia, peca "
+                    "por peca, com as mesmas cores. Se qualquer um desses itens estiver "
+                    "diferente na cena, substitua-o pelo da referencia — a referencia SEMPRE "
+                    "vence. NAO mude o cenario, a composicao, o enquadramento, a iluminacao, "
+                    "a pose nem a acao da cena. Mantenha o mesmo estilo de ilustracao. "
+                    "Devolva apenas a cena corrigida."
                 )
             },
             _inline(character_ref, "image/png"),
@@ -146,12 +151,24 @@ class NanoBananaImageProvider:
         parts = [
             {
                 "text": (
-                    "Use o personagem da IMAGEM DE REFERENCIA como protagonista e mantenha-o "
-                    "IDENTICO em todas as paginas: mesmo rosto (formato, olhos, nariz, boca, "
-                    "sobrancelhas), mesmo cabelo (cor, textura, comprimento, franja), mesmo tom "
-                    "de pele, mesma idade e a mesma roupa. Nao mude a aparencia da crianca de uma "
-                    "cena para outra. Apenas mude a pose, a acao e o cenario conforme a cena. "
-                    f"Ilustre no estilo '{style}', consistente com a referencia: {prompt}"
+                    "REGRA CRITICA DE IDENTIDADE (prioridade maxima, acima de qualquer outra "
+                    "instrucao): a imagem anexada e a UNICA fonte de verdade para a aparencia "
+                    "do protagonista. Voce NAO esta criando um personagem novo — voce esta "
+                    "REDESENHANDO EXATAMENTE A MESMA CRIANCA da imagem de referencia em uma "
+                    "nova cena. Copie da referencia, traco a traco: formato do rosto e das "
+                    "bochechas; olhos (cor, formato, tamanho, espacamento); sobrancelhas; "
+                    "nariz; boca e sorriso; cabelo (cor exata, textura, comprimento, franja, "
+                    "risca, penteado); tom de pele; idade aparente; proporcoes do corpo; e a "
+                    "MESMA ROUPA da referencia, peca por peca, com as mesmas cores. "
+                    "Colocada lado a lado com a referencia, a crianca desta cena deve parecer "
+                    "dois quadros do mesmo filme. "
+                    "PROIBIDO: inventar outra crianca parecida; mudar cabelo, roupa, idade, "
+                    "etnia ou tom de pele; 'embelezar' ou estilizar o rosto de forma diferente "
+                    "da referencia; adicionar acessorios que nao existem na referencia. "
+                    "O que PODE mudar: apenas pose, expressao, acao, enquadramento e cenario, "
+                    "conforme a cena descrita. "
+                    f"Ilustre no estilo '{style}', identico ao estilo da referencia. "
+                    f"Cena: {prompt}"
                 )
             },
             _inline(character_ref, "image/png"),

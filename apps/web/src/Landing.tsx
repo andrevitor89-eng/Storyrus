@@ -44,6 +44,12 @@ const BOOK3D = [
 ];
 const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-9.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
 const BANNER_IMGS = ["livro-3.jpg", "livro-2.jpg", "livro-4.jpg"];
+// Slides do hero: foto real (em cima) -> capa do livro gerado
+const HERO_SLIDES = [
+  { photo: "foto-menino.jpg", book: "capa-circo.jpg" },
+  { photo: "foto-menina.jpg", book: "capa-floresta.jpg" },
+  { photo: "foto-bebe.jpg", book: "capa-oceano.jpg" },
+];
 const BA_PAIRS = [
   ["foto-bebe.jpg", "arte-bebe.jpg"],
   ["foto-menina.jpg", "arte-menina.jpg"],
@@ -154,6 +160,7 @@ const I18N = {
     cta_play: "Criar minha história", cta_disc: "Ver como funciona",
     trust: "Encantando famílias do início ao fim",
     ba_before: "ANTES", ba_after: "DEPOIS", ba_caption: "Você envia a foto. A gente cria o encanto.",
+    ba_preview: "PRÉ-VISUALIZAÇÃO",
     ba_title: "Antes e depois de verdade",
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
@@ -227,6 +234,7 @@ const I18N = {
     cta_play: "Create my story", cta_disc: "See how it works",
     trust: "Delighting families from start to finish",
     ba_before: "BEFORE", ba_after: "AFTER", ba_caption: "You send the photo. We create the magic.",
+    ba_preview: "PREVIEW",
     ba_title: "Real before and after",
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
@@ -301,8 +309,15 @@ export function Landing() {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
+  const [heroI, setHeroI] = useState(0);
   const t = I18N[lang];
   const navHrefs = ["#top", "#catalogo", "#como", "#reviews", "#faq"];
+
+  // Auto-avanço do carrossel do hero
+  useEffect(() => {
+    const id = setInterval(() => setHeroI((v) => (v + 1) % HERO_SLIDES.length), 5200);
+    return () => clearInterval(id);
+  }, []);
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
   useEffect(() => {
@@ -350,31 +365,47 @@ export function Landing() {
         </div>
       </header>
 
-      {/* HERO */}
-      <section className="khero">
-        <div className="khero-text">
-          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <h1>{t.h_pre}<span className="g1">{t.w1}</span>{t.c1}<span className="g3">{t.w2}</span>{t.h_suf}</h1>
-          <p className="klead">{t.lead}</p>
-          <div className="khero-cta">
-            <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-            <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
+      {/* HERO — banner full-width (foto real em cima -> capa do livro), carrossel */}
+      <section className="kbanner-hero" aria-label={t.eyebrow}>
+        <div className="kbh-frame">
+          {HERO_SLIDES.map((s, i) => (
+            <div className={`kbh-slide${i === heroI ? " on" : ""}`} key={s.book} aria-hidden={i !== heroI}>
+              <img
+                className="kbh-photo"
+                src={exUrl(s.photo)}
+                alt="Foto real da criança"
+                loading={i === 0 ? "eager" : "lazy"}
+              />
+              <span className="kbh-tag">
+                <span className="kbh-tag-top"><IcEye className="ei" /> {t.ba_preview}</span>
+                <b>{t.banners[i].t}</b>
+              </span>
+              <span className="kbh-arrow" aria-hidden><IcArrow /></span>
+              <figure className="kbh-book">
+                <img src={exUrl(s.book)} alt="Capa do livro gerado" loading={i === 0 ? "eager" : "lazy"} />
+              </figure>
+              <div className="kbh-overlay">
+                <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
+                <h1>{t.banners[i].t}.</h1>
+                <p>{t.banners[i].p}</p>
+                <div className="khero-cta">
+                  <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                  <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="ba-dots kbh-dots">
+            {HERO_SLIDES.map((_, i) => (
+              <button
+                key={i}
+                className={i === heroI ? "on" : ""}
+                onClick={() => setHeroI(i)}
+                aria-label={`Slide ${i + 1}`}
+                aria-current={i === heroI}
+              />
+            ))}
           </div>
-          <div className="ktrust"><span className="stars">★★★★★</span> {t.trust}</div>
-        </div>
-        <div className="khero-art">
-          <div className="beforeafter">
-            <figure className="ba-side">
-              <img src={exUrl("foto-bebe.jpg")} alt="Foto real" loading="eager" />
-              <span className="ba-tag tag-before">{t.ba_before}</span>
-            </figure>
-            <span className="ba-arrow" aria-hidden><IcArrow /></span>
-            <figure className="ba-side">
-              <img src={exUrl("arte-bebe.jpg")} alt="Ilustração criada" loading="eager" />
-              <span className="ba-tag tag-after">{t.ba_after}</span>
-            </figure>
-          </div>
-          <div className="ba-caption"><IcHeart className="ci" /> {t.ba_caption}</div>
         </div>
       </section>
 

@@ -22,7 +22,8 @@ _SYSTEM_PT = (
     "amizade, gentileza). Cada página AVANÇA a história de forma lógica e se conecta "
     "à anterior — nunca cenas soltas, aleatórias ou sem nexo. O protagonista é o "
     "mesmo do início ao fim, com o mesmo nome. Seja concreto e sensorial (lugares, "
-    "cores, sons), adequado a crianças de 3 a 7 anos, com ternura e sem medo.\n\n"
+    "cores, sons), com ternura e sem medo, sempre adequado à IDADE indicada no "
+    "pedido (se nenhuma idade for informada, escreva para 3 a 7 anos).\n\n"
     "CRIATIVIDADE E ENCANTAMENTO: abra a página 1 com um GANCHO irresistível que dê "
     "vontade de virar a página. Crie um momento de DESCOBERTA ou uma pequena SURPRESA "
     "no meio, aumente a emoção e a tensão gentil até um CLÍMAX triunfante, e termine "
@@ -35,11 +36,19 @@ _SYSTEM_PT = (
     "tom de aula. Use o nome certo das coisas (animais, plantas, planetas, "
     "instrumentos) com uma explicação simples de 1 frase, e faça o final retomar "
     "com leveza o que o herói descobriu e aprendeu.\n\n"
-    "FORMA: cada página é uma ESTROFE CURTA de 2 a 4 versos RIMADOS (AABB ou ABCB), "
-    "musical, no máximo ~40 palavras, descrevendo UMA cena visual clara (lugar + "
-    "ação do protagonista). O SENTIDO vem SEMPRE primeiro: a rima nunca pode tornar "
-    "a frase confusa ou sem sentido; se precisar escolher, prefira clareza e beleza "
-    "à rima forçada.\n\n"
+    "FORMA: cada página é uma ESTROFE CURTA de 2 a 4 versos, musical, no máximo "
+    "~40 palavras, descrevendo UMA cena visual clara (lugar + ação do protagonista).\n\n"
+    "REGRA DE OURO DO SENTIDO: cada verso deve ser uma frase NATURAL do português, "
+    "na ordem direta (sujeito + verbo + complemento), que faria sentido perfeito lida "
+    "em voz alta como prosa. A rima é um enfeite, nunca o objetivo: use rima (AABB ou "
+    "ABCB) apenas quando ela vier naturalmente; é PROIBIDO inverter a ordem das "
+    "palavras, escolher palavras estranhas ao contexto ou sacrificar a lógica da cena "
+    "só para rimar. Verso solto e claro vale mais que rima forçada e confusa.\n\n"
+    "REVISÃO FINAL (obrigatória): antes de responder, releia a história inteira como "
+    "se fosse prosa, do título à última página, e reescreva qualquer verso confuso, "
+    "incoerente, sem nexo com a cena ou com rima forçada. Confira que a sequência de "
+    "eventos faz sentido de uma página para a outra e que o final resolve o objetivo "
+    "apresentado no começo.\n\n"
     "Responda APENAS com o texto pedido — sem notas, comentários ou sugestões de imagem."
 )
 _SYSTEM_EN = (
@@ -51,8 +60,9 @@ _SYSTEM_EN = (
     "a warm ending with a subtle lesson (courage, friendship, kindness). Each page "
     "ADVANCES the story logically and connects to the previous one — never random, "
     "disconnected or nonsensical scenes. The hero stays the same throughout, with the "
-    "same name. Be concrete and sensory (places, colors, sounds), suitable for ages "
-    "3-7, warm and never scary.\n\n"
+    "same name. Be concrete and sensory (places, colors, sounds), warm and never "
+    "scary, always suited to the AGE stated in the request (if no age is given, "
+    "write for ages 3-7).\n\n"
     "CREATIVITY AND WONDER: open page 1 with an irresistible HOOK that makes the "
     "reader want to turn the page. Add a moment of DISCOVERY or a small SURPRISE in "
     "the middle, build emotion and gentle tension to a triumphant CLIMAX, and end "
@@ -65,16 +75,106 @@ _SYSTEM_EN = (
     "lectured. Name things correctly (animals, plants, planets, tools) with a simple "
     "one-sentence explanation, and let the ending lightly revisit what the hero "
     "discovered and learned.\n\n"
-    "FORM: each page is a SHORT STANZA of 2 to 4 RHYMING lines (AABB or ABCB), "
-    "musical, at most ~40 words, depicting ONE clear visual scene (place + the hero's "
-    "action). MEANING always comes first: rhyme must never make a line confusing or "
-    "nonsensical; if you must choose, prefer clarity and beauty over forced rhyme.\n\n"
+    "FORM: each page is a SHORT STANZA of 2 to 4 lines, musical, at most ~40 words, "
+    "depicting ONE clear visual scene (place + the hero's action).\n\n"
+    "GOLDEN RULE OF MEANING: every line must be a NATURAL English sentence, in "
+    "direct order (subject + verb + complement), that would read perfectly as prose "
+    "aloud. Rhyme is decoration, never the goal: rhyme (AABB or ABCB) only when it "
+    "comes naturally; it is FORBIDDEN to invert word order, pick words foreign to the "
+    "scene, or sacrifice the logic of the moment just to rhyme. A clear unrhymed line "
+    "beats a forced, confusing rhyme.\n\n"
+    "FINAL REVISION (mandatory): before replying, re-read the whole story as prose, "
+    "from title to last page, and rewrite any line that is confusing, incoherent, "
+    "disconnected from its scene, or forced into rhyme. Check that events flow "
+    "logically page to page and the ending resolves the goal set at the start.\n\n"
     "Reply ONLY with the requested text — no notes, comments or image suggestions."
 )
 
 
 def _lang(language: str | None) -> str:
     return "en" if (language or "").lower().startswith("en") else "pt-BR"
+
+
+# --------------------------------------------------------------------------- #
+# Adequação por idade: tom, vocabulário, forma e intensidade da aventura.
+# --------------------------------------------------------------------------- #
+def _age_rules(age: int | None, lang: str) -> str:
+    if age is None:
+        return ""
+    if lang == "en":
+        if age <= 2:
+            rules = (
+                "Baby/toddler book: NO plot or conflict — just one warm discovery in a "
+                "familiar setting. Very short lines (3 to 7 words), lots of repetition "
+                "and playful sounds (boom!, splash!), everyday words the child already "
+                "knows, at most ~20 words per page. Soothing, sing-song, ideal to read aloud."
+            )
+        elif age <= 4:
+            rules = (
+                "Preschool: ONE small, concrete problem and a very simple, linear plot. "
+                "Short sentences in direct order, familiar vocabulary, repetition and easy "
+                "natural rhymes, zero scary moments. Emotions named simply (happy, curious)."
+            )
+        elif age <= 7:
+            rules = (
+                "Ages 5-7: a real little adventure with 1-2 obstacles, light humor and "
+                "wonder. Rich but accessible vocabulary (explain any new word through the "
+                "scene), gentle tension always resolved warmly."
+            )
+        elif age <= 10:
+            rules = (
+                "Ages 8-10: a layered plot with a twist or clever surprise, real stakes and "
+                "smart humor. Broad vocabulary, varied sentences, NO babyish tone or "
+                "excessive diminutives. The hero solves the problem through own ideas and effort."
+            )
+        else:
+            rules = (
+                "Preteen (11-12): confident, adventurous tone with a real challenge, "
+                "dilemma and agency. Witty dialogue, no cutesy language at all, richer "
+                "vocabulary and imagery. The lesson stays implicit in the action, never spelled out."
+            )
+        return (
+            f"\nREADER AGE: the child is {age} years old. Adapt tone, vocabulary, plot "
+            f"complexity and emotional intensity strictly to this age. {rules}\n"
+        )
+    if age <= 2:
+        rules = (
+            "Livro de bebê: SEM enredo ou conflito — apenas uma descoberta carinhosa num "
+            "cenário familiar. Versos bem curtos (3 a 7 palavras), muita repetição e sons "
+            "divertidos (bum!, splash!), palavras do dia a dia que a criança já conhece, "
+            "no máximo ~20 palavras por página. Ritmo de cantiga, gostoso de ler em voz alta."
+        )
+    elif age <= 4:
+        rules = (
+            "Pré-escola: UM problema pequeno e concreto e um enredo bem simples e linear. "
+            "Frases curtas na ordem direta, vocabulário familiar, repetição e rimas fáceis "
+            "e naturais, nenhum momento assustador. Emoções nomeadas de forma simples "
+            "(feliz, curioso)."
+        )
+    elif age <= 7:
+        rules = (
+            "5 a 7 anos: uma pequena aventura de verdade com 1 ou 2 obstáculos, humor leve "
+            "e encantamento. Vocabulário rico mas acessível (explique palavra nova pela "
+            "própria cena), tensão gentil sempre resolvida com acolhimento."
+        )
+    elif age <= 10:
+        rules = (
+            "8 a 10 anos: enredo com camadas, uma reviravolta ou surpresa inteligente, "
+            "desafio real e humor esperto. Vocabulário amplo, frases variadas, SEM tom de "
+            "bebê nem diminutivos em excesso. O herói resolve o problema com as próprias "
+            "ideias e esforço."
+        )
+    else:
+        rules = (
+            "Pré-adolescente (11-12): tom confiante e aventureiro, com desafio real, "
+            "dilema e protagonismo. Diálogos espertos, nada de linguagem infantilizada, "
+            "vocabulário e imagens mais ricos. A lição fica implícita na ação, nunca "
+            "explicada."
+        )
+    return (
+        f"\nIDADE DO LEITOR: a criança tem {age} anos. Adapte tom, vocabulário, "
+        f"complexidade do enredo e intensidade emocional exatamente a essa idade. {rules}\n"
+    )
 
 
 class AnthropicTextProvider:
@@ -85,17 +185,20 @@ class AnthropicTextProvider:
         self._timeout = timeout
 
     async def generate_story(
-        self, *, brief: str, style: str, pages: int, language: str = "pt-BR"
+        self, *, brief: str, style: str, pages: int, language: str = "pt-BR",
+        age: int | None = None,
     ) -> TextResult:
         if not self._api_key:
             raise ProviderError("ANTHROPIC_API_KEY ausente", transient=False)
 
         lang = _lang(language)
+        age_block = _age_rules(age, "en" if lang == "en" else "pt")
         if lang == "en":
             system = _SYSTEM_EN
             user = (
                 f"Visual style: {style}. Number of pages: {pages}.\n"
-                f"Character/theme brief: {brief}\n\n"
+                f"Character/theme brief: {brief}\n"
+                f"{age_block}\n"
                 "First, silently plan an original, coherent plot within the theme: a goal "
                 "or small problem, a journey with an obstacle and friends who help, a gentle "
                 "climax and a warm resolution with a subtle lesson. Then structure it across "
@@ -106,13 +209,15 @@ class AnthropicTextProvider:
                 f"Line 1 => 'Título: <book title featuring the hero's name, e.g. "
                 f"\"NAME and the Great Adventure\">'.\n"
                 f"Then exactly {pages} pages, each starting with 'Página N:' followed by "
-                "the stanza (2-4 short rhyming lines). No image suggestions."
+                "the stanza (2-4 short, natural lines; rhyme only when effortless). "
+                "No image suggestions."
             )
         else:
             system = _SYSTEM_PT
             user = (
                 f"Estilo visual: {style}. Número de páginas: {pages}.\n"
-                f"Brief do personagem/tema: {brief}\n\n"
+                f"Brief do personagem/tema: {brief}\n"
+                f"{age_block}\n"
                 "Primeiro, planeje em silêncio um enredo ORIGINAL e coerente dentro do "
                 "tema: um objetivo ou pequeno problema, uma jornada com um obstáculo e "
                 "amiguinhos que ajudam, um clímax gentil e um desfecho caloroso com uma "
@@ -125,8 +230,9 @@ class AnthropicTextProvider:
                 "Linha 1 => 'Título: <título do livro com o nome do protagonista, ex.: "
                 "\"NOME e a Grande Aventura\">'.\n"
                 f"Depois exatamente {pages} páginas, cada uma iniciada por 'Página N:' "
-                "seguida da estrofe (2 a 4 versos curtos rimados). Português do Brasil "
-                "com acentuação correta, sem sugestões de imagem."
+                "seguida da estrofe (2 a 4 versos curtos e naturais; rime só quando sair "
+                "sem esforço). Português do Brasil com acentuação correta, sem sugestões "
+                "de imagem."
             )
         payload = {
             "model": _MODEL,

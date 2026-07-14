@@ -51,6 +51,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [storyMode, setStoryMode] = useState<StoryMode>("invent");
   const [storyText, setStoryText] = useState("");
   const [childName, setChildName] = useState("");
+  const [childAge, setChildAge] = useState<string>("");
   const [dedication, setDedication] = useState("");
   const [assets, setAssets] = useState<{
     character_url: string | null;
@@ -122,7 +123,8 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      const p = await api.createProject(style, theme, childName, dedication);
+      const age = childAge.trim() === "" ? undefined : Number(childAge);
+      const p = await api.createProject(style, theme, childName, dedication, age);
       setProject(p);
       setJobs([]);
       setPhotoUploaded(false);
@@ -262,7 +264,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             ))}
           </div>
 
-          <h3 className="field-label">3 · Nome e dedicatória (opcional)</h3>
+          <h3 className="field-label">3 · Nome, idade e dedicatória</h3>
           <label>
             Nome da criança
             <input
@@ -270,6 +272,23 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Ex.: Lila"
               maxLength={80}
+            />
+          </label>
+          <label>
+            Idade da criança (a história é adaptada ao tom e vocabulário da idade)
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={12}
+              value={childAge}
+              onChange={(e) => {
+                const v = e.target.value;
+                if (v === "") return setChildAge("");
+                const n = Math.max(0, Math.min(12, Math.floor(Number(v))));
+                setChildAge(Number.isNaN(n) ? "" : String(n));
+              }}
+              placeholder="Ex.: 5"
             />
           </label>
           <label>

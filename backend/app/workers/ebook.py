@@ -17,9 +17,62 @@ import html
 import io
 import logging
 import math
+import os
 import unicodedata
+from pathlib import Path
 
 logger = logging.getLogger("ebook")
+
+# ------------------------------------------------------------------- fontes
+# Fonte oficial do ebook: Raleway Light 300 (https://fonts.google.com/specimen/Raleway).
+# Os TTFs estaticos sao gerados no build por backend/scripts/fetch_fonts.py.
+# Se os arquivos nao existirem (ex.: dev local sem rodar o script), cai no
+# fallback (fontes base do PDF) sem quebrar a geracao do ebook.
+_FALLBACK_FONTS = {"body": "Times-Bold", "italic": "Times-Italic", "brand": "Helvetica-Bold"}
+_fonts_cache: dict | None = None
+
+
+def _fonts_dir() -> Path | None:
+    candidates = [
+        os.environ.get("EBOOK_FONTS_DIR"),
+        Path(__file__).resolve().parents[1] / "assets" / "fonts",
+        Path("app/assets/fonts"),
+    ]
+    for cand in candidates:
+        if cand and Path(cand).is_dir():
+            return Path(cand)
+    return None
+
+
+def _fonts() -> dict:
+    """Registra a Raleway Light 300 no reportlab (uma unica vez) e devolve o mapa."""
+    global _fonts_cache
+    if _fonts_cache is not None:
+        return _fonts_cache
+    fonts = dict(_FALLBACK_FONTS)
+    try:
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+
+        base = _fonts_dir()
+        regular = base / "Raleway-Light.ttf" if base else None
+        italic = base / "Raleway-LightItalic.ttf" if base else None
+        if regular and regular.exists():
+            pdfmetrics.registerFont(TTFont("Raleway-Light", str(regular)))
+            fonts["body"] = fonts["brand"] = "Raleway-Light"
+            if italic and italic.exists():
+                pdfmetrics.registerFont(TTFont("Raleway-LightItalic", str(italic)))
+                fonts["italic"] = "Raleway-LightItalic"
+            else:
+                fonts["italic"] = "Raleway-Light"
+            logger.info("Fonte do ebook: Raleway Light 300 (%s)", base)
+        else:
+            logger.warning("Raleway-Light.ttf nao encontrada; usando fontes fallback do PDF. "
+                           "Rode backend/scripts/fetch_fonts.py para gerar.")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Falha ao registrar Raleway (%s); usando fontes fallback", exc)
+    _fonts_cache = fonts
+    return fonts
 
 CREAM = (1.0, 0.972, 0.936)
 SKY = (0.878, 0.933, 1.0)
@@ -131,6 +184,9 @@ def build_html(title: str, pages: list[dict]) -> str:
     ]
     return (
         '<!doctype html><meta charset="utf-8"><title>' + html.escape(title) + "</title>"
+        '<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300&display=swap"'
+        ' rel="stylesheet">'
+        "<style>body{font-family:'Raleway',sans-serif;font-weight:300}</style>"
         "<h1>" + html.escape(title) + "</h1>" + "".join(blocks)
     )
 
@@ -159,6 +215,7 @@ def build_pdf(
 
     tr = _strings(language)
     name = (child_name or "").strip()
+    F = _fonts()  # Raleway Light 300 (fallback: fontes base do PDF)
 
     # Formato QUADRADO, como os livros personalizados impressos (~21,6 x 21,6 cm).
     W = H = 612.0
@@ -290,13 +347,13 @@ def build_pdf(
         c.roundRect(W / 2 - 112, y, 224, 40, 20, fill=1, stroke=0)
         c.setFillAlpha(1)
         c.setFillColorRGB(1, 1, 1)
-        c.setFont("Helvetica-Bold", 13)
+        c.setFont(F["brand"], 13)
         c.drawCentredString(W / 2, y + 22, "Story R Us")
         c.setFillColorRGB(*GOLD)
-        c.setFont("Times-Italic", 10.5)
+        c.setFont(F["italic"], 10.5)
         c.drawCentredString(W / 2, y + 8, _win(tr["tagline"]))
 
-    def poem_panel(text, y_center, panel_w=W * 0.78, font="Times-Italic", size=15.5,
+    def poem_panel(text, y_center, panel_w=W * 0.78, font=F["italic"], size=15.5,
                    leading=24, framed=True):
         """Poema centralizado num painel claro com moldura fina (estilo referencia)."""
         lines = split_lines(text, font, size, panel_w - 60)
@@ -331,14 +388,14 @@ def build_pdf(
         before, after = t[:i].strip(" ,-"), t[i + len(name):].strip(" ,-")
         y_cursor = 40
         if before:
-            overlay(before, "Times-Italic", 20, 24, 56, top=y_cursor)
+            overlay(before, F["italic"], 20, 24, 56, top=y_cursor)
             y_cursor += 30
-        overlay(name if name.isupper() else name, "Times-Bold", 40, 44, 40, top=y_cursor)
+        overlay(name if name.isupper() else name, F["body"], 40, 44, 40, top=y_cursor)
         y_cursor += 50
         if after:
-            overlay(after, "Times-Bold", 24, 30, 48, top=y_cursor)
+            overlay(after, F["body"], 24, 30, 48, top=y_cursor)
     else:
-        overlay(t, "Times-Bold", 32, 38, 42, top=46)
+        overlay(t, F["body"], 32, 38, 42, top=46)
     star(46, H - 52, 10, GOLD)
     star(W - 50, H - 84, 8, CORAL)
     brand_badge()
@@ -349,8 +406,8 @@ def build_pdf(
     corner_flourish(26, H - 120, 1, 1)
     corner_flourish(W - 26, 120, -1, -1)
     c.setFillColorRGB(*INK)
-    c.setFont("Times-Italic", 17)
-    lines = split_lines(tr["opening"], "Times-Italic", 17, W * 0.66)
+    c.setFont(F["italic"], 17)
+    lines = split_lines(tr["opening"], F["italic"], 17, W * 0.66)
     y = H / 2 + (len(lines) - 1) * 14
     for ln in lines:
         c.drawCentredString(W / 2, y, ln)
@@ -365,11 +422,11 @@ def build_pdf(
         corner_flourish(26, 120, 1, -1)
         corner_flourish(W - 26, 120, -1, -1)
         c.setFillColorRGB(*INK)
-        c.setFont("Times-Italic", 15)
+        c.setFont(F["italic"], 15)
         c.drawCentredString(W / 2, H - 96, _win(tr["made_for"]))
         if name:
             c.setFillColorRGB(*NAVY)
-            c.setFont("Times-Bold", 34)
+            c.setFont(F["body"], 34)
             c.drawCentredString(W / 2, H - 136, _win(name).upper())
         # retrato circular com anel dourado
         pr = reader(portrait)
@@ -392,9 +449,9 @@ def build_pdf(
             star(cx + R * 0.82, cy + R * 0.82, 9, GOLD)
         # bencao
         c.setFillColorRGB(*INK)
-        c.setFont("Times-Italic", 13.5)
+        c.setFont(F["italic"], 13.5)
         y = H / 2 - 132
-        for ln in split_lines(tr["blessing"], "Times-Italic", 13.5, W * 0.62):
+        for ln in split_lines(tr["blessing"], F["italic"], 13.5, W * 0.62):
             c.drawCentredString(W / 2, y, ln)
             y -= 20
         c.showPage()
@@ -407,14 +464,14 @@ def build_pdf(
         c.roundRect(W * 0.12, H * 0.28, W * 0.76, H * 0.44, 22, fill=0, stroke=1)
         star(W / 2, H * 0.66, 12, GOLD)
         c.setFillColorRGB(*NAVY)
-        c.setFont("Times-Italic", 17)
-        lines = split_lines(dedication.strip(), "Times-Italic", 17, W * 0.60)
+        c.setFont(F["italic"], 17)
+        lines = split_lines(dedication.strip(), F["italic"], 17, W * 0.60)
         y = H / 2 + (len(lines) - 1) * 13
         for ln in lines:
             c.drawCentredString(W / 2, y, ln)
             y -= 26
         c.setFillColorRGB(*CORAL)
-        c.setFont("Times-Italic", 13)
+        c.setFont(F["italic"], 13)
         c.drawCentredString(W / 2, H * 0.32, _win(tr["with_love"]))
         c.showPage()
 
@@ -427,9 +484,9 @@ def build_pdf(
         text = p.get("text", "")
         # alterna texto embaixo/em cima, como nos livros de referencia
         if idx % 2 == 0:
-            overlay(text, "Times-Bold", 16, 23, 42, bottom=44)
+            overlay(text, F["body"], 16, 23, 42, bottom=44)
         else:
-            overlay(text, "Times-Bold", 16, 23, 42, top=38)
+            overlay(text, F["body"], 16, 23, 42, top=38)
         c.showPage()
 
     # --------------------- 6) CONTRACAPA: POEMA DE ENCERRAMENTO
@@ -471,12 +528,12 @@ def build_pdf(
     c.drawPath(pth, fill=1, stroke=0)
     c.roundRect(rx, ry, rw, rh, 10, fill=1, stroke=0)
     c.setFillColorRGB(1, 1, 1)
-    c.setFont("Times-Bold", 30)
+    c.setFont(F["body"], 30)
     c.drawCentredString(W / 2, ry + rh / 2 - 10, _win(tr["thanks"]))
     star(W / 2 - rw / 2 - 52, H / 2 + 46, 9, GOLD)
     star(W / 2 + rw / 2 + 52, H / 2 - 52, 8, GOLD)
     c.setFillColorRGB(*NAVY)
-    c.setFont("Helvetica-Bold", 12)
+    c.setFont(F["brand"], 12)
     c.drawCentredString(W / 2, 46, "Story R Us")
     c.showPage()
 
