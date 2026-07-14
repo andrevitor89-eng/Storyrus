@@ -25,12 +25,22 @@ const IcChevron = ({ className }: IconProps) => (<Svg className={className}><pat
 const IcShield = ({ className }: IconProps) => (<Svg className={className}><path d="M12 3l7 2.5V11c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V5.5L12 3z" /><path d="M9.2 12l2 2 3.6-3.8" /></Svg>);
 const IcEye = ({ className }: IconProps) => (<Svg className={className}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.6" /></Svg>);
 const IcTruck = ({ className }: IconProps) => (<Svg className={className}><path d="M3 6.5h11v9H3zM14 9.5h4l3 3v3h-7z" /><circle cx="7" cy="18" r="1.6" /><circle cx="17.5" cy="18" r="1.6" /></Svg>);
+const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="M10 9.5l4.5 2.5-4.5 2.5z" fill="currentColor" stroke="none" /></Svg>);
+const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
+const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 
-const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcGift, IcHeart];
+const NAV_ICONS = [IcHome, IcBook, IcPlay, IcSparkle];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
+// Dicas de enquadramento: 1 exemplo bom (verde) + 3 a evitar (X)
+const SHOTS = [
+  { kind: "good" as const, ok: true },
+  { kind: "multi" as const, ok: false },
+  { kind: "side" as const, ok: false },
+  { kind: "covered" as const, ok: false },
+];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
@@ -44,20 +54,81 @@ const BOOK3D = [
 ];
 const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-9.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
 const BANNER_IMGS = ["livro-3.jpg", "livro-2.jpg", "livro-4.jpg"];
+const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "circo-2.jpg"];
 // Slides do hero: foto real (em cima) -> capa do livro gerado
 const HERO_SLIDES = [
   { photo: "foto-menino.jpg", book: "capa-circo.jpg" },
   { photo: "foto-menina.jpg", book: "capa-floresta.jpg" },
   { photo: "foto-bebe.jpg", book: "capa-oceano.jpg" },
 ];
-const BA_PAIRS = [
-  ["foto-bebe.jpg", "arte-bebe.jpg"],
-  ["foto-menina.jpg", "arte-menina.jpg"],
-  ["foto-bebe2.jpg", "arte-bebe2.jpg"],
-  ["foto-menino.jpg", "arte-menino.jpg"],
-  ["foto-pai.jpg", "arte-pai.jpg"],
-];
 const exUrl = (f: string) => `${import.meta.env.BASE_URL}exemplos/${f}`;
+
+/* Ilustrações das dicas de enquadramento (SVG inline, sem depender de fotos) */
+function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
+  const face = "#f4c19a", hair = "#6b4a2b", eye = "#3a2b1c", mouth = "#a15a3a";
+  if (kind === "multi") {
+    return (
+      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+        <rect width="120" height="120" fill="#e7ecf4" />
+        <g>
+          <rect x="24" y="76" width="20" height="26" rx="10" fill="#8fb4dd" />
+          <circle cx="34" cy="58" r="16" fill={face} /><path d="M19 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill="#7a5230" />
+          <circle cx="29" cy="57" r="2.1" fill={eye} /><circle cx="39" cy="57" r="2.1" fill={eye} /><path d="M29 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
+        </g>
+        <g>
+          <rect x="76" y="76" width="20" height="26" rx="10" fill="#8ccdb0" />
+          <circle cx="86" cy="58" r="16" fill={face} /><path d="M71 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill={hair} />
+          <circle cx="81" cy="57" r="2.1" fill={eye} /><circle cx="91" cy="57" r="2.1" fill={eye} /><path d="M81 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
+        </g>
+        <g>
+          <rect x="47" y="72" width="26" height="34" rx="12" fill="#e79a9a" />
+          <circle cx="60" cy="52" r="19" fill="#eab98f" /><path d="M41 51q0-21 19-21t19 21q0-10-19-10t-19 10Z" fill="#4a3320" />
+          <circle cx="54" cy="51" r="2.4" fill={eye} /><circle cx="66" cy="51" r="2.4" fill={eye} /><path d="M54 58q6 5 12 0" stroke={mouth} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+        </g>
+      </svg>
+    );
+  }
+  if (kind === "side") {
+    return (
+      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+        <rect width="120" height="120" fill="#e7ecf4" />
+        <rect x="50" y="88" width="16" height="18" rx="8" fill="#eeb086" />
+        <circle cx="56" cy="60" r="28" fill={face} />
+        <path d="M28 60q0-30 28-30 16 0 25 12l-12 3q-7-9-17-7-24 4-24 22Z" fill={hair} />
+        <path d="M30 62q-3 14 10 20-8-16-2-28-5 2-8 8Z" fill={hair} />
+        <circle cx="46" cy="63" r="4" fill="#eeb086" />
+        <path d="M83 57q7 4 0 9" fill={face} stroke="#e2a880" strokeWidth="1.4" />
+        <circle cx="71" cy="58" r="3.1" fill={eye} />
+        <path d="M70 72q7 3 12 0" stroke={mouth} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (kind === "covered") {
+    return (
+      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+        <rect width="120" height="120" fill="#e7ecf4" />
+        <rect x="52" y="88" width="16" height="18" rx="8" fill="#eeb086" />
+        <circle cx="60" cy="60" r="30" fill={face} />
+        <path d="M30 58q0-30 30-30t30 30q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
+        <circle cx="50" cy="56" r="3.3" fill={eye} /><circle cx="70" cy="56" r="3.3" fill={eye} />
+        <path d="M34 66q26-6 52 0l0 8q-26 18-52 0Z" fill="#7f9bc4" />
+        <path d="M34 66l-6 4M86 66l6 4" stroke="#7f9bc4" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+      <rect width="120" height="120" fill="#ffe0b0" />
+      <circle cx="97" cy="23" r="15" fill="#fff2cf" opacity="0.85" />
+      <rect x="52" y="86" width="16" height="18" rx="8" fill="#eeb086" />
+      <circle cx="60" cy="62" r="30" fill={face} />
+      <path d="M30 60q0-32 30-32t30 32q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
+      <circle cx="50" cy="60" r="3.4" fill={eye} /><circle cx="70" cy="60" r="3.4" fill={eye} />
+      <circle cx="46" cy="70" r="4" fill="#f2a982" opacity=".6" /><circle cx="74" cy="70" r="4" fill="#f2a982" opacity=".6" />
+      <path d="M49 74q11 10 22 0" stroke={mouth} strokeWidth="3" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   const [open, setOpen] = useState<number | null>(0);
@@ -152,7 +223,7 @@ function Book3D({ cover, pages, bg, quote, alt, off, delay }: {
 
 const I18N = {
   pt: {
-    nav: ["Início", "Livros", "Como funciona", "Avaliações", "Perguntas"],
+    nav: ["Início", "Livros", "Vídeos", "Como funciona"],
     explore: "Explorar agora",
     eyebrow: "Sua foto vira uma história",
     h_pre: "Transforme uma foto em uma ", w1: "história", c1: " onde seu filho é o ", w2: "herói", h_suf: ".",
@@ -175,18 +246,28 @@ const I18N = {
       { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
       { t: "Sua família vira o livro", p: "Páginas ilustradas, para guardar para sempre." },
     ],
+    shot_title: "Dicas para a foto perfeita",
+    shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado — como no exemplo em destaque.",
+    shots: ["Nítida e bem iluminada", "Mais de uma criança", "Rosto de lado", "Rosto encoberto"],
+    vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
+    vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
+    videos: [
+      { t: "Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
+      { t: "Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
+      { t: "Circo das Luzes", p: "Uma noite mágica cheia de brilho e música." },
+    ],
     book_badge: "Exemplo real",
     story_title: "Folheie um livro de verdade",
     story_sub: "Um livro criado pela plataforma a partir de uma única foto.",
     story_hint: "Clique nas laterais do livro (ou use as setas) para virar as páginas.",
     fmt_title: "Escolha o formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
-      { t: "Livro para impressão", price: "R$ 49", unit: "por livro", p: "Um livro ilustrado em PDF, pronto para imprimir e ter na estante.", feats: ["Capa + páginas ilustradas", "PDF em alta para impressão", "Personagem fiel à foto"], cta: "Criar meu livro", badge: "Mais amado" },
+      { t: "Livro para impressão", price: "US$ 39,99", unit: "por livro", p: "Um livro ilustrado em PDF, pronto para imprimir e ter na estante.", feats: ["Capa + páginas ilustradas", "PDF em alta para impressão", "Personagem fiel à foto"], cta: "Criar meu livro", badge: "Mais amado" },
       { t: "Vídeo narrado", price: "R$ 89", unit: "por vídeo", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
       { t: "Animação", price: "R$ 149", unit: "por animação", p: "O personagem ganha vida numa animação cheia de magia.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
     cat_title: "Escolha um livro", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
-    price: "a partir de R$ 49", price_note: "digital ou impresso", personalize: "Personalizar",
+    price: "US$ 39,99", price_note: "digital ou impresso", personalize: "Personalizar",
     save: "ECONOMIZE 33%",
     catalog: [
       { t: "Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
@@ -226,7 +307,7 @@ const I18N = {
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   en: {
-    nav: ["Home", "Books", "How it works", "Reviews", "FAQ"],
+    nav: ["Home", "Books", "Videos", "How it works"],
     explore: "Explore now",
     eyebrow: "Your photo becomes a story",
     h_pre: "Turn a photo into a ", w1: "story", c1: " where your child is the ", w2: "hero", h_suf: ".",
@@ -249,18 +330,28 @@ const I18N = {
       { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
       { t: "Your family becomes the book", p: "Illustrated pages, made to keep forever." },
     ],
+    shot_title: "Tips for the perfect photo",
+    shot_sub: "Upload a clear photo of your child with the face centered — like the highlighted example.",
+    shots: ["Clear and well-lit", "More than one child", "Face at an angle", "Face is covered"],
+    vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
+    vid_dur: "~2 min", vid_cta: "Create my video",
+    videos: [
+      { t: "Underwater World", p: "An ocean adventure with enchanting narration." },
+      { t: "Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
+      { t: "Circus of Lights", p: "A magical night full of sparkle and music." },
+    ],
     book_badge: "Real example",
     story_title: "Flip through a real book",
     story_sub: "A book created by the platform from a single photo.",
     story_hint: "Click the sides of the book (or use the arrows) to turn the pages.",
     fmt_title: "Choose the format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
-      { t: "Printable book", price: "$29", unit: "per book", p: "An illustrated PDF book, ready to print and keep on the shelf.", feats: ["Cover + illustrated pages", "High-res PDF for printing", "Character true to the photo"], cta: "Create my book", badge: "Most loved" },
+      { t: "Printable book", price: "$39.99", unit: "per book", p: "An illustrated PDF book, ready to print and keep on the shelf.", feats: ["Cover + illustrated pages", "High-res PDF for printing", "Character true to the photo"], cta: "Create my book", badge: "Most loved" },
       { t: "Narrated video", price: "$49", unit: "per video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
       { t: "Animation", price: "$79", unit: "per animation", p: "The character comes alive in a magical animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
     cat_title: "Choose a book", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
-    price: "from $29", price_note: "digital or printed", personalize: "Personalize",
+    price: "$39.99", price_note: "digital or printed", personalize: "Personalize",
     save: "SAVE 33%",
     catalog: [
       { t: "Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
@@ -311,7 +402,7 @@ export function Landing() {
   });
   const [heroI, setHeroI] = useState(0);
   const t = I18N[lang];
-  const navHrefs = ["#top", "#catalogo", "#como", "#reviews", "#faq"];
+  const navHrefs = ["#top", "#catalogo", "#videos", "#como"];
 
   // Auto-avanço do carrossel do hero
   useEffect(() => {
@@ -351,7 +442,7 @@ export function Landing() {
             const Icon = NAV_ICONS[i];
             return (<a key={label} href={navHrefs[i]} onClick={closeNav}><Icon className="ni" />{label}</a>);
           })}
-          <Link to="/app" className="kbtn kbtn-go" onClick={closeNav}>{t.explore}</Link>
+          <Link to="/app" className="kbtn kbtn-go" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
         <div className="kright">
           <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Alternar tema claro/escuro">
@@ -390,7 +481,6 @@ export function Landing() {
                 <p>{t.banners[i].p}</p>
                 <div className="khero-cta">
                   <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-                  <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
                 </div>
               </div>
             </div>
@@ -417,30 +507,6 @@ export function Landing() {
             <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
           </figure>
         ))}
-      </section>
-
-      {/* GALERIA ANTES E DEPOIS */}
-      <section className="ksection" id="antes-depois">
-        <h2 className="ktitle reveal">{t.ba_title}</h2>
-        <p className="ksub reveal">{t.ba_sub}</p>
-        <div className="ba-gallery">
-          {BA_PAIRS.map((pair, i) => (
-            <div className="bapair reveal" key={pair[0]}>
-              <div className="bapair-imgs">
-                <figure className="bap-side">
-                  <img src={exUrl(pair[0])} alt="Foto real" loading="lazy" />
-                  <span className="ba-tag tag-before">{t.ba_before}</span>
-                </figure>
-                <span className="bap-arrow" aria-hidden><IcArrow /></span>
-                <figure className="bap-side">
-                  <img src={exUrl(pair[1])} alt="Ilustração criada" loading="lazy" />
-                  <span className="ba-tag tag-after">{t.ba_after}</span>
-                </figure>
-              </div>
-              <p className="bapair-cap"><IcHeart className="ci" /> {t.ba_pairs[i]}</p>
-            </div>
-          ))}
-        </div>
       </section>
 
       {/* CATÁLOGO DE LIVROS */}
@@ -475,6 +541,25 @@ export function Landing() {
         </div>
       </section>
 
+      {/* VÍDEOS NARRADOS */}
+      <section className="ksection" id="videos">
+        <h2 className="ktitle reveal">{t.vid_title}</h2>
+        <p className="ksub reveal">{t.vid_sub}</p>
+        <div className="vid-grid">
+          {t.videos.map((v, i) => (
+            <figure className="vid-card reveal" key={v.t}>
+              <div className="vid-thumb">
+                <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
+                <span className="vid-play" aria-hidden></span>
+                <span className="vid-dur">{t.vid_dur}</span>
+              </div>
+              <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
+            </figure>
+          ))}
+        </div>
+        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+      </section>
+
       {/* COMO FUNCIONA — com exemplos reais */}
       <section className="ksection" id="como">
         <h2 className="ktitle reveal">{t.hiw_title}</h2>
@@ -490,6 +575,22 @@ export function Landing() {
               {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
             </div>
           ))}
+        </div>
+
+        <div className="shot-tips reveal">
+          <h3>{t.shot_title}</h3>
+          <p className="shot-sub">{t.shot_sub}</p>
+          <div className="shot-grid">
+            {SHOTS.map((s, i) => (
+              <div className={`shot${s.ok ? " ok" : ""}`} key={s.kind}>
+                <div className="shot-ava">
+                  <ShotArt kind={s.kind} />
+                  <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+                </div>
+                <p>{t.shots[i]}</p>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
