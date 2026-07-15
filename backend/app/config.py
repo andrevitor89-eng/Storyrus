@@ -37,6 +37,7 @@ class Settings(BaseSettings):
     max_concurrent_jobs_per_user: int = 2
     default_video_duration_s: int = 30
     signup_bonus_credits: int = 10
+    offline_fallback: bool = True
 
     # Custo estimado por etapa (creditos = 1 credito ~ 1 unidade de custo)
     cost_avatar_credits: int = 1

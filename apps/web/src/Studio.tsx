@@ -467,7 +467,15 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             {assets?.video_url && (
               <div className="result-block">
                 <h3 className="field-label">Vídeo</h3>
-                <video src={assets.video_url} controls style={{ maxWidth: 360, width: "100%" }} />
+                {assets.video_url.toLowerCase().includes(".gif") ? (
+                  <img
+                    src={assets.video_url}
+                    alt="Vídeo fallback animado"
+                    style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
+                  />
+                ) : (
+                  <video src={assets.video_url} controls style={{ maxWidth: 360, width: "100%" }} />
+                )}
               </div>
             )}
           </div>

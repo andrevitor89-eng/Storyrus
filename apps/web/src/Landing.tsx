@@ -34,13 +34,12 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
-// Dicas de enquadramento: 1 exemplo bom (verde) + 3 a evitar (X).
-// img = foto real (colocar em public/exemplos/); art = ilustração SVG de fallback.
-const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean }[] = [
-  { img: "dica-boa.png", ok: true },
-  { img: "dica-multi.png", ok: false },
-  { img: "dica-lado.png", ok: false },
-  { art: "covered", ok: false },
+// Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
+// img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
+const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
+  { img: "dica-boa.png", ok: true, focus: "center center" },
+  { img: "dica-multi.png", ok: false, focus: "center center" },
+  { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
@@ -62,7 +61,7 @@ const HERO_SLIDES = [
   { photo: "foto-menina.jpg", book: "capa-floresta.jpg" },
   { photo: "foto-bebe.jpg", book: "capa-oceano.jpg" },
 ];
-const exUrl = (f: string) => `${import.meta.env.BASE_URL}exemplos/${f}`;
+const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
 /* Ilustrações das dicas de enquadramento (SVG inline, sem depender de fotos) */
 function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
@@ -248,8 +247,8 @@ const I18N = {
       { t: "Sua família vira o livro", p: "Páginas ilustradas, para guardar para sempre." },
     ],
     shot_title: "Dicas para a foto perfeita",
-    shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado — como no exemplo em destaque.",
-    shots: ["Nítida e bem iluminada", "Mais de uma criança", "Rosto de lado", "Rosto encoberto"],
+    shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado. Os exemplos com X mostram o que evitar.",
+    shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
     vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
@@ -332,8 +331,8 @@ const I18N = {
       { t: "Your family becomes the book", p: "Illustrated pages, made to keep forever." },
     ],
     shot_title: "Tips for the perfect photo",
-    shot_sub: "Upload a clear photo of your child with the face centered — like the highlighted example.",
-    shots: ["Clear and well-lit", "More than one child", "Face at an angle", "Face is covered"],
+    shot_sub: "Upload a clear photo of your child with the face centered. The X examples show what to avoid.",
+    shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
     vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
@@ -584,8 +583,14 @@ export function Landing() {
           <div className="shot-grid">
             {SHOTS.map((s, i) => (
               <div className={`shot${s.ok ? " ok" : ""}`} key={i}>
-                <div className="shot-ava">
-                  {s.img ? <img src={exUrl(s.img)} alt={t.shots[i]} loading="lazy" /> : <ShotArt kind={s.art ?? "good"} />}
+                <div className="shot-ava-wrap">
+                  <div className="shot-ava">
+                    {s.img ? (
+                      <img src={exUrl(s.img)} alt={t.shots[i]} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                    ) : (
+                      <ShotArt kind={s.art ?? "good"} />
+                    )}
+                  </div>
                   <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                 </div>
                 <p>{t.shots[i]}</p>

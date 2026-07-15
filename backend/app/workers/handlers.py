@@ -10,17 +10,117 @@ quando faltam, levantam ProviderError(transient=False) -> falha definitiva clara
 from __future__ import annotations
 
 import json
+import logging
 import re
+from io import BytesIO
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
 from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
-from app.ai_clients.base import ProviderError
+from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
 from app.workers import ebook as ebook_builder
+
+
+logger = logging.getLogger("worker")
+
+
+def _offline_png(label: str, *, palette: tuple[tuple[int, int, int], tuple[int, int, int]]) -> bytes:
+    """Gera uma imagem local simples para fallback offline/demonstração.
+
+    O objetivo não é reproduzir a qualidade do provedor, apenas manter o fluxo
+    funcional quando a IA externa estiver indisponivel.
+    """
+    from PIL import Image, ImageDraw, ImageFont
+
+    width, height = 1024, 1024
+    image = Image.new("RGB", (width, height), palette[0])
+    draw = ImageDraw.Draw(image)
+
+    # fundo com bloco suave e decoracoes simples
+    draw.rounded_rectangle((64, 64, width - 64, height - 64), radius=48, fill=palette[1])
+    draw.ellipse((120, 120, 420, 420), fill=(255, 255, 255))
+    draw.ellipse((604, 120, 904, 420), fill=(255, 255, 255))
+    draw.ellipse((260, 430, 764, 934), fill=(255, 255, 255))
+
+    # personagem/ilustracao abstrata
+    draw.ellipse((350, 260, 674, 584), fill=(246, 214, 170), outline=(80, 60, 50), width=6)
+    draw.ellipse((410, 330, 470, 390), fill=(42, 42, 42))
+    draw.ellipse((554, 330, 614, 390), fill=(42, 42, 42))
+    draw.arc((460, 410, 564, 500), start=10, end=170, fill=(120, 60, 60), width=8)
+    draw.rounded_rectangle((430, 600, 594, 820), radius=40, fill=(255, 232, 207))
+    draw.line((430, 684, 360, 792), fill=(80, 60, 50), width=18)
+    draw.line((594, 684, 664, 792), fill=(80, 60, 50), width=18)
+    draw.line((470, 820, 430, 940), fill=(80, 60, 50), width=18)
+    draw.line((554, 820, 594, 940), fill=(80, 60, 50), width=18)
+
+    try:
+        font = ImageFont.truetype("arial.ttf", 42)
+    except Exception:
+        font = ImageFont.load_default()
+    draw.rounded_rectangle((168, 854, 856, 948), radius=28, fill=(255, 255, 255))
+    draw.text((192, 874), label[:44], fill=(30, 30, 30), font=font)
+
+    buf = BytesIO()
+    image.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def _offline_gif(label: str) -> bytes:
+    """Video fallback local em GIF animado para exibição no navegador."""
+    from PIL import Image, ImageDraw, ImageFont
+
+    frames = []
+    colors = [
+        ((221, 236, 255), (255, 250, 240)),
+        ((255, 237, 222), (255, 248, 244)),
+        ((234, 245, 228), (250, 250, 245)),
+    ]
+    try:
+        font = ImageFont.truetype("arial.ttf", 38)
+    except Exception:
+        font = ImageFont.load_default()
+
+    for idx, (bg, panel) in enumerate(colors):
+        frame = Image.new("RGB", (960, 540), bg)
+        draw = ImageDraw.Draw(frame)
+        draw.rounded_rectangle((40, 40, 920, 500), radius=36, fill=panel)
+        draw.ellipse((110 + idx * 30, 135, 350 + idx * 30, 375), fill=(246, 214, 170))
+        draw.ellipse((210 + idx * 30, 230, 255 + idx * 30, 275), fill=(40, 40, 40))
+        draw.ellipse((285 + idx * 30, 230, 330 + idx * 30, 275), fill=(40, 40, 40))
+        draw.arc((235 + idx * 30, 280, 305 + idx * 30, 345), start=15, end=165, fill=(120, 60, 60), width=6)
+        draw.rounded_rectangle((530, 170, 840, 330), radius=28, fill=(255, 255, 255), outline=(170, 180, 190), width=4)
+        draw.text((560, 205), label[:24], fill=(34, 42, 54), font=font)
+        draw.text((560, 255), f"Cena {idx + 1}", fill=(84, 98, 112), font=font)
+        frames.append(frame)
+
+    buf = BytesIO()
+    frames[0].save(
+        buf,
+        format="GIF",
+        save_all=True,
+        append_images=frames[1:],
+        duration=700,
+        loop=0,
+        disposal=2,
+    )
+    return buf.getvalue()
+
+
+def _offline_video_bytes(label: str) -> bytes:
+    """Retorno de fallback para video offline.
+
+    Mantem o fluxo funcionando sem depender de codificadores externos.
+    O UI trata a URL assinada normal; aqui retornamos um pequeno placeholder
+    textual em vez de um mp4 real quando o ambiente nao consegue gerar video.
+    """
+    return (
+        f"Fallback offline do video indisponivel para: {label}\n"
+        "Use o provedor configurado para gerar o mp4 real quando houver acesso.\n"
+    ).encode("utf-8")
 
 
 # --------------------------------------------------------------------------- #
@@ -223,13 +323,23 @@ async def handle_avatar(db: Session, job: Job) -> None:
         raise ProviderError("Sem fotos para gerar o personagem", transient=False)
 
     refs = [storage.get_bytes(a.storage_key) for a in photos]
-    provider = get_image_provider(job.provider)
-    result = await provider.generate_character(
-        prompt="Retrato do personagem principal, corpo inteiro, fundo neutro.",
-        reference_images=refs,
-        style=project.style or "realistic",
-    )
-    result = await _refine_identity(provider, refs[0], result, project.style or "realistic")
+    if settings.offline_fallback:
+        result = ImageResult(
+            image_bytes=_offline_png(
+                f"Personagem de {project.child_name or 'demonstracao'}",
+                palette=((245, 239, 229), (255, 247, 240)),
+            ),
+            mime_type="image/png",
+            cost_usd=0.0,
+        )
+    else:
+        provider = get_image_provider(job.provider)
+        result = await provider.generate_character(
+            prompt="Retrato do personagem principal, corpo inteiro, fundo neutro.",
+            reference_images=refs,
+            style=project.style or "realistic",
+        )
+        result = await _refine_identity(provider, refs[0], result, project.style or "realistic")
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -468,19 +578,29 @@ async def handle_ebook(db: Session, job: Job) -> None:
     # 3) Uma pagina = ilustracao (contexto completo do trecho) + texto da pagina.
     pages: list[dict] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
-        scene = await image_provider.generate_scene(
-            prompt=(
-                f"Pagina {idx} da historia. Ilustre exatamente esta cena (contexto completo), "
-                f"com o personagem principal (da imagem de referencia) como protagonista, "
-                f"mantendo rosto/roupa identicos. Composicao QUADRADA (1:1), pintura digital "
-                f"quente e luminosa de livro infantil premium, luz dourada suave; deixe uma "
-                f"area mais calma/limpa (ceu, campo, parede) para receber o texto impresso. "
-                f"Trecho: {full_text[:900]}"
-            ),
-            character_ref=char_bytes,
-            style=project.style or "realistic",
-        )
-        scene = await _refine_scene(image_provider, char_bytes, scene, project.style or "realistic")
+        if settings.offline_fallback:
+            scene = ImageResult(
+                image_bytes=_offline_png(
+                    f"Pagina {idx}: {caption[:28]}",
+                    palette=((233, 242, 255), (255, 255, 255)),
+                ),
+                mime_type="image/png",
+                cost_usd=0.0,
+            )
+        else:
+            scene = await image_provider.generate_scene(
+                prompt=(
+                    f"Pagina {idx} da historia. Ilustre exatamente esta cena (contexto completo), "
+                    f"com o personagem principal (da imagem de referencia) como protagonista, "
+                    f"mantendo rosto/roupa identicos. Composicao QUADRADA (1:1), pintura digital "
+                    f"quente e luminosa de livro infantil premium, luz dourada suave; deixe uma "
+                    f"area mais calma/limpa (ceu, campo, parede) para receber o texto impresso. "
+                    f"Trecho: {full_text[:900]}"
+                ),
+                character_ref=char_bytes,
+                style=project.style or "realistic",
+            )
+            scene = await _refine_scene(image_provider, char_bytes, scene, project.style or "realistic")
         img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
         storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
         db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
@@ -689,50 +809,63 @@ async def handle_video(db: Session, job: Job) -> None:
 
     payload = _payload(job)
     base_image = storage.get_bytes(ref_key)
-    provider = get_video_provider(payload.get("provider") or job.provider)
+    source_url: str | None = None
+    if settings.offline_fallback:
+        video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "gif")
+        prompt = _latest_storyboard(db, project)
+        video_label = "Video offline"
+        if prompt and prompt.get("scenes"):
+            video_label = (prompt["scenes"][0].get("video_prompt") or video_label)[:32]
+        storage.put_bytes(video_key, _offline_gif(video_label), "image/gif")
+        stored = video_key
+        source_url = "offline:local"
+    else:
+        provider = get_video_provider(payload.get("provider") or job.provider)
 
-    # Usa o roteiro (storyboard) gerado em background, quando existir.
-    prompt = "Anime o personagem com movimento suave e expressivo."
-    sb = _latest_storyboard(db, project)
-    if sb and sb.get("scenes"):
-        first = sb["scenes"][0]
-        prompt = first.get("video_prompt") or prompt
+        # Usa o roteiro (storyboard) gerado em background, quando existir.
+        prompt = "Anime o personagem com movimento suave e expressivo."
+        sb = _latest_storyboard(db, project)
+        if sb and sb.get("scenes"):
+            first = sb["scenes"][0]
+            prompt = first.get("video_prompt") or prompt
 
-    task = await provider.create_video(
-        image=base_image,
-        prompt=prompt,
-        duration_s=int(payload.get("duration_s", settings.default_video_duration_s)),
-    )
-    job.result = {**(job.result or {}), "provider_task_id": task.provider_task_id}
-    db.commit()
+        task = await provider.create_video(
+            image=base_image,
+            prompt=prompt,
+            duration_s=int(payload.get("duration_s", settings.default_video_duration_s)),
+        )
+        job.result = {**(job.result or {}), "provider_task_id": task.provider_task_id}
+        db.commit()
 
-    deadline = time.monotonic() + settings.video_poll_timeout_s
-    while task.status not in ("DONE", "FAILED"):
-        if time.monotonic() > deadline:
-            raise ProviderError("Timeout aguardando video", transient=True)
-        await asyncio.sleep(settings.video_poll_interval_s)
-        task = await provider.poll_video(provider_task_id=task.provider_task_id)
+        deadline = time.monotonic() + settings.video_poll_timeout_s
+        while task.status not in ("DONE", "FAILED"):
+            if time.monotonic() > deadline:
+                raise ProviderError("Timeout aguardando video", transient=True)
+            await asyncio.sleep(settings.video_poll_interval_s)
+            task = await provider.poll_video(provider_task_id=task.provider_task_id)
 
-    if task.status == "FAILED" or not task.video_url:
-        raise ProviderError("Provedor de video falhou", transient=True)
+        if task.status == "FAILED" or not task.video_url:
+            raise ProviderError("Provedor de video falhou", transient=True)
 
-    video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "mp4")
-    # Baixa o video do provedor e republica no nosso storage (URL assinada propria).
-    try:
-        import httpx
+        video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "mp4")
+        # Baixa o video do provedor e republica no nosso storage (URL assinada propria).
+        try:
+            import httpx
 
-        async with httpx.AsyncClient(timeout=120) as client:
-            resp = await client.get(task.video_url)
-            resp.raise_for_status()
-            storage.put_bytes(video_key, resp.content, "video/mp4")
-            stored = video_key
-    except Exception:  # noqa: BLE001 - se nao der para baixar, guarda a URL do provedor
-        stored = task.video_url
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.get(task.video_url)
+                resp.raise_for_status()
+                storage.put_bytes(video_key, resp.content, "video/mp4")
+                stored = video_key
+                source_url = task.video_url
+        except Exception:  # noqa: BLE001 - se nao der para baixar, guarda a URL do provedor
+            stored = task.video_url
+            source_url = task.video_url
 
     db.add(Asset(project_id=project.id, kind=AssetKind.VIDEO.value, storage_key=stored,
-                 meta={"source": task.video_url}))
+                 meta={"source": source_url}))
     project.video_url = stored
-    job.cost_usd = task.cost_usd
+    job.cost_usd = 0.0 if settings.offline_fallback else getattr(task, "cost_usd", None)
     _set_status(db, project, ProjectStatus.VIDEO_READY)
 
 
