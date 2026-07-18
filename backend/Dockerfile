@@ -9,9 +9,8 @@ RUN pip install --no-cache-dir --upgrade pip --trusted-host pypi.org --trusted-h
 
 COPY . .
 
-# Fonte do ebook: Raleway Light 300 (Google Fonts) — gerada no build.
-RUN pip install --no-cache-dir "fonttools>=4.38" --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host files.pythonhosted.org && \
-    python scripts/fetch_fonts.py
+# Fonte do ebook: Megifera Indica (Risma Type) — baixada no build.
+RUN python scripts/fetch_fonts.py
 
 EXPOSE 8000
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

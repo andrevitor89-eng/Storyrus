@@ -1,15 +1,16 @@
 """Montagem do ebook como livro infantil ilustrado premium (estilo WonderWraps).
 
 build_pdf gera um PDF QUADRADO (formato dos livros personalizados impressos) com:
-  1. capa em sangria total com o título (nome da criança em destaque) + selo da marca;
-  2. página-poema de abertura ("Para todos os pequenos aventureiros...");
-  3. página "Feito especialmente para {NOME}" com retrato do personagem em moldura;
-  4. dedicatória opcional dos pais;
-  5. páginas da história em sangria total com a estrofe mesclada na arte;
+  1. capa em sangria total com o titulo (nome da crianca em destaque) + selo da marca;
+  2. pagina-poema de abertura ("Para todos os pequenos aventureiros...");
+  3. pagina "Feito especialmente para {NOME}" com retrato do personagem em moldura;
+  4. dedicatoria opcional dos pais;
+  5. paginas da historia em sangria total com a estrofe mesclada na arte;
   6. contracapa com poema de encerramento em moldura + selo;
-  7. página final "Obrigado".
+  7. pagina final "Obrigado".
 Usa reportlab (puro Python, sem deps de sistema).
-"""  # layout v2 (referencia WonderWraps/TellMyTale)
+Fonte: Megifera Indica.
+"""  # layout v3 — Megifera Indica + capa redesenhada + preview limitado
 from __future__ import annotations
 
 import base64
@@ -24,10 +25,8 @@ from pathlib import Path
 logger = logging.getLogger("ebook")
 
 # ------------------------------------------------------------------- fontes
-# Fonte oficial do ebook: Raleway Light 300 (https://fonts.google.com/specimen/Raleway).
-# Os TTFs estaticos sao gerados no build por backend/scripts/fetch_fonts.py.
-# Se os arquivos nao existirem (ex.: dev local sem rodar o script), cai no
-# fallback (fontes base do PDF) sem quebrar a geracao do ebook.
+# Fonte oficial do ebook: Megifera Indica (Risma Type).
+# Os TTFs sao gerados no build por backend/scripts/fetch_fonts.py.
 _FALLBACK_FONTS = {"body": "Times-Bold", "italic": "Times-Italic", "brand": "Helvetica-Bold"}
 _fonts_cache: dict | None = None
 
@@ -45,7 +44,7 @@ def _fonts_dir() -> Path | None:
 
 
 def _fonts() -> dict:
-    """Registra a Raleway Light 300 no reportlab (uma unica vez) e devolve o mapa."""
+    """Registra a Megifera Indica no reportlab (uma unica vez) e devolve o mapa."""
     global _fonts_cache
     if _fonts_cache is not None:
         return _fonts_cache
@@ -55,22 +54,17 @@ def _fonts() -> dict:
         from reportlab.pdfbase.ttfonts import TTFont
 
         base = _fonts_dir()
-        regular = base / "Raleway-Light.ttf" if base else None
-        italic = base / "Raleway-LightItalic.ttf" if base else None
+        regular = base / "MegiferaIndica-Regular.ttf" if base else None
         if regular and regular.exists():
-            pdfmetrics.registerFont(TTFont("Raleway-Light", str(regular)))
-            fonts["body"] = fonts["brand"] = "Raleway-Light"
-            if italic and italic.exists():
-                pdfmetrics.registerFont(TTFont("Raleway-LightItalic", str(italic)))
-                fonts["italic"] = "Raleway-LightItalic"
-            else:
-                fonts["italic"] = "Raleway-Light"
-            logger.info("Fonte do ebook: Raleway Light 300 (%s)", base)
+            pdfmetrics.registerFont(TTFont("Indica", str(regular)))
+            fonts["body"] = fonts["brand"] = "Indica"
+            fonts["italic"] = "Indica"  # Indica regular usado como italic tambem
+            logger.info("Fonte do ebook: Megifera Indica (%s)", base)
         else:
-            logger.warning("Raleway-Light.ttf nao encontrada; usando fontes fallback do PDF. "
+            logger.warning("MegiferaIndica-Regular.ttf nao encontrada; usando fontes fallback. "
                            "Rode backend/scripts/fetch_fonts.py para gerar.")
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Falha ao registrar Raleway (%s); usando fontes fallback", exc)
+        logger.warning("Falha ao registrar Indica (%s); usando fontes fallback", exc)
     _fonts_cache = fonts
     return fonts
 
@@ -87,33 +81,38 @@ STRINGS = {
     "pt-BR": {
         "opening": (
             "Para todos os pequenos aventureiros,\n"
-            "que seus corações sejam valentes,\n"
+            "que seus coracoes sejam valentes,\n"
             "e que seus sonhos os levem a lugares\n"
-            "incríveis e surpreendentes."
+            "incriveis e surpreendentes."
         ),
         "made_for": "Feito especialmente para",
         "blessing": (
             "Que a sua vida seja cheia de\n"
             "coragem, carinho e alegria!\n"
-            "Que o seu coração sempre te leve\n"
+            "Que o seu sempre te leve\n"
             "a amar, proteger e explorar\n"
             "as maravilhas do mundo."
         ),
         "closing": (
-            "De florestas a oceanos, e céus a brilhar,\n"
+            "De florestas a oceanos, e ceus a brilhar,\n"
             "esta grande aventura foi movida pelo amar.\n"
-            "Para cada pequeno sonhador de coração valente,\n"
-            "o mundo é seu amigo — siga sonhando em frente."
+            "Para cada pequeno sonhador de coracao valente,\n"
+            "o mundo e seu amigo — siga sonhando em frente."
         ),
         "closing_named": (
-            "De florestas a oceanos, e céus a brilhar,\n"
+            "De florestas a oceanos, e ceus a brilhar,\n"
             "a aventura de {name} foi movida pelo amar.\n"
-            "Para cada pequeno sonhador de coração valente,\n"
-            "o mundo é seu amigo — siga sonhando em frente."
+            "Para cada pequeno sonhador de coracao valente,\n"
+            "o mundo e seu amigo — siga sonhando em frente."
         ),
         "thanks": "Obrigado",
         "with_love": "com amor",
         "tagline": "um livro personalizado",
+        "preview_title": "Este e um preview",
+        "preview_msg": (
+            "Este PDF contem apenas {shown} das {total} paginas da historia.\n"
+            "Para ter o livro completo, finalize a compra."
+        ),
     },
     "en": {
         "opening": (
@@ -145,6 +144,11 @@ STRINGS = {
         "thanks": "Thank you",
         "with_love": "with love",
         "tagline": "a personalized book",
+        "preview_title": "This is a preview",
+        "preview_msg": (
+            "This PDF contains only {shown} of {total} story pages.\n"
+            "To get the complete book, please complete your purchase."
+        ),
     },
 }
 
@@ -184,9 +188,7 @@ def build_html(title: str, pages: list[dict]) -> str:
     ]
     return (
         '<!doctype html><meta charset="utf-8"><title>' + html.escape(title) + "</title>"
-        '<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300&display=swap"'
-        ' rel="stylesheet">'
-        "<style>body{font-family:'Raleway',sans-serif;font-weight:300}</style>"
+        "<style>body{font-family:'Segoe UI',sans-serif}</style>"
         "<h1>" + html.escape(title) + "</h1>" + "".join(blocks)
     )
 
@@ -209,6 +211,8 @@ def build_pdf(
     portrait: bytes | None = None,
     child_name: str | None = None,
     language: str | None = "pt-BR",
+    extra_characters: list[dict] | None = None,
+    preview_pages: int | None = 3,
 ) -> bytes:
     from reportlab.lib.utils import ImageReader, simpleSplit
     from reportlab.pdfgen import canvas
@@ -375,29 +379,53 @@ def build_pdf(
             y -= leading
         return y0, ph
 
-    # ------------------------------------------------------------- 1) CAPA
+    # ------------------------------------------------------------- 1) CAPA REDESENHADA
     cov = reader(cover) or (reader(pages[0].get("image")) if pages and pages[0].get("image") else None)
     bg(SKY)
     if cov:
         full_bleed(cov)
+        # overlay escuro suave para o titulo destacar
+        c.setFillColorRGB(0, 0, 0)
+        c.setFillAlpha(0.28)
+        c.rect(0, 0, W, H, fill=1, stroke=0)
+        c.setFillAlpha(1)
+
+    # faixa decorativa superior com brilho
+    c.setFillColorRGB(*GOLD)
+    c.setFillAlpha(0.85)
+    c.rect(0, H - 110, W, 110, fill=1, stroke=0)
+    c.setFillAlpha(1)
+
     # titulo com o nome em destaque (linha propria, maior), mesclado na arte
     t = _win(title or "")
     upper_name = _win(name).upper()
     if name and upper_name and upper_name in t.upper():
         i = t.upper().index(upper_name)
         before, after = t[:i].strip(" ,-"), t[i + len(name):].strip(" ,-")
-        y_cursor = 40
+        y_cursor = H - 38
         if before:
             overlay(before, F["italic"], 20, 24, 56, top=y_cursor)
             y_cursor += 30
-        overlay(name if name.isupper() else name, F["body"], 40, 44, 40, top=y_cursor)
-        y_cursor += 50
+        overlay(name if name.isupper() else name, F["body"], 42, 46, 40, top=y_cursor)
+        y_cursor += 54
         if after:
             overlay(after, F["body"], 24, 30, 48, top=y_cursor)
     else:
-        overlay(t, F["body"], 32, 38, 42, top=46)
+        overlay(t, F["body"], 34, 40, 42, top=H - 36)
+
+    # estrelas decorativas na capa
     star(46, H - 52, 10, GOLD)
     star(W - 50, H - 84, 8, CORAL)
+    star(W / 2 - 80, H - 140, 6, GOLD, 0.7)
+    star(W / 2 + 80, H - 140, 6, GOLD, 0.7)
+
+    # moldura decorativa fina na borda
+    c.setStrokeColorRGB(*GOLD)
+    c.setLineWidth(2.5)
+    c.setFillAlpha(0)
+    c.roundRect(18, 18, W - 36, H - 36, 16, fill=0, stroke=1)
+    c.setFillAlpha(1)
+
     brand_badge()
     c.showPage()
 
@@ -418,8 +446,6 @@ def build_pdf(
     if name or portrait:
         bg(CREAM)
         corner_flourish(26, H - 120, 1, 1)
-        corner_flourish(W - 26, H - 120, -1, 1)
-        corner_flourish(26, 120, 1, -1)
         corner_flourish(W - 26, 120, -1, -1)
         c.setFillColorRGB(*INK)
         c.setFont(F["italic"], 15)
@@ -428,7 +454,8 @@ def build_pdf(
             c.setFillColorRGB(*NAVY)
             c.setFont(F["body"], 34)
             c.drawCentredString(W / 2, H - 136, _win(name).upper())
-        # retrato circular com anel dourado
+
+        # retrato circular do protagonista
         pr = reader(portrait)
         if pr:
             R = 108.0
@@ -447,6 +474,39 @@ def build_pdf(
             c.setLineWidth(4)
             c.circle(cx, cy, R, fill=0, stroke=1)
             star(cx + R * 0.82, cy + R * 0.82, 9, GOLD)
+
+        # personagens extras (pequenos circulos ao redor do protagonista)
+        if extra_characters:
+            extras = extra_characters[:4]  # no maximo 4 extras
+            positions = [
+                (W / 2 - 160, H / 2 + 6),
+                (W / 2 + 160, H / 2 + 6),
+                (W / 2 - 130, H / 2 - 120),
+                (W / 2 + 130, H / 2 - 120),
+            ]
+            for idx, ec in enumerate(extras):
+                ec_bytes = ec.get("image_bytes")
+                if not ec_bytes:
+                    continue
+                ec_reader = reader(ec_bytes)
+                if not ec_reader or idx >= len(positions):
+                    continue
+                ecx, ecy = positions[idx]
+                eR = 42.0
+                c.saveState()
+                ep = c.beginPath()
+                ep.circle(ecx, ecy, eR)
+                c.clipPath(ep, stroke=0, fill=0)
+                eiw, eih = ec_reader.getSize()
+                es = max((2 * eR) / eiw, (2 * eR) / eih)
+                edw, edh = eiw * es, eih * es
+                c.drawImage(ec_reader, ecx - edw / 2, ecy - edh / 2, edw, edh,
+                            preserveAspectRatio=False, mask="auto")
+                c.restoreState()
+                c.setStrokeColorRGB(*CORAL)
+                c.setLineWidth(2.5)
+                c.circle(ecx, ecy, eR, fill=0, stroke=1)
+
         # bencao
         c.setFillColorRGB(*INK)
         c.setFont(F["italic"], 13.5)
@@ -476,7 +536,11 @@ def build_pdf(
         c.showPage()
 
     # ------ 5) PAGINAS (arte em sangria + estrofe mesclada, sem numeracao)
-    for idx, p in enumerate(pages):
+    # Se preview_pages estiver definido, limita as paginas da historia
+    is_preview = preview_pages is not None and len(pages) > preview_pages
+    visible_pages = pages[:preview_pages] if is_preview else pages
+
+    for idx, p in enumerate(visible_pages):
         bg(CREAM)
         ir = reader(p.get("image"))
         if ir:
@@ -487,6 +551,27 @@ def build_pdf(
             overlay(text, F["body"], 16, 23, 42, bottom=44)
         else:
             overlay(text, F["body"], 16, 23, 42, top=38)
+        c.showPage()
+
+    # Pagina de preview: aviso de que o livro completo esta disponivel
+    if is_preview:
+        bg(CREAM)
+        c.setFillColorRGB(*NAVY)
+        c.setFont(F["body"], 22)
+        c.drawCentredString(W / 2, H / 2 + 40, _win(tr["preview_title"]))
+        c.setFillColorRGB(*INK)
+        c.setFont(F["italic"], 15)
+        preview_lines = split_lines(
+            tr["preview_msg"].format(total=len(pages), shown=preview_pages),
+            F["italic"], 15, W * 0.65
+        )
+        y = H / 2
+        for ln in preview_lines:
+            c.drawCentredString(W / 2, y, ln)
+            y -= 24
+        star(W / 2 - 60, H / 2 - 60, 8, GOLD)
+        star(W / 2 + 60, H / 2 - 60, 8, CORAL)
+        brand_badge(y=H * 0.28)
         c.showPage()
 
     # --------------------- 6) CONTRACAPA: POEMA DE ENCERRAMENTO

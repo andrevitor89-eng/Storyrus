@@ -80,6 +80,12 @@ class NanoBananaImageProvider:
                     "permaneca 100% reconhecivel ao lado da foto. Use a mesma roupa das fotos. "
                     "Nao invente tracos, nao 'embeleze', nao mude a etnia nem a idade. "
                     "Sem texto, sem moldura, sem marca d'agua. "
+                    "ESTILO MISTO OBRIGATORIO: o ROSTO deve ser REALISTA (parecer uma foto real "
+                    "da crianca, com pele, olhos e detalhes hiper-realistas), enquanto o CORPO "
+                    "e o RESTO devem ser em estilo DESENHO/ILUSTRACAO infantil (bordas suaves, "
+                    "cores vibrantes, estilo cartoon). A CABECA deve ser MAIOR que o normal "
+                    "(proporcionalmente grande, estilo chibi/funko) para dar um visual fofo e "
+                    "estilizado ao personagem. "
                     f"{prompt}"
                 )
             }
@@ -106,6 +112,8 @@ class NanoBananaImageProvider:
                     "diferente na cena, substitua-o pelo da referencia — a referencia SEMPRE "
                     "vence. NAO mude o cenario, a composicao, o enquadramento, a iluminacao, "
                     "a pose nem a acao da cena. Mantenha o mesmo estilo de ilustracao. "
+                    "ESTILO MISTO: o ROSTO deve ser REALISTA, o CORPO em estilo DESENHO. "
+                    "A CABECA deve ser MAIOR que o normal. "
                     "Devolva apenas a cena corrigida."
                 )
             },
@@ -128,7 +136,10 @@ class NanoBananaImageProvider:
                     "sobrancelhas, mesmo cabelo (cor, textura, comprimento, franja e risca), "
                     "mesmo tom de pele e a mesma idade. Preserve o estilo de ilustracao de livro "
                     "infantil (pintura digital suave), a mesma roupa, a mesma pose e o mesmo "
-                    "fundo. Nao torne a imagem uma foto. Devolva apenas a ilustracao corrigida."
+                    "fundo. O ROSTO deve ser REALISTA (parecer uma foto real), enquanto o CORPO "
+                    "permanece em estilo DESENHO/ILUSTRACAO. A CABECA deve ser MAIOR que o "
+                    "normal (proporcionalmente grande). Nao torne a imagem uma foto. Devolva "
+                    "apenas a ilustracao corrigida."
                 )
             },
             _inline(photo, "image/jpeg"),
@@ -162,6 +173,10 @@ class NanoBananaImageProvider:
                     "MESMA ROUPA da referencia, peca por peca, com as mesmas cores. "
                     "Colocada lado a lado com a referencia, a crianca desta cena deve parecer "
                     "dois quadros do mesmo filme. "
+                    "ESTILO MISTO: o ROSTO deve ser REALISTA (parecer uma foto real da crianca), "
+                    "enquanto o CORPO e CENARIO sao em estilo ILUSTRACAO/DESENHO infantil. "
+                    "A CABECA deve ser MAIOR que o normal (proporcionalmente grande, estilo "
+                    "chibi/funko). "
                     "PROIBIDO: inventar outra crianca parecida; mudar cabelo, roupa, idade, "
                     "etnia ou tom de pele; 'embelezar' ou estilizar o rosto de forma diferente "
                     "da referencia; adicionar acessorios que nao existem na referencia. "

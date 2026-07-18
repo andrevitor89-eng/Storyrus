@@ -68,6 +68,7 @@ export const api = {
     return req<{
       character_url: string | null;
       realistic_url: string | null;
+      extra_characters: { name: string; url: string }[];
       page_images: string[];
       ebook_url: string | null;
       video_url: string | null;
@@ -143,7 +144,7 @@ export const api = {
   },
   async startStep(
     id: string,
-    step: "avatar" | "realistic" | "story" | "ebook" | "video",
+    step: "avatar" | "realistic" | "story" | "ebook" | "video" | "extra-character",
     body: Record<string, unknown> = {},
   ) {
     return req<JobAccepted>(`/v1/projects/${id}/${step}`, {
@@ -151,5 +152,28 @@ export const api = {
       headers: { "Idempotency-Key": uuid() },
       body: JSON.stringify(body),
     });
+  },
+  // Upload de foto de personagem extra
+  async uploadExtraCharacter(id: string, file: File, name: string) {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("name", name);
+    const headers = new Headers();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const resp = await fetch(`${BASE}/v1/projects/${id}/extra-character`, {
+      method: "POST",
+      body: fd,
+      headers,
+    });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      throw new Error(`${resp.status}: ${detail}`);
+    }
+    return resp.json();
   },
 };

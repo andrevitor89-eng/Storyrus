@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
-import type { Job, Project, Style, Theme } from "./types";
+import type { ExtraCharacter, Job, Project, Style, Theme } from "./types";
 import logo from "./assets/logo.png";
 
 const STYLES: { id: Style; label: string }[] = [
@@ -11,6 +11,7 @@ const STYLES: { id: Style; label: string }[] = [
 
 // Temas narrativos do briefing — a história nasce ao redor do tema escolhido.
 const THEMES: { id: Theme; label: string; emoji: string }[] = [
+  // Aventura e fantasia
   { id: "adventure", label: "Aventura", emoji: "🗺️" },
   { id: "princess", label: "Princesas", emoji: "👑" },
   { id: "superhero", label: "Super-heróis", emoji: "🦸" },
@@ -18,6 +19,14 @@ const THEMES: { id: Theme; label: string; emoji: string }[] = [
   { id: "underwater", label: "Fundo do mar", emoji: "🐠" },
   { id: "dinosaurs", label: "Dinossauros", emoji: "🦕" },
   { id: "fantasy", label: "Fantasia", emoji: "🧚" },
+  // Datas comemorativas
+  { id: "birthday", label: "Aniversário", emoji: "🎂" },
+  { id: "christmas", label: "Natal", emoji: "🎄" },
+  { id: "easter", label: "Páscoa", emoji: "🐣" },
+  { id: "childrens_day", label: "Dia das Crianças", emoji: "🎈" },
+  { id: "mothers_day", label: "Dia das Mães", emoji: "💐" },
+  { id: "fathers_day", label: "Dia dos Pais", emoji: "👔" },
+  { id: "new_year", label: "Ano Novo", emoji: "🎉" },
 ];
 const themeLabel = (id: string | null | undefined) =>
   THEMES.find((t) => t.id === id)?.label ?? "—";
@@ -48,6 +57,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
+  const [extraChars, setExtraChars] = useState<ExtraCharacter[]>([]);
+  const [extraCharFile, setExtraCharFile] = useState<File | null>(null);
+  const [extraCharName, setExtraCharName] = useState("");
   const [storyMode, setStoryMode] = useState<StoryMode>("invent");
   const [storyText, setStoryText] = useState("");
   const [childName, setChildName] = useState("");
@@ -56,6 +68,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [assets, setAssets] = useState<{
     character_url: string | null;
     realistic_url: string | null;
+    extra_characters: { name: string; url: string }[];
     page_images: string[];
     ebook_url: string | null;
     video_url: string | null;
@@ -206,6 +219,42 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
+  // Upload de personagem extra
+  async function uploadExtraCharacter() {
+    if (!project || !extraCharFile) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.uploadExtraCharacter(project.id, extraCharFile, extraCharName);
+      const p = await api.getProject(project.id);
+      setProject(p);
+      setExtraChars(p.extra_characters || []);
+      setExtraCharFile(null);
+      setExtraCharName("");
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  // Gera os personagens ilustrados para os extras
+  async function generateExtraCharacters() {
+    if (!project) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await api.startStep(project.id, "extra-character", {});
+      const js = await api.listJobs(project.id);
+      setJobs(js);
+      refreshCredits();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <div className="studio">
       <header>
@@ -240,7 +289,20 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
           <h3 className="field-label">1 · Escolha o tema da aventura</h3>
           <div className="styles">
-            {THEMES.map((t) => (
+            {THEMES.filter((t) => !["birthday", "christmas", "easter", "childrens_day", "mothers_day", "fathers_day", "new_year"].includes(t.id)).map((t) => (
+              <button
+                key={t.id}
+                className={`chip ${theme === t.id ? "on" : ""}`}
+                onClick={() => setTheme(t.id)}
+              >
+                {t.emoji} {t.label}
+              </button>
+            ))}
+          </div>
+
+          <h3 className="field-label">Datas comemorativas</h3>
+          <div className="styles">
+            {THEMES.filter((t) => ["birthday", "christmas", "easter", "childrens_day", "mothers_day", "fathers_day", "new_year"].includes(t.id)).map((t) => (
               <button
                 key={t.id}
                 className={`chip ${theme === t.id ? "on" : ""}`}
@@ -342,6 +404,33 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             </div>
           )}
 
+          <h3 className="field-label">Personagens Extras (amigos, irmãos, etc.)</h3>
+          <div className="upload">
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => setExtraCharFile(e.target.files?.[0] ?? null)}
+            />
+            <input
+              value={extraCharName}
+              onChange={(e) => setExtraCharName(e.target.value)}
+              placeholder="Nome do personagem"
+              maxLength={40}
+              style={{ flex: 1, minWidth: 120 }}
+            />
+            <button disabled={!extraCharFile || busy} onClick={uploadExtraCharacter}>
+              Adicionar
+            </button>
+          </div>
+          {extraChars.length > 0 && (
+            <div style={{ margin: "8px 0" }}>
+              <p className="muted">{extraChars.length} personagem(ns) extra(s) adicionado(s)</p>
+              <button disabled={busy} onClick={generateExtraCharacters}>
+                Gerar ilustrações dos extras <span className="muted">(1 crédito cada)</span>
+              </button>
+            </div>
+          )}
+
           <h3 className="field-label">História</h3>
           <div className="styles">
             <button
@@ -418,6 +507,24 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                   alt="Personagem gerado"
                   style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
                 />
+              </div>
+            )}
+
+            {assets?.extra_characters && assets.extra_characters.length > 0 && (
+              <div className="result-block">
+                <h3 className="field-label">Personagens Extras</h3>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                  {assets.extra_characters.map((ec, i) => (
+                    <div key={i} style={{ textAlign: "center" }}>
+                      <img
+                        src={ec.url}
+                        alt={ec.name}
+                        style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 50 }}
+                      />
+                      <p className="muted" style={{ margin: "4px 0 0" }}>{ec.name}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 

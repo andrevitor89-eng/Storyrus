@@ -7,7 +7,22 @@ export type Theme =
   | "space"
   | "underwater"
   | "dinosaurs"
-  | "fantasy";
+  | "fantasy"
+  | "birthday"
+  | "christmas"
+  | "easter"
+  | "childrens_day"
+  | "mothers_day"
+  | "fathers_day"
+  | "new_year";
+
+export interface ExtraCharacter {
+  name: string;
+  storage_key: string;
+  mime: string;
+  character_storage_key?: string;
+  character_mime?: string;
+}
 
 export interface Project {
   id: string;
@@ -16,6 +31,9 @@ export interface Project {
   theme?: string | null;
   child_name?: string | null;
   child_age?: number | null;
+  dedication?: string | null;
+  language?: string | null;
+  extra_characters?: ExtraCharacter[];
   story_text: string | null;
   ebook_url: string | null;
   video_url: string | null;
