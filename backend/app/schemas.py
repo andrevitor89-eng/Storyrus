@@ -40,6 +40,13 @@ class ProjectCreateIn(BaseModel):
     # Idade da criança em anos; guia tom, vocabulário e complexidade da história.
     child_age: int | None = Field(default=None, ge=0, le=12)
     dedication: str | None = Field(default=None, max_length=500)
+    # Traço central: o ponto de partida que a história vai transformar (ex.: "tem medo
+    # do escuro", "não gosta de dividir os brinquedos"). Deve apontar para o tema/objetivo
+    # educacional escolhido.
+    child_trait: str | None = Field(default=None, max_length=300)
+    # Interesse/talento: a ferramenta que a criança usa para vencer o obstáculo no clímax
+    # (ex.: "adora dinossauros", "é curiosa e observadora").
+    child_interest: str | None = Field(default=None, max_length=300)
     # Idioma do livro: 'pt-BR' (padrao) ou 'en'.
     language: str | None = Field(default="pt-BR", max_length=8)
 
@@ -53,7 +60,10 @@ class ProjectOut(BaseModel):
     child_name: str | None
     child_age: int | None
     dedication: str | None
+    child_trait: str | None = None
+    child_interest: str | None = None
     language: str | None
+    extra_characters: list[dict] | None = None
     story_text: str | None
     ebook_url: str | None
     video_url: str | None

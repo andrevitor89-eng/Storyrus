@@ -175,6 +175,177 @@ THEME_EDU: dict[str, dict[str, tuple[str, str]]] = {
             "caminho (cada uma revela um segredo da natureza) → a floresta inteira se ilumina no "
             "clímax → a lição de que a gentileza ilumina o mundo",
         ),
+        # ---- Datas comemorativas ----
+        "birthday": (
+            "celebração, gratidão e o valor de crescer: cada ano novo é uma página em branco "
+            "para preencher com aventuras e boas memórias",
+            "acordar no dia especial e sentir a magia no ar → preparar surpresas para os amigos → "
+            "uma aventura divertida com obstáculos engraçados → a festa surpresa no clímax → "
+            "aprender que o melhor presente é ter quem a gente ama por perto",
+        ),
+        "christmas": (
+            "generosidade, união familiar e espírito natalino: dar é melhor que receber, "
+            "e a magia está nas pequenas coisas",
+            "ajudar a decorar a casa e a árvore → uma aventura para encontrar o presente "
+            "perfeito → encontrar alguém que precisa de ajuda → a ceia de Natal reunindo "
+            "todos → a lição de que o espírito do Natal está no coração",
+        ),
+        "easter": (
+            "esperança, renascimento e alegria de descobrir coisas novas: como os "
+            "pintinhos nascem e as flores voltam a brotar",
+            "pela manhã, encontrar os primeiros ovos escondidos → seguir pistas pelo "
+            "jardim → ajudar um filhote perdido a encontrar o ninho → a grande festa "
+            "de Páscoa com todos os amigos → aprender que depois do inverno sempre vem "
+            "a primavera",
+        ),
+        "childrens_day": (
+            "a importância de ser criança: brincar, imaginar e sonhar são os "
+            "superpoderes mais poderosos do mundo",
+            "acordar sabendo que hoje é o dia especial → escolher a brincadeira "
+            "perfeita → uma aventura onde a imaginação se torna realidade → compartilhar "
+            "alegria com todos os amigos → aprender que ser criança é o maior presente",
+        ),
+        "mothers_day": (
+            "gratidão, amor incondicional e o valor de cuidar uns dos outros: "
+            "mamãe é quem nos ensina a amar",
+            "acordar cedo para preparar uma surpresa → uma aventura para encontrar "
+            "o presente perfeito → ajudar alguém no caminho → entregar o presente "
+            "com um abraço → aprender que o melhor presente é o amor",
+        ),
+        "fathers_day": (
+            "gratidão, coragem e o valor de ter um herói ao nosso lado: papai "
+            "nos ensina a ser fortes e gentis",
+            "acordar com uma ideia especial para o papai → uma aventura onde "
+            "aprendemos algo que ele adora → encontrar um presente que representa "
+            "nossa admiração → entregar com orgulho → aprender que papai é nosso "
+            "maior herói",
+        ),
+        "new_year": (
+            "novos começos, esperança e o poder de sonhar alto: cada ano novo "
+            "é uma página em branco para escrever nossa história",
+            "contar os últimos segundos do ano → fazer um pedido especial → "
+            "uma aventura simbólica representando o novo ano → compartilhar "
+            "alegria com a família → aprender que novos sonhos trazem "
+            "novas possibilidades",
+        ),
+        # ---- Linguagem & Conceitos Fundamentais ----
+        "alfabetizacao_inicial": (
+            "consciência fonêmica: o alfabeto, rimas e a leitura da esquerda para a direita. "
+            "O vilão da jornada é a Timidez, que faz a criança guardar as palavras só para si",
+            "Cenário: um cantinho de leitura cheio de livros e letras coloridas. Encontrar uma "
+            "letra ou palavra misteriosa → seguir pistas rimadas pela casa → a Timidez tenta "
+            "calar a criança bem na hora de dizer a palavra em voz alta → a criança usa a "
+            "curiosidade para soletrar e ler mesmo com medo → celebrar lendo a palavra inteira "
+            "para todos",
+        ),
+        "pensamento_matematico": (
+            "contar de 1 a 5, separar por tamanho e reconhecer círculo, quadrado e triângulo. "
+            "O vilão da jornada é a Pressa, que faz contar errado e pular números",
+            "Cenário: um quarto ou quintal cheio de blocos, brinquedos e formas para organizar. "
+            "Objetos espalhados pedem para ser organizados → contar um a um devagar → a Pressa "
+            "tenta atropelar a contagem → a criança respira e conta de novo, com calma → tudo "
+            "organizado por tamanho e forma, missão cumprida",
+        ),
+        "cores": (
+            "cores primárias e secundárias, reconhecidas em objetos do mundo real. O vilão da "
+            "jornada é a Confusão, que embaralha as cores na cabeça da criança",
+            "Cenário: um jardim ou caixa de tintas cheio de cores para nomear. Algo perdeu a "
+            "cor certa e precisa ser combinado → percorrer o espaço nomeando cores em objetos "
+            "conhecidos → a Confusão troca as cores de lugar → a criança usa o que já sabe para "
+            "desfazer a troca → tudo com a cor certa de novo",
+        ),
+        "opostos_espacial": (
+            "grande/pequeno, em cima/embaixo, dentro/fora. O vilão da jornada é o Embolado, um "
+            "sentimento de estar perdido no espaço",
+            "Cenário: uma casa ou parquinho com cantos altos, baixos, dentro e fora bem "
+            "marcados. Algo precisa ser guardado ou encontrado no lugar certo → explorar o "
+            "espaço nomeando opostos a cada passo → o Embolado confunde as direções → a criança "
+            "usa os opostos como mapa → encontra o caminho certo",
+        ),
+        # ---- Habilidades de Vida & Rotinas Diárias ----
+        "higiene_desfralde": (
+            "a transição do banheiro, lavar as mãos e escovar os dentes em passos previsíveis. "
+            "O vilão da jornada é a Vergonha, que faz esconder quando precisa ir ao banheiro",
+            "Cenário: o banheiro de casa, arrumado e acolhedor. A criança sente que precisa ir "
+            "ao banheiro → a Vergonha sussurra para esconder o sinal → a criança nomeia o que "
+            "sente e pede ajuda → consegue sozinha, passo a passo → orgulho de ter conseguido",
+        ),
+        "rotina_dormir": (
+            "a ansiedade de separação e uma rotina calma antes de dormir. O vilão da jornada é "
+            "o Medo-do-Escuro, que aparece quando a luz apaga",
+            "Cenário: o quarto da criança à noite, com uma luminária e um brinquedo favorito. O "
+            "dia termina e chega a hora de dormir → passos da rotina (banho, pijama, escovar os "
+            "dentes, história) → o Medo-do-Escuro aparece quando a luz apaga → a criança nomeia "
+            "o medo e acende a luminária ou abraça o brinquedo → adormece tranquila",
+        ),
+        "alimentacao_saudavel": (
+            "grupos de alimentos, frutas e verduras, coragem para experimentar texturas novas. "
+            "O vilão da jornada é o Enjoo, que faz recusar tudo que é novo no prato",
+            "Cenário: a cozinha ou horta de casa, colorida com frutas e legumes. Aparece um "
+            "alimento novo e diferente no prato ou na horta → o Enjoo encolhe o nariz da "
+            "criança → a criança usa a curiosidade para vencer o Enjoo → descobre um sabor novo "
+            "→ orgulho de ter experimentado",
+        ),
+        "vestir_autonomia": (
+            "identificar peças de roupa, botões, zíperes e sapatos, e vestir-se sozinho. O "
+            "vilão da jornada é a Impaciência, que quer que outra pessoa faça tudo",
+            "Cenário: o guarda-roupa ou quarto, com roupas espalhadas para escolher. A criança "
+            "precisa se vestir para algo especial → a Impaciência tenta fazer desistir no "
+            "primeiro botão emperrado → a criança tenta de novo, devagar, peça por peça → "
+            "consegue se vestir sozinha → orgulho de ter feito por conta própria",
+        ),
+        # ---- Autoconsciência & Aprendizagem Socioemocional ----
+        "literacia_emocional": (
+            "nomear sentimentos grandes — raiva, tristeza, frustração, alegria. O vilão da "
+            "jornada é o próprio sentimento grande do dia, como personagem",
+            "Cenário: um lugar familiar e calmo, como a sala de casa ou o pátio da escola. Algo "
+            "não sai como a criança queria → o sentimento grande aparece e cresce → a criança "
+            "tenta ignorá-lo, mas ele só cresce mais → a criança para, nomeia o que sente e "
+            "respira fundo → o sentimento fica pequeno e vira aprendizado",
+        ),
+        "consciencia_corporal": (
+            "nomes das partes do corpo, o que elas fazem e limites espaciais básicos. O vilão "
+            "da jornada é o Desatento, que faz a criança não perceber o próprio corpo",
+            "Cenário: um espaço de brincar livre, como o quintal ou a sala. Uma brincadeira de "
+            "imitação ou dança começa → cada parte do corpo entra em ação (mãos, pés, cabeça) → "
+            "o Desatento tenta bagunçar os movimentos → a criança presta atenção no próprio "
+            "corpo e acerta o ritmo → brincadeira concluída com orgulho",
+        ),
+        "compartilhar_revezar": (
+            "brincar em paralelo, dividir e esperar a vez com gentileza. O vilão da jornada é o "
+            "Ciúme, que não quer soltar o brinquedo",
+            "Cenário: um parquinho ou sala de brincar com outra criança por perto. Um amiguinho "
+            "quer brincar com o mesmo brinquedo → o Ciúme aperta o brinquedo contra o peito → a "
+            "criança sente o Ciúme, mas lembra como é bom brincar junto → propõe revezar ou "
+            "dividir → os dois brincam juntos e se divertem mais ainda",
+        ),
+        # ---- Descoberta & Exploração do Mundo ----
+        "animais_sons": (
+            "nomes e sons de animais, e seus habitats (fazenda, oceano, selva). O vilão da "
+            "jornada é o Silêncio-Enroscado, que embaralha os sons dos animais",
+            "Cenário: uma fazenda, floresta ou aquário para visitar. Um som de animal escapa e "
+            "ninguém sabe de quem é → seguir o som até o habitat certo → o Silêncio-Enroscado "
+            "tenta confundir o som com outro animal → a criança escuta com atenção e acerta o "
+            "animal e seu som → o habitat inteiro canta junto",
+        ),
+        "transporte_ajudantes": (
+            "veículos (caminhão, trem, avião) e figuras da comunidade (bombeiro, médico, "
+            "carteiro). O vilão da jornada é a Pressa-Perdida, que atrapalha o caminho até o "
+            "ajudante certo",
+            "Cenário: uma rua ou cidade pequena com diferentes veículos passando. Algo precisa "
+            "ser entregue ou resolvido rápido → a criança escolhe o veículo certo para o "
+            "trajeto → a Pressa-Perdida embaralha o caminho → a criança para, pensa e escolhe a "
+            "rota certa com a ajuda de um profissional da comunidade → missão entregue com "
+            "sucesso",
+        ),
+        "clima_estacoes": (
+            "padrões de clima (chuva, sol, neve) e a roupa certa para cada estação. O vilão da "
+            "jornada é o Friozinho-Sem-Aviso (ou Solzão-Repentino), que muda o tempo de repente",
+            "Cenário: o quintal ou uma janela que mostra o tempo mudando. A criança se prepara "
+            "para sair de um jeito → o tempo muda de repente → o vilão do clima brinca de "
+            "confundir a roupa certa → a criança observa o céu e escolhe a roupa certa para a "
+            "nova estação → sai para brincar preparada e feliz",
+        ),
     },
     "en": {
         "adventure": (
@@ -221,6 +392,177 @@ THEME_EDU: dict[str, dict[str, tuple[str, str]]] = {
             "enter the enchanted forest → a magical creature asks for help → two good deeds along "
             "the way (each reveals a secret of nature) → the whole forest lights up at the climax → "
             "the lesson that kindness lights up the world",
+        ),
+        # ---- Special dates ----
+        "birthday": (
+            "celebration, gratitude and the value of growing up: each new year is a blank page "
+            "to fill with adventures and happy memories",
+            "wake up on the special day and feel the magic in the air → prepare surprises for "
+            "friends → a fun adventure with silly obstacles → the surprise party at the climax → "
+            "learn that the best gift is having loved ones around",
+        ),
+        "christmas": (
+            "generosity, family unity and the Christmas spirit: giving is better than receiving, "
+            "and magic lives in small things",
+            "help decorate the house and tree → an adventure to find the perfect gift → find "
+            "someone who needs help → the Christmas dinner bringing everyone together → the "
+            "lesson that the Christmas spirit lives in the heart",
+        ),
+        "easter": (
+            "hope, renewal and the joy of discovering new things: how chicks hatch and flowers "
+            "bloom again",
+            "wake up to find the first hidden eggs → follow clues through the garden → help a "
+            "lost chick find its nest → the big Easter celebration with all friends → learn that "
+            "after winter always comes spring",
+        ),
+        "childrens_day": (
+            "the importance of being a child: playing, imagining and dreaming are the most "
+            "powerful superpowers in the world",
+            "wake up knowing today is the special day → choose the perfect game → an adventure "
+            "where imagination becomes reality → share joy with all friends → learn that being "
+            "a child is the greatest gift",
+        ),
+        "mothers_day": (
+            "gratitude, unconditional love and the value of caring for each other: mom teaches "
+            "us how to love",
+            "wake up early to prepare a surprise → an adventure to find the perfect gift → help "
+            "someone along the way → deliver the gift with a hug → learn that the best gift is love",
+        ),
+        "fathers_day": (
+            "gratitude, courage and the value of having a hero by our side: dad teaches us to "
+            "be strong and kind",
+            "wake up with a special idea for dad → an adventure where we learn something he loves "
+            "→ find a gift that represents our admiration → deliver it with pride → learn that dad "
+            "is our greatest hero",
+        ),
+        "new_year": (
+            "new beginnings, hope and the power of dreaming big: each new year is a blank page "
+            "to write our story",
+            "count down the last seconds of the year → make a special wish → a symbolic adventure "
+            "representing the new year → share joy with family → learn that new dreams bring "
+            "new possibilities",
+        ),
+        # ---- Language & Fundamental Concepts ----
+        "alfabetizacao_inicial": (
+            "phonemic awareness: the alphabet, rhymes and reading left to right. The villain "
+            "of the journey is Shyness, who makes the child keep words to herself",
+            "Setting: a cozy reading corner full of books and colorful letters. A mysterious "
+            "letter or word appears → follow rhyming clues around the house → Shyness tries to "
+            "silence the child right when it's time to say the word out loud → the child uses "
+            "curiosity to spell and read despite the fear → celebrate by reading the whole word "
+            "to everyone",
+        ),
+        "pensamento_matematico": (
+            "counting from 1 to 5, sorting by size and recognizing circles, squares and "
+            "triangles. The villain of the journey is Hurry, who makes counting go wrong and "
+            "skip numbers",
+            "Setting: a room or backyard full of blocks, toys and shapes to organize. "
+            "Scattered objects need organizing → count them one by one, slowly → Hurry tries to "
+            "rush the counting → the child breathes and counts again, calmly → everything "
+            "sorted by size and shape, mission complete",
+        ),
+        "cores": (
+            "primary and secondary colors, recognized in real-world objects. The villain of "
+            "the journey is Confusion, who scrambles the colors in the child's mind",
+            "Setting: a garden or paint box full of colors to name. Something lost its right "
+            "color and needs matching → move through the space naming colors on familiar "
+            "objects → Confusion swaps the colors around → the child uses what she already "
+            "knows to undo the swap → everything has the right color again",
+        ),
+        "opostos_espacial": (
+            "big/small, up/down, inside/outside. The villain of the journey is the Muddle, a "
+            "feeling of being lost in space",
+            "Setting: a house or playground with clearly marked high, low, inside and outside "
+            "corners. Something needs to be put away or found in the right spot → explore the "
+            "space naming opposites at each step → the Muddle confuses the directions → the "
+            "child uses opposites as a map → finds the right way",
+        ),
+        # ---- Life Skills & Daily Routines ----
+        "higiene_desfralde": (
+            "the bathroom transition, handwashing and toothbrushing in predictable steps. The "
+            "villain of the journey is Shame, who makes the child hide when she needs the "
+            "bathroom",
+            "Setting: the home bathroom, tidy and welcoming. The child feels she needs the "
+            "bathroom → Shame whispers to hide the signal → the child names what she feels and "
+            "asks for help → manages alone, step by step → pride in having done it",
+        ),
+        "rotina_dormir": (
+            "separation anxiety and a calm routine before sleep. The villain of the journey is "
+            "Fear-of-the-Dark, who shows up when the light goes off",
+            "Setting: the child's bedroom at night, with a nightlight and a favorite toy. The "
+            "day ends and bedtime arrives → routine steps (bath, pajamas, brushing teeth, "
+            "story) → Fear-of-the-Dark appears when the light goes off → the child names the "
+            "fear and turns on the nightlight or hugs the toy → falls asleep peacefully",
+        ),
+        "alimentacao_saudavel": (
+            "food groups, fruits and vegetables, courage to try new textures. The villain of "
+            "the journey is Queasy, who makes the child refuse anything new on the plate",
+            "Setting: the kitchen or garden at home, colorful with fruits and vegetables. A "
+            "new, different food appears on the plate or in the garden → Queasy scrunches up "
+            "the child's nose → the child uses curiosity to overcome Queasy → discovers a new "
+            "flavor → pride in having tried it",
+        ),
+        "vestir_autonomia": (
+            "identifying clothing items, buttons, zippers and shoes, and dressing "
+            "independently. The villain of the journey is Impatience, who wants someone else "
+            "to do it all",
+            "Setting: the closet or bedroom, with clothes spread out to choose from. The child "
+            "needs to get dressed for something special → Impatience tries to make her give up "
+            "at the first stuck button → the child tries again, slowly, piece by piece → "
+            "manages to dress herself → pride in doing it on her own",
+        ),
+        # ---- Self-Awareness & Social-Emotional Learning ----
+        "literacia_emocional": (
+            "naming big feelings — anger, sadness, frustration, joy. The villain of the "
+            "journey is the day's big feeling itself, as a character",
+            "Setting: a familiar, calm place, like the living room or the school yard. "
+            "Something doesn't go as the child wanted → the big feeling appears and grows → the "
+            "child tries to ignore it, but it only grows more → the child stops, names what she "
+            "feels and takes a deep breath → the feeling shrinks and becomes a lesson",
+        ),
+        "consciencia_corporal": (
+            "names of body parts, what they do and basic spatial limits. The villain of the "
+            "journey is the Absent-Minded, who makes the child not notice her own body",
+            "Setting: a free-play space, like the backyard or living room. An imitation game "
+            "or dance begins → each body part comes into action (hands, feet, head) → the "
+            "Absent-Minded tries to mess up the movements → the child pays attention to her own "
+            "body and gets the rhythm right → the game ends with pride",
+        ),
+        "compartilhar_revezar": (
+            "parallel play, sharing and waiting your turn with kindness. The villain of the "
+            "journey is Jealousy, who won't let go of the toy",
+            "Setting: a playground or playroom with another child nearby. A friend wants to "
+            "play with the same toy → Jealousy clutches the toy close → the child feels "
+            "Jealousy, but remembers how fun it is to play together → offers to take turns or "
+            "share → the two play together and have even more fun",
+        ),
+        # ---- Discovery & Exploring the World ----
+        "animais_sons": (
+            "animal names and sounds, and their habitats (farm, ocean, jungle). The villain of "
+            "the journey is the Tangled Silence, who scrambles the animal sounds",
+            "Setting: a farm, forest or aquarium to visit. An animal sound escapes and no one "
+            "knows whose it is → follow the sound to the right habitat → the Tangled Silence "
+            "tries to mix it up with another animal → the child listens carefully and matches "
+            "the animal to its sound → the whole habitat sings along",
+        ),
+        "transporte_ajudantes": (
+            "vehicles (truck, train, plane) and community figures (firefighter, doctor, mail "
+            "carrier). The villain of the journey is Lost-in-a-Hurry, who muddles the way to "
+            "the right helper",
+            "Setting: a street or small town with different vehicles passing by. Something "
+            "needs to be delivered or solved quickly → the child picks the right vehicle for "
+            "the trip → Lost-in-a-Hurry scrambles the route → the child stops, thinks and picks "
+            "the right path with a community helper's guidance → mission delivered "
+            "successfully",
+        ),
+        "clima_estacoes": (
+            "weather patterns (rain, sun, snow) and the right clothing for each season. The "
+            "villain of the journey is Sudden-Chill (or Sudden-Sun), who changes the weather "
+            "without warning",
+            "Setting: the backyard or a window showing the weather changing. The child gets "
+            "ready to go out one way → the weather suddenly changes → the weather villain "
+            "plays tricks on the right outfit → the child looks at the sky and picks the right "
+            "clothing for the new season → heads out to play, ready and happy",
         ),
     },
 }
@@ -388,6 +730,55 @@ async def _refine_scene(provider, character_ref, result, style):
     return result
 
 
+async def handle_extra_character(db: Session, job: Job) -> None:
+    """Gera o personagem ilustrado para cada foto de personagem extra enviada."""
+    project = _project(db, job)
+    extras = project.extra_characters or []
+    if not extras:
+        raise ProviderError("Sem personagens extras para gerar", transient=False)
+
+    provider = get_image_provider(job.provider)
+    updated = False
+
+    for idx, ec in enumerate(extras):
+        if ec.get("character_storage_key"):
+            continue  # ja gerado
+        photo_key = ec.get("storage_key")
+        if not photo_key:
+            continue
+        photo_bytes = storage.get_bytes(photo_key)
+        if settings.offline_fallback:
+            result = ImageResult(
+                image_bytes=_offline_png(
+                    f"Personagem extra: {ec.get('name', idx + 1)}",
+                    palette=((245, 239, 229), (255, 247, 240)),
+                ),
+                mime_type="image/png",
+                cost_usd=0.0,
+            )
+        else:
+            result = await provider.generate_character(
+                prompt=f"Retrato do personagem '{ec.get('name', '')}', corpo inteiro, fundo neutro.",
+                reference_images=[photo_bytes],
+                style=project.style or "realistic",
+            )
+            result = await _refine_identity(provider, photo_bytes, result, project.style or "realistic")
+
+        char_key = storage.new_key(project.id, "extra_character", _ext(result.mime_type))
+        storage.put_bytes(char_key, result.image_bytes, result.mime_type)
+        extras[idx]["character_storage_key"] = char_key
+        extras[idx]["character_mime"] = result.mime_type
+        updated = True
+
+    if updated:
+        project.extra_characters = extras
+        db.commit()
+
+    job.cost_usd = sum(
+        e.get("cost_usd", 0.0) for e in extras if not e.get("character_storage_key")
+    )
+
+
 # Prompt fixo para a imagem realistica (usada como referencia do video).
 REALISTIC_PROMPT = (
     "Transform this photo of a child into a semi-realistic children's book illustration, "
@@ -505,6 +896,30 @@ async def handle_story(db: Session, job: Job) -> None:
             ". No final, o protagonista percebe com alegria o que aprendeu."
         )
 
+    # Perfil educativo da criança: o traço central (o que a história transforma) e o
+    # interesse/talento (a ferramenta que o herói usa para superar o vilão no clímax).
+    trait = (project.child_trait or "").strip()
+    interest = (project.child_interest or "").strip()
+    if trait or interest:
+        if is_en:
+            brief += (
+                " CHILD PROFILE (use it to shape the plot): "
+                + (f"the hero's starting trait is '{trait}' — this is the story's starting "
+                   f"point, exactly what the journey transforms into growth. " if trait else "")
+                + (f"the hero's talent/interest is '{interest}' — this is the tool the hero "
+                   f"uses to name, calm or overcome the villain at the climax; never let an "
+                   f"adult or luck solve it instead. " if interest else "")
+            )
+        else:
+            brief += (
+                " PERFIL DA CRIANÇA (use para moldar o enredo): "
+                + (f"o traço inicial do herói é '{trait}' — esse é o ponto de partida da "
+                   f"história, exatamente o que a jornada transforma em crescimento. " if trait else "")
+                + (f"o talento/interesse do herói é '{interest}' — é a ferramenta que ele usa "
+                   f"para nomear, acalmar ou superar o vilão no clímax; nunca deixe um adulto "
+                   f"ou a sorte resolverem por ele. " if interest else "")
+            )
+
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(
         brief=brief, style=project.style or "realistic", pages=settings.ebook_pages,
@@ -614,6 +1029,20 @@ async def handle_ebook(db: Session, job: Job) -> None:
         (f"The Adventure of {name}" if name else "My Great Adventure") if is_en
         else (f"A Grande Aventura de {name}" if name else "A Minha Grande Aventura")
     )
+
+    # Carrega imagens dos personagens extras
+    extra_chars = []
+    for ec in (project.extra_characters or []):
+        char_key = ec.get("character_storage_key")
+        if char_key:
+            try:
+                extra_chars.append({
+                    "name": ec.get("name", ""),
+                    "image_bytes": storage.get_bytes(char_key),
+                })
+            except Exception:  # noqa: BLE001
+                pass
+
     blob = ebook_builder.build_pdf(
         title=title,
         pages=pages,
@@ -621,6 +1050,8 @@ async def handle_ebook(db: Session, job: Job) -> None:
         portrait=char_bytes,
         child_name=(name or None),
         language=language,
+        extra_characters=extra_chars or None,
+        preview_pages=3,
     )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")

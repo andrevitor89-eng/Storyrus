@@ -144,9 +144,15 @@ class Project(Base):
     # Idade da criança em anos (0-12); orienta tom, vocabulário e forma da história.
     child_age: Mapped[int | None] = mapped_column(Integer, nullable=True)
     dedication: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Perfil educativo da crianca: traço central (o que a historia vai transformar) e
+    # interesse/talento (a ferramenta que ela usa para superar o obstaculo no climax).
+    child_trait: Mapped[str | None] = mapped_column(Text, nullable=True)
+    child_interest: Mapped[str | None] = mapped_column(Text, nullable=True)
     # Idioma do livro (BCP-47 simplificado: 'pt-BR', 'en'); None => pt-BR.
     language: Mapped[str | None] = mapped_column(String(8), nullable=True)
     character_ref: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
+    # Personagens extras: lista de dicts [{name, storage_key, mime}].
+    extra_characters: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     story_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     ebook_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     video_url: Mapped[str | None] = mapped_column(Text, nullable=True)

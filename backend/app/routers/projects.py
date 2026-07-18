@@ -43,6 +43,8 @@ def create_project(
         user_id=user.id, style=body.style.value, theme=body.theme,
         child_name=(body.child_name or None), child_age=body.child_age,
         dedication=(body.dedication or None),
+        child_trait=(body.child_trait or None),
+        child_interest=(body.child_interest or None),
         language=(body.language or "pt-BR"),
     )
     db.add(project)
@@ -118,9 +120,20 @@ def project_assets(
             else url_for(project.video_url)
         )
 
+    # Personagens extras (URLs assinadas)
+    extra_characters_out = []
+    for ec in (project.extra_characters or []):
+        char_key = ec.get("character_storage_key")
+        if char_key:
+            extra_characters_out.append({
+                "name": ec.get("name", ""),
+                "url": url_for(char_key) or "",
+            })
+
     return {
         "character_url": character_url,
         "realistic_url": realistic_url,
+        "extra_characters": extra_characters_out,
         "page_images": page_images,
         "ebook_url": ebook_url,
         "storyboard_url": storyboard_url,
@@ -177,11 +190,48 @@ async def upload_photo(
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
     if len(data) > 10_000_000:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (máx. 10MB)")
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)")
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
     key = storage.new_key(project.id, AssetKind.PHOTO.value, ext)
     storage.put_bytes(key, data, file.content_type or "image/jpeg")
     asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
+    db.add(asset)
+    db.commit()
+    db.refresh(asset)
+    return UploadUrlOut(asset_id=asset.id, storage_key=key, upload_url="", expires_in=0)
+
+
+@router.post("/{project_id}/extra-character", response_model=UploadUrlOut, status_code=201)
+async def upload_extra_character(
+    project_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    file: UploadFile = File(...),
+    name: str = "",
+) -> UploadUrlOut:
+    """Upload de foto de personagem extra (amigo, irmao, etc.)."""
+    project = _get_owned_project(db, user, project_id)
+    data = await file.read()
+    if not data:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
+    if len(data) > 10_000_000:
+        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)")
+    ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
+    key = storage.new_key(project.id, "extra_character", ext)
+    storage.put_bytes(key, data, file.content_type or "image/jpeg")
+
+    # Adiciona a lista de personagens extras no projeto
+    extras = list(project.extra_characters or [])
+    extras.append({
+        "name": name.strip() or f"Personagem {len(extras) + 1}",
+        "storage_key": key,
+        "mime": file.content_type or "image/jpeg",
+    })
+    project.extra_characters = extras
+    db.commit()
+
+    asset = Asset(project_id=project.id, kind="extra_character", storage_key=key,
+                  meta={"name": name.strip() or f"Personagem {len(extras)}"})
     db.add(asset)
     db.commit()
     db.refresh(asset)
@@ -329,6 +379,25 @@ def start_ebook(
     project = _get_owned_project(db, user, project_id)
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.EBOOK, idempotency_key=idempotency_key
+    )
+    return _accept(job)
+
+
+@router.post("/{project_id}/extra-character", response_model=JobAcceptedOut, status_code=202)
+def start_extra_character(
+    project_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> JobAcceptedOut:
+    """Gera os personagens ilustrados para todas as fotos de personagens extras enviadas."""
+    project = _get_owned_project(db, user, project_id)
+    extras = project.extra_characters or []
+    if not extras:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto de personagem extra")
+    job = jobs_svc.enqueue_job(
+        db, user=user, project=project, job_type=JobType.EXTRA_CHARACTER,
+        idempotency_key=idempotency_key
     )
     return _accept(job)
 
