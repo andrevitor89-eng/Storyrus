@@ -48,12 +48,14 @@ export const api = {
     return req<{ credits: number }>("/v1/credits");
   },
   async createProject(
-    style: Style, theme?: Theme, childName?: string, dedication?: string, childAge?: number,
+    style: Style, theme?: Theme, extraTheme?: Theme, childName?: string, dedication?: string,
+    childAge?: number,
   ) {
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
         style, theme,
+        extra_theme: extraTheme || undefined,
         child_name: childName?.trim() || undefined,
         child_age: childAge ?? undefined,
         dedication: dedication?.trim() || undefined,

@@ -47,6 +47,7 @@ export interface Project {
   status: string;
   style: string | null;
   theme?: string | null;
+  extra_theme?: string | null;
   child_name?: string | null;
   child_age?: number | null;
   dedication?: string | null;

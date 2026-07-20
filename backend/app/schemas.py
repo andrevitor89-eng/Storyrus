@@ -36,6 +36,9 @@ class ProjectCreateIn(BaseModel):
     style: ProjectStyle = ProjectStyle.REALISTIC
     # Tema narrativo da história (aventura, princesas, espaco, ...). Aberto por design.
     theme: str | None = Field(default=None, max_length=32)
+    # Segundo tema opcional (máx. 2 na mesma história): `theme` continua definindo
+    # vilão/cenário/arco; `extra_theme` só soma um objetivo de aprendizado extra.
+    extra_theme: str | None = Field(default=None, max_length=32)
     child_name: str | None = Field(default=None, max_length=80)
     # Idade da criança em anos; guia tom, vocabulário e complexidade da história.
     child_age: int | None = Field(default=None, ge=0, le=12)
@@ -57,6 +60,7 @@ class ProjectOut(BaseModel):
     status: str
     style: str | None
     theme: str | None
+    extra_theme: str | None = None
     child_name: str | None
     child_age: int | None
     dedication: str | None

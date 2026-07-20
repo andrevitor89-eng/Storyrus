@@ -856,6 +856,9 @@ async def handle_story(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
 
     theme = project.theme or "adventure"
+    extra_theme = (project.extra_theme or "").strip() or None
+    if extra_theme == theme:
+        extra_theme = None
     name = (project.child_name or "").strip()
     language = project.language or "pt-BR"
     is_en = (language or "").lower().startswith("en")
@@ -895,6 +898,37 @@ async def handle_story(db: Session, job: Job) -> None:
             "obrigatória da jornada, adaptada com criatividade: " + sequence +
             ". No final, o protagonista percebe com alegria o que aprendeu."
         )
+
+    # Segundo tema opcional (máx. 2 por história): o tema principal continua com o
+    # vilão/cenário/arco (sequência acima); o segundo tema só soma um objetivo de
+    # aprendizado extra tecido na mesma jornada — nunca uma jornada paralela.
+    if extra_theme and extra_theme in guides:
+        extra_focus, _ = guides[extra_theme]
+        if is_en:
+            brief += (
+                " SECOND THEME (blend into the same journey, never a separate plot): "
+                "also playfully teach — " + extra_focus + ". Keep the primary theme's "
+                "setting, sequence and pace as the backbone; weave this second learning "
+                "goal into an existing beat of that same journey (a detail of the "
+                "setting, something a friend says or does, a small moment inside the "
+                "obstacle already planned) instead of adding a new scene. If each theme "
+                "implies a different villain, pick whichever fits this specific journey "
+                "better, or merge them into one coherent antagonist — never two separate "
+                "villains in the same story."
+            )
+        else:
+            brief += (
+                " SEGUNDO TEMA (funda com a mesma jornada, nunca um enredo à parte): "
+                "ensine também, de forma lúdica — " + extra_focus + ". Mantenha o "
+                "espaço, a sequência e o ritmo do tema principal como espinha dorsal; "
+                "teça esse segundo objetivo de aprendizado dentro de um momento já "
+                "previsto dessa mesma jornada (um detalhe do cenário, algo que um "
+                "amiguinho diz ou faz, um instante dentro do obstáculo já planejado) "
+                "em vez de criar uma cena nova. Se cada tema sugerir um vilão "
+                "diferente, escolha o que fizer mais sentido para essa jornada "
+                "específica, ou funda os dois num só antagonista coerente — nunca dois "
+                "vilões separados na mesma história."
+            )
 
     # Perfil educativo da criança: o traço central (o que a história transforma) e o
     # interesse/talento (a ferramenta que o herói usa para superar o vilão no clímax).
@@ -1163,6 +1197,12 @@ async def handle_storyboard(db: Session, job: Job) -> None:
 
     language = project.language or "pt-BR"
     theme = project.theme or "adventure"
+    extra_theme = (project.extra_theme or "").strip() or None
+    if extra_theme == theme:
+        extra_theme = None
+    # Roteirista recebe os dois temas combinados (string simples, sem mudar a
+    # assinatura do provider) — a história já fundiu os dois na etapa STORY.
+    theme_combined = f"{theme} + {extra_theme}" if extra_theme else theme
     title = _parse_title(project.story_text) or ""
     pages = _parse_pages(project.story_text)
 
@@ -1173,7 +1213,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
     if gen is not None:
         try:
             result = await gen(
-                story=project.story_text, theme=theme, title=title, language=language
+                story=project.story_text, theme=theme_combined, title=title, language=language
             )
             sb = _parse_storyboard_json(result.text)
             job.cost_usd = result.cost_usd
@@ -1182,11 +1222,12 @@ async def handle_storyboard(db: Session, job: Job) -> None:
                 raise  # deixa o runner reprocessar
             sb = None
     if not sb:
-        sb = _fallback_storyboard(pages, title=title, theme=theme)
+        sb = _fallback_storyboard(pages, title=title, theme=theme_combined)
 
     sb.update({
         "version": 1,
         "theme": theme,
+        "extra_theme": extra_theme,
         "language": language,
         "title": sb.get("title") or title,
         "total_duration_s": sum(s.get("duration_s", 5) for s in sb["scenes"]),

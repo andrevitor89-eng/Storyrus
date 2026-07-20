@@ -140,6 +140,10 @@ class Project(Base):
     )
     style: Mapped[str | None] = mapped_column(String(16), nullable=True)
     theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Segundo tema opcional: combinado com `theme` na mesma história (máx. 2 temas).
+    # `theme` continua sendo o principal (define vilão/cenário/arco); `extra_theme`
+    # só soma objetivo de aprendizado extra — ver handle_story.
+    extra_theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
     child_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
     # Idade da criança em anos (0-12); orienta tom, vocabulário e forma da história.
     child_age: Mapped[int | None] = mapped_column(Integer, nullable=True)

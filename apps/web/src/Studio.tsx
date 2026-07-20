@@ -71,7 +71,18 @@ const HOW = [
 export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [credits, setCredits] = useState<number | null>(null);
   const [style, setStyle] = useState<Style>("realistic");
-  const [theme, setTheme] = useState<Theme>("adventure");
+  // Até 2 temas combinados na mesma história: o 1º é o principal (define
+  // vilão/cenário/arco), o 2º só soma um objetivo de aprendizado extra.
+  const [selectedThemes, setSelectedThemes] = useState<Theme[]>(["adventure"]);
+  const theme = selectedThemes[0] ?? "adventure";
+  const extraTheme = selectedThemes[1];
+  function toggleTheme(id: Theme) {
+    setSelectedThemes((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 2) return [prev[1], id]; // troca o mais antigo pelo novo
+      return [...prev, id];
+    });
+  }
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photo, setPhoto] = useState<File | null>(null);
@@ -105,7 +116,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   // pré-seleciona o tema da história vindo do catálogo (/app?tema=...)
   useEffect(() => {
     const q = new URLSearchParams(window.location.search).get("tema");
-    if (q && THEMES.some((x) => x.id === q)) setTheme(q as Theme);
+    if (q && THEMES.some((x) => x.id === q)) setSelectedThemes([q as Theme]);
   }, []);
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<number | null>(null);
@@ -156,7 +167,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const age = childAge.trim() === "" ? undefined : Number(childAge);
-      const p = await api.createProject(style, theme, childName, dedication, age);
+      const p = await api.createProject(style, theme, extraTheme, childName, dedication, age);
       setProject(p);
       setJobs([]);
       setPhotoUploaded(false);
@@ -306,43 +317,56 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <h2>Crie a sua história</h2>
           <p className="slogan">Toda história merece um protagonista — e o protagonista é você.</p>
 
-          <h3 className="field-label">1 · Escolha o tema da aventura</h3>
+          <h3 className="field-label">1 · Escolha até 2 temas para a aventura</h3>
+          <p className="muted">
+            O 1º escolhido é o tema principal (define vilão, cenário e arco); o 2º só soma
+            um aprendizado extra na mesma jornada.
+          </p>
           <div className="styles">
-            {THEMES.filter((t) => t.group === "aventura").map((t) => (
-              <button
-                key={t.id}
-                className={`chip ${theme === t.id ? "on" : ""}`}
-                onClick={() => setTheme(t.id)}
-              >
-                {t.emoji} {t.label}
-              </button>
-            ))}
+            {THEMES.filter((t) => t.group === "aventura").map((t) => {
+              const order = selectedThemes.indexOf(t.id);
+              return (
+                <button
+                  key={t.id}
+                  className={`chip ${order >= 0 ? "on" : ""}`}
+                  onClick={() => toggleTheme(t.id)}
+                >
+                  {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
+                </button>
+              );
+            })}
           </div>
 
           <h3 className="field-label">Datas comemorativas</h3>
           <div className="styles">
-            {THEMES.filter((t) => t.group === "datas").map((t) => (
-              <button
-                key={t.id}
-                className={`chip ${theme === t.id ? "on" : ""}`}
-                onClick={() => setTheme(t.id)}
-              >
-                {t.emoji} {t.label}
-              </button>
-            ))}
+            {THEMES.filter((t) => t.group === "datas").map((t) => {
+              const order = selectedThemes.indexOf(t.id);
+              return (
+                <button
+                  key={t.id}
+                  className={`chip ${order >= 0 ? "on" : ""}`}
+                  onClick={() => toggleTheme(t.id)}
+                >
+                  {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
+                </button>
+              );
+            })}
           </div>
 
           <h3 className="field-label">Temas educativos</h3>
           <div className="styles">
-            {THEMES.filter((t) => t.group === "educativo").map((t) => (
-              <button
-                key={t.id}
-                className={`chip ${theme === t.id ? "on" : ""}`}
-                onClick={() => setTheme(t.id)}
-              >
-                {t.emoji} {t.label}
-              </button>
-            ))}
+            {THEMES.filter((t) => t.group === "educativo").map((t) => {
+              const order = selectedThemes.indexOf(t.id);
+              return (
+                <button
+                  key={t.id}
+                  className={`chip ${order >= 0 ? "on" : ""}`}
+                  onClick={() => toggleTheme(t.id)}
+                >
+                  {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
+                </button>
+              );
+            })}
           </div>
 
           <h3 className="field-label">2 · Escolha o estilo da arte</h3>
@@ -412,7 +436,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         <section className="card">
           <h2>Projeto</h2>
           <p className="muted">
-            Tema: <b>{themeLabel(project.theme ?? theme)}</b> · Estilo: <b>{project.style}</b> ·
+            Tema: <b>{themeLabel(project.theme ?? theme)}</b>
+            {(project.extra_theme ?? extraTheme) && (
+              <> + <b>{themeLabel(project.extra_theme ?? extraTheme)}</b></>
+            )} · Estilo: <b>{project.style}</b> ·
             Status: <b>{project.status}</b>
           </p>
 

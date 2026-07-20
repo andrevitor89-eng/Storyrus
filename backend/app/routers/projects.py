@@ -41,6 +41,7 @@ def create_project(
 ) -> Project:
     project = Project(
         user_id=user.id, style=body.style.value, theme=body.theme,
+        extra_theme=(body.extra_theme or None),
         child_name=(body.child_name or None), child_age=body.child_age,
         dedication=(body.dedication or None),
         child_trait=(body.child_trait or None),
