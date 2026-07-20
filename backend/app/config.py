@@ -34,7 +34,10 @@ class Settings(BaseSettings):
     storage_signing_ttl: int = 600  # segundos
 
     # Politica de negocio
-    max_concurrent_jobs_per_user: int = 2
+    # VIDEO nao conta neste limite (ver services/jobs._active_jobs): fica RUNNING por
+    # muito tempo (poll de ate video_poll_timeout_s por tentativa, ate job_max_attempts
+    # tentativas) e travava outras acoes do usuario com 429 falso-positivo.
+    max_concurrent_jobs_per_user: int = 4
     default_video_duration_s: int = 30
     signup_bonus_credits: int = 10
     offline_fallback: bool = True

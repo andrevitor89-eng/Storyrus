@@ -41,12 +41,20 @@ enqueue_fn: Callable[[uuid.UUID], None] = lambda job_id: None
 
 
 def _active_jobs(db: Session, user: User) -> int:
+    """Conta jobs ativos para o limite de backpressure.
+
+    VIDEO fica de fora: pode permanecer RUNNING por muito tempo (poll de ate
+    video_poll_timeout_s por tentativa, com retry/backoff ate job_max_attempts
+    vezes), e contá-lo travava outras acoes do usuario com 429 falso-positivo
+    enquanto um unico video ainda estava sendo gerado.
+    """
     stmt = (
         select(func.count(Job.id))
         .join(Project, Project.id == Job.project_id)
         .where(
             Project.user_id == user.id,
             Job.status.in_([JobStatus.PENDING.value, JobStatus.RUNNING.value]),
+            Job.type != JobType.VIDEO.value,
         )
     )
     return db.scalar(stmt) or 0

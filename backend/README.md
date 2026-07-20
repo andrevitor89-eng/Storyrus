@@ -71,7 +71,9 @@ pytest            # usa SQLite em memória; não chama provedores externos
 
 - **Crédito debitado antes** da etapa paga; **estorno automático** em falha definitiva.
 - **Idempotência** por `Idempotency-Key` única em `jobs`.
-- **Backpressure**: `MAX_CONCURRENT_JOBS_PER_USER` (default 2).
+- **Backpressure**: `MAX_CONCURRENT_JOBS_PER_USER` (default 4). VIDEO não entra nessa
+  contagem — fica RUNNING por muito tempo (polling + retries) e travava outras ações
+  do usuário com 429 enquanto um vídeo ainda gerava.
 - **Consistência de personagem**: `character_ref` é reutilizada em todas as cenas.
 - **Segurança/LGPD**: chaves só no backend, entregáveis via URL assinada de curta duração,
   callbacks validados por assinatura.
