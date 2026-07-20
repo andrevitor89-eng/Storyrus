@@ -312,10 +312,15 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
       {error && <p className="error">{error}</p>}
 
-      {!project ? (
-        <section className="card">
-          <h2>Crie a sua história</h2>
+      <section className="card">
+        <h2>Crie a sua história</h2>
+        {project ? (
+          <p className="muted">
+            ✓ Projeto criado — os campos abaixo ficam travados até você começar um novo projeto.
+          </p>
+        ) : (
           <p className="slogan">Toda história merece um protagonista — e o protagonista é você.</p>
+        )}
 
           <h3 className="field-label">1 · Escolha até 2 temas para a aventura</h3>
           <p className="muted">
@@ -328,6 +333,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               return (
                 <button
                   key={t.id}
+                  disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
                   onClick={() => toggleTheme(t.id)}
                 >
@@ -344,6 +350,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               return (
                 <button
                   key={t.id}
+                  disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
                   onClick={() => toggleTheme(t.id)}
                 >
@@ -360,6 +367,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               return (
                 <button
                   key={t.id}
+                  disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
                   onClick={() => toggleTheme(t.id)}
                 >
@@ -374,6 +382,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             {STYLES.map((s) => (
               <button
                 key={s.id}
+                disabled={!!project}
                 className={`chip ${style === s.id ? "on" : ""}`}
                 onClick={() => setStyle(s.id)}
               >
@@ -386,6 +395,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <label>
             Nome da criança
             <input
+              disabled={!!project}
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Ex.: Lila"
@@ -395,6 +405,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <label>
             Idade da criança (a história é adaptada ao tom e vocabulário da idade)
             <input
+              disabled={!!project}
               type="number"
               inputMode="numeric"
               min={0}
@@ -412,6 +423,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <label>
             Dedicatória (aparece na 2ª página do livro)
             <input
+              disabled={!!project}
               value={dedication}
               onChange={(e) => setDedication(e.target.value)}
               placeholder="Ex.: Para a Lila, com todo o amor da mamãe."
@@ -419,9 +431,11 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             />
           </label>
 
-          <button disabled={busy} onClick={start}>
-            Criar projeto
-          </button>
+          {!project && (
+            <button disabled={busy} onClick={start}>
+              Criar projeto
+            </button>
+          )}
 
           <div className="how">
             <h3 className="field-label">Como funciona</h3>
@@ -431,8 +445,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               ))}
             </ol>
           </div>
-        </section>
-      ) : (
+      </section>
+
+      {project && (
         <section className="card">
           <h2>Projeto</h2>
           <p className="muted">
