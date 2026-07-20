@@ -14,7 +14,25 @@ export type Theme =
   | "childrens_day"
   | "mothers_day"
   | "fathers_day"
-  | "new_year";
+  | "new_year"
+  // Temas educativos (Linguagem & Conceitos Fundamentais)
+  | "alfabetizacao_inicial"
+  | "pensamento_matematico"
+  | "cores"
+  | "opostos_espacial"
+  // Temas educativos (Habilidades de Vida & Rotinas Diárias)
+  | "higiene_desfralde"
+  | "rotina_dormir"
+  | "alimentacao_saudavel"
+  | "vestir_autonomia"
+  // Temas educativos (Autoconsciência & Aprendizagem Socioemocional)
+  | "literacia_emocional"
+  | "consciencia_corporal"
+  | "compartilhar_revezar"
+  // Temas educativos (Descoberta & Exploração do Mundo)
+  | "animais_sons"
+  | "transporte_ajudantes"
+  | "clima_estacoes";
 
 export interface ExtraCharacter {
   name: string;

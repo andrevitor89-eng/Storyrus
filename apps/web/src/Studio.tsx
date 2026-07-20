@@ -10,23 +10,42 @@ const STYLES: { id: Style; label: string }[] = [
 ];
 
 // Temas narrativos do briefing — a história nasce ao redor do tema escolhido.
-const THEMES: { id: Theme; label: string; emoji: string }[] = [
+type ThemeGroup = "aventura" | "datas" | "educativo";
+const THEMES: { id: Theme; label: string; emoji: string; group: ThemeGroup }[] = [
   // Aventura e fantasia
-  { id: "adventure", label: "Aventura", emoji: "🗺️" },
-  { id: "princess", label: "Princesas", emoji: "👑" },
-  { id: "superhero", label: "Super-heróis", emoji: "🦸" },
-  { id: "space", label: "Espaço", emoji: "🚀" },
-  { id: "underwater", label: "Fundo do mar", emoji: "🐠" },
-  { id: "dinosaurs", label: "Dinossauros", emoji: "🦕" },
-  { id: "fantasy", label: "Fantasia", emoji: "🧚" },
+  { id: "adventure", label: "Aventura", emoji: "🗺️", group: "aventura" },
+  { id: "princess", label: "Princesas", emoji: "👑", group: "aventura" },
+  { id: "superhero", label: "Super-heróis", emoji: "🦸", group: "aventura" },
+  { id: "space", label: "Espaço", emoji: "🚀", group: "aventura" },
+  { id: "underwater", label: "Fundo do mar", emoji: "🐠", group: "aventura" },
+  { id: "dinosaurs", label: "Dinossauros", emoji: "🦕", group: "aventura" },
+  { id: "fantasy", label: "Fantasia", emoji: "🧚", group: "aventura" },
   // Datas comemorativas
-  { id: "birthday", label: "Aniversário", emoji: "🎂" },
-  { id: "christmas", label: "Natal", emoji: "🎄" },
-  { id: "easter", label: "Páscoa", emoji: "🐣" },
-  { id: "childrens_day", label: "Dia das Crianças", emoji: "🎈" },
-  { id: "mothers_day", label: "Dia das Mães", emoji: "💐" },
-  { id: "fathers_day", label: "Dia dos Pais", emoji: "👔" },
-  { id: "new_year", label: "Ano Novo", emoji: "🎉" },
+  { id: "birthday", label: "Aniversário", emoji: "🎂", group: "datas" },
+  { id: "christmas", label: "Natal", emoji: "🎄", group: "datas" },
+  { id: "easter", label: "Páscoa", emoji: "🐣", group: "datas" },
+  { id: "childrens_day", label: "Dia das Crianças", emoji: "🎈", group: "datas" },
+  { id: "mothers_day", label: "Dia das Mães", emoji: "💐", group: "datas" },
+  { id: "fathers_day", label: "Dia dos Pais", emoji: "👔", group: "datas" },
+  { id: "new_year", label: "Ano Novo", emoji: "🎉", group: "datas" },
+  // Temas educativos — Linguagem & Conceitos Fundamentais
+  { id: "alfabetizacao_inicial", label: "Alfabetização", emoji: "🔤", group: "educativo" },
+  { id: "pensamento_matematico", label: "Matemática", emoji: "🔢", group: "educativo" },
+  { id: "cores", label: "Cores", emoji: "🎨", group: "educativo" },
+  { id: "opostos_espacial", label: "Opostos", emoji: "↕️", group: "educativo" },
+  // Temas educativos — Habilidades de Vida & Rotinas Diárias
+  { id: "higiene_desfralde", label: "Higiene", emoji: "🧼", group: "educativo" },
+  { id: "rotina_dormir", label: "Hora de Dormir", emoji: "🌙", group: "educativo" },
+  { id: "alimentacao_saudavel", label: "Alimentação", emoji: "🥗", group: "educativo" },
+  { id: "vestir_autonomia", label: "Vestir-se Sozinho", emoji: "👕", group: "educativo" },
+  // Temas educativos — Autoconsciência & Aprendizagem Socioemocional
+  { id: "literacia_emocional", label: "Sentimentos", emoji: "💗", group: "educativo" },
+  { id: "consciencia_corporal", label: "Corpo", emoji: "🙆", group: "educativo" },
+  { id: "compartilhar_revezar", label: "Compartilhar", emoji: "🤝", group: "educativo" },
+  // Temas educativos — Descoberta & Exploração do Mundo
+  { id: "animais_sons", label: "Animais e Sons", emoji: "🐾", group: "educativo" },
+  { id: "transporte_ajudantes", label: "Transporte", emoji: "🚚", group: "educativo" },
+  { id: "clima_estacoes", label: "Clima e Estações", emoji: "⛅", group: "educativo" },
 ];
 const themeLabel = (id: string | null | undefined) =>
   THEMES.find((t) => t.id === id)?.label ?? "—";
@@ -289,7 +308,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
           <h3 className="field-label">1 · Escolha o tema da aventura</h3>
           <div className="styles">
-            {THEMES.filter((t) => !["birthday", "christmas", "easter", "childrens_day", "mothers_day", "fathers_day", "new_year"].includes(t.id)).map((t) => (
+            {THEMES.filter((t) => t.group === "aventura").map((t) => (
               <button
                 key={t.id}
                 className={`chip ${theme === t.id ? "on" : ""}`}
@@ -302,7 +321,20 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
           <h3 className="field-label">Datas comemorativas</h3>
           <div className="styles">
-            {THEMES.filter((t) => ["birthday", "christmas", "easter", "childrens_day", "mothers_day", "fathers_day", "new_year"].includes(t.id)).map((t) => (
+            {THEMES.filter((t) => t.group === "datas").map((t) => (
+              <button
+                key={t.id}
+                className={`chip ${theme === t.id ? "on" : ""}`}
+                onClick={() => setTheme(t.id)}
+              >
+                {t.emoji} {t.label}
+              </button>
+            ))}
+          </div>
+
+          <h3 className="field-label">Temas educativos</h3>
+          <div className="styles">
+            {THEMES.filter((t) => t.group === "educativo").map((t) => (
               <button
                 key={t.id}
                 className={`chip ${theme === t.id ? "on" : ""}`}
