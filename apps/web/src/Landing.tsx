@@ -29,7 +29,7 @@ const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x
 const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
 const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 
-const NAV_ICONS = [IcHome, IcBook, IcPlay, IcSparkle];
+const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcPlay];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
@@ -223,7 +223,7 @@ function Book3D({ cover, pages, bg, quote, alt, off, delay }: {
 
 const I18N = {
   pt: {
-    nav: ["Início", "Livros", "Vídeos", "Como funciona"],
+    nav: ["Início", "Livros", "Como funciona", "Vídeos"],
     explore: "Explorar agora",
     eyebrow: "Sua foto vira uma história",
     h_pre: "Transforme uma foto em uma ", w1: "história", c1: " onde seu filho é o ", w2: "herói", h_suf: ".",
@@ -307,7 +307,7 @@ const I18N = {
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   en: {
-    nav: ["Home", "Books", "Videos", "How it works"],
+    nav: ["Home", "Books", "How it works", "Videos"],
     explore: "Explore now",
     eyebrow: "Your photo becomes a story",
     h_pre: "Turn a photo into a ", w1: "story", c1: " where your child is the ", w2: "hero", h_suf: ".",
@@ -402,7 +402,7 @@ export function Landing() {
   });
   const [heroI, setHeroI] = useState(0);
   const t = I18N[lang];
-  const navHrefs = ["#top", "#catalogo", "#videos", "#como"];
+  const navHrefs = ["#top", "#catalogo", "#como", "#videos"];
 
   // Auto-avanço do carrossel do hero
   useEffect(() => {
@@ -541,25 +541,6 @@ export function Landing() {
         </div>
       </section>
 
-      {/* VÍDEOS NARRADOS */}
-      <section className="ksection" id="videos">
-        <h2 className="ktitle reveal">{t.vid_title}</h2>
-        <p className="ksub reveal">{t.vid_sub}</p>
-        <div className="vid-grid">
-          {t.videos.map((v, i) => (
-            <figure className="vid-card reveal" key={v.t}>
-              <div className="vid-thumb">
-                <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
-                <span className="vid-play" aria-hidden></span>
-                <span className="vid-dur">{t.vid_dur}</span>
-              </div>
-              <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
-            </figure>
-          ))}
-        </div>
-        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
-      </section>
-
       {/* COMO FUNCIONA — com exemplos reais */}
       <section className="ksection" id="como">
         <h2 className="ktitle reveal">{t.hiw_title}</h2>
@@ -600,6 +581,40 @@ export function Landing() {
         </div>
       </section>
 
+      {/* VÍDEOS NARRADOS */}
+      <section className="ksection" id="videos">
+        <h2 className="ktitle reveal">{t.vid_title}</h2>
+        <p className="ksub reveal">{t.vid_sub}</p>
+        <div className="vid-grid">
+          {t.videos.map((v, i) => (
+            <figure className="vid-card reveal" key={v.t}>
+              <div className="vid-thumb">
+                <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
+                <span className="vid-play" aria-hidden></span>
+                <span className="vid-dur">{t.vid_dur}</span>
+              </div>
+              <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
+            </figure>
+          ))}
+        </div>
+        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+      </section>
+
+      {/* AVALIAÇÕES */}
+      <section className="ksection" id="reviews">
+        <h2 className="ktitle reveal">{t.rev_title}</h2>
+        <p className="ksub reveal">{t.rev_sub}</p>
+        <div className="rev-grid">
+          {t.reviews.map((r) => (
+            <figure className="rev-card reveal" key={r.name}>
+              <div className="rev-stars">★★★★★</div>
+              <blockquote>{r.q}</blockquote>
+              <figcaption><span className="rev-av">{r.name.charAt(0)}</span>{r.name}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
       {/* FLIPBOOK — destaque */}
       <section className="ksection featured-book" id="historia-exemplo">
         <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
@@ -624,21 +639,6 @@ export function Landing() {
               </div>
             );
           })}
-        </div>
-      </section>
-
-      {/* AVALIAÇÕES */}
-      <section className="ksection" id="reviews">
-        <h2 className="ktitle reveal">{t.rev_title}</h2>
-        <p className="ksub reveal">{t.rev_sub}</p>
-        <div className="rev-grid">
-          {t.reviews.map((r) => (
-            <figure className="rev-card reveal" key={r.name}>
-              <div className="rev-stars">★★★★★</div>
-              <blockquote>{r.q}</blockquote>
-              <figcaption><span className="rev-av">{r.name.charAt(0)}</span>{r.name}</figcaption>
-            </figure>
-          ))}
         </div>
       </section>
 
