@@ -325,5 +325,8 @@ Responda APENAS com o texto pedido — sem notas, comentários ou sugestões de 
    em `ProjectCreateIn`, ou serem embutidos em `dedication`/`brief` livre por enquanto, sem
    migração de banco.
 
-Nenhuma dessas mudanças foi aplicada — este documento é só o prompt e o desenho. Aviso antes de
-tocar em código, se quiser que eu implemente.
+**✅ IMPLEMENTADO** — Este documento foi implementado em `backend/app/workers/handlers.py`:
+1. `LEARNING_GOALS` com campos separados (foco, vilao, espaco, sequencia) para todos os 14 temas educacionais.
+2. `THEME_EDU` simplificado com apenas aventura/datas comemorativas.
+3. `handle_story()` atualizado para puxar vilao/espaco do `LEARNING_GOALS` e injetá-los no brief.
+4. System prompt (`_SYSTEM_PT`/`_SYSTEM_EN`) já continha o prompt evoluído com perfil da criança, personagens como cenário, espaço narrativo e fluxo/ritmo.

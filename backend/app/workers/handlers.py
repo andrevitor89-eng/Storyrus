@@ -228,124 +228,6 @@ THEME_EDU: dict[str, dict[str, tuple[str, str]]] = {
             "alegria com a família → aprender que novos sonhos trazem "
             "novas possibilidades",
         ),
-        # ---- Linguagem & Conceitos Fundamentais ----
-        "alfabetizacao_inicial": (
-            "consciência fonêmica: o alfabeto, rimas e a leitura da esquerda para a direita. "
-            "O vilão da jornada é a Timidez, que faz a criança guardar as palavras só para si",
-            "Cenário: um cantinho de leitura cheio de livros e letras coloridas. Encontrar uma "
-            "letra ou palavra misteriosa → seguir pistas rimadas pela casa → a Timidez tenta "
-            "calar a criança bem na hora de dizer a palavra em voz alta → a criança usa a "
-            "curiosidade para soletrar e ler mesmo com medo → celebrar lendo a palavra inteira "
-            "para todos",
-        ),
-        "pensamento_matematico": (
-            "contar de 1 a 5, separar por tamanho e reconhecer círculo, quadrado e triângulo. "
-            "O vilão da jornada é a Pressa, que faz contar errado e pular números",
-            "Cenário: um quarto ou quintal cheio de blocos, brinquedos e formas para organizar. "
-            "Objetos espalhados pedem para ser organizados → contar um a um devagar → a Pressa "
-            "tenta atropelar a contagem → a criança respira e conta de novo, com calma → tudo "
-            "organizado por tamanho e forma, missão cumprida",
-        ),
-        "cores": (
-            "cores primárias e secundárias, reconhecidas em objetos do mundo real. O vilão da "
-            "jornada é a Confusão, que embaralha as cores na cabeça da criança",
-            "Cenário: um jardim ou caixa de tintas cheio de cores para nomear. Algo perdeu a "
-            "cor certa e precisa ser combinado → percorrer o espaço nomeando cores em objetos "
-            "conhecidos → a Confusão troca as cores de lugar → a criança usa o que já sabe para "
-            "desfazer a troca → tudo com a cor certa de novo",
-        ),
-        "opostos_espacial": (
-            "grande/pequeno, em cima/embaixo, dentro/fora. O vilão da jornada é o Embolado, um "
-            "sentimento de estar perdido no espaço",
-            "Cenário: uma casa ou parquinho com cantos altos, baixos, dentro e fora bem "
-            "marcados. Algo precisa ser guardado ou encontrado no lugar certo → explorar o "
-            "espaço nomeando opostos a cada passo → o Embolado confunde as direções → a criança "
-            "usa os opostos como mapa → encontra o caminho certo",
-        ),
-        # ---- Habilidades de Vida & Rotinas Diárias ----
-        "higiene_desfralde": (
-            "a transição do banheiro, lavar as mãos e escovar os dentes em passos previsíveis. "
-            "O vilão da jornada é a Vergonha, que faz esconder quando precisa ir ao banheiro",
-            "Cenário: o banheiro de casa, arrumado e acolhedor. A criança sente que precisa ir "
-            "ao banheiro → a Vergonha sussurra para esconder o sinal → a criança nomeia o que "
-            "sente e pede ajuda → consegue sozinha, passo a passo → orgulho de ter conseguido",
-        ),
-        "rotina_dormir": (
-            "a ansiedade de separação e uma rotina calma antes de dormir. O vilão da jornada é "
-            "o Medo-do-Escuro, que aparece quando a luz apaga",
-            "Cenário: o quarto da criança à noite, com uma luminária e um brinquedo favorito. O "
-            "dia termina e chega a hora de dormir → passos da rotina (banho, pijama, escovar os "
-            "dentes, história) → o Medo-do-Escuro aparece quando a luz apaga → a criança nomeia "
-            "o medo e acende a luminária ou abraça o brinquedo → adormece tranquila",
-        ),
-        "alimentacao_saudavel": (
-            "grupos de alimentos, frutas e verduras, coragem para experimentar texturas novas. "
-            "O vilão da jornada é o Enjoo, que faz recusar tudo que é novo no prato",
-            "Cenário: a cozinha ou horta de casa, colorida com frutas e legumes. Aparece um "
-            "alimento novo e diferente no prato ou na horta → o Enjoo encolhe o nariz da "
-            "criança → a criança usa a curiosidade para vencer o Enjoo → descobre um sabor novo "
-            "→ orgulho de ter experimentado",
-        ),
-        "vestir_autonomia": (
-            "identificar peças de roupa, botões, zíperes e sapatos, e vestir-se sozinho. O "
-            "vilão da jornada é a Impaciência, que quer que outra pessoa faça tudo",
-            "Cenário: o guarda-roupa ou quarto, com roupas espalhadas para escolher. A criança "
-            "precisa se vestir para algo especial → a Impaciência tenta fazer desistir no "
-            "primeiro botão emperrado → a criança tenta de novo, devagar, peça por peça → "
-            "consegue se vestir sozinha → orgulho de ter feito por conta própria",
-        ),
-        # ---- Autoconsciência & Aprendizagem Socioemocional ----
-        "literacia_emocional": (
-            "nomear sentimentos grandes — raiva, tristeza, frustração, alegria. O vilão da "
-            "jornada é o próprio sentimento grande do dia, como personagem",
-            "Cenário: um lugar familiar e calmo, como a sala de casa ou o pátio da escola. Algo "
-            "não sai como a criança queria → o sentimento grande aparece e cresce → a criança "
-            "tenta ignorá-lo, mas ele só cresce mais → a criança para, nomeia o que sente e "
-            "respira fundo → o sentimento fica pequeno e vira aprendizado",
-        ),
-        "consciencia_corporal": (
-            "nomes das partes do corpo, o que elas fazem e limites espaciais básicos. O vilão "
-            "da jornada é o Desatento, que faz a criança não perceber o próprio corpo",
-            "Cenário: um espaço de brincar livre, como o quintal ou a sala. Uma brincadeira de "
-            "imitação ou dança começa → cada parte do corpo entra em ação (mãos, pés, cabeça) → "
-            "o Desatento tenta bagunçar os movimentos → a criança presta atenção no próprio "
-            "corpo e acerta o ritmo → brincadeira concluída com orgulho",
-        ),
-        "compartilhar_revezar": (
-            "brincar em paralelo, dividir e esperar a vez com gentileza. O vilão da jornada é o "
-            "Ciúme, que não quer soltar o brinquedo",
-            "Cenário: um parquinho ou sala de brincar com outra criança por perto. Um amiguinho "
-            "quer brincar com o mesmo brinquedo → o Ciúme aperta o brinquedo contra o peito → a "
-            "criança sente o Ciúme, mas lembra como é bom brincar junto → propõe revezar ou "
-            "dividir → os dois brincam juntos e se divertem mais ainda",
-        ),
-        # ---- Descoberta & Exploração do Mundo ----
-        "animais_sons": (
-            "nomes e sons de animais, e seus habitats (fazenda, oceano, selva). O vilão da "
-            "jornada é o Silêncio-Enroscado, que embaralha os sons dos animais",
-            "Cenário: uma fazenda, floresta ou aquário para visitar. Um som de animal escapa e "
-            "ninguém sabe de quem é → seguir o som até o habitat certo → o Silêncio-Enroscado "
-            "tenta confundir o som com outro animal → a criança escuta com atenção e acerta o "
-            "animal e seu som → o habitat inteiro canta junto",
-        ),
-        "transporte_ajudantes": (
-            "veículos (caminhão, trem, avião) e figuras da comunidade (bombeiro, médico, "
-            "carteiro). O vilão da jornada é a Pressa-Perdida, que atrapalha o caminho até o "
-            "ajudante certo",
-            "Cenário: uma rua ou cidade pequena com diferentes veículos passando. Algo precisa "
-            "ser entregue ou resolvido rápido → a criança escolhe o veículo certo para o "
-            "trajeto → a Pressa-Perdida embaralha o caminho → a criança para, pensa e escolhe a "
-            "rota certa com a ajuda de um profissional da comunidade → missão entregue com "
-            "sucesso",
-        ),
-        "clima_estacoes": (
-            "padrões de clima (chuva, sol, neve) e a roupa certa para cada estação. O vilão da "
-            "jornada é o Friozinho-Sem-Aviso (ou Solzão-Repentino), que muda o tempo de repente",
-            "Cenário: o quintal ou uma janela que mostra o tempo mudando. A criança se prepara "
-            "para sair de um jeito → o tempo muda de repente → o vilão do clima brinca de "
-            "confundir a roupa certa → a criança observa o céu e escolhe a roupa certa para a "
-            "nova estação → sai para brincar preparada e feliz",
-        ),
     },
     "en": {
         "adventure": (
@@ -442,128 +324,325 @@ THEME_EDU: dict[str, dict[str, tuple[str, str]]] = {
             "representing the new year → share joy with family → learn that new dreams bring "
             "new possibilities",
         ),
+    },
+}
+
+
+# --------------------------------------------------------------------------- #
+# Objetivos educacionais estruturados: foco, vilão, cenário e sequência da jornada.
+# Usado por handle_story() para compor o brief com informações granulares.
+# --------------------------------------------------------------------------- #
+LEARNING_GOALS: dict[str, dict[str, dict[str, str]]] = {
+    "pt": {
+        # ---- Linguagem & Conceitos Fundamentais ----
+        "alfabetizacao_inicial": {
+            "foco": "consciência fonêmica: o alfabeto, rimas e a leitura da esquerda para a direita",
+            "vilao": "a Timidez, que faz a criança guardar as palavras só para si",
+            "espaco": "um cantinho de leitura cheio de livros e letras coloridas",
+            "sequencia": (
+                "encontrar uma letra ou palavra misteriosa → seguir pistas rimadas pela "
+                "casa → a Timidez tenta calar a criança bem na hora de dizer a palavra em "
+                "voz alta → a criança usa a curiosidade para soletrar e ler mesmo com medo "
+                "→ celebrar lendo a palavra inteira para todos"
+            ),
+        },
+        "pensamento_matematico": {
+            "foco": "contar de 1 a 5, separar por tamanho e reconhecer círculo, quadrado e triângulo",
+            "vilao": "a Pressa, que faz contar errado e pular números",
+            "espaco": "um quarto ou quintal cheio de blocos, brinquedos e formas para organizar",
+            "sequencia": (
+                "objetos espalhados pedem para ser organizados → contar um a um devagar → "
+                "a Pressa tenta atropelar a contagem → a criança respira e conta de novo, "
+                "com calma → tudo organizado por tamanho e forma, missão cumprida"
+            ),
+        },
+        "cores": {
+            "foco": "cores primárias e secundárias, reconhecidas em objetos do mundo real",
+            "vilao": "a Confusão, que embaralha as cores na cabeça da criança",
+            "espaco": "um jardim ou caixa de tintas cheio de cores para nomear",
+            "sequencia": (
+                "algo perdeu a cor certa e precisa ser combinado → percorrer o espaço "
+                "nomeando cores em objetos conhecidos → a Confusão troca as cores de lugar "
+                "→ a criança usa o que já sabe (o que é amarelo? o que é azul?) para desfazer "
+                "a troca → tudo com a cor certa de novo"
+            ),
+        },
+        "opostos_espacial": {
+            "foco": "grande/pequeno, em cima/embaixo, dentro/fora",
+            "vilao": "o Embolado, um sentimento de estar perdido no espaço",
+            "espaco": "uma casa ou parquinho com cantos altos, baixos, dentro e fora bem marcados",
+            "sequencia": (
+                "algo precisa ser guardado ou encontrado no lugar certo → explorar o "
+                "espaço nomeando opostos a cada passo → o Embolado confunde as direções → a "
+                "criança usa os opostos como mapa (não é embaixo, é em cima!) → encontra o "
+                "caminho certo"
+            ),
+        },
+        # ---- Habilidades de Vida & Rotinas Diárias ----
+        "higiene_desfralde": {
+            "foco": "a transição do banheiro, lavar as mãos e escovar os dentes em passos previsíveis",
+            "vilao": "a Vergonha, que faz esconder quando precisa ir ao banheiro",
+            "espaco": "o banheiro de casa, arrumado e acolhedor",
+            "sequencia": (
+                "a criança sente que precisa ir ao banheiro → a Vergonha sussurra para "
+                "esconder o sinal → a criança nomeia o que sente e pede ajuda → consegue "
+                "sozinha, passo a passo (calça, sentar, papel, descarga, lavar as mãos) → "
+                "orgulho de ter conseguido"
+            ),
+        },
+        "rotina_dormir": {
+            "foco": "a ansiedade de separação e uma rotina calma antes de dormir",
+            "vilao": "o Medo-do-Escuro, que aparece quando a luz apaga",
+            "espaco": "o quarto da criança à noite, com uma luminária e um brinquedo favorito",
+            "sequencia": (
+                "o dia termina e chega a hora de dormir → passos da rotina (banho, pijama, "
+                "escovar os dentes, história) → o Medo-do-Escuro aparece quando a luz apaga "
+                "→ a criança nomeia o medo e acende a luminária/abraça o brinquedo → "
+                "adormece tranquila"
+            ),
+        },
+        "alimentacao_saudavel": {
+            "foco": "grupos de alimentos, frutas e verduras, coragem para experimentar texturas novas",
+            "vilao": "o Enjoo, que faz recusar tudo que é novo no prato",
+            "espaco": "a cozinha ou horta de casa, colorida com frutas e legumes",
+            "sequencia": (
+                "aparece um alimento novo e diferente no prato ou na horta → o Enjoo "
+                "encolhe o nariz da criança → a criança usa a curiosidade (cheirar, tocar, "
+                "provar um pouquinho) para vencer o Enjoo → descobre um sabor novo → orgulho "
+                "de ter experimentado"
+            ),
+        },
+        "vestir_autonomia": {
+            "foco": "identificar peças de roupa, botões, zíperes e sapatos, e vestir-se sozinho",
+            "vilao": "a Impaciência, que quer que outra pessoa faça tudo",
+            "espaco": "o guarda-roupa ou quarto, com roupas espalhadas para escolher",
+            "sequencia": (
+                "a criança precisa se vestir para algo especial → a Impaciência tenta fazer "
+                "desistir no primeiro botão emperrado → a criança tenta de novo, devagar, "
+                "peça por peça → consegue se vestir sozinha → orgulho de ter feito por "
+                "conta própria"
+            ),
+        },
+        # ---- Autoconsciência & Aprendizagem Socioemocional ----
+        "literacia_emocional": {
+            "foco": "nomear sentimentos grandes — raiva, tristeza, frustração, alegria",
+            "vilao": "o sentimento grande do dia (Raiva, Tristeza ou Frustração), como personagem",
+            "espaco": "um lugar familiar e calmo, como a sala de casa ou o pátio da escola",
+            "sequencia": (
+                "algo não sai como a criança queria → o sentimento grande aparece e cresce "
+                "→ a criança tenta ignorá-lo, mas ele só cresce mais → a criança para, nomeia "
+                "o que sente e respira fundo → o sentimento fica pequeno e vira aprendizado"
+            ),
+        },
+        "consciencia_corporal": {
+            "foco": "nomes das partes do corpo, o que elas fazem e limites espaciais básicos",
+            "vilao": "o Desatento, que faz a criança não perceber o próprio corpo",
+            "espaco": "um espaço de brincar livre, como o quintal ou a sala",
+            "sequencia": (
+                "uma brincadeira de imitação ou dança começa → cada parte do corpo entra em "
+                "ação (mãos, pés, cabeça) → o Desatento tenta bagunçar os movimentos → a "
+                "criança presta atenção no próprio corpo e acerta o ritmo → brincadeira "
+                "concluída com orgulho"
+            ),
+        },
+        "compartilhar_revezar": {
+            "foco": "brincar em paralelo, dividir e esperar a vez com gentileza",
+            "vilao": "o Ciúme, que não quer soltar o brinquedo",
+            "espaco": "um parquinho ou sala de brincar com outra criança por perto",
+            "sequencia": (
+                "um amiguinho quer brincar com o mesmo brinquedo → o Ciúme aperta o brinquedo "
+                "contra o peito → a criança sente o Ciúme, mas lembra como é bom brincar junto "
+                "→ propõe revezar ou dividir → os dois brincam juntos e se divertem mais ainda"
+            ),
+        },
+        # ---- Descoberta & Exploração do Mundo ----
+        "animais_sons": {
+            "foco": "nomes e sons de animais, e seus habitats (fazenda, oceano, selva)",
+            "vilao": "o Silêncio-Enroscado, que embaralha os sons dos animais",
+            "espaco": "uma fazenda, floresta ou aquário para visitar",
+            "sequencia": (
+                "um som de animal escapa e ninguém sabe de quem é → seguir o som até o "
+                "habitat certo → o Silêncio-Enroscado tenta confundir o som com outro animal "
+                "→ a criança escuta com atenção e acerta o animal e seu som → o habitat "
+                "inteiro canta junto"
+            ),
+        },
+        "transporte_ajudantes": {
+            "foco": "veículos (caminhão, trem, avião) e figuras da comunidade (bombeiro, médico, carteiro)",
+            "vilao": "a Pressa-Perdida, que atrapalha o caminho até o ajudante certo",
+            "espaco": "uma rua ou cidade pequena com diferentes veículos passando",
+            "sequencia": (
+                "algo precisa ser entregue ou resolvido rápido → a criança escolhe o veículo "
+                "certo para o trajeto → a Pressa-Perdida embaralha o caminho → a criança para, "
+                "pensa e escolhe a rota certa com a ajuda de um profissional da comunidade → "
+                "missão entregue com sucesso"
+            ),
+        },
+        "clima_estacoes": {
+            "foco": "padrões de clima (chuva, sol, neve) e a roupa certa para cada estação",
+            "vilao": "o Friozinho-Sem-Aviso (ou Solzão-Repentino), que muda o tempo de repente",
+            "espaco": "o quintal ou uma janela que mostra o tempo mudando",
+            "sequencia": (
+                "a criança se prepara para sair de um jeito → o tempo muda de repente → o "
+                "vilão do clima brinca de confundir a roupa certa → a criança observa o céu e "
+                "escolhe a roupa certa para a nova estação/clima → sai para brincar preparada "
+                "e feliz"
+            ),
+        },
+    },
+    "en": {
         # ---- Language & Fundamental Concepts ----
-        "alfabetizacao_inicial": (
-            "phonemic awareness: the alphabet, rhymes and reading left to right. The villain "
-            "of the journey is Shyness, who makes the child keep words to herself",
-            "Setting: a cozy reading corner full of books and colorful letters. A mysterious "
-            "letter or word appears → follow rhyming clues around the house → Shyness tries to "
-            "silence the child right when it's time to say the word out loud → the child uses "
-            "curiosity to spell and read despite the fear → celebrate by reading the whole word "
-            "to everyone",
-        ),
-        "pensamento_matematico": (
-            "counting from 1 to 5, sorting by size and recognizing circles, squares and "
-            "triangles. The villain of the journey is Hurry, who makes counting go wrong and "
-            "skip numbers",
-            "Setting: a room or backyard full of blocks, toys and shapes to organize. "
-            "Scattered objects need organizing → count them one by one, slowly → Hurry tries to "
-            "rush the counting → the child breathes and counts again, calmly → everything "
-            "sorted by size and shape, mission complete",
-        ),
-        "cores": (
-            "primary and secondary colors, recognized in real-world objects. The villain of "
-            "the journey is Confusion, who scrambles the colors in the child's mind",
-            "Setting: a garden or paint box full of colors to name. Something lost its right "
-            "color and needs matching → move through the space naming colors on familiar "
-            "objects → Confusion swaps the colors around → the child uses what she already "
-            "knows to undo the swap → everything has the right color again",
-        ),
-        "opostos_espacial": (
-            "big/small, up/down, inside/outside. The villain of the journey is the Muddle, a "
-            "feeling of being lost in space",
-            "Setting: a house or playground with clearly marked high, low, inside and outside "
-            "corners. Something needs to be put away or found in the right spot → explore the "
-            "space naming opposites at each step → the Muddle confuses the directions → the "
-            "child uses opposites as a map → finds the right way",
-        ),
+        "alfabetizacao_inicial": {
+            "foco": "phonemic awareness: the alphabet, rhymes and reading left to right",
+            "vilao": "Shyness, who makes the child keep words to herself",
+            "espaco": "a cozy reading corner full of books and colorful letters",
+            "sequencia": (
+                "a mysterious letter or word appears → follow rhyming clues around the house "
+                "→ Shyness tries to silence the child right when it's time to say the word "
+                "out loud → the child uses curiosity to spell and read despite the fear → "
+                "celebrate by reading the whole word to everyone"
+            ),
+        },
+        "pensamento_matematico": {
+            "foco": "counting from 1 to 5, sorting by size and recognizing circles, squares and triangles",
+            "vilao": "Hurry, who makes counting go wrong and skip numbers",
+            "espaco": "a room or backyard full of blocks, toys and shapes to organize",
+            "sequencia": (
+                "scattered objects need organizing → count them one by one, slowly → Hurry "
+                "tries to rush the counting → the child breathes and counts again, calmly → "
+                "everything sorted by size and shape, mission complete"
+            ),
+        },
+        "cores": {
+            "foco": "primary and secondary colors, recognized in real-world objects",
+            "vilao": "Confusion, who scrambles the colors in the child's mind",
+            "espaco": "a garden or paint box full of colors to name",
+            "sequencia": (
+                "something lost its right color and needs matching → move through the space "
+                "naming colors on familiar objects → Confusion swaps the colors around → the "
+                "child uses what she already knows to undo the swap → everything has the "
+                "right color again"
+            ),
+        },
+        "opostos_espacial": {
+            "foco": "big/small, up/down, inside/outside",
+            "vilao": "the Muddle, a feeling of being lost in space",
+            "espaco": "a house or playground with clearly marked high, low, inside and outside corners",
+            "sequencia": (
+                "something needs to be put away or found in the right spot → explore the "
+                "space naming opposites at each step → the Muddle confuses the directions → "
+                "the child uses opposites as a map → finds the right way"
+            ),
+        },
         # ---- Life Skills & Daily Routines ----
-        "higiene_desfralde": (
-            "the bathroom transition, handwashing and toothbrushing in predictable steps. The "
-            "villain of the journey is Shame, who makes the child hide when she needs the "
-            "bathroom",
-            "Setting: the home bathroom, tidy and welcoming. The child feels she needs the "
-            "bathroom → Shame whispers to hide the signal → the child names what she feels and "
-            "asks for help → manages alone, step by step → pride in having done it",
-        ),
-        "rotina_dormir": (
-            "separation anxiety and a calm routine before sleep. The villain of the journey is "
-            "Fear-of-the-Dark, who shows up when the light goes off",
-            "Setting: the child's bedroom at night, with a nightlight and a favorite toy. The "
-            "day ends and bedtime arrives → routine steps (bath, pajamas, brushing teeth, "
-            "story) → Fear-of-the-Dark appears when the light goes off → the child names the "
-            "fear and turns on the nightlight or hugs the toy → falls asleep peacefully",
-        ),
-        "alimentacao_saudavel": (
-            "food groups, fruits and vegetables, courage to try new textures. The villain of "
-            "the journey is Queasy, who makes the child refuse anything new on the plate",
-            "Setting: the kitchen or garden at home, colorful with fruits and vegetables. A "
-            "new, different food appears on the plate or in the garden → Queasy scrunches up "
-            "the child's nose → the child uses curiosity to overcome Queasy → discovers a new "
-            "flavor → pride in having tried it",
-        ),
-        "vestir_autonomia": (
-            "identifying clothing items, buttons, zippers and shoes, and dressing "
-            "independently. The villain of the journey is Impatience, who wants someone else "
-            "to do it all",
-            "Setting: the closet or bedroom, with clothes spread out to choose from. The child "
-            "needs to get dressed for something special → Impatience tries to make her give up "
-            "at the first stuck button → the child tries again, slowly, piece by piece → "
-            "manages to dress herself → pride in doing it on her own",
-        ),
+        "higiene_desfralde": {
+            "foco": "the bathroom transition, handwashing and toothbrushing in predictable steps",
+            "vilao": "Shame, who makes the child hide when she needs the bathroom",
+            "espaco": "the home bathroom, tidy and welcoming",
+            "sequencia": (
+                "the child feels she needs the bathroom → Shame whispers to hide the signal "
+                "→ the child names what she feels and asks for help → manages alone, step by "
+                "step → pride in having done it"
+            ),
+        },
+        "rotina_dormir": {
+            "foco": "separation anxiety and a calm routine before sleep",
+            "vilao": "Fear-of-the-Dark, who shows up when the light goes off",
+            "espaco": "the child's bedroom at night, with a nightlight and a favorite toy",
+            "sequencia": (
+                "the day ends and bedtime arrives → routine steps (bath, pajamas, brushing "
+                "teeth, story) → Fear-of-the-Dark appears when the light goes off → the "
+                "child names the fear and turns on the nightlight or hugs the toy → falls "
+                "asleep peacefully"
+            ),
+        },
+        "alimentacao_saudavel": {
+            "foco": "food groups, fruits and vegetables, courage to try new textures",
+            "vilao": "Queasy, who makes the child refuse anything new on the plate",
+            "espaco": "the kitchen or garden at home, colorful with fruits and vegetables",
+            "sequencia": (
+                "a new, different food appears on the plate or in the garden → Queasy "
+                "scrunches up the child's nose → the child uses curiosity to overcome Queasy "
+                "→ discovers a new flavor → pride in having tried it"
+            ),
+        },
+        "vestir_autonomia": {
+            "foco": "identifying clothing items, buttons, zippers and shoes, and dressing independently",
+            "vilao": "Impatience, who wants someone else to do it all",
+            "espaco": "the closet or bedroom, with clothes spread out to choose from",
+            "sequencia": (
+                "the child needs to get dressed for something special → Impatience tries to "
+                "make her give up at the first stuck button → the child tries again, slowly, "
+                "piece by piece → manages to dress herself → pride in doing it on her own"
+            ),
+        },
         # ---- Self-Awareness & Social-Emotional Learning ----
-        "literacia_emocional": (
-            "naming big feelings — anger, sadness, frustration, joy. The villain of the "
-            "journey is the day's big feeling itself, as a character",
-            "Setting: a familiar, calm place, like the living room or the school yard. "
-            "Something doesn't go as the child wanted → the big feeling appears and grows → the "
-            "child tries to ignore it, but it only grows more → the child stops, names what she "
-            "feels and takes a deep breath → the feeling shrinks and becomes a lesson",
-        ),
-        "consciencia_corporal": (
-            "names of body parts, what they do and basic spatial limits. The villain of the "
-            "journey is the Absent-Minded, who makes the child not notice her own body",
-            "Setting: a free-play space, like the backyard or living room. An imitation game "
-            "or dance begins → each body part comes into action (hands, feet, head) → the "
-            "Absent-Minded tries to mess up the movements → the child pays attention to her own "
-            "body and gets the rhythm right → the game ends with pride",
-        ),
-        "compartilhar_revezar": (
-            "parallel play, sharing and waiting your turn with kindness. The villain of the "
-            "journey is Jealousy, who won't let go of the toy",
-            "Setting: a playground or playroom with another child nearby. A friend wants to "
-            "play with the same toy → Jealousy clutches the toy close → the child feels "
-            "Jealousy, but remembers how fun it is to play together → offers to take turns or "
-            "share → the two play together and have even more fun",
-        ),
+        "literacia_emocional": {
+            "foco": "naming big feelings — anger, sadness, frustration, joy",
+            "vilao": "the day's big feeling itself, as a character (Anger, Sadness or Frustration)",
+            "espaco": "a familiar, calm place, like the living room or the school yard",
+            "sequencia": (
+                "something doesn't go as the child wanted → the big feeling appears and grows "
+                "→ the child tries to ignore it, but it only grows more → the child stops, "
+                "names what she feels and takes a deep breath → the feeling shrinks and "
+                "becomes a lesson"
+            ),
+        },
+        "consciencia_corporal": {
+            "foco": "names of body parts, what they do and basic spatial limits",
+            "vilao": "the Absent-Minded, who makes the child not notice her own body",
+            "espaco": "a free-play space, like the backyard or living room",
+            "sequencia": (
+                "an imitation game or dance begins → each body part comes into action (hands, "
+                "feet, head) → the Absent-Minded tries to mess up the movements → the child "
+                "pays attention to her own body and gets the rhythm right → the game ends "
+                "with pride"
+            ),
+        },
+        "compartilhar_revezar": {
+            "foco": "parallel play, sharing and waiting your turn with kindness",
+            "vilao": "Jealousy, who won't let go of the toy",
+            "espaco": "a playground or playroom with another child nearby",
+            "sequencia": (
+                "a friend wants to play with the same toy → Jealousy clutches the toy close "
+                "→ the child feels Jealousy, but remembers how fun it is to play together → "
+                "offers to take turns or share → the two play together and have even more fun"
+            ),
+        },
         # ---- Discovery & Exploring the World ----
-        "animais_sons": (
-            "animal names and sounds, and their habitats (farm, ocean, jungle). The villain of "
-            "the journey is the Tangled Silence, who scrambles the animal sounds",
-            "Setting: a farm, forest or aquarium to visit. An animal sound escapes and no one "
-            "knows whose it is → follow the sound to the right habitat → the Tangled Silence "
-            "tries to mix it up with another animal → the child listens carefully and matches "
-            "the animal to its sound → the whole habitat sings along",
-        ),
-        "transporte_ajudantes": (
-            "vehicles (truck, train, plane) and community figures (firefighter, doctor, mail "
-            "carrier). The villain of the journey is Lost-in-a-Hurry, who muddles the way to "
-            "the right helper",
-            "Setting: a street or small town with different vehicles passing by. Something "
-            "needs to be delivered or solved quickly → the child picks the right vehicle for "
-            "the trip → Lost-in-a-Hurry scrambles the route → the child stops, thinks and picks "
-            "the right path with a community helper's guidance → mission delivered "
-            "successfully",
-        ),
-        "clima_estacoes": (
-            "weather patterns (rain, sun, snow) and the right clothing for each season. The "
-            "villain of the journey is Sudden-Chill (or Sudden-Sun), who changes the weather "
-            "without warning",
-            "Setting: the backyard or a window showing the weather changing. The child gets "
-            "ready to go out one way → the weather suddenly changes → the weather villain "
-            "plays tricks on the right outfit → the child looks at the sky and picks the right "
-            "clothing for the new season → heads out to play, ready and happy",
-        ),
+        "animais_sons": {
+            "foco": "animal names and sounds, and their habitats (farm, ocean, jungle)",
+            "vilao": "the Tangled Silence, who scrambles the animal sounds",
+            "espaco": "a farm, forest or aquarium to visit",
+            "sequencia": (
+                "an animal sound escapes and no one knows whose it is → follow the sound to "
+                "the right habitat → the Tangled Silence tries to mix it up with another "
+                "animal → the child listens carefully and matches the animal to its sound → "
+                "the whole habitat sings along"
+            ),
+        },
+        "transporte_ajudantes": {
+            "foco": "vehicles (truck, train, plane) and community figures (firefighter, doctor, mail carrier)",
+            "vilao": "Lost-in-a-Hurry, who muddles the way to the right helper",
+            "espaco": "a street or small town with different vehicles passing by",
+            "sequencia": (
+                "something needs to be delivered or solved quickly → the child picks the "
+                "right vehicle for the trip → Lost-in-a-Hurry scrambles the route → the "
+                "child stops, thinks and picks the right path with a community helper's "
+                "guidance → mission delivered successfully"
+            ),
+        },
+        "clima_estacoes": {
+            "foco": "weather patterns (rain, sun, snow) and the right clothing for each season",
+            "vilao": "Sudden-Chill (or Sudden-Sun), who changes the weather without warning",
+            "espaco": "the backyard or a window showing the weather changing",
+            "sequencia": (
+                "the child gets ready to go out one way → the weather suddenly changes → the "
+                "weather villain plays tricks on the right outfit → the child looks at the "
+                "sky and picks the right clothing for the new season → heads out to play, "
+                "ready and happy"
+            ),
+        },
     },
 }
 
@@ -879,56 +958,107 @@ async def handle_story(db: Session, job: Job) -> None:
                     f"sutil (coragem, amizade ou gentileza). {who} e o protagonista do inicio ao fim."
                     + (f" Use o nome '{name}' como protagonista ao longo de toda a historia." if name else ""))
 
-    # Guia educativo do tema: o que a história ensina + sequência lógica da jornada.
-    guides = THEME_EDU["en" if is_en else "pt"]
-    focus, sequence = guides.get(theme, guides["adventure"])
-    if is_en:
-        brief += (
-            " LEARNING (essential): the story must playfully TEACH — " + focus +
-            ". Weave 2 or 3 REAL, simple, age-appropriate facts about the theme into the "
-            "action or dialogue (never lecture-like). MANDATORY LOGICAL SEQUENCE of the "
-            "journey, adapted creatively: " + sequence +
-            ". At the end, the hero happily realizes what they learned."
-        )
+    # Guia educativo do tema: foco, vilão, cenário e sequência da jornada.
+    # Prioriza LEARNING_GOALS (temas educacionais estruturados); senão usa THEME_EDU
+    # (aventura/datas comemorativas — foco e sequência embutidos nas strings).
+    lang_key = "en" if is_en else "pt"
+    goals = LEARNING_GOALS.get(lang_key, {}).get(theme)
+    guides = THEME_EDU[lang_key]
+    if goals:
+        # Tema educacional estruturado: campos separados
+        focus = goals["foco"]
+        vilao = goals.get("vilao", "")
+        espaco = goals.get("espaco", "")
+        sequence = goals["sequencia"]
+        if is_en:
+            brief += (
+                " LEARNING (essential): the story must playfully TEACH — " + focus + "."
+            )
+            if vilao:
+                brief += f" The villain is {vilao}."
+            if espaco:
+                brief += f" Setting: {espaco}."
+            brief += (
+                " Weave 2 or 3 REAL, simple, age-appropriate facts about the theme into "
+                "the action or dialogue (never lecture-like). MANDATORY LOGICAL SEQUENCE "
+                "of the journey, adapted creatively: " + sequence +
+                ". At the end, the hero happily realizes what they learned."
+            )
+        else:
+            brief += (
+                " APRENDIZADO (essencial): a história deve ENSINAR de forma lúdica — "
+                + focus + "."
+            )
+            if vilao:
+                brief += f" O vilão da jornada é {vilao}."
+            if espaco:
+                brief += f" Cenário: {espaco}."
+            brief += (
+                " Insira 2 ou 3 curiosidades REAIS, simples e adequadas à idade sobre "
+                "o tema dentro da ação ou das falas (nunca em tom de aula). SEQUÊNCIA "
+                "LÓGICA obrigatória da jornada, adaptada com criatividade: " + sequence +
+                ". No final, o protagonista percebe com alegria o que aprendeu."
+            )
     else:
-        brief += (
-            " APRENDIZADO (essencial): a história deve ENSINAR de forma lúdica — " + focus +
-            ". Insira 2 ou 3 curiosidades REAIS, simples e adequadas à idade sobre o tema "
-            "dentro da ação ou das falas (nunca em tom de aula). SEQUÊNCIA LÓGICA "
-            "obrigatória da jornada, adaptada com criatividade: " + sequence +
-            ". No final, o protagonista percebe com alegria o que aprendeu."
-        )
+        # Aventura/datas comemorativas: foco e sequência embutidos na string
+        focus, sequence = guides.get(theme, guides["adventure"])
+        if is_en:
+            brief += (
+                " LEARNING (essential): the story must playfully TEACH — " + focus +
+                ". Weave 2 or 3 REAL, simple, age-appropriate facts about the theme into "
+                "the action or dialogue (never lecture-like). MANDATORY LOGICAL SEQUENCE "
+                "of the journey, adapted creatively: " + sequence +
+                ". At the end, the hero happily realizes what they learned."
+            )
+        else:
+            brief += (
+                " APRENDIZADO (essencial): a história deve ENSINAR de forma lúdica — "
+                + focus +
+                ". Insira 2 ou 3 curiosidades REAIS, simples e adequadas à idade sobre "
+                "o tema dentro da ação ou das falas (nunca em tom de aula). SEQUÊNCIA "
+                "LÓGICA obrigatória da jornada, adaptada com criatividade: " + sequence +
+                ". No final, o protagonista percebe com alegria o que aprendeu."
+            )
 
     # Segundo tema opcional (máx. 2 por história): o tema principal continua com o
     # vilão/cenário/arco (sequência acima); o segundo tema só soma um objetivo de
     # aprendizado extra tecido na mesma jornada — nunca uma jornada paralela.
-    if extra_theme and extra_theme in guides:
-        extra_focus, _ = guides[extra_theme]
-        if is_en:
-            brief += (
-                " SECOND THEME (blend into the same journey, never a separate plot): "
-                "also playfully teach — " + extra_focus + ". Keep the primary theme's "
-                "setting, sequence and pace as the backbone; weave this second learning "
-                "goal into an existing beat of that same journey (a detail of the "
-                "setting, something a friend says or does, a small moment inside the "
-                "obstacle already planned) instead of adding a new scene. If each theme "
-                "implies a different villain, pick whichever fits this specific journey "
-                "better, or merge them into one coherent antagonist — never two separate "
-                "villains in the same story."
-            )
+    if extra_theme:
+        extra_goals = LEARNING_GOALS.get(lang_key, {}).get(extra_theme)
+        extra_edu = guides.get(extra_theme)
+        if extra_goals:
+            extra_focus = extra_goals["foco"]
+        elif extra_edu:
+            extra_focus, _ = extra_edu
         else:
-            brief += (
-                " SEGUNDO TEMA (funda com a mesma jornada, nunca um enredo à parte): "
-                "ensine também, de forma lúdica — " + extra_focus + ". Mantenha o "
-                "espaço, a sequência e o ritmo do tema principal como espinha dorsal; "
-                "teça esse segundo objetivo de aprendizado dentro de um momento já "
-                "previsto dessa mesma jornada (um detalhe do cenário, algo que um "
-                "amiguinho diz ou faz, um instante dentro do obstáculo já planejado) "
-                "em vez de criar uma cena nova. Se cada tema sugerir um vilão "
-                "diferente, escolha o que fizer mais sentido para essa jornada "
-                "específica, ou funda os dois num só antagonista coerente — nunca dois "
-                "vilões separados na mesma história."
-            )
+            extra_focus = None
+
+        if extra_focus:
+            if is_en:
+                brief += (
+                    " SECOND THEME (blend into the same journey, never a separate plot): "
+                    "also playfully teach — " + extra_focus + ". Keep the primary theme's "
+                    "setting, sequence and pace as the backbone; weave this second learning "
+                    "goal into an existing beat of that same journey (a detail of the "
+                    "setting, something a friend says or does, a small moment inside the "
+                    "obstacle already planned) instead of adding a new scene. If each theme "
+                    "implies a different villain, pick whichever fits this specific journey "
+                    "better, or merge them into one coherent antagonist — never two separate "
+                    "villains in the same story."
+                )
+            else:
+                brief += (
+                    " SEGUNDO TEMA (funda com a mesma jornada, nunca um enredo à parte): "
+                    "ensine também, de forma lúdica — " + extra_focus + ". Mantenha o "
+                    "espaço, a sequência e o ritmo do tema principal como espinha dorsal; "
+                    "teça esse segundo objetivo de aprendizado dentro de um momento já "
+                    "previsto dessa mesma jornada (um detalhe do cenário, algo que um "
+                    "amiguinho diz ou faz, um instante dentro do obstáculo já planejado) "
+                    "em vez de criar uma cena nova. Se cada tema sugerir um vilão "
+                    "diferente, escolha o que fizer mais sentido para essa jornada "
+                    "específica, ou funda os dois num só antagonista coerente — nunca dois "
+                    "vilões separados na mesma história."
+                )
 
     # Perfil educativo da criança: o traço central (o que a história transforma) e o
     # interesse/talento (a ferramenta que o herói usa para superar o vilão no clímax).
