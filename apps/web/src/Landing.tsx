@@ -33,7 +33,7 @@ const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcPlay];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["foto-matteo.png", "arte-menino.jpg", "livro-1.jpg"];
+const HOW_IMGS = ["foto-matteo.png", "dino-4.jpg", "capa-dino2.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -437,7 +437,6 @@ export function Landing() {
                 <span className="kbh-tag-top"><IcEye className="ei" /> {t.ba_preview}</span>
                 <b>{t.banners[i].t}</b>
               </span>
-              <span className="kbh-arrow" aria-hidden><IcArrow /></span>
               <figure className="kbh-book">
                 <img src={exUrl(s.photo)} alt="Foto real da criança" loading={i === 0 ? "eager" : "lazy"} />
               </figure>
