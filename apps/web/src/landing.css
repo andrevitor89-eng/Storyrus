@@ -463,8 +463,8 @@
   background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; font-family: 'Baloo 2', cursive; font-weight: 800; }
 
 /* ---------- Catálogo de livros ---------- */
-.cat-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 28px; max-width: 1180px; margin: 0 auto; }
-.cat-card { display: flex; flex-direction: column; width: calc((100% - 56px) / 3); min-width: 0; background: #172140; border-radius: 22px; overflow: hidden; border: 2px solid #26315a; box-shadow: 0 16px 34px rgba(0,0,0,.45); transition: transform .18s ease, border-color .2s; }
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1180px; margin: 0 auto; align-items: stretch; }
+.cat-card { display: flex; flex-direction: column; height: 100%; min-width: 0; background: #172140; border-radius: 22px; overflow: hidden; border: 2px solid #26315a; box-shadow: 0 16px 34px rgba(0,0,0,.45); transition: transform .18s ease, border-color .2s; }
 .cat-card:hover { transform: translateY(-8px); border-color: var(--yellow); }
 .cat-card.surprise { border-color: var(--coral); }
 .cat-cover { position: relative; aspect-ratio: 3 / 4; overflow: hidden; }
@@ -529,11 +529,11 @@
   .banners { grid-template-columns: 1fr; max-width: 460px; }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }
-  .cat-grid { max-width: 720px; }
-  .cat-card { width: calc((100% - 28px) / 2); }
+  .cat-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; }
 }
 @media (max-width: 560px) {
   .promise-grid { grid-template-columns: 1fr; max-width: 420px; }
+  .cat-grid { grid-template-columns: 1fr; max-width: 380px; }
   .cat-card { width: 100%; }
 }
 
