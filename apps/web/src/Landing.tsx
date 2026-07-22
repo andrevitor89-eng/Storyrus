@@ -463,8 +463,8 @@ export function Landing() {
             <div className={`kbh-slide${i === heroI ? " on" : ""}`} key={s.book} aria-hidden={i !== heroI}>
               <img
                 className="kbh-photo"
-                src={exUrl(s.photo)}
-                alt="Foto real da criança"
+                src={exUrl(s.book)}
+                alt="Capa do livro gerado"
                 loading={i === 0 ? "eager" : "lazy"}
               />
               <span className="kbh-tag">
@@ -473,7 +473,7 @@ export function Landing() {
               </span>
               <span className="kbh-arrow" aria-hidden><IcArrow /></span>
               <figure className="kbh-book">
-                <img src={exUrl(s.book)} alt="Capa do livro gerado" loading={i === 0 ? "eager" : "lazy"} />
+                <img src={exUrl(s.photo)} alt="Foto real da criança" loading={i === 0 ? "eager" : "lazy"} />
               </figure>
               <div className="kbh-overlay">
                 <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
