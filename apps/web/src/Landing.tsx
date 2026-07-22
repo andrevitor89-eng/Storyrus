@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type CSSProperties, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -33,7 +33,7 @@ const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcPlay];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["foto-menino.jpg", "arte-menino.jpg", "livro-1.jpg"];
+const HOW_IMGS = ["foto-matteo.png", "arte-menino.jpg", "livro-1.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -58,7 +58,7 @@ const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "circo-2.jpg"];
 // Slides do hero: foto real (em cima) -> capa do livro gerado
 const HERO_SLIDES = [
   { photo: "foto-menino.jpg", book: "capa-circo.jpg" },
-  { photo: "foto-menina.jpg", book: "capa-floresta.jpg" },
+  { photo: "foto-sofia.png", book: "capa-floresta.jpg" },
   { photo: "foto-bebe.jpg", book: "capa-oceano.jpg" },
 ];
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
@@ -146,7 +146,7 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   );
 }
 
-function FlipBook({ pages }: { pages: string[] }) {
+function FlipBook({ pages, compact = false }: { pages: string[]; compact?: boolean }) {
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(0);
@@ -174,49 +174,15 @@ function FlipBook({ pages }: { pages: string[] }) {
     if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
   };
   return (
-    <div className="flipbook">
-      <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0} aria-label="Página anterior">‹</button>
+    <div className={`flipbook${compact ? " flipbook-mini" : ""}`}>
+      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0} aria-label="Página anterior">‹</button>}
       <div className="fb-stage" onClick={onStage} role="button" tabIndex={0} aria-label="Virar página">
         <span className="fb-spine" />
         <img className="fb-page fb-base" src={exUrl(baseSrc)} alt={`Página ${i + 1}`} />
         {anim && <img className={`fb-page fb-turn ${anim}`} src={exUrl(turnSrc)} alt="" aria-hidden />}
         <span className="fb-count">{i + 1} / {pages.length}</span>
       </div>
-      <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1} aria-label="Próxima página">›</button>
-    </div>
-  );
-}
-
-/* Livro 3D que abre sozinho (estilo vitrine), com frase manuscrita e seta */
-function Book3D({ cover, pages, bg, quote, alt, off, delay }: {
-  cover: string; pages: string[]; bg: string; quote: string; alt: string; off?: string; delay: number;
-}) {
-  return (
-    <div className="b3d" style={{ background: bg, "--d": `${delay}s` } as CSSProperties}>
-      <div className="b3d-quote" aria-hidden>
-        <span>“{quote}”</span>
-        <svg className="b3d-arr" viewBox="0 0 60 44" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M8 6c16 3 30 14 37 28" /><path d="M46.5 25l-1.5 9.5-9.5-2.5" />
-        </svg>
-      </div>
-      <div className="b3d-scene">
-        <div className="b3d-book">
-          <div className="b3d-right"><img src={exUrl(pages[5])} alt="" loading="lazy" /></div>
-          <div className="b3d-leaf b3d-l2">
-            <div className="b3d-front"><img src={exUrl(pages[3])} alt="" loading="lazy" /></div>
-            <div className="b3d-back"><img src={exUrl(pages[4])} alt="" loading="lazy" /></div>
-          </div>
-          <div className="b3d-leaf b3d-l1">
-            <div className="b3d-front"><img src={exUrl(pages[1])} alt="" loading="lazy" /></div>
-            <div className="b3d-back"><img src={exUrl(pages[2])} alt="" loading="lazy" /></div>
-          </div>
-          <div className="b3d-cover">
-            <div className="b3d-front"><img src={exUrl(cover)} alt={alt} loading="lazy" /></div>
-            <div className="b3d-back"><img src={exUrl(pages[0])} alt="" loading="lazy" /></div>
-          </div>
-        </div>
-      </div>
-      {off && <span className="b3d-off">{off}</span>}
+      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1} aria-label="Próxima página">›</button>}
     </div>
   );
 }
@@ -516,8 +482,10 @@ export function Landing() {
         <div className="cat-grid">
           {t.catalog.map((c, i) => (
             <div className="cat-card reveal" key={c.t}>
-              <Book3D cover={CATALOG_IMGS[i]} pages={BOOK3D[i].pages} bg={BOOK3D[i].bg}
-                quote={c.quote} alt={c.t} off={t.save} delay={-i * 2.3} />
+              <div className="cat-flip" style={{ background: BOOK3D[i].bg }}>
+                <FlipBook pages={[CATALOG_IMGS[i], ...BOOK3D[i].pages]} compact />
+                <span className="cat-flip-off">{t.save}</span>
+              </div>
               <div className="cat-body">
                 <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
                 <h3>{c.t}</h3>
@@ -528,8 +496,9 @@ export function Landing() {
             </div>
           ))}
           <div className="cat-card surprise reveal">
-            <Book3D cover={SURPRISE_IMG} pages={BOOK3D_SURPRISE.pages} bg={BOOK3D_SURPRISE.bg}
-              quote={t.surprise.quote} alt={t.surprise.t} delay={-9.2} />
+            <div className="cat-flip" style={{ background: BOOK3D_SURPRISE.bg }}>
+              <FlipBook pages={[SURPRISE_IMG, ...BOOK3D_SURPRISE.pages]} compact />
+            </div>
             <div className="cat-body">
               <div className="cat-badges"><span className="cat-age">{t.surprise.age}</span><span className="cat-tag">{t.surprise.tag}</span></div>
               <h3>{t.surprise.t}</h3>
