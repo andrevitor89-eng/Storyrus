@@ -224,8 +224,9 @@ const I18N = {
     ],
     book_badge: "Exemplo real",
     story_title: "Folheie um livro de verdade",
-    story_sub: "Um livro criado pela plataforma a partir de uma única foto.",
+    story_sub: "Livros criados pela plataforma a partir de uma única foto — escolha um exemplo.",
     story_hint: "Clique nas laterais do livro (ou use as setas) para virar as páginas.",
+    chloe_title: "A História de Chloe",
     fmt_title: "Escolha o formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
       { t: "Livro para impressão", price: "US$ 39,99", unit: "por livro", p: "Um livro ilustrado em PDF, pronto para imprimir e ter na estante.", feats: ["Capa + páginas ilustradas", "PDF em alta para impressão", "Personagem fiel à foto"], cta: "Criar meu livro", badge: "Mais amado" },
@@ -308,8 +309,9 @@ const I18N = {
     ],
     book_badge: "Real example",
     story_title: "Flip through a real book",
-    story_sub: "A book created by the platform from a single photo.",
+    story_sub: "Books created by the platform from a single photo — pick an example.",
     story_hint: "Click the sides of the book (or use the arrows) to turn the pages.",
+    chloe_title: "Chloe's Story",
     fmt_title: "Choose the format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
       { t: "Printable book", price: "$39.99", unit: "per book", p: "An illustrated PDF book, ready to print and keep on the shelf.", feats: ["Cover + illustrated pages", "High-res PDF for printing", "Character true to the photo"], cta: "Create my book", badge: "Most loved" },
@@ -367,8 +369,13 @@ export function Landing() {
     return "dark";
   });
   const [heroI, setHeroI] = useState(0);
+  const [exBook, setExBook] = useState(0);
   const t = I18N[lang];
   const navHrefs = ["#top", "#catalogo", "#como", "#videos"];
+  const exampleBooks = [
+    { title: t.chloe_title, cover: "ebook-1.jpg", pages: BOOK },
+    ...t.catalog.map((c, i) => ({ title: c.t, cover: CATALOG_IMGS[i], pages: [CATALOG_IMGS[i], ...BOOK3D[i].pages] })),
+  ];
 
   // Auto-avanço do carrossel do hero
   useEffect(() => {
@@ -588,7 +595,22 @@ export function Landing() {
         <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
         <h2 className="ktitle reveal">{t.story_title}</h2>
         <p className="ksub reveal">{t.story_sub}</p>
-        <div className="reveal"><FlipBook pages={BOOK} /></div>
+        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
+          {exampleBooks.map((b, i) => (
+            <button
+              key={b.title}
+              type="button"
+              className={`ex-tab${i === exBook ? " on" : ""}`}
+              onClick={() => setExBook(i)}
+              role="tab"
+              aria-selected={i === exBook}
+            >
+              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" />
+              <span>{b.title}</span>
+            </button>
+          ))}
+        </div>
+        <div className="reveal"><FlipBook key={exBook} pages={exampleBooks[exBook].pages} /></div>
         <p className="fb-hint reveal">{t.story_hint}</p>
       </section>
 

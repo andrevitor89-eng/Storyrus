@@ -426,6 +426,21 @@
 .book-badge .bi { width: 16px; height: 16px; color: #1f3568; }
 .featured-book .fb-stage { width: 340px; }
 
+.ex-tabs { display: flex; justify-content: center; align-items: flex-start; gap: 16px; flex-wrap: wrap; max-width: 720px; margin: 0 auto 30px; }
+.ex-tab { display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: none; cursor: pointer;
+  padding: 4px; opacity: .55; transition: opacity .2s ease, transform .2s ease; }
+.ex-tab img { width: 58px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; display: block;
+  border: 2px solid transparent; box-shadow: 0 8px 16px rgba(0,0,0,.3); transition: border-color .2s ease, transform .2s ease; }
+.ex-tab span { font-family: 'Baloo 2', cursive; font-weight: 700; font-size: .74rem; color: #9fabce; max-width: 78px;
+  text-align: center; line-height: 1.15; }
+.ex-tab:hover { opacity: .85; }
+.ex-tab:hover img { transform: translateY(-2px); }
+.ex-tab.on { opacity: 1; }
+.ex-tab.on img { border-color: var(--yellow); transform: translateY(-3px); }
+.ex-tab.on span { color: #e9eefb; }
+[data-theme="light"] .kid .ex-tab span { color: #6b6890; }
+[data-theme="light"] .kid .ex-tab.on span { color: var(--ink); }
+
 /* ---------- Formatos (3 colunas) ---------- */
 .fmt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1000px; margin: 0 auto; }
 .fmt-card { position: relative; display: flex; flex-direction: column; background: #172140; border-radius: 26px;
