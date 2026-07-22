@@ -33,7 +33,7 @@ const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcPlay];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["foto-matteo.png", "dino-4.jpg", "capa-dino2.jpg"];
+const HOW_IMGS = ["foto-matteo.png", "arte-menino.jpg", "capa-dino2.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
