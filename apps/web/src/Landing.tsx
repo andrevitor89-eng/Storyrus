@@ -194,6 +194,9 @@ function FlipBook({ pages, compact = false }: { pages: string[]; compact?: boole
         <span className="fb-spine" />
         <img className="fb-page fb-base" src={exUrl(baseSrc)} alt={`Página ${i + 1}`} />
         {anim && <img className={`fb-page fb-turn ${anim}`} src={exUrl(turnSrc)} alt="" aria-hidden />}
+        {anim && <span className={`fb-shine ${anim}`} aria-hidden />}
+        <span className="fb-shade" aria-hidden />
+        <span className="fb-curl" aria-hidden />
         <span className="fb-count">{i + 1} / {pages.length}</span>
       </div>
       {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1} aria-label="Próxima página">›</button>}
