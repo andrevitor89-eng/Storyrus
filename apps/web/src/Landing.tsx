@@ -150,6 +150,7 @@ function FlipBook({ pages, compact = false }: { pages: string[]; compact?: boole
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(0);
+  const [hover, setHover] = useState(false);
   const busy = useRef(false);
   const flip = (dir: "next" | "prev", loop = false) => {
     if (busy.current) return;
@@ -161,12 +162,21 @@ function FlipBook({ pages, compact = false }: { pages: string[]; compact?: boole
     setAnim(dir);
     window.setTimeout(() => { setI(t); setAnim(null); busy.current = false; }, 720);
   };
-  // transição automática — vira a página sozinho, sem parar com o mouse
+  // transição automática — vira a página sozinho; no modo compacto (catálogo) só roda com o mouse em cima
   useEffect(() => {
+    if (compact && !hover) return;
     const id = window.setTimeout(() => flip("next", true), 1500);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i, pages.length]);
+  }, [i, pages.length, compact, hover]);
+  // ao tirar o mouse no modo compacto, volta parado na capa
+  useEffect(() => {
+    if (compact && !hover) {
+      busy.current = false;
+      setAnim(null);
+      setI(0);
+    }
+  }, [hover, compact]);
   const baseSrc = anim === "next" ? pages[target] : pages[i];
   const turnSrc = anim === "next" ? pages[i] : pages[target];
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
@@ -174,7 +184,11 @@ function FlipBook({ pages, compact = false }: { pages: string[]; compact?: boole
     if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
   };
   return (
-    <div className={`flipbook${compact ? " flipbook-mini" : ""}`}>
+    <div
+      className={`flipbook${compact ? " flipbook-mini" : ""}`}
+      onMouseEnter={compact ? () => setHover(true) : undefined}
+      onMouseLeave={compact ? () => setHover(false) : undefined}
+    >
       {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0} aria-label="Página anterior">‹</button>}
       <div className="fb-stage" onClick={onStage} role="button" tabIndex={0} aria-label="Virar página">
         <span className="fb-spine" />
