@@ -117,7 +117,7 @@
 .kbh-book {
   position: absolute; top: 50%; right: 5%; transform: translateY(-50%); z-index: 4; margin: 0;
   width: 25%; max-width: 218px; aspect-ratio: 3 / 4; border-radius: 16px; overflow: hidden;
-  border: 4px solid #fff; box-shadow: 0 20px 44px rgba(0,0,0,.5), 0 0 0 6px rgba(244,183,64,.35);
+  box-shadow: 0 20px 44px rgba(0,0,0,.5), 0 0 0 4px rgba(244,183,64,.65);
   animation: bob 6s ease-in-out infinite;
 }
 .kbh-book img { display: block; width: 100%; height: 100%; object-fit: cover; }
@@ -408,7 +408,7 @@
 .howex-card img { display: block; width: 100%; aspect-ratio: 3 / 4; height: auto; object-fit: cover; object-position: center top; }
 .howex-num { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%;
   background: var(--purple); color: #fff; display: grid; place-items: center; font-family: 'Baloo 2', cursive; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,.4); }
-.howex-card figcaption { padding: 14px 16px; flex: 1; display: flex; flex-direction: column; justify-content: center; }
+.howex-card figcaption { padding: 14px 16px; height: 133px; flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; }
 .howex-card h3 { margin: 0 0 4px; color: #e9eefb; font-size: 1.2rem; }
 .howex-card p { margin: 0; color: #9fabce; font-size: .98rem; line-height: 1.4; }
 .howex-arrow { color: var(--yellow); animation: nudge 1.5s ease-in-out infinite; }
@@ -430,13 +430,13 @@
 .ex-tab { display: flex; flex-direction: column; align-items: center; gap: 10px; background: none; border: none; cursor: pointer;
   padding: 4px; opacity: .55; transition: opacity .2s ease, transform .2s ease; }
 .ex-tab img { width: 108px; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 12px; display: block;
-  border: 3px solid transparent; box-shadow: 0 10px 22px rgba(0,0,0,.32); transition: border-color .2s ease, transform .2s ease; }
+  box-shadow: 0 10px 22px rgba(0,0,0,.32), 0 0 0 3px rgba(244,183,64,.35); transition: box-shadow .2s ease, transform .2s ease; }
 .ex-tab span { font-family: 'Baloo 2', cursive; font-weight: 700; font-size: .92rem; color: #9fabce; max-width: 118px;
   text-align: center; line-height: 1.18; }
 .ex-tab:hover { opacity: .85; }
 .ex-tab:hover img { transform: translateY(-3px); }
 .ex-tab.on { opacity: 1; }
-.ex-tab.on img { border-color: var(--yellow); transform: translateY(-4px); }
+.ex-tab.on img { box-shadow: 0 10px 22px rgba(0,0,0,.32), 0 0 0 3px var(--yellow); transform: translateY(-4px); }
 .ex-tab.on span { color: #e9eefb; }
 [data-theme="light"] .kid .ex-tab span { color: #6b6890; }
 [data-theme="light"] .kid .ex-tab.on span { color: var(--ink); }

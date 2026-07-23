@@ -56,8 +56,8 @@ const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-9.jpg", "
 const BANNER_IMGS = ["capa-circo.jpg", "capa-oceano.jpg", "capa-dino2.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "circo-2.jpg"];
 // Slides do hero: foto real (em cima) -> capa do livro gerado
-const HERO_SLIDES = [
-  { photo: "foto-menino.jpg", book: "capa-circo.jpg" },
+const HERO_SLIDES: { photo: string; book: string; photoPos?: string }[] = [
+  { photo: "foto-matteo.png", book: "capa-circo.jpg", photoPos: "center 22%" },
   { photo: "foto-sofia.png", book: "capa-floresta.jpg" },
   { photo: "foto-bebe.jpg", book: "capa-oceano.jpg" },
 ];
@@ -387,8 +387,9 @@ export function Landing() {
   const t = I18N[lang];
   const navHrefs = ["#top", "#catalogo", "#como", "#videos"];
   const exampleBooks = [
+    { title: t.catalog[0].t, cover: CATALOG_IMGS[0], pages: [CATALOG_IMGS[0], ...BOOK3D[0].pages] },
     { title: t.chloe_title, cover: "ebook-1.jpg", pages: BOOK },
-    ...t.catalog.map((c, i) => ({ title: c.t, cover: CATALOG_IMGS[i], pages: [CATALOG_IMGS[i], ...BOOK3D[i].pages] })),
+    ...t.catalog.slice(1).map((c, i) => ({ title: c.t, cover: CATALOG_IMGS[i + 1], pages: [CATALOG_IMGS[i + 1], ...BOOK3D[i + 1].pages] })),
   ];
 
   // Auto-avanço do carrossel do hero
@@ -459,7 +460,12 @@ export function Landing() {
                 <b>{t.banners[i].t}</b>
               </span>
               <figure className="kbh-book">
-                <img src={exUrl(s.photo)} alt="Foto real da criança" loading={i === 0 ? "eager" : "lazy"} />
+                <img
+                  src={exUrl(s.photo)}
+                  alt="Foto real da criança"
+                  loading={i === 0 ? "eager" : "lazy"}
+                  style={s.photoPos ? { objectPosition: s.photoPos } : undefined}
+                />
               </figure>
               <div className="kbh-overlay">
                 <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
