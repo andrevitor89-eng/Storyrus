@@ -33,7 +33,7 @@ const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcPlay];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["foto-matteo.png", "arte-menino.jpg", "capa-dino2.jpg"];
+const HOW_IMGS = ["foto-matteo.png", "personagem-dino.jpg", "capa-dino2.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -471,6 +471,30 @@ export function Landing() {
         </div>
       </section>
 
+      {/* FLIPBOOK — destaque */}
+      <section className="ksection featured-book" id="historia-exemplo">
+        <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
+        <h2 className="ktitle reveal">{t.story_title}</h2>
+        <p className="ksub reveal">{t.story_sub}</p>
+        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
+          {exampleBooks.map((b, i) => (
+            <button
+              key={b.title}
+              type="button"
+              className={`ex-tab${i === exBook ? " on" : ""}`}
+              onClick={() => setExBook(i)}
+              role="tab"
+              aria-selected={i === exBook}
+            >
+              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" />
+              <span>{b.title}</span>
+            </button>
+          ))}
+        </div>
+        <div className="reveal"><FlipBook key={exBook} pages={exampleBooks[exBook].pages} /></div>
+        <p className="fb-hint reveal">{t.story_hint}</p>
+      </section>
+
       {/* BANNERS NARRATIVOS */}
       <section className="banners">
         {t.banners.map((b, i) => (
@@ -588,30 +612,6 @@ export function Landing() {
             </figure>
           ))}
         </div>
-      </section>
-
-      {/* FLIPBOOK — destaque */}
-      <section className="ksection featured-book" id="historia-exemplo">
-        <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
-        <h2 className="ktitle reveal">{t.story_title}</h2>
-        <p className="ksub reveal">{t.story_sub}</p>
-        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
-          {exampleBooks.map((b, i) => (
-            <button
-              key={b.title}
-              type="button"
-              className={`ex-tab${i === exBook ? " on" : ""}`}
-              onClick={() => setExBook(i)}
-              role="tab"
-              aria-selected={i === exBook}
-            >
-              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" />
-              <span>{b.title}</span>
-            </button>
-          ))}
-        </div>
-        <div className="reveal"><FlipBook key={exBook} pages={exampleBooks[exBook].pages} /></div>
-        <p className="fb-hint reveal">{t.story_hint}</p>
       </section>
 
       {/* NOSSA PROMESSA */}

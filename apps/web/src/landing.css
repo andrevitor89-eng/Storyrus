@@ -424,7 +424,7 @@
   color: #1f3568; font-family: 'Baloo 2', cursive; font-weight: 800; padding: 6px 16px; border-radius: 999px; font-size: .95rem;
   margin-bottom: 10px; box-shadow: 0 8px 18px rgba(244,183,64,.3); }
 .book-badge .bi { width: 16px; height: 16px; color: #1f3568; }
-.featured-book .fb-stage { width: 340px; }
+.featured-book .fb-stage { width: 850px; max-width: 100%; }
 
 .ex-tabs { display: flex; justify-content: center; align-items: flex-start; gap: 16px; flex-wrap: wrap; max-width: 720px; margin: 0 auto 30px; }
 .ex-tab { display: flex; flex-direction: column; align-items: center; gap: 7px; background: none; border: none; cursor: pointer;
@@ -536,7 +536,7 @@
   .howex-arrow { transform: rotate(90deg); }
   .fmt-grid { grid-template-columns: 1fr; max-width: 430px; }
   .rev-grid { grid-template-columns: 1fr; max-width: 460px; }
-  .featured-book .fb-stage { width: 76vw; max-width: 320px; }
+  .featured-book .fb-stage { width: 88vw; max-width: 460px; }
   .banners { grid-template-columns: 1fr; max-width: 460px; }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }
