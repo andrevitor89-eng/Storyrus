@@ -376,64 +376,27 @@
 }
 /* pilha de páginas saindo pela lateral direita, como um livro de verdade fechado */
 .fb-stage::before {
-  content: ""; position: absolute; top: 1.5%; bottom: 1.5%; right: -7px; width: 9px; z-index: 0; pointer-events: none;
-  background:
-    repeating-linear-gradient(0deg, #fbf8ef 0px, #fbf8ef 1.4px, #d8cfb6 1.4px, #d8cfb6 2.6px),
-    linear-gradient(90deg, rgba(0,0,0,.18), rgba(0,0,0,0) 40%);
-  border-radius: 0 5px 5px 0; box-shadow: 2px 0 5px rgba(0,0,0,.32), inset -1px 0 2px rgba(0,0,0,.15);
+  content: ""; position: absolute; top: 2%; bottom: 2%; right: -6px; width: 7px; z-index: 0; pointer-events: none;
+  background: repeating-linear-gradient(0deg, #f6f2e7 0px, #f6f2e7 1.6px, #ddd6c2 1.6px, #ddd6c2 3.2px);
+  border-radius: 0 5px 5px 0; box-shadow: 2px 0 5px rgba(0,0,0,.3);
 }
-.cat-flip .fb-stage::before, .ex-tabs .fb-stage::before { width: 6px; right: -5px; }
+.cat-flip .fb-stage::before, .ex-tabs .fb-stage::before { width: 5px; right: -4px; }
 .fb-stage:focus-visible { outline: 3px solid var(--yellow); outline-offset: 4px; }
 .fb-spine {
-  position: absolute; top: 0; bottom: 0; left: 0; width: 26px; z-index: 6; pointer-events: none;
-  background: linear-gradient(90deg, rgba(0,0,0,.45), rgba(0,0,0,.16) 45%, rgba(0,0,0,0));
-  border-radius: 10px 0 0 10px;
+  position: absolute; top: 0; bottom: 0; left: 0; width: 20px; z-index: 4; pointer-events: none;
+  background: linear-gradient(90deg, rgba(0,0,0,.34), rgba(0,0,0,0)); border-radius: 10px 0 0 10px;
 }
 .fb-page {
   position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   border-radius: 10px 4px 4px 10px; backface-visibility: hidden;
 }
 .fb-base { z-index: 1; }
-.fb-turn { z-index: 3; transform-origin: left center; box-shadow: 14px 0 30px rgba(0,0,0,.32); }
+.fb-turn { z-index: 3; transform-origin: left center; box-shadow: 10px 0 26px rgba(0,0,0,.25); }
 .fb-turn.next { animation: fbNext .72s ease forwards; }
 .fb-turn.prev { animation: fbPrev .72s ease forwards; }
-/* sombra fixa simulando a curvatura da página perto da lombada, some com o brilho na parte de fora */
-.fb-shade {
-  position: absolute; inset: 0; z-index: 4; pointer-events: none; border-radius: 10px 4px 4px 10px;
-  background:
-    linear-gradient(90deg, rgba(0,0,0,.28) 0%, rgba(0,0,0,.10) 4%, rgba(0,0,0,0) 11%),
-    linear-gradient(180deg, rgba(255,255,255,.14), rgba(0,0,0,0) 16%, rgba(0,0,0,0) 84%, rgba(0,0,0,.16));
-}
-/* dobrinha no canto inferior direito, como se a página estivesse levemente vincada */
-.fb-curl {
-  position: absolute; right: 0; bottom: 0; z-index: 6; width: 24px; height: 24px; pointer-events: none;
-  background: linear-gradient(135deg, transparent 50%, rgba(0,0,0,.12) 50.5%, rgba(0,0,0,.2) 62%, #efe9d9 63%, #fbf8ef 100%);
-  clip-path: polygon(100% 0, 100% 100%, 0 100%);
-  border-radius: 0 0 4px 0;
-  filter: drop-shadow(-2px -2px 3px rgba(0,0,0,.22));
-}
-.cat-flip .fb-curl, .ex-tabs .fb-curl { width: 14px; height: 14px; }
-/* brilho que desliza pela página enquanto ela gira, acompanhando o mesmo ângulo 3D */
-.fb-shine {
-  position: absolute; inset: 0; z-index: 5; pointer-events: none; border-radius: 10px 4px 4px 10px;
-  backface-visibility: hidden; transform-origin: left center;
-  background: linear-gradient(100deg, transparent 35%, rgba(255,255,255,.55) 50%, transparent 65%);
-}
-.fb-shine.next { animation: fbShineNext .72s ease forwards; }
-.fb-shine.prev { animation: fbShinePrev .72s ease forwards; }
 /* a página escurece ao ficar de perfil (como luz incidindo numa folha virando) */
-@keyframes fbNext { 0% { transform: rotateY(0); filter: brightness(1); } 55% { filter: brightness(.6); } 100% { transform: rotateY(-172deg); filter: brightness(1); } }
-@keyframes fbPrev { 0% { transform: rotateY(-172deg); filter: brightness(1); } 45% { filter: brightness(.6); } 100% { transform: rotateY(0); filter: brightness(1); } }
-@keyframes fbShineNext {
-  0% { transform: rotateY(0); opacity: 0; }
-  40% { opacity: .9; } 55% { opacity: .9; }
-  100% { transform: rotateY(-172deg); opacity: 0; }
-}
-@keyframes fbShinePrev {
-  0% { transform: rotateY(-172deg); opacity: 0; }
-  45% { opacity: .9; } 60% { opacity: .9; }
-  100% { transform: rotateY(0); opacity: 0; }
-}
+@keyframes fbNext { 0% { transform: rotateY(0); filter: brightness(1); } 55% { filter: brightness(.65); } 100% { transform: rotateY(-172deg); filter: brightness(1); } }
+@keyframes fbPrev { 0% { transform: rotateY(-172deg); filter: brightness(1); } 45% { filter: brightness(.65); } 100% { transform: rotateY(0); filter: brightness(1); } }
 .fb-count {
   position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); z-index: 5;
   font-family: 'Baloo 2', cursive; font-weight: 700; color: var(--ink); background: #fff;
