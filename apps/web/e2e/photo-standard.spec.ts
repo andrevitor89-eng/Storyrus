@@ -36,7 +36,7 @@ test.describe("Padrão visual da foto (e2e)", () => {
 
     await uploadChildPhoto(page);
 
-    await expect(page.getByText("AVATAR")).toBeVisible();
+    await expect(page.locator(".jobs .jtype")).toHaveText("AVATAR");
     await expect(page.getByTestId("photo-standard-reasons")).toHaveCount(0);
   });
 
@@ -51,6 +51,6 @@ test.describe("Padrão visual da foto (e2e)", () => {
       /mais de uma pessoa/i,
     );
     await expect(page.getByRole("alert")).toHaveText(/padrão visual para criar o avatar/i);
-    await expect(page.getByText("AVATAR")).toHaveCount(0);
+    await expect(page.locator(".jobs")).toHaveCount(0);
   });
 });
