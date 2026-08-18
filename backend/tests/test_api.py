@@ -19,8 +19,10 @@ def test_duplicate_signup_conflicts(client):
     assert r.status_code == 409
 
 
-def test_protected_requires_token(client):
-    assert client.get("/v1/auth/me").status_code == 403  # sem bearer
+def test_me_without_token_uses_guest(client):
+    r = client.get("/v1/auth/me")
+    assert r.status_code == 200
+    assert "guest" in r.json()["email"]
 
 
 def test_create_and_list_project(auth_client):
@@ -174,5 +176,35 @@ def test_avatar_blocked_when_photo_off_standard(auth_client, monkeypatch):
     r = auth_client.post(f"/v1/projects/{pid}/avatar")
     assert r.status_code == 422
     assert r.json()["detail"]["code"] == "PHOTO_STANDARD"
+    assert auth_client.get("/v1/credits").json()["credits"] == before
+
+
+def test_avatar_reassesses_fail_open_photo_ok(auth_client, monkeypatch):
+    """photo_ok=True sem visao (fail-open) nao dispensa o padrao visual depois."""
+    from app.services.photo_standard import PhotoAssessment
+
+    calls = {"n": 0}
+
+    async def staged(*_a, **_k):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return PhotoAssessment(ok=True, reasons=[], identity_hints="", assessed=False)
+        return PhotoAssessment(ok=False, reasons=["blurry"], identity_hints="", assessed=True)
+
+    monkeypatch.setattr("app.services.photo_standard.assess_photo", staged)
+    monkeypatch.setattr("app.storage.put_bytes", lambda *a, **k: a[0] if a else "k")
+    monkeypatch.setattr("app.storage.get_bytes", lambda _k: b"img")
+
+    pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
+    up = auth_client.post(
+        f"/v1/projects/{pid}/photo",
+        files={"file": ("foto.jpg", b"fakeimg", "image/jpeg")},
+    )
+    assert up.status_code == 201
+    before = auth_client.get("/v1/credits").json()["credits"]
+    r = auth_client.post(f"/v1/projects/{pid}/avatar")
+    assert r.status_code == 422
+    assert r.json()["detail"]["code"] == "PHOTO_STANDARD"
+    assert calls["n"] == 2
     assert auth_client.get("/v1/credits").json()["credits"] == before
 

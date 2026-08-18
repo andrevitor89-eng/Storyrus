@@ -1,7 +1,8 @@
 """Configuracao central da aplicacao (12-factor: tudo via ambiente)."""
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Self
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -40,7 +41,9 @@ class Settings(BaseSettings):
     max_concurrent_jobs_per_user: int = 4
     default_video_duration_s: int = 30
     signup_bonus_credits: int = 10
-    offline_fallback: bool = True
+    # None = deriva: prod sempre False; fora de prod, True so se nao houver GEMINI_API_KEY.
+    # Com chave (ou em producao) o padrao visual da foto e o refine adaptativo valem.
+    offline_fallback: bool | None = None
 
     # Refine de identidade so roda se a semelhanca foto x avatar ficar abaixo disto (0-100).
     avatar_likeness_threshold: int = 78
@@ -75,6 +78,14 @@ class Settings(BaseSettings):
     ebook_pages: int = 12
     video_poll_interval_s: float = 10.0
     video_poll_timeout_s: float = 600.0
+
+    @model_validator(mode="after")
+    def _resolve_offline_fallback(self) -> Self:
+        if self.offline_fallback is None:
+            # Producao sempre usa os provedores. Fora disso, so cai no PNG local
+            # quando nao ha chave Gemini — com chave o padrao visual e o refine valem.
+            self.offline_fallback = False if self.app_env == "prod" else not bool(self.gemini_api_key)
+        return self
 
 
 @lru_cache

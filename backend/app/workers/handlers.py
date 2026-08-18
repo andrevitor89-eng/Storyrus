@@ -745,7 +745,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
         raise ProviderError("Sem fotos para gerar o personagem", transient=False)
 
     refs = [storage.get_bytes(a.storage_key) for a in photos]
-    if settings.offline_fallback:
+    if settings.offline_fallback and not photo_standard.vision_enabled():
         result = ImageResult(
             image_bytes=_offline_png(
                 f"Personagem de {project.child_name or 'demonstracao'}",

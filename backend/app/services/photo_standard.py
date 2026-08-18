@@ -5,7 +5,8 @@ Usado em dois momentos:
 - Refine adaptativo: so chama o segundo passe se a primeira geracao ainda nao
   estiver fiel o bastante (likeness abaixo do limiar).
 
-Em offline_fallback (testes/dev sem chave) as avaliacoes sao no-ops otimistas.
+Sem GEMINI_API_KEY as avaliacoes sao no-ops otimistas (dev/testes). Com chave,
+o padrao visual e o likeness rodam mesmo se offline_fallback estiver ligado.
 """
 from __future__ import annotations
 
@@ -63,6 +64,7 @@ class PhotoAssessment:
     ok: bool
     reasons: list[str] = field(default_factory=list)
     identity_hints: str = ""
+    assessed: bool = False
 
 
 @dataclass
@@ -72,12 +74,13 @@ class LikenessAssessment:
 
 
 def offline_ok() -> PhotoAssessment:
-    return PhotoAssessment(ok=True, reasons=[], identity_hints="")
+    return PhotoAssessment(ok=True, reasons=[], identity_hints="", assessed=False)
 
 
 def assessment_meta(assessment: PhotoAssessment) -> dict:
     return {
         "photo_ok": assessment.ok,
+        "photo_assessed": assessment.assessed,
         "reasons": list(assessment.reasons),
         "identity_hints": assessment.identity_hints,
     }
@@ -111,7 +114,7 @@ def parse_photo_assessment(raw: dict) -> PhotoAssessment:
     reasons = [str(r).strip() for r in reasons_raw if str(r).strip()]
     hints = str(raw.get("identity_hints") or "").strip()
     ok = bool(raw.get("ok")) and not reasons
-    return PhotoAssessment(ok=ok, reasons=reasons, identity_hints=hints)
+    return PhotoAssessment(ok=ok, reasons=reasons, identity_hints=hints, assessed=True)
 
 
 def parse_likeness(raw: dict) -> LikenessAssessment:
@@ -154,8 +157,13 @@ def _extract_json_text(payload: dict) -> dict:
     return json.loads(text)
 
 
+def vision_enabled() -> bool:
+    """O padrao visual aplica-se sempre que a chave Gemini existe."""
+    return bool(settings.gemini_api_key)
+
+
 async def _vision_json(parts: list[dict]) -> dict | None:
-    if settings.offline_fallback or not settings.gemini_api_key:
+    if not vision_enabled():
         return None
     url = f"{_BASE}/models/{_VISION_MODEL}:generateContent"
     headers = {"x-goog-api-key": settings.gemini_api_key, "content-type": "application/json"}
@@ -186,8 +194,8 @@ def _inline(image: bytes, mime: str) -> dict:
 
 
 async def assess_photo(image: bytes, mime: str = "image/jpeg") -> PhotoAssessment:
-    """Avalia se a foto atende o padrao visual. Fail-open se a visao falhar."""
-    if settings.offline_fallback or not settings.gemini_api_key or not image:
+    """Avalia se a foto atende o padrao visual. Fail-open so sem chave / visao fora."""
+    if not vision_enabled() or not image:
         return offline_ok()
     mime = _guess_mime(image, mime)
     raw = await _vision_json([{"text": _ASSESS_PROMPT}, _inline(image, mime)])
@@ -199,8 +207,8 @@ async def assess_photo(image: bytes, mime: str = "image/jpeg") -> PhotoAssessmen
 async def assess_likeness(
     photo: bytes, illustration: bytes, photo_mime: str = "image/jpeg"
 ) -> LikenessAssessment:
-    """Nota 0-100 de identidade. Offline = 100 (pula refine). Falha = 0 (forca refine)."""
-    if settings.offline_fallback or not settings.gemini_api_key or not photo or not illustration:
+    """Nota 0-100 de identidade. Sem chave = 100 (pula refine). Falha de visao = 0 (forca refine)."""
+    if not vision_enabled() or not photo or not illustration:
         return LikenessAssessment(score=100, mismatches=[])
     photo_mime = _guess_mime(photo, photo_mime)
     raw = await _vision_json(

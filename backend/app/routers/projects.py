@@ -62,12 +62,21 @@ async def _require_photo_standard(db: Session, project: Project) -> Asset:
     if photo is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
     meta = dict(photo.meta or {})
-    if meta.get("photo_ok") is True:
-        return photo
+    if meta.get("photo_assessed") is True:
+        if meta.get("photo_ok") is True:
+            return photo
+        raise _photo_gate(
+            photo_standard.PhotoAssessment(
+                ok=False,
+                reasons=list(meta.get("reasons") or []),
+                identity_hints=str(meta.get("identity_hints") or ""),
+                assessed=True,
+            )
+        )
 
     data = _read_photo_bytes(photo.storage_key)
     if not data:
-        if settings.offline_fallback:
+        if settings.offline_fallback and not photo_standard.vision_enabled():
             photo.meta = {**meta, **photo_standard.assessment_meta(photo_standard.offline_ok())}
             db.commit()
             return photo
