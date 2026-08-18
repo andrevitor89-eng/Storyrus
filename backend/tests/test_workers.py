@@ -117,6 +117,10 @@ class TrackingImage:
     async def generate_scene(self, **kw):
         return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
 
+    async def generate_realistic(self, **kw):
+        self.hints = kw.get("prompt", "")
+        return ImageResult(image_bytes=b"REAL", mime_type="image/png")
+
     async def refine_identity(self, **kw):
         self.refine_calls += 1
         return ImageResult(image_bytes=b"REFINED", mime_type="image/png")
@@ -188,6 +192,38 @@ async def test_avatar_refines_when_likeness_low(db, mem_storage, monkeypatch):
     assert j.result["likeness_before"] == 40
     assert j.result["likeness_after"] == 88
     assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
+
+
+async def test_realistic_skips_refine_when_likeness_high(db, mem_storage, monkeypatch):
+    img = TrackingImage()
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: img)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    async def high(*_a, **_k):
+        return LikenessAssessment(score=91, mismatches=[])
+
+    monkeypatch.setattr(handlers.photo_standard, "assess_likeness", high)
+
+    _, p = _seed(db)
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"photo_ok": True, "identity_hints": "oculos vermelhos"},
+        )
+    )
+    db.commit()
+    j = _job(db, p, "REALISTIC")
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    assert img.refine_calls == 0
+    assert "oculos vermelhos" in (img.hints or "")
+    assert j.result["refined"] is False
+    assert j.result["photo_ok"] is True
 
 
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):

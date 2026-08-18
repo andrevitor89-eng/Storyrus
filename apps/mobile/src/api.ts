@@ -82,6 +82,28 @@ export const api = {
       method: "POST",
       body: JSON.stringify({ content_type: contentType, ext }),
     }),
+  async uploadPhoto(id: string, uri: string, mime: string, filename: string) {
+    const fd = new FormData();
+    fd.append("file", { uri, name: filename, type: mime } as unknown as Blob);
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const resp = await fetch(`${BASE}/v1/projects/${id}/photo`, {
+      method: "POST",
+      body: fd,
+      headers,
+    });
+    if (!resp.ok) {
+      let detail: unknown = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      const parsed = parseApiDetail(detail);
+      throw new ApiError(resp.status, parsed.message, parsed.reasons);
+    }
+    return resp.json();
+  },
   async uploadToSignedUrl(url: string, uri: string, contentType: string) {
     try {
       const blob = await (await fetch(uri)).blob();

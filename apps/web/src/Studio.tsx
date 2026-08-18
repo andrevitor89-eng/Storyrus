@@ -209,6 +209,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     if (!project) return;
     setBusy(true);
     setError(null);
+    setPhotoReasons([]);
     try {
       await api.startStep(project.id, step, step === "video" ? { duration_s: 30 } : {});
       const js = await api.listJobs(project.id);
@@ -216,6 +217,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       refreshCredits();
     } catch (e) {
       setError((e as Error).message);
+      setPhotoReasons(e instanceof ApiError ? e.reasons : []);
     } finally {
       setBusy(false);
     }

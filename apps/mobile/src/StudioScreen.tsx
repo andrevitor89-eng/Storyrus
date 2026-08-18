@@ -81,6 +81,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
       setProject(await api.createProject(style));
       setJobs([]);
       setPhotoUploaded(false);
+      setPhotoReasons([]);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -97,9 +98,9 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
     setPhotoReasons([]);
     try {
       const asset = res.assets[0];
-      const ext = asset.uri.split(".").pop() || "jpg";
-      const u = await api.requestPhotoUpload(project.id, asset.mimeType || "image/jpeg", ext);
-      await api.uploadToSignedUrl(u.upload_url, asset.uri, asset.mimeType || "image/jpeg");
+      const ext = (asset.uri.split(".").pop() || "jpg").split("?")[0] || "jpg";
+      const mime = asset.mimeType || "image/jpeg";
+      await api.uploadPhoto(project.id, asset.uri, mime, `foto.${ext}`);
       setPhotoUploaded(true);
     } catch (e) {
       setError((e as Error).message);

@@ -960,14 +960,18 @@ async def handle_realistic(db: Session, job: Job) -> None:
         raise ProviderError("Sem foto para gerar a imagem realistica", transient=False)
 
     photo_bytes = storage.get_bytes(photos[0].storage_key)
+    hints = await _ensure_identity_hints(db, photos, [photo_bytes])
+    prompt = REALISTIC_PROMPT
+    if hints:
+        prompt += f" Lock these identity details from the photo: {hints}."
     provider = get_image_provider(job.provider)
     result = await provider.generate_realistic(
-        photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
+        photo=photo_bytes, prompt=prompt, negative=REALISTIC_NEGATIVE, style="realistic"
     )
-    hints = _identity_hints_from_photos(photos)
     result = await _maybe_refine_identity(
         provider, photo_bytes, result, "realistic", job, hints_used=hints
     )
+    _merge_job_result(job, {"photo_ok": True, "hints_used": hints})
 
     key = storage.new_key(project.id, AssetKind.REALISTIC.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
