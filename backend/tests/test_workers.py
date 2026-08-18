@@ -9,9 +9,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.database import Base
 from app.ai_clients.base import ImageResult, ProviderError, TextResult, VideoJob
+from app.database import Base
 from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus, User
+from app.services.photo_standard import LikenessAssessment
 from app.workers import handlers, runner
 
 
@@ -102,6 +103,129 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert p.character_ref and "storage_key" in p.character_ref
 
 
+class TrackingImage:
+    name = "fake-img"
+
+    def __init__(self):
+        self.refine_calls = 0
+        self.hints = None
+
+    async def generate_character(self, **kw):
+        self.hints = kw.get("identity_hints")
+        return ImageResult(image_bytes=b"CHAR", mime_type="image/png")
+
+    async def generate_scene(self, **kw):
+        return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
+
+    async def generate_realistic(self, **kw):
+        self.hints = kw.get("prompt", "")
+        return ImageResult(image_bytes=b"REAL", mime_type="image/png")
+
+    async def refine_identity(self, **kw):
+        self.refine_calls += 1
+        return ImageResult(image_bytes=b"REFINED", mime_type="image/png")
+
+
+async def test_avatar_skips_refine_when_likeness_high(db, mem_storage, monkeypatch):
+    img = TrackingImage()
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: img)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    async def high(*_a, **_k):
+        return LikenessAssessment(score=90, mismatches=[])
+
+    monkeypatch.setattr(handlers.photo_standard, "assess_likeness", high)
+
+    _, p = _seed(db)
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"photo_ok": True, "identity_hints": "cabelo cacheado"},
+        )
+    )
+    db.commit()
+    j = _job(db, p, "AVATAR")
+
+    await runner.process_job(db, j)
+
+    db.refresh(p)
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    assert img.refine_calls == 0
+    assert img.hints == "cabelo cacheado"
+    assert j.result["refined"] is False
+    assert j.result["likeness_before"] == 90
+    assert mem_storage[p.character_ref["storage_key"]] == b"CHAR"
+
+
+async def test_avatar_refines_when_likeness_low(db, mem_storage, monkeypatch):
+    img = TrackingImage()
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: img)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    scores = iter(
+        [
+            LikenessAssessment(score=40, mismatches=["olhos"]),
+            LikenessAssessment(score=88, mismatches=[]),
+        ]
+    )
+
+    async def scored(*_a, **_k):
+        return next(scores)
+
+    monkeypatch.setattr(handlers.photo_standard, "assess_likeness", scored)
+
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR")
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    db.refresh(p)
+    assert j.status == JobStatus.DONE.value
+    assert img.refine_calls == 1
+    assert j.result["refined"] is True
+    assert j.result["likeness_before"] == 40
+    assert j.result["likeness_after"] == 88
+    assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
+
+
+async def test_realistic_skips_refine_when_likeness_high(db, mem_storage, monkeypatch):
+    img = TrackingImage()
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: img)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    async def high(*_a, **_k):
+        return LikenessAssessment(score=91, mismatches=[])
+
+    monkeypatch.setattr(handlers.photo_standard, "assess_likeness", high)
+
+    _, p = _seed(db)
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PHOTO.value,
+            storage_key="photo1",
+            meta={"photo_ok": True, "identity_hints": "oculos vermelhos"},
+        )
+    )
+    db.commit()
+    j = _job(db, p, "REALISTIC")
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    assert img.refine_calls == 0
+    assert "oculos vermelhos" in (img.hints or "")
+    assert j.result["refined"] is False
+    assert j.result["photo_ok"] is True
+
+
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
@@ -160,7 +284,6 @@ async def test_video_create_and_poll(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_video_provider", lambda *a, **k: FakeVideo())
     monkeypatch.setattr(runner.settings, "video_poll_interval_s", 0.0)
     # evita baixar o video de verdade -> guarda a URL do provedor
-    import app.workers.handlers as h
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}; db.commit()
     j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 10})

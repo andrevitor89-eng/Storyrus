@@ -22,6 +22,7 @@ from app.ai_clients import get_image_provider, get_text_provider, get_video_prov
 from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
+from app.services import photo_standard
 from app.workers import ebook as ebook_builder
 
 
@@ -744,7 +745,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
         raise ProviderError("Sem fotos para gerar o personagem", transient=False)
 
     refs = [storage.get_bytes(a.storage_key) for a in photos]
-    if settings.offline_fallback:
+    if settings.offline_fallback and not photo_standard.vision_enabled():
         result = ImageResult(
             image_bytes=_offline_png(
                 f"Personagem de {project.child_name or 'demonstracao'}",
@@ -753,14 +754,20 @@ async def handle_avatar(db: Session, job: Job) -> None:
             mime_type="image/png",
             cost_usd=0.0,
         )
+        _merge_job_result(job, {"photo_ok": True, "refined": False, "offline": True})
     else:
         provider = get_image_provider(job.provider)
+        hints = await _ensure_identity_hints(db, photos, refs)
         result = await provider.generate_character(
             prompt="Retrato do personagem principal, corpo inteiro, fundo neutro.",
             reference_images=refs,
             style=project.style or "realistic",
+            identity_hints=hints,
         )
-        result = await _refine_identity(provider, refs[0], result, project.style or "realistic")
+        result = await _maybe_refine_identity(
+            provider, refs[0], result, project.style or "realistic", job, hints_used=hints
+        )
+        _merge_job_result(job, {"photo_ok": True, "hints_used": hints})
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -771,7 +778,35 @@ async def handle_avatar(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.AVATAR_READY)
 
 
-async def _refine_identity(provider, photo_bytes, result, style):
+def _merge_job_result(job: Job, extra: dict) -> None:
+    """Reatribui job.result para o JSON ser persistido no SQLite."""
+    current = dict(job.result or {})
+    current.update(extra)
+    job.result = current
+
+
+def _identity_hints_from_photos(photos: list[Asset]) -> str:
+    for asset in photos:
+        hints = (asset.meta or {}).get("identity_hints") or ""
+        if str(hints).strip():
+            return str(hints).strip()
+    return ""
+
+
+async def _ensure_identity_hints(db: Session, photos: list[Asset], refs: list[bytes]) -> str:
+    hints = _identity_hints_from_photos(photos)
+    if hints or not refs:
+        return hints
+    assessment = await photo_standard.assess_photo(refs[0])
+    if photos:
+        meta = dict(photos[0].meta or {})
+        meta.update(photo_standard.assessment_meta(assessment))
+        photos[0].meta = meta
+        db.commit()
+    return assessment.identity_hints
+
+
+async def _refine_identity(provider, photo_bytes, result, style, mismatches=None):
     """Passe opcional: corrige a ilustracao para ficar mais fiel a foto.
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
@@ -780,14 +815,49 @@ async def _refine_identity(provider, photo_bytes, result, style):
     if refine is None or not photo_bytes:
         return result
     try:
-        refined = await refine(
-            photo=photo_bytes, illustration=result.image_bytes, style=style
-        )
+        try:
+            refined = await refine(
+                photo=photo_bytes,
+                illustration=result.image_bytes,
+                style=style,
+                mismatches=mismatches or None,
+            )
+        except TypeError:
+            refined = await refine(
+                photo=photo_bytes, illustration=result.image_bytes, style=style
+            )
         if refined and getattr(refined, "image_bytes", None):
             return refined
     except Exception:  # noqa: BLE001 - refinamento e opcional
-        pass
+        logger.exception("refine_identity falhou; mantendo ilustracao original")
     return result
+
+
+async def _maybe_refine_identity(provider, photo_bytes, result, style, job, hints_used=""):
+    """So refina se a semelhanca foto x ilustracao ficar abaixo do limiar."""
+    likeness = await photo_standard.assess_likeness(photo_bytes, result.image_bytes)
+    telemetry = {
+        "hints_used": hints_used,
+        "likeness_before": likeness.score,
+        "refined": False,
+        "mismatches": likeness.mismatches,
+    }
+    if likeness.score >= settings.avatar_likeness_threshold:
+        _merge_job_result(job, telemetry)
+        return result
+
+    refined = await _refine_identity(
+        provider, photo_bytes, result, style, mismatches=likeness.mismatches
+    )
+    did_refine = (
+        refined is not result and getattr(refined, "image_bytes", None) != result.image_bytes
+    )
+    telemetry["refined"] = bool(did_refine)
+    if did_refine:
+        after = await photo_standard.assess_likeness(photo_bytes, refined.image_bytes)
+        telemetry["likeness_after"] = after.score
+    _merge_job_result(job, telemetry)
+    return refined
 
 
 async def _refine_scene(provider, character_ref, result, style):
@@ -805,7 +875,7 @@ async def _refine_scene(provider, character_ref, result, style):
         if refined and getattr(refined, "image_bytes", None):
             return refined
     except Exception:  # noqa: BLE001 - refinamento e opcional
-        pass
+        logger.exception("refine_scene falhou; mantendo ilustracao original")
     return result
 
 
@@ -890,11 +960,18 @@ async def handle_realistic(db: Session, job: Job) -> None:
         raise ProviderError("Sem foto para gerar a imagem realistica", transient=False)
 
     photo_bytes = storage.get_bytes(photos[0].storage_key)
+    hints = await _ensure_identity_hints(db, photos, [photo_bytes])
+    prompt = REALISTIC_PROMPT
+    if hints:
+        prompt += f" Lock these identity details from the photo: {hints}."
     provider = get_image_provider(job.provider)
     result = await provider.generate_realistic(
-        photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
+        photo=photo_bytes, prompt=prompt, negative=REALISTIC_NEGATIVE, style="realistic"
     )
-    result = await _refine_identity(provider, photo_bytes, result, "realistic")
+    result = await _maybe_refine_identity(
+        provider, photo_bytes, result, "realistic", job, hints_used=hints
+    )
+    _merge_job_result(job, {"photo_ok": True, "hints_used": hints})
 
     key = storage.new_key(project.id, AssetKind.REALISTIC.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)

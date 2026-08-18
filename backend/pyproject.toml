@@ -34,6 +34,12 @@ dev = [
 line-length = 100
 target-version = "py311"
 
+# Conjunto clássico do ruff (E4/E7/E9/F). Sem isso, `ruff>=0.4` puxa a versão
+# mais nova no CI e liga dezenas de regras que o código legado não cumpre.
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+ignore = ["E702", "E731"]
+
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"

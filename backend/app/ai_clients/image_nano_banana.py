@@ -67,8 +67,19 @@ class NanoBananaImageProvider:
         raise ProviderError("Resposta sem imagem", transient=False)
 
     async def generate_character(
-        self, *, prompt: str, reference_images: list[bytes], style: str
+        self,
+        *,
+        prompt: str,
+        reference_images: list[bytes],
+        style: str,
+        identity_hints: str = "",
     ) -> ImageResult:
+        hints = (identity_hints or "").strip()
+        hint_block = (
+            f" DETALHES DE IDENTIDADE DA FOTO (trave estes tracos com prioridade): {hints}."
+            if hints
+            else ""
+        )
         parts: list[dict] = [
             {
                 "text": (
@@ -87,6 +98,7 @@ class NanoBananaImageProvider:
                     "(proporcionalmente grande, estilo chibi/funko) para dar um visual fofo e "
                     "estilizado ao personagem. "
                     f"{prompt}"
+                    f"{hint_block}"
                 )
             }
         ]
@@ -123,9 +135,21 @@ class NanoBananaImageProvider:
         return await self._generate(parts)
 
     async def refine_identity(
-        self, *, photo: bytes, illustration: bytes, style: str = "realistic"
+        self,
+        *,
+        photo: bytes,
+        illustration: bytes,
+        style: str = "realistic",
+        mismatches: list[str] | None = None,
     ) -> ImageResult:
         """Segundo passe: corrige a ILUSTRACAO para ficar fiel a FOTO real da crianca."""
+        focus = ""
+        if mismatches:
+            focus = (
+                " Corrija especialmente estes pontos que ainda divergem da foto: "
+                + ", ".join(mismatches)
+                + "."
+            )
         parts: list[dict] = [
             {
                 "text": (
@@ -140,6 +164,7 @@ class NanoBananaImageProvider:
                     "permanece em estilo DESENHO/ILUSTRACAO. A CABECA deve ser MAIOR que o "
                     "normal (proporcionalmente grande). Nao torne a imagem uma foto. Devolva "
                     "apenas a ilustracao corrigida."
+                    f"{focus}"
                 )
             },
             _inline(photo, "image/jpeg"),

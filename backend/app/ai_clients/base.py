@@ -55,7 +55,12 @@ class ImageProvider(Protocol):
     name: str
 
     async def generate_character(
-        self, *, prompt: str, reference_images: list[bytes], style: str
+        self,
+        *,
+        prompt: str,
+        reference_images: list[bytes],
+        style: str,
+        identity_hints: str = "",
     ) -> ImageResult:
         """Gera o personagem 2D a partir das fotos (etapa 2)."""
 
@@ -70,7 +75,12 @@ class ImageProvider(Protocol):
         """Gera a versao realistica/ilustrada a partir da foto, com prompt customizado."""
 
     async def refine_identity(
-        self, *, photo: bytes, illustration: bytes, style: str = "realistic"
+        self,
+        *,
+        photo: bytes,
+        illustration: bytes,
+        style: str = "realistic",
+        mismatches: list[str] | None = None,
     ) -> ImageResult:
         """Segundo passe: corrige a ilustracao para ficar fiel a foto real (opcional)."""
 

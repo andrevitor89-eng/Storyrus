@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { api } from "./api";
+import { api, ApiError } from "./api";
 import type { Job, Project, Style } from "./types";
 
 const STYLES: { id: Style; label: string }[] = [
@@ -36,6 +36,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [photoReasons, setPhotoReasons] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
   const poll = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -80,6 +81,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
       setProject(await api.createProject(style));
       setJobs([]);
       setPhotoUploaded(false);
+      setPhotoReasons([]);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -93,14 +95,16 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
     if (res.canceled) return;
     setBusy(true);
     setError(null);
+    setPhotoReasons([]);
     try {
       const asset = res.assets[0];
-      const ext = asset.uri.split(".").pop() || "jpg";
-      const u = await api.requestPhotoUpload(project.id, asset.mimeType || "image/jpeg", ext);
-      await api.uploadToSignedUrl(u.upload_url, asset.uri, asset.mimeType || "image/jpeg");
+      const ext = (asset.uri.split(".").pop() || "jpg").split("?")[0] || "jpg";
+      const mime = asset.mimeType || "image/jpeg";
+      await api.uploadPhoto(project.id, asset.uri, mime, `foto.${ext}`);
       setPhotoUploaded(true);
     } catch (e) {
       setError((e as Error).message);
+      setPhotoReasons(e instanceof ApiError ? e.reasons : []);
     } finally {
       setBusy(false);
     }
@@ -110,12 +114,14 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
     if (!project) return;
     setBusy(true);
     setError(null);
+    setPhotoReasons([]);
     try {
       await api.startStep(project.id, step, step === "video" ? { duration_s: 30 } : {});
       setJobs(await api.listJobs(project.id));
       refreshCredits();
     } catch (e) {
       setError((e as Error).message);
+      setPhotoReasons(e instanceof ApiError ? e.reasons : []);
     } finally {
       setBusy(false);
     }
@@ -160,9 +166,23 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
             Estilo: {project.style} · Status: {project.status}
           </Text>
 
+          <Text style={s.h3}>Padrão visual da foto</Text>
+          <Text style={s.muted}>
+            O rosto da criança precisa estar nítido, de frente e sozinho no quadro para criar o
+            avatar.
+          </Text>
+          <Text style={s.tipOk}>Nítida, bem iluminada e centralizada</Text>
+          <Text style={s.tipBad}>Evite: mais de uma pessoa na foto</Text>
+          <Text style={s.tipBad}>Evite: rosto de lado</Text>
+
           <Pressable style={s.btnAlt} onPress={pickAndUpload} disabled={busy}>
             <Text style={s.btnText}>{photoUploaded ? "Foto enviada ✓" : "Enviar foto"}</Text>
           </Pressable>
+          {photoReasons.map((r) => (
+            <Text key={r} style={s.error}>
+              {r}
+            </Text>
+          ))}
 
           {STEPS.map((st) => {
             const disabled = busy || (st.key === "avatar" && !photoUploaded);
@@ -209,7 +229,10 @@ const s = StyleSheet.create({
   brand: { color: "#e8ecf5", fontWeight: "700", fontSize: 18 },
   card: { backgroundColor: "#182032", borderColor: "#2a3550", borderWidth: 1, borderRadius: 16, padding: 18, gap: 10 },
   h2: { color: "#e8ecf5", fontSize: 18, fontWeight: "700" },
+  h3: { color: "#e8ecf5", fontSize: 15, fontWeight: "700", marginTop: 4 },
   muted: { color: "#93a0bd" },
+  tipOk: { color: "#34d399", fontWeight: "600" },
+  tipBad: { color: "#f87171" },
   row: { flexDirection: "row", gap: 8 },
   chip: { backgroundColor: "#0d1322", borderColor: "#2a3550", borderWidth: 1, borderRadius: 8, paddingVertical: 8, paddingHorizontal: 14 },
   chipOn: { backgroundColor: "#5b8cff", borderColor: "#5b8cff" },
