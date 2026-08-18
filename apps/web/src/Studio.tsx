@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { api } from "./api";
+import { ApiError, api } from "./api";
 import type { ExtraCharacter, Job, Project, Style, Theme } from "./types";
 import logo from "./assets/logo.png";
+import { PhotoStandardTips } from "./PhotoStandardTips";
 
 const STYLES: { id: Style; label: string }[] = [
   { id: "realistic", label: "Realista" },
@@ -60,7 +61,7 @@ const STEPS: { key: "ebook" | "video"; label: string; cost: string; hint: string
 type StoryMode = "invent" | "write" | "file";
 
 const HOW = [
-  "Envie uma foto do protagonista.",
+  "Envie uma foto da criança com o rosto no padrão visual.",
   "Escolha o tema e o estilo da arte.",
   "A IA cria ilustrações personalizadas.",
   "Receba um e-book exclusivo.",
@@ -104,6 +105,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     video_url: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [photoReasons, setPhotoReasons] = useState<string[]>([]);
 
   // aplica o tema (claro/escuro) salvo na landing
   useEffect(() => {
@@ -171,6 +173,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       setProject(p);
       setJobs([]);
       setPhotoUploaded(false);
+      setPhotoReasons([]);
       setAssets(null);
       setStoryText("");
     } catch (e) {
@@ -184,6 +187,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     if (!project || !photo) return;
     setBusy(true);
     setError(null);
+    setPhotoReasons([]);
     try {
       await api.uploadPhoto(project.id, photo);
       setPhotoUploaded(true);
@@ -193,7 +197,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       setJobs(js);
       refreshCredits();
     } catch (e) {
-      setError((e as Error).message);
+      const err = e as Error;
+      setError(err.message);
+      setPhotoReasons(e instanceof ApiError ? e.reasons : []);
     } finally {
       setBusy(false);
     }
@@ -310,7 +316,11 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         )}
       </header>
 
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
       <section className="card">
         <h2>Crie a sua história</h2>
@@ -458,6 +468,8 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             Status: <b>{project.status}</b>
           </p>
 
+          <PhotoStandardTips />
+
           <div className="upload">
             <input
               type="file"
@@ -468,6 +480,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               {photoUploaded ? "Foto enviada ✓" : "Enviar foto"}
             </button>
           </div>
+          {photoReasons.length > 0 && (
+            <ul className="photo-standard-reasons" data-testid="photo-standard-reasons">
+              {photoReasons.map((r) => (
+                <li key={r}>{r}</li>
+              ))}
+            </ul>
+          )}
 
           {photoUploaded && (
             <div style={{ margin: "8px 0" }}>

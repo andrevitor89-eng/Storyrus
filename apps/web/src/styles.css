@@ -132,6 +132,41 @@ button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff
 .how ol { margin: 0.25rem 0 0; padding-left: 1.2rem; color: var(--muted); }
 .how li { margin: 0.3rem 0; }
 
+.photo-standard { margin: 1rem 0 0.25rem; }
+.photo-standard-sub { margin: 0 0 0.85rem; font-size: 0.92rem; }
+.studio-shots.shot-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+}
+.shot { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.shot-ava-wrap { position: relative; width: 88px; margin: 0 auto 8px; }
+.shot-ava {
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden;
+  border: 3px solid var(--line); background: #fff;
+}
+.shot.ok .shot-ava { border-color: var(--teal); }
+.shot-ava .shot-svg { width: 100%; height: 100%; display: block; }
+.shot:not(.ok) .shot-ava .shot-svg { filter: grayscale(1) contrast(.95) brightness(.96); }
+.shot-badge {
+  position: absolute; left: 8px; top: 8px; width: 22px; height: 22px; border-radius: 50%;
+  display: grid; place-items: center; color: #fff; z-index: 2;
+  transform: translate(-40%, -40%); border: 2px solid var(--panel);
+}
+.shot.ok .shot-badge { background: var(--teal); }
+.shot:not(.ok) .shot-badge { background: var(--err); }
+.shot-badge svg { width: 12px; height: 12px; }
+.shot p { margin: 0; font-size: 0.78rem; color: var(--muted); font-weight: 700; line-height: 1.25; }
+.shot.ok p { color: var(--teal); }
+.photo-standard-reasons {
+  margin: 0 0 0.75rem; padding-left: 1.15rem; color: var(--err); font-size: 0.9rem;
+}
+@media (max-width: 480px) {
+  .studio-shots.shot-grid { grid-template-columns: 1fr 1fr 1fr; gap: 0.4rem; }
+  .shot-ava-wrap { width: 72px; }
+}
+
 .styles { display: flex; gap: 0.5rem; margin: 0.75rem 0 1rem; flex-wrap: wrap; }
 .upload { display: flex; gap: 0.5rem; align-items: center; margin: 1rem 0; flex-wrap: wrap; }
 .steps { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin: 1rem 0; }

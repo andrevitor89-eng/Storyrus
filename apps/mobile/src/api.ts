@@ -19,6 +19,28 @@ function uuid(): string {
   });
 }
 
+export class ApiError extends Error {
+  status: number;
+  reasons: string[];
+  constructor(status: number, message: string, reasons: string[] = []) {
+    super(`${status}: ${message}`);
+    this.name = "ApiError";
+    this.status = status;
+    this.reasons = reasons;
+  }
+}
+
+function parseApiDetail(detail: unknown): { message: string; reasons: string[] } {
+  if (typeof detail === "string") return { message: detail, reasons: [] };
+  if (detail && typeof detail === "object") {
+    const d = detail as { message?: string; reasons?: unknown };
+    const reasons = Array.isArray(d.reasons) ? d.reasons.map(String) : [];
+    const message = (d.message && String(d.message)) || reasons[0] || "Erro";
+    return { message, reasons };
+  }
+  return { message: "Erro", reasons: [] };
+}
+
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -27,13 +49,14 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   if (token) headers.Authorization = `Bearer ${token}`;
   const resp = await fetch(`${BASE}${path}`, { ...init, headers });
   if (!resp.ok) {
-    let detail = resp.statusText;
+    let detail: unknown = resp.statusText;
     try {
       detail = (await resp.json()).detail ?? detail;
     } catch {
       /* corpo vazio */
     }
-    throw new Error(`${resp.status}: ${detail}`);
+    const parsed = parseApiDetail(detail);
+    throw new ApiError(resp.status, parsed.message, parsed.reasons);
   }
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }

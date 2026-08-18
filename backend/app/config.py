@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     signup_bonus_credits: int = 10
     offline_fallback: bool = True
 
+    # Refine de identidade so roda se a semelhanca foto x avatar ficar abaixo disto (0-100).
+    avatar_likeness_threshold: int = 78
+
     # Custo estimado por etapa (creditos = 1 credito ~ 1 unidade de custo)
     cost_avatar_credits: int = 1
     cost_story_credits: int = 1

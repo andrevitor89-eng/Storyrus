@@ -115,3 +115,64 @@ def test_cannot_access_others_project(client):
         f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"}
     )
     assert r.status_code == 404
+
+
+def test_upload_photo_rejects_off_standard(auth_client, monkeypatch):
+    from app.services.photo_standard import PhotoAssessment
+
+    monkeypatch.setattr("app.storage.put_bytes", lambda *a, **k: "k")
+
+    async def bad(*_a, **_k):
+        return PhotoAssessment(ok=False, reasons=["multiple_people"], identity_hints="")
+
+    monkeypatch.setattr("app.services.photo_standard.assess_photo", bad)
+
+    pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
+    r = auth_client.post(
+        f"/v1/projects/{pid}/photo",
+        files={"file": ("foto.jpg", b"fakeimg", "image/jpeg")},
+    )
+    assert r.status_code == 422
+    body = r.json()["detail"]
+    assert body["code"] == "PHOTO_STANDARD"
+    assert body["reasons"]
+    assets = auth_client.get(f"/v1/projects/{pid}/assets").json()
+    assert assets["character_url"] is None
+
+
+def test_upload_photo_accepts_standard(auth_client, monkeypatch):
+    from app.services.photo_standard import PhotoAssessment
+
+    monkeypatch.setattr("app.storage.put_bytes", lambda *a, **k: a[0] if a else "k")
+
+    async def ok(*_a, **_k):
+        return PhotoAssessment(ok=True, reasons=[], identity_hints="cabelo cacheado")
+
+    monkeypatch.setattr("app.services.photo_standard.assess_photo", ok)
+
+    pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
+    r = auth_client.post(
+        f"/v1/projects/{pid}/photo",
+        files={"file": ("foto.jpg", b"fakeimg", "image/jpeg")},
+    )
+    assert r.status_code == 201
+    assert r.json()["asset_id"]
+
+
+def test_avatar_blocked_when_photo_off_standard(auth_client, monkeypatch):
+    from app.services.photo_standard import PhotoAssessment
+
+    async def bad(*_a, **_k):
+        return PhotoAssessment(ok=False, reasons=["side_face"], identity_hints="")
+
+    monkeypatch.setattr("app.services.photo_standard.assess_photo", bad)
+    monkeypatch.setattr("app.storage.get_bytes", lambda _k: b"img")
+
+    pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
+    assert _add_photo(auth_client, pid).status_code == 201
+    before = auth_client.get("/v1/credits").json()["credits"]
+    r = auth_client.post(f"/v1/projects/{pid}/avatar")
+    assert r.status_code == 422
+    assert r.json()["detail"]["code"] == "PHOTO_STANDARD"
+    assert auth_client.get("/v1/credits").json()["credits"] == before
+

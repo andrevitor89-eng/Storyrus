@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
 import { App } from "./App";
-import { state } from "./test/server";
+import { server, state } from "./test/server";
 
 describe("Fluxo E2E (sem login)", () => {
   it("estúdio → projeto → foto gera personagem → história", async () => {
@@ -60,4 +61,37 @@ describe("Fluxo E2E (sem login)", () => {
       { timeout: 9000 },
     );
   }, 20000);
+
+  it("pede foto no padrão visual e não gera personagem", async () => {
+    state.credits = 10;
+    server.use(
+      http.post("*/v1/projects/:pid/photo", () =>
+        HttpResponse.json(
+          {
+            detail: {
+              code: "PHOTO_STANDARD",
+              message: "O rosto da criança precisa estar no padrão visual para criar o avatar.",
+              reasons: ["Há mais de uma pessoa na foto. Envie só a criança."],
+            },
+          },
+          { status: 422 },
+        ),
+      ),
+    );
+    const user = userEvent.setup();
+    const { container } = render(<App />);
+    await screen.findByText(/créditos: 10/i);
+    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+    expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
+
+    const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
+    await user.click(screen.getByRole("button", { name: /enviar foto/i }));
+
+    expect(await screen.findByTestId("photo-standard-reasons")).toHaveTextContent(
+      /mais de uma pessoa/i,
+    );
+    expect(screen.getByRole("alert")).toHaveTextContent(/padrão visual para criar o avatar/i);
+    expect(screen.queryByText("AVATAR")).not.toBeInTheDocument();
+  }, 15000);
 });

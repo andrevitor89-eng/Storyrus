@@ -14,19 +14,53 @@ function uuid(): string {
   return crypto.randomUUID();
 }
 
+export class ApiError extends Error {
+  status: number;
+  reasons: string[];
+  constructor(status: number, message: string, reasons: string[] = []) {
+    super(`${status}: ${message}`);
+    this.name = "ApiError";
+    this.status = status;
+    this.reasons = reasons;
+  }
+}
+
+export function parseApiDetail(detail: unknown): { message: string; reasons: string[] } {
+  if (typeof detail === "string") return { message: detail, reasons: [] };
+  if (Array.isArray(detail)) {
+    const msgs = detail.map((item) => {
+      if (item && typeof item === "object" && "msg" in item) return String((item as { msg: string }).msg);
+      return String(item);
+    });
+    return { message: msgs.join("; "), reasons: [] };
+  }
+  if (detail && typeof detail === "object") {
+    const d = detail as { message?: string; reasons?: unknown };
+    const reasons = Array.isArray(d.reasons) ? d.reasons.map(String) : [];
+    const message = (d.message && String(d.message)) || reasons[0] || "Erro";
+    return { message, reasons };
+  }
+  return { message: "Erro", reasons: [] };
+}
+
+function throwApi(status: number, detail: unknown): never {
+  const parsed = parseApiDetail(detail);
+  throw new ApiError(status, parsed.message, parsed.reasons);
+}
+
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
   const resp = await fetch(`${BASE}${path}`, { ...init, headers });
   if (!resp.ok) {
-    let detail = resp.statusText;
+    let detail: unknown = resp.statusText;
     try {
       detail = (await resp.json()).detail ?? detail;
     } catch {
       /* corpo vazio */
     }
-    throw new Error(`${resp.status}: ${detail}`);
+    throwApi(resp.status, detail);
   }
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
@@ -88,13 +122,13 @@ export const api = {
       headers,
     });
     if (!resp.ok) {
-      let detail = resp.statusText;
+      let detail: unknown = resp.statusText;
       try {
         detail = (await resp.json()).detail ?? detail;
       } catch {
         /* corpo vazio */
       }
-      throw new Error(`${resp.status}: ${detail}`);
+      throwApi(resp.status, detail);
     }
     return resp.json();
   },
@@ -117,13 +151,13 @@ export const api = {
       headers,
     });
     if (!resp.ok) {
-      let detail = resp.statusText;
+      let detail: unknown = resp.statusText;
       try {
         detail = (await resp.json()).detail ?? detail;
       } catch {
         /* corpo vazio */
       }
-      throw new Error(`${resp.status}: ${detail}`);
+      throwApi(resp.status, detail);
     }
     return (await resp.json()) as { text: string };
   },
@@ -168,13 +202,13 @@ export const api = {
       headers,
     });
     if (!resp.ok) {
-      let detail = resp.statusText;
+      let detail: unknown = resp.statusText;
       try {
         detail = (await resp.json()).detail ?? detail;
       } catch {
         /* corpo vazio */
       }
-      throw new Error(`${resp.status}: ${detail}`);
+      throwApi(resp.status, detail);
     }
     return resp.json();
   },

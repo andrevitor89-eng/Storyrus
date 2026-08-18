@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile,
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import storage, story_import
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
@@ -21,7 +22,7 @@ from app.schemas import (
     VideoRequestIn,
 )
 from app.services import jobs as jobs_svc
-from app import storage, story_import
+from app.services import photo_standard
 
 router = APIRouter(prefix="/v1/projects", tags=["projects"])
 
@@ -31,6 +32,56 @@ def _get_owned_project(db: Session, user: User, project_id: uuid.UUID) -> Projec
     if project is None or project.user_id != user.id:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Projeto nao encontrado")
     return project
+
+
+def _photo_gate(assessment: photo_standard.PhotoAssessment) -> HTTPException:
+    return HTTPException(
+        status.HTTP_422_UNPROCESSABLE_ENTITY,
+        photo_standard.gate_detail(assessment),
+    )
+
+
+def _read_photo_bytes(key: str) -> bytes:
+    try:
+        return storage.get_bytes(key) or b""
+    except Exception:  # noqa: BLE001 - storage ausente em testes/dev
+        return b""
+
+
+def _latest_photo(db: Session, project: Project) -> Asset | None:
+    return db.scalar(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+        .order_by(Asset.created_at.desc())
+    )
+
+
+async def _require_photo_standard(db: Session, project: Project) -> Asset:
+    """Garante foto no padrao visual ANTES de debitar credito / enfileirar o job."""
+    photo = _latest_photo(db, project)
+    if photo is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
+    meta = dict(photo.meta or {})
+    if meta.get("photo_ok") is True:
+        return photo
+
+    data = _read_photo_bytes(photo.storage_key)
+    if not data:
+        if settings.offline_fallback:
+            photo.meta = {**meta, **photo_standard.assessment_meta(photo_standard.offline_ok())}
+            db.commit()
+            return photo
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Foto nao encontrada no storage. Envie a foto novamente.",
+        )
+
+    assessment = await photo_standard.assess_photo(data, mime=str(meta.get("mime") or "image/jpeg"))
+    photo.meta = {**meta, **photo_standard.assessment_meta(assessment)}
+    db.commit()
+    if not assessment.ok:
+        raise _photo_gate(assessment)
+    return photo
 
 
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
@@ -192,10 +243,19 @@ async def upload_photo(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
     if len(data) > 10_000_000:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)")
+    mime = file.content_type or "image/jpeg"
+    assessment = await photo_standard.assess_photo(data, mime=mime)
+    if not assessment.ok:
+        raise _photo_gate(assessment)
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
     key = storage.new_key(project.id, AssetKind.PHOTO.value, ext)
-    storage.put_bytes(key, data, file.content_type or "image/jpeg")
-    asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
+    storage.put_bytes(key, data, mime)
+    asset = Asset(
+        project_id=project.id,
+        kind=AssetKind.PHOTO.value,
+        storage_key=key,
+        meta={**photo_standard.assessment_meta(assessment), "mime": mime},
+    )
     db.add(asset)
     db.commit()
     db.refresh(asset)
@@ -252,18 +312,14 @@ def _accept(job: Job) -> JobAcceptedOut:
 
 
 @router.post("/{project_id}/avatar", response_model=JobAcceptedOut, status_code=202)
-def start_avatar(
+async def start_avatar(
     project_id: uuid.UUID,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
     project = _get_owned_project(db, user, project_id)
-    has_photo = db.scalar(
-        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
-    )
-    if not has_photo:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
+    await _require_photo_standard(db, project)
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.AVATAR, idempotency_key=idempotency_key
     )
@@ -271,7 +327,7 @@ def start_avatar(
 
 
 @router.post("/{project_id}/realistic", response_model=JobAcceptedOut, status_code=202)
-def start_realistic(
+async def start_realistic(
     project_id: uuid.UUID,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
@@ -279,11 +335,7 @@ def start_realistic(
 ) -> JobAcceptedOut:
     """Gera a imagem realistica (prompt fixo) a partir da foto; guardada como referencia do video."""
     project = _get_owned_project(db, user, project_id)
-    has_photo = db.scalar(
-        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
-    )
-    if not has_photo:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
+    await _require_photo_standard(db, project)
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.REALISTIC, idempotency_key=idempotency_key
     )
