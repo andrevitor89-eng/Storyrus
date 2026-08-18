@@ -829,7 +829,7 @@ async def _refine_identity(provider, photo_bytes, result, style, mismatches=None
         if refined and getattr(refined, "image_bytes", None):
             return refined
     except Exception:  # noqa: BLE001 - refinamento e opcional
-        pass
+        logger.exception("refine_identity falhou; mantendo ilustracao original")
     return result
 
 
@@ -875,7 +875,7 @@ async def _refine_scene(provider, character_ref, result, style):
         if refined and getattr(refined, "image_bytes", None):
             return refined
     except Exception:  # noqa: BLE001 - refinamento e opcional
-        pass
+        logger.exception("refine_scene falhou; mantendo ilustracao original")
     return result
 
 
