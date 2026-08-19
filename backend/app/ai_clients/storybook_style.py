@@ -80,18 +80,6 @@ _STYLE_HINT: dict[str, str] = {
     ),
 }
 
-_DEFAULT_STAGING: ThemeStaging = {
-    "costume": (
-        "roupa de explorador infantil: camisa leve, calca resistente, botas e um "
-        "acessorio de aventura (chapeu ou cinto)"
-    ),
-    "setting": (
-        "paisagem de conto de fadas ao ar livre, com profundidade, luz dourada suave "
-        "e vegetacao rica"
-    ),
-    "action": "A crianca olha para a camera com um sorriso confiante, pronta para a historia.",
-}
-
 THEME_STAGING: dict[str, ThemeStaging] = {
     "adventure": {
         "costume": (
@@ -258,7 +246,7 @@ def _style_hint(style: str) -> str:
 def theme_staging(theme: str | None) -> ThemeStaging:
     """Devolve figurino + cenario do tema; fallback de aventura se o tema for desconhecido."""
     key = (theme or "adventure").strip().lower()
-    return THEME_STAGING.get(key, _DEFAULT_STAGING)
+    return THEME_STAGING.get(key, THEME_STAGING["adventure"])
 
 
 def character_prompt(*, prompt: str, style: str) -> str:
@@ -311,10 +299,10 @@ def scene_refine_prompt(*, style: str = "realistic") -> str:
 def avatar_prompt(*, theme: str | None, name: str = "", extra: bool = False) -> str:
     """Retrato tematico (figurino + cenario), equivalente aos cards do Tell My Tale."""
     staging = theme_staging(theme)
-    who = f"o personagem '{name}'" if name else "o personagem principal"
+    who = f"do personagem '{name}'" if name else "do personagem principal"
     role = "coadjuvante da mesma historia" if extra else "protagonista"
     return (
-        f"Retrato quadrado (1:1), meio corpo em 3/4, de {who} ({role}). "
+        f"Retrato quadrado (1:1), meio corpo em 3/4, {who} ({role}). "
         f"Vista-o com este figurino (NAO use a roupa da foto): {staging['costume']}. "
         "Coloque-o neste cenario tematico (NAO use fundo neutro nem o fundo da foto): "
         f"{staging['setting']}. {staging['action']} "
