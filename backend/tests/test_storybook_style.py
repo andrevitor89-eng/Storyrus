@@ -1,4 +1,4 @@
-"""Contrato da DNA visual Tell My Tale: prompts sem hibrido foto+Funko."""
+"""Contrato da DNA visual Story R Us: prompts sem hibrido foto+Funko."""
 from app.ai_clients.storybook_style import (
     FORBIDDEN_STYLE_TOKENS,
     THEME_STAGING,
@@ -117,3 +117,14 @@ def test_all_catalog_themes_have_staging():
         assert staging["setting"].strip()
         assert staging["action"].strip()
         _assert_storybook_dna(character_prompt(prompt=avatar_prompt(theme=key), style="realistic"))
+
+
+def test_claude_system_prompts_never_name_competitor_brands():
+    from app.ai_clients.text_anthropic import _SYSTEM_EN, _SYSTEM_PT
+
+    brands = ("tell my tale", "tellmytale", "wonderwraps")
+    for text in (_SYSTEM_PT, _SYSTEM_EN):
+        lowered = text.lower()
+        for brand in brands:
+            assert brand not in lowered, f"marca concorrente no system prompt: {brand!r}"
+

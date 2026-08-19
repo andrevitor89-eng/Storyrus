@@ -1,4 +1,4 @@
-"""Montagem do ebook como livro infantil ilustrado premium (estilo WonderWraps).
+"""Montagem do ebook como livro infantil ilustrado premium.
 
 build_pdf gera um PDF QUADRADO (formato dos livros personalizados impressos) com:
   1. capa em sangria total com o titulo (nome da crianca em destaque) + selo da marca;

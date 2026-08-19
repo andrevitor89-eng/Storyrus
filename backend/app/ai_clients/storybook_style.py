@@ -1,4 +1,4 @@
-"""Biblia de estilo Tell My Tale + builders de prompt para Nano Banana.
+"""Biblia de estilo Story R Us + builders de prompt para Nano Banana.
 
 Toda geracao de personagem/cena deve passar por estes builders para manter
 uma DNA unica: pintura digital de livro infantil, fisionomia fiel a foto,
@@ -9,6 +9,7 @@ from __future__ import annotations
 from typing import TypedDict
 
 # Tokens que o pipeline antigo injetava e que NUNCA devem voltar aos prompts.
+# Marcas de concorrentes tambem ficam fora — o produto nao se descreve por elas.
 FORBIDDEN_STYLE_TOKENS: tuple[str, ...] = (
     "chibi",
     "funko",
@@ -16,6 +17,9 @@ FORBIDDEN_STYLE_TOKENS: tuple[str, ...] = (
     "mesma roupa das fotos",
     "rosto deve ser realista",
     "parecer uma foto real",
+    "tell my tale",
+    "tellmytale",
+    "wonderwraps",
 )
 
 
@@ -297,7 +301,7 @@ def scene_refine_prompt(*, style: str = "realistic") -> str:
 
 
 def avatar_prompt(*, theme: str | None, name: str = "", extra: bool = False) -> str:
-    """Retrato tematico (figurino + cenario), equivalente aos cards do Tell My Tale."""
+    """Retrato tematico (figurino + cenario) em pintura digital de livro infantil."""
     staging = theme_staging(theme)
     who = f"do personagem '{name}'" if name else "do personagem principal"
     role = "coadjuvante da mesma historia" if extra else "protagonista"

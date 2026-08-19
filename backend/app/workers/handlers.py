@@ -1134,7 +1134,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     pages_text = _parse_pages(project.story_text)
 
     # 2) Texto impresso por pagina. Historias geradas pelo pipeline ja vem como
-    #    estrofes curtas rimadas (estilo WonderWraps) -> imprime o verso integral.
+    #    estrofes curtas rimadas de livro infantil -> imprime o verso integral.
     #    Historias importadas/longas -> resume em legenda curta.
     if all(len(p) <= 260 for p in pages_text):
         captions = list(pages_text)
