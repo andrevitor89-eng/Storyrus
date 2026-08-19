@@ -88,6 +88,35 @@ def test_backoff_is_exponential_and_capped():
     assert runner.backoff_delay(50) <= 60.0  # teto
 
 
+async def test_avatar_prompt_includes_project_theme(db, mem_storage, monkeypatch):
+    captured: dict = {}
+
+    class CapturingImage:
+        name = "fake-img"
+
+        async def generate_character(self, **kw):
+            captured.update(kw)
+            return ImageResult(image_bytes=b"CHAR", mime_type="image/png")
+
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: CapturingImage())
+    _, p = _seed(db)
+    p.theme = "dinosaurs"
+    p.child_name = "Lila"
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+
+    prompt = (captured.get("prompt") or "").lower()
+    assert prompt
+    assert "lila" in prompt
+    assert "dinossauro" in prompt or "jurassica" in prompt
+    assert "nao use a roupa da foto" in prompt
+    assert "nao use fundo neutro" in prompt
+    assert captured.get("style") == "cartoon"
+
+
 async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     _, p = _seed(db)

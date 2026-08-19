@@ -20,6 +20,13 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
 from app.ai_clients.base import ImageResult, ProviderError
+from app.ai_clients.storybook_style import (
+    REALISTIC_NEGATIVE,
+    avatar_prompt,
+    ebook_scene_prompt,
+    keyframe_scene_prompt,
+    realistic_prompt,
+)
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
 from app.workers import ebook as ebook_builder
@@ -756,7 +763,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
     else:
         provider = get_image_provider(job.provider)
         result = await provider.generate_character(
-            prompt="Retrato do personagem principal, corpo inteiro, fundo neutro.",
+            prompt=avatar_prompt(theme=project.theme, name=project.child_name or ""),
             reference_images=refs,
             style=project.style or "realistic",
         )
@@ -837,7 +844,9 @@ async def handle_extra_character(db: Session, job: Job) -> None:
             )
         else:
             result = await provider.generate_character(
-                prompt=f"Retrato do personagem '{ec.get('name', '')}', corpo inteiro, fundo neutro.",
+                prompt=avatar_prompt(
+                    theme=project.theme, name=ec.get("name") or "", extra=True
+                ),
                 reference_images=[photo_bytes],
                 style=project.style or "realistic",
             )
@@ -858,23 +867,6 @@ async def handle_extra_character(db: Session, job: Job) -> None:
     )
 
 
-# Prompt fixo para a imagem realistica (usada como referencia do video).
-REALISTIC_PROMPT = (
-    "Transform this photo of a child into a semi-realistic children's book illustration, "
-    "in the style of a warm painterly digital painting. Keep the child's exact facial features, "
-    "expression, hair color and texture, skin tone, and the same outfit, so they remain fully "
-    "recognizable. Render with soft golden \"magic hour\" lighting, gentle glow, delicate freckles "
-    "and luminous eyes. Place them in a whimsical storybook setting (sunlit fields, soft clouds, "
-    "distant castle, or cozy adventure scene) with painterly brush textures, rich warm colors, and "
-    "a dreamy bokeh background. High detail, wholesome, enchanting, professional illustration "
-    "quality. Portrait/3-4 view, soft focus background, vertical composition."
-)
-REALISTIC_NEGATIVE = (
-    "photorealistic skin, distorted face, extra fingers, text, watermark, harsh lighting, "
-    "changing the child's identity or clothing."
-)
-
-
 async def handle_realistic(db: Session, job: Job) -> None:
     """Gera a imagem realistica a partir da foto (prompt fixo) e guarda no banco.
 
@@ -892,7 +884,10 @@ async def handle_realistic(db: Session, job: Job) -> None:
     photo_bytes = storage.get_bytes(photos[0].storage_key)
     provider = get_image_provider(job.provider)
     result = await provider.generate_realistic(
-        photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
+        photo=photo_bytes,
+        prompt=realistic_prompt(theme=project.theme),
+        negative=REALISTIC_NEGATIVE,
+        style="realistic",
     )
     result = await _refine_identity(provider, photo_bytes, result, "realistic")
 
@@ -1168,14 +1163,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
             )
         else:
             scene = await image_provider.generate_scene(
-                prompt=(
-                    f"Pagina {idx} da historia. Ilustre exatamente esta cena (contexto completo), "
-                    f"com o personagem principal (da imagem de referencia) como protagonista, "
-                    f"mantendo rosto/roupa identicos. Composicao QUADRADA (1:1), pintura digital "
-                    f"quente e luminosa de livro infantil premium, luz dourada suave; deixe uma "
-                    f"area mais calma/limpa (ceu, campo, parede) para receber o texto impresso. "
-                    f"Trecho: {full_text[:900]}"
-                ),
+                prompt=ebook_scene_prompt(page_idx=idx, excerpt=full_text),
                 character_ref=char_bytes,
                 style=project.style or "realistic",
             )
@@ -1381,10 +1369,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
                 continue
             try:
                 kf = await image_provider.generate_scene(
-                    prompt=(
-                        f"Keyframe {sc['n']} para vídeo, composição cinematográfica 16:9, "
-                        f"mesmo protagonista da referência: {prompt[:600]}"
-                    ),
+                    prompt=keyframe_scene_prompt(scene_n=sc["n"], prompt=prompt),
                     character_ref=char_bytes,
                     style=style,
                 )
