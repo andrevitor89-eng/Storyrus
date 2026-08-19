@@ -53,6 +53,10 @@ class Settings(BaseSettings):
 
     # Provedores de IA
     gemini_api_key: str | None = None       # Nano Banana (Gemini 2.5 Flash Image)
+    # Retries HTTP no Nano Banana (503/429/rede): tentativas totais com backoff+jitter
+    gemini_max_retries: int = 5
+    gemini_retry_base_s: float = 2.0
+    gemini_retry_max_s: float = 60.0
     anthropic_api_key: str | None = None    # historia (Claude)
     kling_access_key: str | None = None     # video MVP
     kling_secret_key: str | None = None
