@@ -779,7 +779,7 @@
 [data-theme="light"] .kid .kfoot-nav a { background: #fff; color: var(--ink); box-shadow: 0 6px 14px rgba(0,0,0,.05); }
 [data-theme="light"] .kid .kfoot-copy { color: #9aa3bd; }
 
-/* ===== ilustrações "vivas" (estilo TellMyTale): zoom lento + leve respiração ===== */
+/* ===== ilustrações "vivas": zoom lento + leve respiração ===== */
 @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.09); } }
 @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }

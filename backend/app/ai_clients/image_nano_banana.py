@@ -11,6 +11,12 @@ import base64
 import httpx
 
 from app.ai_clients.base import ImageResult, ProviderError
+from app.ai_clients.storybook_style import (
+    character_prompt,
+    identity_refine_prompt,
+    scene_prompt,
+    scene_refine_prompt,
+)
 from app.config import settings
 
 _MODEL = "gemini-2.5-flash-image"
@@ -69,27 +75,7 @@ class NanoBananaImageProvider:
     async def generate_character(
         self, *, prompt: str, reference_images: list[bytes], style: str
     ) -> ImageResult:
-        parts: list[dict] = [
-            {
-                "text": (
-                    f"Crie um personagem ilustrado no estilo '{style}' a partir das fotos de "
-                    "referencia. TRAVE A IDENTIDADE da crianca: mantenha exatamente o mesmo "
-                    "formato de rosto, a mesma cor e formato dos olhos, o mesmo nariz, boca e "
-                    "sobrancelhas, a mesma cor/textura/comprimento do cabelo (incluindo franja e "
-                    "risca), o mesmo tom de pele e a mesma idade aparente, de modo que a crianca "
-                    "permaneca 100% reconhecivel ao lado da foto. Use a mesma roupa das fotos. "
-                    "Nao invente tracos, nao 'embeleze', nao mude a etnia nem a idade. "
-                    "Sem texto, sem moldura, sem marca d'agua. "
-                    "ESTILO MISTO OBRIGATORIO: o ROSTO deve ser REALISTA (parecer uma foto real "
-                    "da crianca, com pele, olhos e detalhes hiper-realistas), enquanto o CORPO "
-                    "e o RESTO devem ser em estilo DESENHO/ILUSTRACAO infantil (bordas suaves, "
-                    "cores vibrantes, estilo cartoon). A CABECA deve ser MAIOR que o normal "
-                    "(proporcionalmente grande, estilo chibi/funko) para dar um visual fofo e "
-                    "estilizado ao personagem. "
-                    f"{prompt}"
-                )
-            }
-        ]
+        parts: list[dict] = [{"text": character_prompt(prompt=prompt, style=style)}]
         parts.extend(_inline(img, "image/jpeg") for img in reference_images)
         return await self._generate(parts)
 
@@ -99,24 +85,7 @@ class NanoBananaImageProvider:
         """Segundo passe de cena: corrige o protagonista para bater com o personagem-base,
         sem alterar cenario, pose ou composicao da cena."""
         parts: list[dict] = [
-            {
-                "text": (
-                    "Voce recebe DUAS imagens: (1) o PERSONAGEM de referencia e (2) uma "
-                    "ILUSTRACAO de cena de um livro infantil. Sua unica tarefa e corrigir a "
-                    "identidade: redesenhe o protagonista da cena para ficar IDENTICO ao "
-                    "personagem de referencia, copiando traco a traco: formato do rosto e "
-                    "bochechas; olhos (cor, formato, tamanho, espacamento); sobrancelhas; "
-                    "nariz; boca e sorriso; cabelo (cor exata, textura, comprimento, franja, "
-                    "risca); tom de pele; idade aparente; e a MESMA ROUPA da referencia, peca "
-                    "por peca, com as mesmas cores. Se qualquer um desses itens estiver "
-                    "diferente na cena, substitua-o pelo da referencia — a referencia SEMPRE "
-                    "vence. NAO mude o cenario, a composicao, o enquadramento, a iluminacao, "
-                    "a pose nem a acao da cena. Mantenha o mesmo estilo de ilustracao. "
-                    "ESTILO MISTO: o ROSTO deve ser REALISTA, o CORPO em estilo DESENHO. "
-                    "A CABECA deve ser MAIOR que o normal. "
-                    "Devolva apenas a cena corrigida."
-                )
-            },
+            {"text": scene_refine_prompt(style=style)},
             _inline(character_ref, "image/png"),
             _inline(scene, "image/png"),
         ]
@@ -125,23 +94,10 @@ class NanoBananaImageProvider:
     async def refine_identity(
         self, *, photo: bytes, illustration: bytes, style: str = "realistic"
     ) -> ImageResult:
-        """Segundo passe: corrige a ILUSTRACAO para ficar fiel a FOTO real da crianca."""
+        """Segundo passe: corrige o ROSTO da ilustracao para ficar fiel a foto,
+        preservando figurino, pose e fundo da ilustracao."""
         parts: list[dict] = [
-            {
-                "text": (
-                    "Voce recebe DUAS imagens: (1) a FOTO real de uma crianca e (2) uma "
-                    "ILUSTRACAO dela. Ajuste a ILUSTRACAO para que o ROSTO fique o mais fiel "
-                    "possivel a FOTO: mesmo formato de rosto e bochechas, mesmos olhos (cor, "
-                    "formato e espacamento), mesmo nariz, mesma boca e sorriso, mesmas "
-                    "sobrancelhas, mesmo cabelo (cor, textura, comprimento, franja e risca), "
-                    "mesmo tom de pele e a mesma idade. Preserve o estilo de ilustracao de livro "
-                    "infantil (pintura digital suave), a mesma roupa, a mesma pose e o mesmo "
-                    "fundo. O ROSTO deve ser REALISTA (parecer uma foto real), enquanto o CORPO "
-                    "permanece em estilo DESENHO/ILUSTRACAO. A CABECA deve ser MAIOR que o "
-                    "normal (proporcionalmente grande). Nao torne a imagem uma foto. Devolva "
-                    "apenas a ilustracao corrigida."
-                )
-            },
+            {"text": identity_refine_prompt(style=style)},
             _inline(photo, "image/jpeg"),
             _inline(illustration, "image/png"),
         ]
@@ -160,32 +116,7 @@ class NanoBananaImageProvider:
         self, *, prompt: str, character_ref: bytes, style: str
     ) -> ImageResult:
         parts = [
-            {
-                "text": (
-                    "REGRA CRITICA DE IDENTIDADE (prioridade maxima, acima de qualquer outra "
-                    "instrucao): a imagem anexada e a UNICA fonte de verdade para a aparencia "
-                    "do protagonista. Voce NAO esta criando um personagem novo — voce esta "
-                    "REDESENHANDO EXATAMENTE A MESMA CRIANCA da imagem de referencia em uma "
-                    "nova cena. Copie da referencia, traco a traco: formato do rosto e das "
-                    "bochechas; olhos (cor, formato, tamanho, espacamento); sobrancelhas; "
-                    "nariz; boca e sorriso; cabelo (cor exata, textura, comprimento, franja, "
-                    "risca, penteado); tom de pele; idade aparente; proporcoes do corpo; e a "
-                    "MESMA ROUPA da referencia, peca por peca, com as mesmas cores. "
-                    "Colocada lado a lado com a referencia, a crianca desta cena deve parecer "
-                    "dois quadros do mesmo filme. "
-                    "ESTILO MISTO: o ROSTO deve ser REALISTA (parecer uma foto real da crianca), "
-                    "enquanto o CORPO e CENARIO sao em estilo ILUSTRACAO/DESENHO infantil. "
-                    "A CABECA deve ser MAIOR que o normal (proporcionalmente grande, estilo "
-                    "chibi/funko). "
-                    "PROIBIDO: inventar outra crianca parecida; mudar cabelo, roupa, idade, "
-                    "etnia ou tom de pele; 'embelezar' ou estilizar o rosto de forma diferente "
-                    "da referencia; adicionar acessorios que nao existem na referencia. "
-                    "O que PODE mudar: apenas pose, expressao, acao, enquadramento e cenario, "
-                    "conforme a cena descrita. "
-                    f"Ilustre no estilo '{style}', identico ao estilo da referencia. "
-                    f"Cena: {prompt}"
-                )
-            },
+            {"text": scene_prompt(prompt=prompt, style=style)},
             _inline(character_ref, "image/png"),
         ]
         return await self._generate(parts)
