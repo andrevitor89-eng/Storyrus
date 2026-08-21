@@ -74,6 +74,16 @@ class ProjectOut(BaseModel):
     created_at: datetime
 
 
+class ProjectUpdateIn(BaseModel):
+    """Atualiza o perfil da criança sem recriar o projeto (revisões estilo TMT)."""
+    child_name: str | None = Field(default=None, max_length=80)
+    child_age: int | None = Field(default=None, ge=0, le=12)
+    dedication: str | None = Field(default=None, max_length=500)
+    child_trait: str | None = Field(default=None, max_length=300)
+    child_interest: str | None = Field(default=None, max_length=300)
+    language: str | None = Field(default=None, max_length=8)
+
+
 class UploadUrlIn(BaseModel):
     content_type: str = "image/jpeg"
     ext: str = "jpg"

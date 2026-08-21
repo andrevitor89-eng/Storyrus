@@ -88,6 +88,7 @@ class JobType(str, enum.Enum):
     EBOOK = "EBOOK"
     STORYBOARD = "STORYBOARD"
     VIDEO = "VIDEO"
+    EXTRA_CHARACTER = "EXTRA_CHARACTER"
 
 
 class JobStatus(str, enum.Enum):
@@ -105,6 +106,7 @@ class AssetKind(str, enum.Enum):
     EBOOK = "ebook"
     STORYBOARD = "storyboard"
     VIDEO = "video"
+    EXTRA_CHARACTER = "extra_character"
 
 
 class ProjectStyle(str, enum.Enum):
@@ -177,7 +179,7 @@ class Job(Base):
     project_id: Mapped[uuid.UUID] = mapped_column(
         GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    type: Mapped[str] = mapped_column(String(16), nullable=False)
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(
         String(16), nullable=False, default=JobStatus.PENDING.value, index=True
     )
@@ -203,7 +205,7 @@ class Asset(Base):
     project_id: Mapped[uuid.UUID] = mapped_column(
         GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
     storage_key: Mapped[str] = mapped_column(Text, nullable=False)
     meta: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())

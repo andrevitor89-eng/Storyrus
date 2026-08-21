@@ -24,9 +24,15 @@ type Project = {
   ebook_url: string | null;
   video_url: string | null;
   created_at: string;
+  child_trait?: string | null;
+  child_interest?: string | null;
+  language?: string | null;
+  extra_characters?: { name: string; storage_key: string }[];
 };
 
-const COST: Record<string, number> = { AVATAR: 1, REALISTIC: 1, STORY: 1, EBOOK: 1, VIDEO: 5 };
+const COST: Record<string, number> = {
+  AVATAR: 1, REALISTIC: 1, STORY: 1, EBOOK: 1, VIDEO: 5, EXTRA_CHARACTER: 1,
+};
 
 export const state = {
   credits: 0,
@@ -79,7 +85,12 @@ export const handlers = [
   http.get("*/v1/credits", () => HttpResponse.json({ credits: state.credits })),
 
   http.post("*/v1/projects", async ({ request }) => {
-    const body = (await request.json()) as { style: string };
+    const body = (await request.json()) as {
+      style: string;
+      child_trait?: string;
+      child_interest?: string;
+      language?: string;
+    };
     const p: Project = {
       id: id(),
       status: "CREATED",
@@ -88,10 +99,21 @@ export const handlers = [
       ebook_url: null,
       video_url: null,
       created_at: new Date().toISOString(),
+      child_trait: body.child_trait ?? null,
+      child_interest: body.child_interest ?? null,
+      language: body.language ?? "pt-BR",
+      extra_characters: [],
     };
     state.projects.set(p.id, p);
     state.jobs.set(p.id, []);
     return HttpResponse.json(p, { status: 201 });
+  }),
+  http.patch("*/v1/projects/:pid", async ({ params, request }) => {
+    const p = state.projects.get(params.pid as string);
+    if (!p) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as Record<string, unknown>;
+    Object.assign(p, body);
+    return HttpResponse.json(p);
   }),
   http.get("*/v1/projects/:pid", ({ params }) => {
     const p = state.projects.get(params.pid as string);
@@ -101,6 +123,7 @@ export const handlers = [
     HttpResponse.json({
       character_url: null,
       realistic_url: null,
+      extra_characters: [],
       page_images: [],
       ebook_url: null,
       video_url: null,
@@ -164,6 +187,42 @@ export const handlers = [
       );
     }),
   ),
+  http.post("*/v1/projects/:pid/extra-character", ({ params }) => {
+    const pid = params.pid as string;
+    const p = state.projects.get(pid);
+    if (p) {
+      p.extra_characters = [...(p.extra_characters ?? []), { name: "Amigo", storage_key: "x" }];
+    }
+    return HttpResponse.json(
+      { asset_id: id(), storage_key: `projects/${pid}/extra/x.jpg`, upload_url: "", expires_in: 0 },
+      { status: 201 },
+    );
+  }),
+  http.post("*/v1/projects/:pid/extra-character/generate", ({ params }) => {
+    const pid = params.pid as string;
+    const cost = COST.EXTRA_CHARACTER;
+    if (state.credits < cost) {
+      return HttpResponse.json({ detail: "Creditos insuficientes" }, { status: 402 });
+    }
+    state.credits -= cost;
+    const job: Job = {
+      id: id(),
+      project_id: pid,
+      type: "EXTRA_CHARACTER",
+      status: "PENDING",
+      provider: null,
+      cost_credits: cost,
+      attempts: 1,
+      error: null,
+      created_at: new Date().toISOString(),
+      _polls: 0,
+    };
+    state.jobs.get(pid)?.push(job);
+    return HttpResponse.json(
+      { job_id: job.id, status: "PENDING", type: "EXTRA_CHARACTER", estimated_cost_credits: cost },
+      { status: 202 },
+    );
+  }),
 ];
 
 export const server = setupServer(...handlers);

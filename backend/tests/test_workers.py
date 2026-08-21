@@ -171,3 +171,23 @@ async def test_video_create_and_poll(db, mem_storage, monkeypatch):
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.VIDEO_READY.value
     assert p.video_url
+
+
+async def test_extra_character_handler_saves_illustration(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    _, p = _seed(db)
+    mem_storage["extra-photo"] = b"PHOTO"
+    p.extra_characters = [
+        {"name": "Pedro", "storage_key": "extra-photo", "mime": "image/jpeg"}
+    ]
+    db.commit()
+
+    j = _job(db, p, "EXTRA_CHARACTER")
+    await runner.process_job(db, j)
+
+    db.refresh(p)
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    extras = p.extra_characters
+    assert extras and extras[0].get("character_storage_key")
+    assert extras[0]["character_storage_key"] in mem_storage

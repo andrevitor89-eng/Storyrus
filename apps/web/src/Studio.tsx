@@ -95,6 +95,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [dedication, setDedication] = useState("");
+  const [childTrait, setChildTrait] = useState("");
+  const [childInterest, setChildInterest] = useState("");
+  const [language, setLanguage] = useState<"pt-BR" | "en">("pt-BR");
+  const [previewPage, setPreviewPage] = useState(0);
   const [assets, setAssets] = useState<{
     character_url: string | null;
     realistic_url: string | null;
@@ -167,12 +171,39 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const age = childAge.trim() === "" ? undefined : Number(childAge);
-      const p = await api.createProject(style, theme, extraTheme, childName, dedication, age);
+      const p = await api.createProject(
+        style, theme, extraTheme, childName, dedication, age,
+        childTrait, childInterest, language,
+      );
       setProject(p);
       setJobs([]);
       setPhotoUploaded(false);
       setAssets(null);
       setStoryText("");
+      setPreviewPage(0);
+      setExtraChars([]);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function saveProfile() {
+    if (!project) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const age = childAge.trim() === "" ? null : Number(childAge);
+      const p = await api.updateProject(project.id, {
+        child_name: childName.trim() || null,
+        child_age: Number.isNaN(age as number) ? null : age,
+        dedication: dedication.trim() || null,
+        child_trait: childTrait.trim() || null,
+        child_interest: childInterest.trim() || null,
+        language,
+      });
+      setProject(p);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -316,7 +347,8 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         <h2>Crie a sua história</h2>
         {project ? (
           <p className="muted">
-            ✓ Projeto criado — os campos abaixo ficam travados até você começar um novo projeto.
+            ✓ Projeto criado — tema e estilo ficam travados. Você ainda pode ajustar o
+            perfil da criança e regenerar as etapas.
           </p>
         ) : (
           <p className="slogan">Toda história merece um protagonista — e o protagonista é você.</p>
@@ -391,11 +423,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             ))}
           </div>
 
-          <h3 className="field-label">3 · Nome, idade e dedicatória</h3>
+          <h3 className="field-label">3 · Nome, idade, idioma e dedicatória</h3>
           <label>
             Nome da criança
             <input
-              disabled={!!project}
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
               placeholder="Ex.: Lila"
@@ -405,7 +436,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <label>
             Idade da criança (a história é adaptada ao tom e vocabulário da idade)
             <input
-              disabled={!!project}
               type="number"
               inputMode="numeric"
               min={0}
@@ -421,9 +451,18 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             />
           </label>
           <label>
+            Idioma do livro
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value as "pt-BR" | "en")}
+            >
+              <option value="pt-BR">Português (Brasil)</option>
+              <option value="en">English</option>
+            </select>
+          </label>
+          <label>
             Dedicatória (aparece na 2ª página do livro)
             <input
-              disabled={!!project}
               value={dedication}
               onChange={(e) => setDedication(e.target.value)}
               placeholder="Ex.: Para a Lila, com todo o amor da mamãe."
@@ -431,9 +470,37 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             />
           </label>
 
+          <h3 className="field-label">4 · Perfil da criança (histórias educativas)</h3>
+          <p className="muted">
+            O traço é o “antes” da história; o interesse é a ferramenta que o herói usa no clímax.
+          </p>
+          <label>
+            Traço central
+            <input
+              value={childTrait}
+              onChange={(e) => setChildTrait(e.target.value)}
+              placeholder='Ex.: tem medo do escuro'
+              maxLength={300}
+            />
+          </label>
+          <label>
+            Interesse ou talento
+            <input
+              value={childInterest}
+              onChange={(e) => setChildInterest(e.target.value)}
+              placeholder='Ex.: adora dinossauros'
+              maxLength={300}
+            />
+          </label>
+
           {!project && (
             <button disabled={busy} onClick={start}>
               Criar projeto
+            </button>
+          )}
+          {project && (
+            <button disabled={busy} onClick={saveProfile}>
+              Salvar perfil
             </button>
           )}
 
@@ -500,7 +567,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             <div style={{ margin: "8px 0" }}>
               <p className="muted">{extraChars.length} personagem(ns) extra(s) adicionado(s)</p>
               <button disabled={busy} onClick={generateExtraCharacters}>
-                Gerar ilustrações dos extras <span className="muted">(1 crédito cada)</span>
+                Gerar ilustrações dos extras <span className="muted">(1 crédito)</span>
               </button>
             </div>
           )}
@@ -529,7 +596,8 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
           {storyMode === "invent" && (
             <button disabled={busy} onClick={() => runStep("story")}>
-              Gerar história com IA <span className="muted">(1 crédito)</span>
+              {project.story_text ? "Regenerar história com IA" : "Gerar história com IA"}{" "}
+              <span className="muted">(1 crédito)</span>
             </button>
           )}
 
@@ -581,6 +649,11 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                   alt="Personagem gerado"
                   style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
                 />
+                <div className="regen-row">
+                  <button disabled={busy || !photoUploaded} onClick={() => runStep("avatar")}>
+                    Regenerar personagem <span className="muted">(1 crédito)</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -622,26 +695,30 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
             {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0) && (
               <div className="result-block">
-                <h3 className="field-label">E-book</h3>
+                <h3 className="field-label">Prévia do livro</h3>
+                <p className="muted">Todas as páginas ilustradas — clique para ampliar. O PDF sai completo.</p>
                 {(assets?.page_images?.length ?? 0) > 0 && (
-                  <div
-                    style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}
+                  <BookPreview
+                    pages={assets!.page_images}
+                    captions={storyCaptions(project.story_text)}
+                    selected={previewPage}
+                    onSelect={setPreviewPage}
+                  />
+                )}
+                <div className="regen-row">
+                  {assets?.ebook_url && (
+                    <a href={assets.ebook_url} target="_blank" rel="noreferrer" className="btn">
+                      Abrir e-book completo
+                    </a>
+                  )}
+                  <button
+                    disabled={busy || !photoUploaded || !project.story_text}
+                    onClick={() => runStep("ebook")}
                   >
-                    {assets!.page_images.map((u, i) => (
-                      <img
-                        key={i}
-                        src={u}
-                        alt={`Página ${i + 1}`}
-                        style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
-                      />
-                    ))}
-                  </div>
-                )}
-                {assets?.ebook_url && (
-                  <a href={assets.ebook_url} target="_blank" rel="noreferrer" className="btn">
-                    📖 Abrir e-book
-                  </a>
-                )}
+                    {assets?.ebook_url ? "Regenerar e-book" : "Montar ebook"}{" "}
+                    <span className="muted">(1 crédito)</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -666,6 +743,52 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           </button>
         </section>
       )}
+    </div>
+  );
+}
+
+function storyCaptions(story: string | null | undefined): string[] {
+  if (!story) return [];
+  const stripped = story.replace(/^\s*t[íi]tulo\s*[:\-].*?(?:\n+|$)/i, "");
+  const marked = stripped.split(/^\s*p[áa]gina\s*\d+\s*[:\-]/im).map((s) => s.trim()).filter(Boolean);
+  if (marked.length > 1) return marked;
+  const paras = stripped.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean);
+  return paras.length > 1 ? paras : [stripped.trim()].filter(Boolean);
+}
+
+function BookPreview({
+  pages,
+  captions,
+  selected,
+  onSelect,
+}: {
+  pages: string[];
+  captions: string[];
+  selected: number;
+  onSelect: (i: number) => void;
+}) {
+  const idx = Math.min(Math.max(0, selected), pages.length - 1);
+  const caption = captions[idx];
+  return (
+    <div className="book-preview">
+      <div className="book-preview-stage">
+        <img src={pages[idx]} alt={`Página ${idx + 1}`} />
+        {caption && <p className="book-preview-caption">{caption}</p>}
+        <p className="muted">Página {idx + 1} de {pages.length}</p>
+      </div>
+      <div className="book-preview-thumbs">
+        {pages.map((u, i) => (
+          <button
+            key={i}
+            type="button"
+            className={`book-thumb ${i === idx ? "on" : ""}`}
+            onClick={() => onSelect(i)}
+            aria-label={`Página ${i + 1}`}
+          >
+            <img src={u} alt="" />
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

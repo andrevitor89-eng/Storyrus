@@ -16,6 +16,7 @@ from io import BytesIO
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
+from sqlalchemy.orm.attributes import flag_modified
 
 from app import storage
 from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
@@ -812,7 +813,7 @@ async def _refine_scene(provider, character_ref, result, style):
 async def handle_extra_character(db: Session, job: Job) -> None:
     """Gera o personagem ilustrado para cada foto de personagem extra enviada."""
     project = _project(db, job)
-    extras = project.extra_characters or []
+    extras = list(project.extra_characters or [])
     if not extras:
         raise ProviderError("Sem personagens extras para gerar", transient=False)
 
@@ -851,6 +852,7 @@ async def handle_extra_character(db: Session, job: Job) -> None:
 
     if updated:
         project.extra_characters = extras
+        flag_modified(project, "extra_characters")
         db.commit()
 
     job.cost_usd = sum(
@@ -1215,7 +1217,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         child_name=(name or None),
         language=language,
         extra_characters=extra_chars or None,
-        preview_pages=3,
+        preview_pages=None,
     )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
@@ -1482,4 +1484,5 @@ HANDLERS = {
     "EBOOK": handle_ebook,
     "STORYBOARD": handle_storyboard,
     "VIDEO": handle_video,
+    "EXTRA_CHARACTER": handle_extra_character,
 }

@@ -212,7 +212,7 @@ def build_pdf(
     child_name: str | None = None,
     language: str | None = "pt-BR",
     extra_characters: list[dict] | None = None,
-    preview_pages: int | None = 3,
+    preview_pages: int | None = None,
 ) -> bytes:
     from reportlab.lib.utils import ImageReader, simpleSplit
     from reportlab.pdfgen import canvas

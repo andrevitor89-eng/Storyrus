@@ -60,4 +60,22 @@ describe("Fluxo E2E (sem login)", () => {
       { timeout: 9000 },
     );
   }, 20000);
+
+  it("envia traço, interesse e idioma ao criar o projeto", async () => {
+    state.credits = 10;
+    const user = userEvent.setup();
+    render(<App />);
+
+    await screen.findByText(/créditos: 10/i);
+    await user.type(screen.getByLabelText(/traço central/i), "tem medo do escuro");
+    await user.type(screen.getByLabelText(/interesse ou talento/i), "adora dinossauros");
+    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+
+    expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /salvar perfil/i })).toBeInTheDocument();
+    const created = [...state.projects.values()][0];
+    expect(created.child_trait).toBe("tem medo do escuro");
+    expect(created.child_interest).toBe("adora dinossauros");
+    expect(created.language).toBe("pt-BR");
+  }, 15000);
 });

@@ -51,6 +51,8 @@ export interface Project {
   child_name?: string | null;
   child_age?: number | null;
   dedication?: string | null;
+  child_trait?: string | null;
+  child_interest?: string | null;
   language?: string | null;
   extra_characters?: ExtraCharacter[];
   story_text: string | null;
@@ -59,10 +61,19 @@ export interface Project {
   created_at: string;
 }
 
+export interface ProjectUpdate {
+  child_name?: string | null;
+  child_age?: number | null;
+  dedication?: string | null;
+  child_trait?: string | null;
+  child_interest?: string | null;
+  language?: string | null;
+}
+
 export interface Job {
   id: string;
   project_id: string;
-  type: "AVATAR" | "STORY" | "EBOOK" | "STORYBOARD" | "VIDEO";
+  type: "AVATAR" | "REALISTIC" | "STORY" | "EBOOK" | "STORYBOARD" | "VIDEO" | "EXTRA_CHARACTER";
   status: "PENDING" | "RUNNING" | "DONE" | "FAILED";
   provider: string | null;
   cost_credits: number;

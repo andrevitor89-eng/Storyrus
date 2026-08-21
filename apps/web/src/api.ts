@@ -1,4 +1,4 @@
-import type { Job, JobAccepted, Project, Style, Theme, UploadUrl } from "./types";
+import type { Job, JobAccepted, Project, ProjectUpdate, Style, Theme, UploadUrl } from "./types";
 
 const BASE = ""; // mesmo host (proxy do Vite cobre /v1)
 
@@ -49,7 +49,7 @@ export const api = {
   },
   async createProject(
     style: Style, theme?: Theme, extraTheme?: Theme, childName?: string, dedication?: string,
-    childAge?: number,
+    childAge?: number, childTrait?: string, childInterest?: string, language?: string,
   ) {
     return req<Project>("/v1/projects", {
       method: "POST",
@@ -59,7 +59,16 @@ export const api = {
         child_name: childName?.trim() || undefined,
         child_age: childAge ?? undefined,
         dedication: dedication?.trim() || undefined,
+        child_trait: childTrait?.trim() || undefined,
+        child_interest: childInterest?.trim() || undefined,
+        language: language || undefined,
       }),
+    });
+  },
+  async updateProject(id: string, patch: ProjectUpdate) {
+    return req<Project>(`/v1/projects/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(patch),
     });
   },
   async getProject(id: string) {
@@ -149,7 +158,8 @@ export const api = {
     step: "avatar" | "realistic" | "story" | "ebook" | "video" | "extra-character",
     body: Record<string, unknown> = {},
   ) {
-    return req<JobAccepted>(`/v1/projects/${id}/${step}`, {
+    const path = step === "extra-character" ? "extra-character/generate" : step;
+    return req<JobAccepted>(`/v1/projects/${id}/${path}`, {
       method: "POST",
       headers: { "Idempotency-Key": uuid() },
       body: JSON.stringify(body),

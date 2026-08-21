@@ -20,7 +20,10 @@ def test_duplicate_signup_conflicts(client):
 
 
 def test_protected_requires_token(client):
-    assert client.get("/v1/auth/me").status_code == 403  # sem bearer
+    # Sem bearer o app opera como convidado (não exige login).
+    r = client.get("/v1/auth/me")
+    assert r.status_code == 200
+    assert r.json()["email"] == "guest@example.com"
 
 
 def test_create_and_list_project(auth_client):
@@ -115,3 +118,100 @@ def test_cannot_access_others_project(client):
         f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"}
     )
     assert r.status_code == 404
+
+
+def test_create_project_persists_learning_profile(auth_client):
+    r = auth_client.post(
+        "/v1/projects",
+        json={
+            "style": "cartoon",
+            "theme": "rotina_dormir",
+            "child_name": "Lila",
+            "child_age": 5,
+            "dedication": "Com amor",
+            "child_trait": "tem medo do escuro",
+            "child_interest": "adora dinossauros",
+            "language": "pt-BR",
+        },
+    )
+    assert r.status_code == 201, r.text
+    body = r.json()
+    assert body["child_name"] == "Lila"
+    assert body["child_age"] == 5
+    assert body["child_trait"] == "tem medo do escuro"
+    assert body["child_interest"] == "adora dinossauros"
+    assert body["language"] == "pt-BR"
+    got = auth_client.get(f"/v1/projects/{body['id']}").json()
+    assert got["child_trait"] == "tem medo do escuro"
+    assert got["theme"] == "rotina_dormir"
+
+
+def test_patch_project_updates_profile(auth_client):
+    pid = auth_client.post("/v1/projects", json={"style": "realistic", "child_name": "Ana"}).json()["id"]
+    r = auth_client.patch(
+        f"/v1/projects/{pid}",
+        json={
+            "child_name": "Ana Clara",
+            "dedication": "Para a Ana",
+            "child_trait": "nao gosta de dividir",
+            "child_interest": "adora blocos",
+            "language": "en",
+            "child_age": 4,
+        },
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["child_name"] == "Ana Clara"
+    assert body["dedication"] == "Para a Ana"
+    assert body["child_trait"] == "nao gosta de dividir"
+    assert body["child_interest"] == "adora blocos"
+    assert body["language"] == "en"
+    assert body["child_age"] == 4
+
+
+def test_patch_rejects_unknown_language(auth_client):
+    pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
+    r = auth_client.patch(f"/v1/projects/{pid}", json={"language": "fr"})
+    assert r.status_code == 400
+
+
+def test_extra_character_upload_and_generate(auth_client, monkeypatch):
+    store: dict[str, bytes] = {}
+
+    def _put(k: str, d: bytes, ct: str = "x") -> str:
+        store[k] = d
+        return k
+
+    monkeypatch.setattr("app.storage.put_bytes", _put)
+    pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
+    missing = auth_client.post(f"/v1/projects/{pid}/extra-character/generate")
+    assert missing.status_code == 400
+
+    up = auth_client.post(
+        f"/v1/projects/{pid}/extra-character",
+        files={"file": ("amigo.jpg", b"fake-image-bytes", "image/jpeg")},
+        data={"name": "Pedro"},
+    )
+    assert up.status_code == 201, up.text
+
+    proj = auth_client.get(f"/v1/projects/{pid}").json()
+    extras = proj["extra_characters"]
+    assert extras and extras[0]["name"] == "Pedro"
+
+    before = auth_client.get("/v1/credits").json()["credits"]
+    gen = auth_client.post(
+        f"/v1/projects/{pid}/extra-character/generate",
+        headers={"Idempotency-Key": "ec-1"},
+    )
+    assert gen.status_code == 202, gen.text
+    assert gen.json()["type"] == "EXTRA_CHARACTER"
+    after = auth_client.get("/v1/credits").json()["credits"]
+    assert after == before - 1
+
+    again = auth_client.post(
+        f"/v1/projects/{pid}/extra-character/generate",
+        headers={"Idempotency-Key": "ec-1"},
+    )
+    assert again.status_code == 202
+    assert again.json()["job_id"] == gen.json()["job_id"]
+    assert auth_client.get("/v1/credits").json()["credits"] == after
