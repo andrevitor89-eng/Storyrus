@@ -44,6 +44,33 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
+type CatGroup = "aventura" | "datas" | "educativo";
+const CATALOG_EXTRA: { theme: string; cover: string; bg: string; group: CatGroup }[] = [
+  { theme: "princess", cover: "capa-floresta.jpg", bg: "#e2e6d1", group: "aventura" },
+  { theme: "superhero", cover: "capa-circo.jpg", bg: "#f4d6da", group: "aventura" },
+  { theme: "space", cover: "capa-oceano.jpg", bg: "#cfe3f0", group: "aventura" },
+  { theme: "birthday", cover: "capa-circo.jpg", bg: "#f4d6da", group: "datas" },
+  { theme: "christmas", cover: "capa-floresta2.jpg", bg: "#e2e6d1", group: "datas" },
+  { theme: "easter", cover: "capa-floresta.jpg", bg: "#e2e6d1", group: "datas" },
+  { theme: "childrens_day", cover: "capa-circo.jpg", bg: "#f4d6da", group: "datas" },
+  { theme: "mothers_day", cover: "capa-floresta.jpg", bg: "#ecd8b2", group: "datas" },
+  { theme: "fathers_day", cover: "capa-dino2.jpg", bg: "#ecd8b2", group: "datas" },
+  { theme: "new_year", cover: "capa-circo.jpg", bg: "#f3e2b4", group: "datas" },
+  { theme: "alfabetizacao_inicial", cover: "capa-floresta2.jpg", bg: "#e2e6d1", group: "educativo" },
+  { theme: "pensamento_matematico", cover: "capa-dino2.jpg", bg: "#ecd8b2", group: "educativo" },
+  { theme: "cores", cover: "capa-circo.jpg", bg: "#f4d6da", group: "educativo" },
+  { theme: "opostos_espacial", cover: "capa-oceano.jpg", bg: "#cfe3f0", group: "educativo" },
+  { theme: "higiene_desfralde", cover: "capa-oceano.jpg", bg: "#cfe3f0", group: "educativo" },
+  { theme: "rotina_dormir", cover: "capa-floresta.jpg", bg: "#e2e6d1", group: "educativo" },
+  { theme: "alimentacao_saudavel", cover: "capa-floresta2.jpg", bg: "#e2e6d1", group: "educativo" },
+  { theme: "vestir_autonomia", cover: "capa-circo.jpg", bg: "#f4d6da", group: "educativo" },
+  { theme: "literacia_emocional", cover: "capa-floresta.jpg", bg: "#f4d6da", group: "educativo" },
+  { theme: "consciencia_corporal", cover: "capa-oceano.jpg", bg: "#cfe3f0", group: "educativo" },
+  { theme: "compartilhar_revezar", cover: "capa-circo.jpg", bg: "#f4d6da", group: "educativo" },
+  { theme: "animais_sons", cover: "capa-floresta2.jpg", bg: "#e2e6d1", group: "educativo" },
+  { theme: "transporte_ajudantes", cover: "capa-dino2.jpg", bg: "#ecd8b2", group: "educativo" },
+  { theme: "clima_estacoes", cover: "capa-oceano.jpg", bg: "#cfe3f0", group: "educativo" },
+];
 const SURPRISE_IMG = "capa-surpresa.jpg";
 /* livro 3D do catálogo: 6 páginas internas (3 spreads) do livro de exemplo de cada tema */
 const BOOK3D = [
@@ -248,7 +275,7 @@ const I18N = {
       { t: "Animação", price: "R$ 149", unit: "por animação", p: "O personagem ganha vida numa animação cheia de magia.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
     cat_title: "Escolha um livro", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
-    price: "US$ 39,99", price_note: "digital ou impresso", personalize: "Personalizar",
+    price: "US$ 39,99", price_note: "e-book digital", personalize: "Personalizar",
     save: "ECONOMIZE 33%",
     catalog: [
       { t: "Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
@@ -256,22 +283,50 @@ const I18N = {
       { t: "Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade", quote: "Uma viagem divertida à era dos dinossauros." },
       { t: "Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar", quote: "Uma noite feita para sonhar e brilhar." },
     ],
+    cat_more: "Todos os temas",
+    cat_groups: { aventura: "Aventura e fantasia", datas: "Datas comemorativas", educativo: "Temas educativos" },
+    catalog_extra: [
+      { t: "Princesas", p: "Um reino gentil onde a criança é a realeza da história.", age: "3-7 anos", tag: "Coragem e magia" },
+      { t: "Super-heróis", p: "Poderes do dia a dia para salvar o que ama.", age: "4-8 anos", tag: "Coragem" },
+      { t: "Espaço", p: "Uma viagem entre estrelas, planetas e curiosidade.", age: "4-8 anos", tag: "Descoberta" },
+      { t: "Aniversário", p: "O grande dia vira uma aventura só dela.", age: "3-8 anos", tag: "Celebração" },
+      { t: "Natal", p: "Noite mágica, luzes e um presente de coragem.", age: "3-8 anos", tag: "Família" },
+      { t: "Páscoa", p: "Caça aos ovos com amigos e pequenas descobertas.", age: "3-7 anos", tag: "Gentileza" },
+      { t: "Dia das Crianças", p: "Um dia inteiro feito para brincar e sonhar.", age: "3-8 anos", tag: "Alegria" },
+      { t: "Dia das Mães", p: "Uma história de carinho para presentear mamãe.", age: "3-8 anos", tag: "Amor" },
+      { t: "Dia dos Pais", p: "Uma aventura lado a lado com o papai.", age: "3-8 anos", tag: "Família" },
+      { t: "Ano Novo", p: "Começar o ano como herói da própria história.", age: "3-8 anos", tag: "Recomeço" },
+      { t: "Alfabetização", p: "Letras, rimas e a magia de ler o mundo.", age: "3-6 anos", tag: "Língua" },
+      { t: "Matemática", p: "Contar, comparar e resolver brincando.", age: "3-7 anos", tag: "Números" },
+      { t: "Cores", p: "O mundo ganha cor quando a criança nomeia cada tom.", age: "2-5 anos", tag: "Conceitos" },
+      { t: "Opostos", p: "Em cima e embaixo, grande e pequeno — no espaço certo.", age: "2-5 anos", tag: "Espaço" },
+      { t: "Higiene", p: "Cuidar do corpo vira uma missão divertida.", age: "2-6 anos", tag: "Rotina" },
+      { t: "Hora de Dormir", p: "Acalmar o medo do escuro e chegar no sono gostoso.", age: "2-6 anos", tag: "Sono" },
+      { t: "Alimentação", p: "Provar, escolher e fazer as pazes com o prato.", age: "2-6 anos", tag: "Saúde" },
+      { t: "Vestir-se Sozinho", p: "Autonomia na hora de escolher a roupa.", age: "2-6 anos", tag: "Autonomia" },
+      { t: "Sentimentos", p: "Nomear o que sente e acalmar o coração.", age: "3-7 anos", tag: "Emoções" },
+      { t: "Corpo", p: "Descobrir o próprio corpo com respeito e brincadeira.", age: "2-6 anos", tag: "Corpo" },
+      { t: "Compartilhar", p: "Revezar, dividir e fazer as pazes com os amigos.", age: "3-7 anos", tag: "Amizade" },
+      { t: "Animais e Sons", p: "Quem faz aquele som? Uma caça sensorial no habitat.", age: "2-6 anos", tag: "Mundo" },
+      { t: "Transporte", p: "Caminhão, trem e os ajudantes da cidade.", age: "3-7 anos", tag: "Comunidade" },
+      { t: "Clima e Estações", p: "Sol, chuva, neve — e a roupa certa para cada um.", age: "2-6 anos", tag: "Natureza" },
+    ],
     surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida", quote: "Cada foto guarda uma aventura secreta." },
     promise_title: "Cada detalhe pensado para ser especial",
-    promise_sub: "Do envio da foto à entrega, tudo é feito para o livro chegar pronto para presentear.",
+    promise_sub: "Da foto ao livro digital, tudo é feito para a história ficar pronta para presentear.",
     promise: [
       { t: "Privacidade da foto", p: "A imagem é usada só para preparar o livro do seu filho — nunca para divulgação." },
-      { t: "Impressão pensada como presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
-      { t: "Prévia antes de avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
-      { t: "Entrega sem complicação", p: "Acompanhamos da personalização ao envio para tudo chegar prontinho." },
+      { t: "PDF pronto para imprimir", p: "O e-book sai completo, em alta, para ler na tela ou imprimir em casa." },
+      { t: "Prévia de todas as páginas", p: "Você vê capa e páginas ilustradas no estúdio antes de baixar o PDF." },
+      { t: "Download na hora", p: "Quando o livro fica pronto, o arquivo digital está disponível no estúdio." },
     ],
     faq_title: "Perguntas frequentes", faq_sub: "Tudo o que você precisa saber.",
     faq: [
-      { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
-      { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
+      { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione nome, dedicatória e, se quiser, o traço e o interesse dela. A IA transforma a foto em ilustrações e você vê a prévia completa no estúdio." },
+      { q: "Posso ver o livro antes?", a: "Sim. No estúdio você folheia todas as páginas ilustradas e baixa o PDF completo — não é um recorte de três páginas." },
       { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto apenas para criar o livro e não compartilhamos seus dados." },
-      { q: "Recebo digital ou impresso?", a: "Os dois: o e-book digital na hora e, se quiser, o livro impresso enviado até você." },
-      { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
+      { q: "Recebo digital ou impresso?", a: "Hoje você recebe o e-book digital completo na hora. O PDF é pronto para imprimir em casa; a impressão com envio está em breve." },
+      { q: "Posso pedir alterações?", a: "Pode. Ajuste o nome, a dedicatória, o traço ou o interesse e regenere o personagem, a história ou o e-book no estúdio." },
     ],
     rev_title: "O que as famílias dizem", rev_sub: "Histórias que viraram memórias para sempre.",
     reviews: [
@@ -333,7 +388,7 @@ const I18N = {
       { t: "Animation", price: "$79", unit: "per animation", p: "The character comes alive in a magical animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
     cat_title: "Choose a book", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
-    price: "$39.99", price_note: "digital or printed", personalize: "Personalize",
+    price: "$39.99", price_note: "digital e-book", personalize: "Personalize",
     save: "SAVE 33%",
     catalog: [
       { t: "Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
@@ -341,22 +396,50 @@ const I18N = {
       { t: "Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity", quote: "A fun journey back to the dinosaur age." },
       { t: "Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine", quote: "A night made to dream and shine." },
     ],
+    cat_more: "All themes",
+    cat_groups: { aventura: "Adventure & fantasy", datas: "Holidays", educativo: "Learning themes" },
+    catalog_extra: [
+      { t: "Princesses", p: "A gentle kingdom where your child is royalty.", age: "ages 3-7", tag: "Courage & magic" },
+      { t: "Superheroes", p: "Everyday powers to protect what they love.", age: "ages 4-8", tag: "Courage" },
+      { t: "Space", p: "A trip among stars, planets and curiosity.", age: "ages 4-8", tag: "Discovery" },
+      { t: "Birthday", p: "The big day becomes an adventure of their own.", age: "ages 3-8", tag: "Celebration" },
+      { t: "Christmas", p: "A magical night, lights and a gift of courage.", age: "ages 3-8", tag: "Family" },
+      { t: "Easter", p: "An egg hunt with friends and small discoveries.", age: "ages 3-7", tag: "Kindness" },
+      { t: "Children's Day", p: "A whole day made to play and dream.", age: "ages 3-8", tag: "Joy" },
+      { t: "Mother's Day", p: "A story of care to gift mom.", age: "ages 3-8", tag: "Love" },
+      { t: "Father's Day", p: "An adventure side by side with dad.", age: "ages 3-8", tag: "Family" },
+      { t: "New Year", p: "Start the year as the hero of their own story.", age: "ages 3-8", tag: "Fresh start" },
+      { t: "Early Literacy", p: "Letters, rhymes and the magic of reading the world.", age: "ages 3-6", tag: "Language" },
+      { t: "Math Thinking", p: "Count, compare and solve while playing.", age: "ages 3-7", tag: "Numbers" },
+      { t: "Colors", p: "The world gains color as they name each hue.", age: "ages 2-5", tag: "Concepts" },
+      { t: "Opposites", p: "Up and down, big and small — in the right space.", age: "ages 2-5", tag: "Space" },
+      { t: "Hygiene", p: "Taking care of the body becomes a fun mission.", age: "ages 2-6", tag: "Routine" },
+      { t: "Bedtime", p: "Calm the dark and arrive at a cozy sleep.", age: "ages 2-6", tag: "Sleep" },
+      { t: "Healthy Eating", p: "Taste, choose and make peace with the plate.", age: "ages 2-6", tag: "Health" },
+      { t: "Dressing Myself", p: "Autonomy when picking an outfit.", age: "ages 2-6", tag: "Independence" },
+      { t: "Feelings", p: "Name what they feel and soothe the heart.", age: "ages 3-7", tag: "Emotions" },
+      { t: "Body Awareness", p: "Discover their body with respect and play.", age: "ages 2-6", tag: "Body" },
+      { t: "Sharing", p: "Take turns, share and make peace with friends.", age: "ages 3-7", tag: "Friendship" },
+      { t: "Animals & Sounds", p: "Who made that sound? A sensory hunt in the habitat.", age: "ages 2-6", tag: "World" },
+      { t: "Transport", p: "Trucks, trains and community helpers.", age: "ages 3-7", tag: "Community" },
+      { t: "Weather & Seasons", p: "Sun, rain, snow — and the right clothes for each.", age: "ages 2-6", tag: "Nature" },
+    ],
     surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure", quote: "Every photo hides a secret adventure." },
     promise_title: "Every detail crafted to feel special",
-    promise_sub: "From the photo to delivery, everything is made so the book arrives ready to gift.",
+    promise_sub: "From the photo to the digital book, everything is made so the story is ready to gift.",
     promise: [
       { t: "Photo privacy", p: "The image is used only to prepare your child's book — never for promotion." },
-      { t: "Print made as a gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
-      { t: "Preview before you continue", p: "You see the cover and pages and understand what you're creating before finishing." },
-      { t: "Hassle-free delivery", p: "We follow from personalization to shipping so everything arrives ready." },
+      { t: "Print-ready PDF", p: "The e-book comes complete, high-res, to read on screen or print at home." },
+      { t: "Full-page preview", p: "You see the cover and illustrated pages in the studio before downloading the PDF." },
+      { t: "Instant download", p: "When the book is ready, the digital file is available in the studio." },
     ],
     faq_title: "Frequently asked questions", faq_sub: "Everything you need to know.",
     faq: [
-      { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
-      { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
+      { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name, a dedication and, if you like, their trait and interest. The AI turns the photo into illustrations and you see the full preview in the studio." },
+      { q: "Can I see the book before?", a: "Yes. In the studio you flip through every illustrated page and download the complete PDF — not a three-page teaser." },
       { q: "Are my child's photo and data safe?", a: "Yes. We use the photo only to create the book and never share your data." },
-      { q: "Digital or printed?", a: "Both: the digital e-book right away and, if you want, the printed book shipped to you." },
-      { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
+      { q: "Digital or printed?", a: "Today you get the complete digital e-book right away. The PDF is ready to print at home; shipped print is coming soon." },
+      { q: "Can I request changes?", a: "You can. Adjust the name, dedication, trait or interest and regenerate the character, story or e-book in the studio." },
     ],
     rev_title: "What families say", rev_sub: "Stories that became memories forever.",
     reviews: [
@@ -558,6 +641,35 @@ export function Landing() {
             </div>
           </div>
         </div>
+        <h3 className="cat-group-title reveal">{t.cat_more}</h3>
+        {(["aventura", "datas", "educativo"] as const).map((group) => {
+          const items = CATALOG_EXTRA.map((item, i) => ({ ...item, copy: t.catalog_extra[i] }))
+            .filter((item) => item.group === group);
+          return (
+            <div className="cat-group" key={group}>
+              <h3 className="cat-group-title reveal">{t.cat_groups[group]}</h3>
+              <div className="cat-grid cat-grid-more">
+                {items.map((item) => (
+                  <div className="cat-card cat-card-simple reveal" key={item.theme}>
+                    <div className="cat-cover" style={{ background: item.bg }}>
+                      <img src={exUrl(item.cover)} alt={item.copy.t} loading="lazy" />
+                    </div>
+                    <div className="cat-body">
+                      <div className="cat-badges">
+                        <span className="cat-age">{item.copy.age}</span>
+                        <span className="cat-tag">{item.copy.tag}</span>
+                      </div>
+                      <h3>{item.copy.t}</h3>
+                      <p>{item.copy.p}</p>
+                      <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
+                      <Link to={`/app?tema=${item.theme}`} className="kbtn kbtn-primary">{t.personalize}</Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })}
       </section>
 
       {/* COMO FUNCIONA — com exemplos reais */}

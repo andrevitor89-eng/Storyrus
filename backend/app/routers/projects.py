@@ -1,7 +1,7 @@
 """Projetos e disparo das etapas do pipeline (respostas 202 assincronas)."""
 import uuid
 
-from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Header, HTTPException, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from app.schemas import (
     JobOut,
     ProjectCreateIn,
     ProjectOut,
+    ProjectUpdateIn,
     StoryExtractOut,
     StoryTextIn,
     UploadUrlIn,
@@ -49,6 +50,33 @@ def create_project(
         language=(body.language or "pt-BR"),
     )
     db.add(project)
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@router.patch("/{project_id}", response_model=ProjectOut)
+def update_project(
+    project_id: uuid.UUID,
+    body: ProjectUpdateIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    """Atualiza nome, dedicatória, perfil educativo e idioma para regenerar depois."""
+    project = _get_owned_project(db, user, project_id)
+    data = body.model_dump(exclude_unset=True)
+    if "language" in data and data["language"] is not None:
+        lang = data["language"].strip()
+        if lang.lower() in ("en", "en-us", "en-gb"):
+            data["language"] = "en"
+        elif lang.lower() in ("pt", "pt-br", "pt_br"):
+            data["language"] = "pt-BR"
+        elif lang not in ("pt-BR", "en"):
+            raise HTTPException(status.HTTP_400_BAD_REQUEST, "Idioma deve ser pt-BR ou en")
+    for field, value in data.items():
+        if value is not None and isinstance(value, str):
+            value = value.strip() or None
+        setattr(project, field, value)
     db.commit()
     db.refresh(project)
     return project
@@ -208,7 +236,7 @@ async def upload_extra_character(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
-    name: str = "",
+    name: str = Form(""),
 ) -> UploadUrlOut:
     """Upload de foto de personagem extra (amigo, irmao, etc.)."""
     project = _get_owned_project(db, user, project_id)
@@ -218,7 +246,7 @@ async def upload_extra_character(
     if len(data) > 10_000_000:
         raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)")
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
-    key = storage.new_key(project.id, "extra_character", ext)
+    key = storage.new_key(project.id, AssetKind.EXTRA_CHARACTER.value, ext)
     storage.put_bytes(key, data, file.content_type or "image/jpeg")
 
     # Adiciona a lista de personagens extras no projeto
@@ -231,7 +259,7 @@ async def upload_extra_character(
     project.extra_characters = extras
     db.commit()
 
-    asset = Asset(project_id=project.id, kind="extra_character", storage_key=key,
+    asset = Asset(project_id=project.id, kind=AssetKind.EXTRA_CHARACTER.value, storage_key=key,
                   meta={"name": name.strip() or f"Personagem {len(extras)}"})
     db.add(asset)
     db.commit()
@@ -384,7 +412,7 @@ def start_ebook(
     return _accept(job)
 
 
-@router.post("/{project_id}/extra-character", response_model=JobAcceptedOut, status_code=202)
+@router.post("/{project_id}/extra-character/generate", response_model=JobAcceptedOut, status_code=202)
 def start_extra_character(
     project_id: uuid.UUID,
     user: User = Depends(get_current_user),
