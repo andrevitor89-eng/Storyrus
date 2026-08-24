@@ -99,6 +99,37 @@ export const SHARED = {
   },
 } as const;
 
+export function reportFirstInvalid(form: HTMLFormElement, lang: Lang): boolean {
+  const t = SHARED[lang];
+  const fields = [...form.querySelectorAll("input, textarea, select")] as Array<
+    HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+  >;
+  for (const el of fields) {
+    if ("disabled" in el && el.disabled) continue;
+    el.setCustomValidity("");
+    if (!el.value.trim()) {
+      el.setCustomValidity(t.required);
+      el.reportValidity();
+      el.focus();
+      return true;
+    }
+    if ("type" in el && el.type === "email" && el.validity.typeMismatch) {
+      el.setCustomValidity(t.email_invalid);
+      el.reportValidity();
+      el.focus();
+      return true;
+    }
+    if (el.validity.tooShort) {
+      const min = "minLength" in el ? String(el.minLength) : "2";
+      el.setCustomValidity(t.too_short.replace("{n}", min));
+      el.reportValidity();
+      el.focus();
+      return true;
+    }
+  }
+  return false;
+}
+
 export function validityHandlers(lang: Lang) {
   const t = SHARED[lang];
   return {

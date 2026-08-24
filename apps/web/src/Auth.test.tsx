@@ -28,6 +28,15 @@ describe("cadastro e login", () => {
     expect(name.validationMessage).toBe("Preencha este campo.");
   });
 
+  it("envio vazio valida o nome antes do e-mail", async () => {
+    const user = userEvent.setup();
+    renderAuth(<Register />);
+    await user.click(screen.getByRole("button", { name: /começar/i }));
+    const name = screen.getByLabelText(/seu nome/i) as HTMLInputElement;
+    expect(name.validationMessage).toBe("Preencha este campo.");
+    expect(name).toHaveFocus();
+  });
+
   it("mostra mensagem pt-BR no e-mail do login", () => {
     renderAuth(<Login />);
     const email = screen.getByLabelText(/e-mail/i) as HTMLInputElement;

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "./api";
-import { SHARED, useLang, validityHandlers } from "./i18n";
+import { SHARED, useLang, reportFirstInvalid, validityHandlers } from "./i18n";
 import { SimpleShell } from "./SiteChrome";
 
 const AUTH = {
@@ -70,8 +70,9 @@ export function Login() {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  async function onSubmit(e: FormEvent) {
+  async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (reportFirstInvalid(e.currentTarget, lang)) return;
     setError(null);
     setBusy(true);
     try {
@@ -92,7 +93,7 @@ export function Login() {
         lead={t.login_lead}
         foot={<>{t.no_account} <Link to="/register">{t.signup_link}</Link></>}
       >
-        <form className="auth-form" onSubmit={onSubmit}>
+        <form className="auth-form" onSubmit={onSubmit} noValidate>
           <label>
             {t.email}
             <input
@@ -141,12 +142,7 @@ export function Register() {
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    const nameEl = e.currentTarget.elements.namedItem("name") as HTMLInputElement;
-    if (!nameEl.value.trim()) {
-      nameEl.setCustomValidity(SHARED[lang].required);
-      nameEl.reportValidity();
-      return;
-    }
+    if (reportFirstInvalid(e.currentTarget, lang)) return;
     setError(null);
     setBusy(true);
     try {
@@ -167,11 +163,13 @@ export function Register() {
         lead={t.register_lead}
         foot={<>{t.has_account} <Link to="/login">{SHARED[lang].login}</Link></>}
       >
-        <form className="auth-form" onSubmit={onSubmit}>
+        <form className="auth-form" onSubmit={onSubmit} noValidate>
           <label>
             {t.name}
             <input
-              name="name"
+              id="register-name"
+              type="text"
+              name="fullName"
               autoComplete="name"
               value={name}
               onChange={(ev) => setName(ev.target.value)}
