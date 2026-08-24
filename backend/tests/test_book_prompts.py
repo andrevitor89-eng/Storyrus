@@ -75,6 +75,10 @@ def test_avatar_prompt_face_fidelity_and_head():
     assert "PROIBIDO inventar franja" in AVATAR_PROMPT or "NAO invente" in AVATAR_PROMPT
     assert "tracos atipicos" in AVATAR_PROMPT
     assert "marca d'agua" in AVATAR_PROMPT.lower() or "marca d'agua" in AVATAR_PROMPT
+    assert "ANTI-ROSTO-GENERICO" in AVATAR_PROMPT
+    assert "IDENTITY LOCK" in AVATAR_PROMPT
+    assert "Ignore adultos" in AVATAR_PROMPT
+    assert "sorriso largo de banco de imagens" in AVATAR_PROMPT
 
 
 def test_refine_identity_orders_photo_first():
@@ -84,6 +88,8 @@ def test_refine_identity_orders_photo_first():
     assert "NAO invente franja" in REFINE_IDENTITY_PROMPT
     assert "fotorealizar" in REFINE_IDENTITY_PROMPT or "PROIBIDO copiar a foto" in REFINE_IDENTITY_PROMPT
     assert "tracos atipicos" in REFINE_IDENTITY_PROMPT
+    assert "ANTI-ROSTO-GENERICO" in REFINE_IDENTITY_PROMPT
+    assert "Ignore adultos" in REFINE_IDENTITY_PROMPT
     assert "SUBSTITUA pela qualidade fotografica" not in REFINE_IDENTITY_PROMPT
     assert "2D nitida" not in REFINE_IDENTITY_PROMPT
 
