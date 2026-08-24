@@ -19,6 +19,15 @@ def test_duplicate_signup_conflicts(client):
     assert r.status_code == 409
 
 
+def test_register_alias_accepts_name(client):
+    r = client.post(
+        "/v1/auth/register",
+        json={"email": "reg@y.com", "password": "password123", "name": "Ana"},
+    )
+    assert r.status_code == 201
+    assert "access_token" in r.json()
+
+
 def test_protected_requires_token(client):
     assert client.get("/v1/auth/me").status_code == 403  # sem bearer
 

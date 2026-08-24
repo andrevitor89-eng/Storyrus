@@ -13,8 +13,7 @@ from app.security import create_access_token, hash_password, verify_password
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 
-@router.post("/signup", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
-def signup(body: SignupIn, db: Session = Depends(get_db)) -> TokenOut:
+def _issue_token(body: SignupIn, db: Session) -> TokenOut:
     if db.scalar(select(User).where(User.email == body.email)):
         raise HTTPException(status.HTTP_409_CONFLICT, "E-mail ja cadastrado")
     user = User(
@@ -26,6 +25,16 @@ def signup(body: SignupIn, db: Session = Depends(get_db)) -> TokenOut:
     db.commit()
     db.refresh(user)
     return TokenOut(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/signup", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+def signup(body: SignupIn, db: Session = Depends(get_db)) -> TokenOut:
+    return _issue_token(body, db)
+
+
+@router.post("/register", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+def register(body: SignupIn, db: Session = Depends(get_db)) -> TokenOut:
+    return _issue_token(body, db)
 
 
 @router.post("/login", response_model=TokenOut)
