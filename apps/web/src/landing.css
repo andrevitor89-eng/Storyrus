@@ -98,6 +98,17 @@
 }
 .kbh-slide { position: absolute; inset: 0; opacity: 0; transition: opacity .8s ease; pointer-events: none; }
 .kbh-slide.on { opacity: 1; pointer-events: auto; }
+/* Texto some antes da próxima overlay aparecer, para não cruzar dois títulos. */
+.kbh-slide .kbh-overlay,
+.kbh-slide .kbh-tag {
+  opacity: 0;
+  transition: opacity .28s ease;
+}
+.kbh-slide.on .kbh-overlay,
+.kbh-slide.on .kbh-tag {
+  opacity: 1;
+  transition-delay: .45s;
+}
 .kbh-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; object-position: center center; }
 /* escurece a base e a esquerda para dar contraste ao texto */
 .kbh-slide::after {
@@ -157,6 +168,8 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .kbh-slide { transition: none; } .kbh-book { animation: none; }
+  .kbh-slide .kbh-overlay, .kbh-slide .kbh-tag,
+  .kbh-slide.on .kbh-overlay, .kbh-slide.on .kbh-tag { transition: none; transition-delay: 0s; }
 }
 
 /* ---------- Dicas de foto (enquadramento perfeito) ---------- */
@@ -656,6 +669,39 @@
 .kfoot-nav .ni { width: 17px; height: 17px; color: var(--purple); }
 .kfoot-tag { display: inline-flex; align-items: center; gap: 8px; color: #5a6486; font-weight: 700; font-size: 1.05rem; }
 .kfoot-copy { color: #9aa3bd; font-size: .85rem; margin-top: 6px; }
+.kfoot-legal { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center; margin: 4px 0 14px; }
+.kfoot-legal a { color: #7a84a8; font-weight: 700; font-size: .92rem; text-decoration: underline; text-underline-offset: 3px; }
+.kfoot-legal a:hover { color: var(--ink); }
+.k-login {
+  font-weight: 800; font-size: .9rem; color: var(--ink); text-decoration: none;
+  padding: 6px 10px; border-radius: 999px;
+}
+.k-login:hover { background: #fff; }
+
+.page-main { position: relative; z-index: 1; max-width: 820px; margin: 0 auto; padding: 12px 22px 40px; }
+.page-card, .legal-doc, .auth-card {
+  background: #fff; border-radius: 24px; padding: 28px 28px 32px;
+  box-shadow: 0 18px 40px rgba(31,53,104,.12);
+}
+.page-kicker { font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--purple); font-size: .75rem; margin: 0 0 8px; }
+.page-card h1, .legal-doc h1, .auth-card h1 { margin: 0 0 12px; font-size: clamp(1.8rem, 4vw, 2.4rem); }
+.page-alt { margin-top: 22px; color: #6b6890; }
+.page-alt a { color: var(--purple); font-weight: 700; }
+.legal-updated { color: #6b6890; margin: 0 0 22px; }
+.legal-doc h2 { font-size: 1.2rem; margin: 22px 0 8px; }
+.legal-doc p { color: #3d4668; line-height: 1.6; }
+.auth-card { max-width: 420px; margin: 12px auto 40px; text-align: left; }
+.auth-lead { color: #4a5170; margin: 0 0 18px; }
+.auth-form label { display: block; margin: 0 0 14px; font-weight: 700; color: var(--ink); }
+.auth-form input {
+  display: block; width: 100%; margin-top: 6px; padding: 10px 12px;
+  border: 1.5px solid #d7dbe6; border-radius: 12px; font: inherit; background: #fff;
+}
+.auth-form input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(58,95,174,.18); }
+.auth-cta { width: 100%; justify-content: center; margin-top: 6px; }
+.auth-error { color: #c4473a; font-weight: 700; }
+.auth-foot { margin: 18px 0 0; color: #6b6890; }
+.auth-foot a { color: var(--purple); font-weight: 800; }
 
 /* ---------- reveal on scroll ---------- */
 .reveal { opacity: 0; transform: translateY(24px); transition: opacity .6s ease, transform .6s cubic-bezier(.34,1.56,.64,1); }
@@ -738,6 +784,12 @@
 .fmt-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 2.1rem; line-height: 1.1; margin: 2px 0 8px; }
 .fmt-price span { display: block; font-size: .9rem; font-weight: 700; color: #9fabce; }
 .kfoot-nav .ni, .klinks .ni, .kfoot-nav a svg, .klinks a svg { width: 16px; height: 16px; flex: none; }
+.kid .page-card, .kid .legal-doc, .kid .auth-card { background: #172140; }
+.kid .legal-doc p, .kid .auth-lead, .kid .auth-foot, .kid .legal-updated { color: #9fabce; }
+.kid .auth-form input { background: #101a34; color: #e4e9f7; border-color: #28335c; }
+.kid .kfoot-legal a { color: #9aa6c8; }
+.kid .k-login { color: #e9eefb; }
+.kid .k-login:hover { background: #172140; }
 
 /* ===== TEMA CLARO (data-theme=light) — o escuro é o padrão ===== */
 [data-theme="light"] .kid { --ink: #1f3568; color: #1f3568;
@@ -778,6 +830,17 @@
   box-shadow: inset 0 0 0 1px rgba(244,183,64,.25); }
 [data-theme="light"] .kid .kfoot-nav a { background: #fff; color: var(--ink); box-shadow: 0 6px 14px rgba(0,0,0,.05); }
 [data-theme="light"] .kid .kfoot-copy { color: #9aa3bd; }
+[data-theme="light"] .kid .page-card,
+[data-theme="light"] .kid .legal-doc,
+[data-theme="light"] .kid .auth-card { background: #fff; }
+[data-theme="light"] .kid .legal-doc p,
+[data-theme="light"] .kid .auth-lead,
+[data-theme="light"] .kid .auth-foot,
+[data-theme="light"] .kid .legal-updated { color: #4a5170; }
+[data-theme="light"] .kid .auth-form input { background: #fff; color: var(--ink); border-color: #d7dbe6; }
+[data-theme="light"] .kid .kfoot-legal a { color: #5a6486; }
+[data-theme="light"] .kid .k-login { color: var(--ink); }
+[data-theme="light"] .kid .k-login:hover { background: #fff; }
 
 /* ===== ilustrações "vivas" (estilo TellMyTale): zoom lento + leve respiração ===== */
 @keyframes kenburns { from { transform: scale(1); } to { transform: scale(1.09); } }

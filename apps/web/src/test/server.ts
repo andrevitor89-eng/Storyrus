@@ -64,6 +64,10 @@ function advance(job: Job, project: Project) {
 }
 
 export const handlers = [
+  http.post("*/v1/auth/register", async () => {
+    state.credits = 10;
+    return HttpResponse.json({ access_token: "test-token" }, { status: 201 });
+  }),
   http.post("*/v1/auth/signup", async () => {
     state.credits = 10;
     return HttpResponse.json({ access_token: "test-token" }, { status: 201 });

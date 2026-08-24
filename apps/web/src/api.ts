@@ -1,10 +1,23 @@
 import type { Job, JobAccepted, Project, Style, Theme, UploadUrl } from "./types";
 
-const BASE = ""; // mesmo host (proxy do Vite cobre /v1)
+const BASE = (import.meta.env.VITE_API_BASE ?? "").replace(/\/$/, "");
+
+const TOKEN_KEY = "storyrus_token";
 
 let token: string | null = null;
+try {
+  token = localStorage.getItem(TOKEN_KEY);
+} catch {
+  /* ignore */
+}
 export function setToken(t: string | null) {
   token = t;
+  try {
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 export function getToken() {
   return token;
@@ -32,6 +45,12 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
+  async register(email: string, password: string, name: string) {
+    return req<{ access_token: string }>("/v1/auth/register", {
+      method: "POST",
+      body: JSON.stringify({ email, password, name }),
+    });
+  },
   async signup(email: string, password: string) {
     return req<{ access_token: string }>("/v1/auth/signup", {
       method: "POST",

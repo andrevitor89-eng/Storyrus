@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
+import { SHARED, useLang, useTheme } from "./i18n";
+import { LangToggle, SiteFooter, ThemeToggle } from "./SiteChrome";
 import "./landing.css";
-
-type Lang = "pt" | "en";
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -19,8 +19,6 @@ const IcHeart = ({ className }: IconProps) => (<Svg className={className}><path 
 const IcHome = ({ className }: IconProps) => (<Svg className={className}><path d="M4 11l8-6 8 6M6 10v9h12v-9" /></Svg>);
 const IcSparkle = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 3l1.6 5L19 9.6l-5 1.6L12 17l-1.6-5.8L5 9.6 10.4 8 12 3z" /></svg>);
 const IcArrow = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12h28M24 4l9 8-9 8" /></svg>);
-const IcSun = ({ className }: IconProps) => (<Svg className={className}><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" /></Svg>);
-const IcMoon = ({ className }: IconProps) => (<Svg className={className}><path d="M20 15A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 11z" /></Svg>);
 const IcChevron = ({ className }: IconProps) => (<Svg className={className}><path d="M6 9l6 6 6-6" /></Svg>);
 const IcShield = ({ className }: IconProps) => (<Svg className={className}><path d="M12 3l7 2.5V11c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V5.5L12 3z" /><path d="M9.2 12l2 2 3.6-3.8" /></Svg>);
 const IcEye = ({ className }: IconProps) => (<Svg className={className}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.6" /></Svg>);
@@ -285,7 +283,6 @@ const I18N = {
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
     band_cta: "Criar minha história",
     tagline: "Feito com amor. Criado para encantar.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   en: {
     nav: ["Home", "Books", "How it works", "Videos"],
@@ -370,18 +367,14 @@ const I18N = {
     band_sub: "Send your photo and get a unique story, made just for you.",
     band_cta: "Create my story",
     tagline: "Made with love. Created to enchant.",
-    foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
 } as const;
 
 export function Landing() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [lang, setLang] = useState<Lang>("pt");
-  const [theme, setTheme] = useState<"light" | "dark">(() => {
-    try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
-    return "dark";
-  });
+  const [lang, setLang] = useLang();
+  const [theme, setTheme] = useTheme();
   const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
   const t = I18N[lang];
@@ -392,17 +385,14 @@ export function Landing() {
     ...t.catalog.slice(1).map((c, i) => ({ title: c.t, cover: CATALOG_IMGS[i + 1], pages: [CATALOG_IMGS[i + 1], ...BOOK3D[i + 1].pages] })),
   ];
 
-  // Auto-avanço do carrossel do hero
+  // Auto-avanço do carrossel: intervalo longo; o texto só troca depois do fade
+  // da overlay (CSS) para não sobrepor dois títulos no crossfade da imagem.
   useEffect(() => {
-    const id = setInterval(() => setHeroI((v) => (v + 1) % HERO_SLIDES.length), 5200);
-    return () => clearInterval(id);
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(() => setHeroI((v) => (v + 1) % HERO_SLIDES.length), 9000);
+    return () => window.clearInterval(id);
   }, []);
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
-
-  useEffect(() => {
-    document.documentElement.setAttribute("data-theme", theme);
-    try { localStorage.setItem("theme", theme); } catch { /* ignore */ }
-  }, [theme]);
 
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll(".reveal") ?? [];
@@ -433,13 +423,9 @@ export function Landing() {
           <Link to="/app" className="kbtn kbtn-go" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
         <div className="kright">
-          <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Alternar tema claro/escuro">
-            {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
-          </button>
-          <div className="lang" role="group" aria-label="Idioma / Language">
-            <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
-            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-          </div>
+          <Link to="/login" className="k-login" onClick={closeNav}>{SHARED[lang].login}</Link>
+          <ThemeToggle theme={theme} setTheme={setTheme} label={SHARED[lang].theme_label} />
+          <LangToggle lang={lang} setLang={setLang} />
           <button className="khamb" aria-label="Menu" onClick={() => setNavOpen((v) => !v)}>☰</button>
         </div>
       </header>
@@ -674,14 +660,17 @@ export function Landing() {
         <Link to="/app" className="kbtn kbtn-primary big">{t.band_cta}</Link>
       </section>
 
-      {/* FOOTER */}
-      <footer className="kfoot">
-        <div className="kfoot-nav">
-          {t.nav.map((label, i) => { const Icon = NAV_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
-        </div>
-        <p className="kfoot-tag"><IcHeart className="ci" /> {t.tagline}</p>
-        <p className="kfoot-copy">{t.foot_copy}</p>
-      </footer>
+      <SiteFooter
+        lang={lang}
+        extra={(
+          <div className="kfoot-nav">
+            {t.nav.map((label, i) => {
+              const Icon = NAV_ICONS[i];
+              return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>);
+            })}
+          </div>
+        )}
+      />
     </div>
   );
 }
