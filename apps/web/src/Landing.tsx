@@ -388,13 +388,16 @@ export function Landing() {
   // Auto-avanço do carrossel: intervalo longo; o texto só troca depois do fade
   // da overlay (CSS) para não sobrepor dois títulos no crossfade da imagem.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const reduce = typeof window.matchMedia === "function"
+      && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (reduce) return;
     const id = window.setInterval(() => setHeroI((v) => (v + 1) % HERO_SLIDES.length), 9000);
     return () => window.clearInterval(id);
   }, []);
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
   useEffect(() => {
+    if (typeof IntersectionObserver === "undefined") return;
     const els = rootRef.current?.querySelectorAll(".reveal") ?? [];
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
