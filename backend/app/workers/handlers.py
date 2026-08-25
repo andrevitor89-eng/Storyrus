@@ -24,14 +24,15 @@ from app.ai_clients import get_image_provider, get_text_provider, get_video_prov
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
-    STYLE as BOOK_STYLE,
     build_scene_prompt,
     infer_expression,
+)
+from app.ai_clients.book_prompts import (
+    STYLE as BOOK_STYLE,
 )
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
 from app.workers import ebook as ebook_builder
-
 
 logger = logging.getLogger("worker")
 
@@ -128,7 +129,7 @@ def _offline_video_bytes(label: str) -> bytes:
     return (
         f"Fallback offline do video indisponivel para: {label}\n"
         "Use o provedor configurado para gerar o mp4 real quando houver acesso.\n"
-    ).encode("utf-8")
+    ).encode()
 
 
 # --------------------------------------------------------------------------- #
@@ -1303,8 +1304,8 @@ def _parse_storyboard_json(text: str) -> dict | None:
     """Extrai e normaliza o JSON do roteiro (tolerante a cercas de código e texto extra)."""
     if not text:
         return None
-    t = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.S)
-    m = re.search(r"\{.*\}", t, flags=re.S)
+    t = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.DOTALL)
+    m = re.search(r"\{.*\}", t, flags=re.DOTALL)
     if not m:
         return None
     try:

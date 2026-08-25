@@ -11,11 +11,10 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# Testes / E2E (fora do repositorio; mantidos localmente)
+# Relatórios de teste (specs e2e ficam versionados)
 playwright-report/
 test-results/
 coverage/
-apps/web/e2e/
 
 # Backend + render.yaml versionados (deploy no Render).
 # Os segredos ficam em backend/.env, que continua ignorado.

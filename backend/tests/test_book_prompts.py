@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Testes do modulo de prompts do livro (avatar + expressao + cena)."""
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,

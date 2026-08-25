@@ -7,11 +7,11 @@ from __future__ import annotations
 
 import enum
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy import (
-    Boolean,
     CHAR,
+    Boolean,
     ForeignKey,
     Integer,
     Numeric,
@@ -20,7 +20,8 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.types import JSON, TypeDecorator
 
@@ -63,7 +64,7 @@ def _uuid() -> uuid.UUID:
 
 
 def _now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 # --------------------------------------------------------------------------- #
@@ -132,7 +133,7 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
     projects: Mapped[list[Project]] = relationship(back_populates="user")
-    voices: Mapped[list["UserVoice"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    voices: Mapped[list[UserVoice]] = relationship(back_populates="user", cascade="all, delete-orphan")
 
 
 class UserVoice(Base):
@@ -151,7 +152,7 @@ class UserVoice(Base):
     is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
-    user: Mapped["User"] = relationship(back_populates="voices")
+    user: Mapped[User] = relationship(back_populates="voices")
 
 
 class Project(Base):

@@ -6,8 +6,8 @@ import base64
 import httpx
 import pytest
 
-from app.ai_clients.base import ProviderError
 from app.ai_clients import image_nano_banana as nb
+from app.ai_clients.base import ProviderError
 
 
 def _ok_body(image: bytes = b"fake-png") -> dict:
@@ -42,7 +42,7 @@ class _FakeResponse:
 class _FakeAsyncClient:
     """Stand-in for httpx.AsyncClient; records POSTs and returns scripted responses."""
 
-    instances: list["_FakeAsyncClient"] = []
+    instances: list[_FakeAsyncClient] = []
 
     def __init__(self, *args, **kwargs):
         self.posts: list[dict] = []

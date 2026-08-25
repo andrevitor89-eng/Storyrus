@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """Prompts do pipeline foto -> avatar -> paginas do livro.
 
 Regras de ouro:
@@ -34,18 +33,18 @@ EXPRESSIONS: dict[str, str] = {
 _DEFAULT_EXPRESSION = "alegria"
 
 _INFER_RULES: list[tuple[str, re.Pattern[str]]] = [
-    ("medo_gentil", re.compile(r"medo|assust|escuro|trem|perigo|susto|receio", re.I)),
-    ("tristeza_leve", re.compile(r"trist|chor|doente|separad|desanim|sozinh|saudade", re.I)),
-    ("vergonha", re.compile(r"vergonh|timid|constrang|envergonh|corado", re.I)),
-    ("surpresa", re.compile(r"surpre|de repente|olha!|inesperad|uau|nossa|assombro", re.I)),
-    ("curiosidade", re.compile(r"curios|pergunt|descob|imagin|pensa|olha as|observ|investig", re.I)),
-    ("determinacao", re.compile(r"decid|determin|coragem|tentar|construir|ajuda|limpo|miss|enfrentar", re.I)),
-    ("concentracao", re.compile(r"concent|cuidado|conta|junta|coloca|aprende|foco", re.I)),
-    ("carinho", re.compile(r"abrac|carinh|amor|anin|colo|corac|beijo", re.I)),
-    ("orgulho", re.compile(r"orgulh|conquist|consegui|pronto|cheinho|vitor", re.I)),
-    ("animacao", re.compile(r"empolg|animad|eufor|pulando|correndo de alegria|animacao", re.I)),
-    ("calma", re.compile(r"calm|quiet|paz|dorm|tranquil|seren|descans", re.I)),
-    ("alegria", re.compile(r"feliz|alegr|sorr|brinc|festa|brilha|divert|risad", re.I)),
+    ("medo_gentil", re.compile(r"medo|assust|escuro|trem|perigo|susto|receio", re.IGNORECASE)),
+    ("tristeza_leve", re.compile(r"trist|chor|doente|separad|desanim|sozinh|saudade", re.IGNORECASE)),
+    ("vergonha", re.compile(r"vergonh|timid|constrang|envergonh|corado", re.IGNORECASE)),
+    ("surpresa", re.compile(r"surpre|de repente|olha!|inesperad|uau|nossa|assombro", re.IGNORECASE)),
+    ("curiosidade", re.compile(r"curios|pergunt|descob|imagin|pensa|olha as|observ|investig", re.IGNORECASE)),
+    ("determinacao", re.compile(r"decid|determin|coragem|tentar|construir|ajuda|limpo|miss|enfrentar", re.IGNORECASE)),
+    ("concentracao", re.compile(r"concent|cuidado|conta|junta|coloca|aprende|foco", re.IGNORECASE)),
+    ("carinho", re.compile(r"abrac|carinh|amor|anin|colo|corac|beijo", re.IGNORECASE)),
+    ("orgulho", re.compile(r"orgulh|conquist|consegui|pronto|cheinho|vitor", re.IGNORECASE)),
+    ("animacao", re.compile(r"empolg|animad|eufor|pulando|correndo de alegria|animacao", re.IGNORECASE)),
+    ("calma", re.compile(r"calm|quiet|paz|dorm|tranquil|seren|descans", re.IGNORECASE)),
+    ("alegria", re.compile(r"feliz|alegr|sorr|brinc|festa|brilha|divert|risad", re.IGNORECASE)),
 ]
 
 

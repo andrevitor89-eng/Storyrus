@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile,
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import storage, story_import, story_templates
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
@@ -35,7 +36,6 @@ from app.schemas import (
     VideoRequestIn,
 )
 from app.services import jobs as jobs_svc
-from app import storage, story_import, story_templates
 
 router = APIRouter(prefix="/v1/projects", tags=["projects"])
 

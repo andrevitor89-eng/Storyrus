@@ -149,7 +149,7 @@ async def clone_voice(
         raise TtsError(_friendly_clone_error(resp.status_code, resp.text), transient=False)
     try:
         voice_id = (resp.json() or {}).get("voice_id")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         raise TtsError("Resposta invalida do ElevenLabs ao clonar voz", transient=False) from exc
     if not voice_id:
         raise TtsError("ElevenLabs nao retornou voice_id", transient=False)

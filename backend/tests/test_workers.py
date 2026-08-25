@@ -3,14 +3,15 @@
 Usa fake providers (sem rede) e storage em memoria (monkeypatch). Banco SQLite.
 """
 import uuid
+from datetime import UTC
 
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from app.database import Base
 from app.ai_clients.base import ImageResult, ProviderError, TextResult, VideoJob
+from app.database import Base
 from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus, User
 from app.workers import handlers, runner
 
@@ -167,7 +168,6 @@ async def test_video_create_and_poll(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(runner.settings, "video_poll_interval_s", 0.0)
     # evita baixar o video de verdade -> guarda a URL do provedor
-    import app.workers.handlers as h
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}; db.commit()
     j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 10})
@@ -256,13 +256,13 @@ async def test_video_uses_character_ref_not_realistic(db, mem_storage, monkeypat
 
 
 async def test_avatar_clears_approvals(db, mem_storage, monkeypatch):
-    from datetime import datetime, timezone
+    from datetime import datetime
 
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     _, p = _seed(db)
-    p.character_approved_at = datetime.now(timezone.utc)
-    p.book_approved_at = datetime.now(timezone.utc)
+    p.character_approved_at = datetime.now(UTC)
+    p.book_approved_at = datetime.now(UTC)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 
@@ -291,6 +291,7 @@ async def test_narrated_video_gif_fallback(db, mem_storage, monkeypatch):
     store["char1"] = b"CHARIMG"
     # PIL precisa de PNG real para o GIF fallback — gera um PNG minimo
     from io import BytesIO
+
     from PIL import Image
 
     buf = BytesIO()

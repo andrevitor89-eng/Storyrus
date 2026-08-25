@@ -19,8 +19,10 @@ def test_duplicate_signup_conflicts(client):
     assert r.status_code == 409
 
 
-def test_protected_requires_token(client):
-    assert client.get("/v1/auth/me").status_code == 403  # sem bearer
+def test_unauthenticated_uses_guest(client):
+    me = client.get("/v1/auth/me")
+    assert me.status_code == 200
+    assert me.json()["email"] == "guest@storyrus.app"
 
 
 def test_create_and_list_project(auth_client):
