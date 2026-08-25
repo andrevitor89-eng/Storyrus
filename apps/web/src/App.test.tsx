@@ -1,8 +1,14 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
+import { api } from "./api";
 import { state } from "./test/server";
+
+afterEach(() => {
+  vi.restoreAllMocks();
+  window.history.replaceState({}, "", "/");
+});
 
 describe("Fluxo E2E (sem login)", () => {
   it("estúdio → projeto → foto gera personagem → história", async () => {
@@ -13,8 +19,6 @@ describe("Fluxo E2E (sem login)", () => {
     // o estúdio carrega direto, sem tela de login
     expect(await screen.findByText(/créditos: 10/i)).toBeInTheDocument();
 
-    // escolhe estilo e cria projeto
-    await user.click(screen.getByRole("button", { name: /desenho/i }));
     await user.click(screen.getByRole("button", { name: /criar projeto/i }));
     expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
 
@@ -35,7 +39,7 @@ describe("Fluxo E2E (sem login)", () => {
     ).toBeInTheDocument();
   }, 20000);
 
-  it("habilita 'Montar ebook' só depois de foto + história", async () => {
+  it("habilita 'Montar ebook' depois de aprovar o personagem", async () => {
     state.credits = 10;
     const user = userEvent.setup();
     const { container } = render(<App />);
@@ -54,10 +58,31 @@ describe("Fluxo E2E (sem login)", () => {
     await user.click(screen.getByRole("button", { name: /gerar história com ia/i }));
     await screen.findByText(/pagina 1: ola/i, undefined, { timeout: 9000 });
 
+    // ebook continua travado até aprovar o personagem
+    expect(screen.getByRole("button", { name: /montar ebook/i })).toBeDisabled();
+    await user.click(
+      await screen.findByRole("button", { name: /aprovar personagem/i }, { timeout: 9000 }),
+    );
+
     // agora o ebook pode ser montado
     await waitFor(
       () => expect(screen.getByRole("button", { name: /montar ebook/i })).toBeEnabled(),
       { timeout: 9000 },
     );
   }, 20000);
+
+  it("abre exemplo pronto sem criar projeto", async () => {
+    state.credits = 10;
+    const create = vi.spyOn(api, "createProject");
+    window.history.pushState({}, "", "/app?exemplo=dinosaurs");
+    render(<App />);
+
+    expect(await screen.findByText(/você está vendo um exemplo pronto/i)).toBeInTheDocument();
+    expect(await screen.findByDisplayValue("Matteo")).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /^personagem$/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /vídeo narrado/i })).toBeInTheDocument();
+    expect(screen.getByAltText(/página 1/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /montar ebook/i })).toBeDisabled();
+    expect(create).not.toHaveBeenCalled();
+  });
 });

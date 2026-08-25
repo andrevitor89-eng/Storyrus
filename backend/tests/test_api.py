@@ -104,6 +104,21 @@ def test_insufficient_credits(auth_client):
     assert auth_client.get("/v1/credits").json()["credits"] == 0
 
 
+def test_create_defaults_to_cgi_3d(client):
+    r = client.post("/v1/projects", json={})
+    assert r.status_code == 201
+    assert r.json()["style"] == "cgi_3d"
+    assert r.json()["character_approved_at"] is None
+    assert r.json()["print_status"] is None
+
+
+def test_approve_and_print_require_preview(client):
+    pid = client.post("/v1/projects", json={}).json()["id"]
+    assert client.post(f"/v1/projects/{pid}/avatar/approve").status_code == 400
+    assert client.post(f"/v1/projects/{pid}/book/approve").status_code == 400
+    assert client.post(f"/v1/projects/{pid}/print-request").status_code == 400
+
+
 def test_cannot_access_others_project(client):
     a = client.post("/v1/auth/signup", json={"email": "o1@x.com", "password": "password123"}).json()
     pid = client.post(

@@ -38,7 +38,8 @@ class Settings(BaseSettings):
     # muito tempo (poll de ate video_poll_timeout_s por tentativa, ate job_max_attempts
     # tentativas) e travava outras acoes do usuario com 429 falso-positivo.
     max_concurrent_jobs_per_user: int = 4
-    default_video_duration_s: int = 30
+    # Kling image2video aceita só 5s ou 10s; default alinhado ao provedor.
+    default_video_duration_s: int = 5
     signup_bonus_credits: int = 10
     offline_fallback: bool = True
 
@@ -47,6 +48,7 @@ class Settings(BaseSettings):
     cost_story_credits: int = 1
     cost_ebook_credits: int = 1
     cost_video_credits: int = 5
+    cost_narrated_video_credits: int = 8
 
     # Webhooks
     webhook_signing_secret: str = "change-me-webhook"
@@ -58,9 +60,11 @@ class Settings(BaseSettings):
     gemini_retry_base_s: float = 2.0
     gemini_retry_max_s: float = 60.0
     anthropic_api_key: str | None = None    # historia (Claude)
-    kling_access_key: str | None = None     # video MVP
+    kling_access_key: str | None = None     # animacao MVP (image2video)
     kling_secret_key: str | None = None
-    veo_api_key: str | None = None          # video fase 2
+    veo_api_key: str | None = None          # video fase 2 (placeholder)
+    elevenlabs_api_key: str | None = None   # TTS video narrado
+    elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
 
     # Selecao de provedores por etapa
     image_provider: str = "nano-banana"

@@ -1,4 +1,4 @@
-export type Style = "realistic" | "cartoon" | "anime";
+export type Style = "cgi_3d" | "realistic" | "cartoon" | "anime";
 
 export type Theme =
   | "adventure"
@@ -34,6 +34,17 @@ export type Theme =
   | "transporte_ajudantes"
   | "clima_estacoes";
 
+// História pronta do catálogo (template traduzido, personalizado com o nome).
+export interface StoryTemplate {
+  id: string;
+  titulo: string;
+  genero: string;
+  idade: string;
+  tematica: string;
+  emoji: string;
+  paginas: number;
+}
+
 export interface ExtraCharacter {
   name: string;
   storage_key: string;
@@ -56,13 +67,18 @@ export interface Project {
   story_text: string | null;
   ebook_url: string | null;
   video_url: string | null;
+  narrated_video_url?: string | null;
+  character_approved_at?: string | null;
+  book_approved_at?: string | null;
+  print_requested_at?: string | null;
+  print_status?: string | null;
   created_at: string;
 }
 
 export interface Job {
   id: string;
   project_id: string;
-  type: "AVATAR" | "STORY" | "EBOOK" | "STORYBOARD" | "VIDEO";
+  type: "AVATAR" | "STORY" | "EBOOK" | "STORYBOARD" | "VIDEO" | "NARRATED_VIDEO" | "REALISTIC" | "EXTRA_CHARACTER";
   status: "PENDING" | "RUNNING" | "DONE" | "FAILED";
   provider: string | null;
   cost_credits: number;
@@ -83,4 +99,17 @@ export interface UploadUrl {
   storage_key: string;
   upload_url: string;
   expires_in: number;
+}
+
+export interface UserVoice {
+  id: string;
+  name: string;
+  is_default: boolean;
+  mime_type: string;
+  created_at: string;
+}
+
+export interface VoiceList {
+  items: UserVoice[];
+  custom_voice_available: boolean;
 }

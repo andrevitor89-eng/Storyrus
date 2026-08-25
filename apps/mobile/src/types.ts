@@ -1,4 +1,4 @@
-export type Style = "realistic" | "cartoon" | "anime";
+export type Style = "cgi_3d";
 
 export interface Project {
   id: string;

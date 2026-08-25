@@ -10,6 +10,7 @@ import uuid
 from datetime import datetime, timezone
 
 from sqlalchemy import (
+    Boolean,
     CHAR,
     ForeignKey,
     Integer,
@@ -88,6 +89,8 @@ class JobType(str, enum.Enum):
     EBOOK = "EBOOK"
     STORYBOARD = "STORYBOARD"
     VIDEO = "VIDEO"
+    NARRATED_VIDEO = "NARRATED_VIDEO"
+    EXTRA_CHARACTER = "EXTRA_CHARACTER"
 
 
 class JobStatus(str, enum.Enum):
@@ -105,9 +108,12 @@ class AssetKind(str, enum.Enum):
     EBOOK = "ebook"
     STORYBOARD = "storyboard"
     VIDEO = "video"
+    NARRATED_VIDEO = "narrated_video"
+    AUDIO = "audio"
 
 
 class ProjectStyle(str, enum.Enum):
+    CGI_3D = "cgi_3d"
     REALISTIC = "realistic"
     CARTOON = "cartoon"
     ANIME = "anime"
@@ -126,6 +132,26 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
     projects: Mapped[list[Project]] = relationship(back_populates="user")
+    voices: Mapped[list["UserVoice"]] = relationship(back_populates="user", cascade="all, delete-orphan")
+
+
+class UserVoice(Base):
+    """Voz clonada (ElevenLabs IVC) reutilizável pelo usuário."""
+
+    __tablename__ = "user_voices"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
+    user_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    name: Mapped[str] = mapped_column(String(120), nullable=False)
+    elevenlabs_voice_id: Mapped[str] = mapped_column(String(64), nullable=False)
+    sample_storage_key: Mapped[str] = mapped_column(Text, nullable=False)
+    mime_type: Mapped[str] = mapped_column(String(100), nullable=False, default="audio/mpeg")
+    is_default: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
+
+    user: Mapped["User"] = relationship(back_populates="voices")
 
 
 class Project(Base):
@@ -160,6 +186,11 @@ class Project(Base):
     story_text: Mapped[str | None] = mapped_column(Text, nullable=True)
     ebook_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    narrated_video_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    character_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    book_approved_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    print_requested_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    print_status: Mapped[str | None] = mapped_column(String(32), nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="projects")
@@ -177,7 +208,7 @@ class Job(Base):
     project_id: Mapped[uuid.UUID] = mapped_column(
         GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    type: Mapped[str] = mapped_column(String(16), nullable=False)
+    type: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(
         String(16), nullable=False, default=JobStatus.PENDING.value, index=True
     )
@@ -203,7 +234,7 @@ class Asset(Base):
     project_id: Mapped[uuid.UUID] = mapped_column(
         GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
-    kind: Mapped[str] = mapped_column(String(16), nullable=False)
+    kind: Mapped[str] = mapped_column(String(32), nullable=False)
     storage_key: Mapped[str] = mapped_column(Text, nullable=False)
     meta: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())

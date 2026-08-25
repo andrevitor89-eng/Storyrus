@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
-import type { ExtraCharacter, Job, Project, Style, Theme } from "./types";
+import type { ExtraCharacter, Job, Project, StoryTemplate, Theme, UserVoice } from "./types";
+import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import logo from "./assets/logo.png";
 
-const STYLES: { id: Style; label: string }[] = [
-  { id: "realistic", label: "Realista" },
-  { id: "cartoon", label: "Desenho" },
-  { id: "anime", label: "Animação" },
-];
+const ART_STYLE_LABEL: Record<string, string> = {
+  cgi_3d: "CGI 3D",
+  realistic: "CGI 3D",
+  cartoon: "CGI 3D",
+  anime: "CGI 3D",
+};
 
 // Temas narrativos do briefing — a história nasce ao redor do tema escolhido.
 type ThemeGroup = "aventura" | "datas" | "educativo";
@@ -52,25 +54,24 @@ const themeLabel = (id: string | null | undefined) =>
 
 // O personagem é gerado automaticamente ao enviar a foto, e a história tem
 // seção própria. Aqui ficam as etapas finais (dependem de personagem + história).
-const STEPS: { key: "ebook" | "video"; label: string; cost: string; hint: string }[] = [
-  { key: "ebook", label: "Montar ebook", cost: "1 crédito", hint: "E-book ilustrado (precisa de personagem + história)." },
-  { key: "video", label: "Gerar vídeo", cost: "5 créditos", hint: "Vídeo narrado (precisa de personagem + história)." },
+const STEPS: { key: "ebook" | "video" | "narrated-video"; label: string; cost: string; hint: string }[] = [
+  { key: "ebook", label: "Montar ebook", cost: "1 crédito", hint: "E-book ilustrado (precisa de personagem aprovado + história)." },
+  { key: "video", label: "Gerar animação", cost: "5 créditos", hint: "Clipe curto (5–10s) com movimento — não é o vídeo narrado." },
+  { key: "narrated-video", label: "Gerar vídeo narrado", cost: "8 créditos", hint: "História com narração (~1–2 min) a partir do storyboard." },
 ];
 
-type StoryMode = "invent" | "write" | "file";
+type StoryMode = "invent" | "write" | "file" | "catalog";
 
 const HOW = [
-  "Envie uma foto do protagonista.",
-  "Escolha o tema e o estilo da arte.",
-  "A IA cria ilustrações personalizadas.",
-  "Receba um e-book exclusivo.",
-  "Ganhe também um vídeo narrado.",
-  "Um produto único, feito só para você.",
+  "Envie uma foto de frente (um rosto, luz boa).",
+  "Aprove o personagem em CGI 3D.",
+  "Escolha o tema ou uma história pronta.",
+  "Aprove o livro (capa e páginas).",
+  "Baixe o PDF, peça o impresso ou gere o vídeo narrado.",
 ];
 
 export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [credits, setCredits] = useState<number | null>(null);
-  const [style, setStyle] = useState<Style>("realistic");
   // Até 2 temas combinados na mesma história: o 1º é o principal (define
   // vilão/cenário/arco), o 2º só soma um objetivo de aprendizado extra.
   const [selectedThemes, setSelectedThemes] = useState<Theme[]>(["adventure"]);
@@ -92,6 +93,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [extraCharName, setExtraCharName] = useState("");
   const [storyMode, setStoryMode] = useState<StoryMode>("invent");
   const [storyText, setStoryText] = useState("");
+  // Catálogo de histórias prontas (carregado ao abrir o modo "catalog").
+  const [templates, setTemplates] = useState<StoryTemplate[] | null>(null);
+  const [appliedTemplate, setAppliedTemplate] = useState<string | null>(null);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [dedication, setDedication] = useState("");
@@ -102,8 +106,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     page_images: string[];
     ebook_url: string | null;
     video_url: string | null;
+    narrated_video_url: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
 
   // aplica o tema (claro/escuro) salvo na landing
   useEffect(() => {
@@ -115,11 +121,31 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
   // pré-seleciona o tema da história vindo do catálogo (/app?tema=...)
   useEffect(() => {
+    if (demoIdFromSearch()) return;
     const q = new URLSearchParams(window.location.search).get("tema");
     if (q && THEMES.some((x) => x.id === q)) setSelectedThemes([q as Theme]);
   }, []);
+
+  useEffect(() => {
+    if (!isDemo) return;
+    const demo = getDemoExample();
+    setSelectedThemes(demo.themes);
+    setChildName(demo.childName);
+    setChildAge(demo.childAge);
+    setDedication(demo.dedication);
+    setStoryText(demo.project.story_text ?? "");
+    setProject(demo.project);
+    setAssets(demo.assets);
+    setPhotoUploaded(true);
+    setJobs([]);
+  }, [isDemo]);
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<number | null>(null);
+  const [voices, setVoices] = useState<UserVoice[]>([]);
+  const [customVoiceAvailable, setCustomVoiceAvailable] = useState(false);
+  const [selectedVoiceId, setSelectedVoiceId] = useState("");
+  const [voiceName, setVoiceName] = useState("Minha voz");
+  const [voiceUploading, setVoiceUploading] = useState(false);
 
   const refreshCredits = useCallback(async () => {
     try {
@@ -133,9 +159,28 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     refreshCredits();
   }, [refreshCredits]);
 
+  const refreshVoices = useCallback(async () => {
+    try {
+      const data = await api.listVoices();
+      setVoices(data.items);
+      setCustomVoiceAvailable(data.custom_voice_available);
+      setSelectedVoiceId((prev) => {
+        if (prev && data.items.some((v) => v.id === prev)) return prev;
+        const def = data.items.find((v) => v.is_default);
+        return def?.id || data.items[0]?.id || "";
+      });
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
+  useEffect(() => {
+    refreshVoices();
+  }, [refreshVoices]);
+
   // Polling do estado enquanto houver job ativo.
   useEffect(() => {
-    if (!project) return;
+    if (!project || isDemo) return;
     const active = jobs.some((j) => j.status === "PENDING" || j.status === "RUNNING");
     if (!active) {
       if (pollRef.current) window.clearInterval(pollRef.current);
@@ -160,14 +205,15 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     return () => {
       if (pollRef.current) window.clearInterval(pollRef.current);
     };
-  }, [project, jobs, refreshCredits]);
+  }, [project, jobs, refreshCredits, isDemo]);
 
   async function start() {
+    if (isDemo) return;
     setBusy(true);
     setError(null);
     try {
       const age = childAge.trim() === "" ? undefined : Number(childAge);
-      const p = await api.createProject(style, theme, extraTheme, childName, dedication, age);
+      const p = await api.createProject(theme, extraTheme, childName, dedication, age);
       setProject(p);
       setJobs([]);
       setPhotoUploaded(false);
@@ -181,7 +227,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   }
 
   async function upload() {
-    if (!project || !photo) return;
+    if (!project || !photo || isDemo) return;
     setBusy(true);
     setError(null);
     try {
@@ -199,12 +245,15 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  async function runStep(step: "avatar" | "realistic" | "story" | "ebook" | "video") {
-    if (!project) return;
+  async function runStep(step: "avatar" | "story" | "ebook" | "video" | "narrated-video") {
+    if (!project || isDemo) return;
     setBusy(true);
     setError(null);
     try {
-      await api.startStep(project.id, step, step === "video" ? { duration_s: 30 } : {});
+      let body: Record<string, unknown> = {};
+      if (step === "video") body = { duration_s: 5 };
+      if (step === "narrated-video" && selectedVoiceId) body = { voice_id: selectedVoiceId };
+      await api.startStep(project.id, step, body);
       const js = await api.listJobs(project.id);
       setJobs(js);
       refreshCredits();
@@ -215,9 +264,74 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
+  async function approveCharacter() {
+    if (!project || isDemo) return;
+    setBusy(true);
+    setError(null);
+    try {
+      setProject(await api.approveCharacter(project.id));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function approveBook() {
+    if (!project || isDemo) return;
+    setBusy(true);
+    setError(null);
+    try {
+      setProject(await api.approveBook(project.id));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function requestPrint() {
+    if (!project || isDemo) return;
+    setBusy(true);
+    setError(null);
+    try {
+      setProject(await api.requestPrint(project.id));
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onVoiceFile(file: File | null) {
+    if (!file || isDemo) return;
+    setVoiceUploading(true);
+    setError(null);
+    try {
+      const voice = await api.uploadVoice(file, voiceName.trim() || "Minha voz", voices.length === 0);
+      await refreshVoices();
+      setSelectedVoiceId(voice.id);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setVoiceUploading(false);
+    }
+  }
+
+  async function removeSelectedVoice() {
+    if (!selectedVoiceId || isDemo) return;
+    setError(null);
+    try {
+      await api.deleteVoice(selectedVoiceId);
+      await refreshVoices();
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
   // Salva a história escrita/colada pelo usuário (sem IA).
   async function saveStory() {
-    if (!project || !storyText.trim()) return;
+    if (!project || !storyText.trim() || isDemo) return;
     setBusy(true);
     setError(null);
     try {
@@ -232,10 +346,39 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
+  // Abre o catálogo de histórias prontas (carrega uma vez).
+  async function openCatalog() {
+    setStoryMode("catalog");
+    if (templates) return;
+    try {
+      setTemplates(await api.storyTemplates());
+    } catch (e) {
+      setError((e as Error).message);
+    }
+  }
+
+  // Aplica uma história pronta do catálogo (sem IA, sem créditos).
+  async function applyTemplate(templateId: string) {
+    if (!project || isDemo) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const p = await api.applyStoryTemplate(project.id, templateId);
+      setProject(p);
+      setAppliedTemplate(templateId);
+      const js = await api.listJobs(project.id);
+      setJobs(js);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   // Extrai o texto de um arquivo enviado e mostra para o usuário revisar.
   async function onStoryFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
-    if (!file || !project) return;
+    if (!file || !project || isDemo) return;
     setBusy(true);
     setError(null);
     try {
@@ -251,7 +394,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
   // Upload de personagem extra
   async function uploadExtraCharacter() {
-    if (!project || !extraCharFile) return;
+    if (!project || !extraCharFile || isDemo) return;
     setBusy(true);
     setError(null);
     try {
@@ -270,7 +413,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
   // Gera os personagens ilustrados para os extras
   async function generateExtraCharacters() {
-    if (!project) return;
+    if (!project || isDemo) return;
     setBusy(true);
     setError(null);
     try {
@@ -283,6 +426,30 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     } finally {
       setBusy(false);
     }
+  }
+
+  const characterApproved = !!project?.character_approved_at;
+  const bookApproved = !!project?.book_approved_at;
+  const printRequested = !!project?.print_requested_at;
+  const canMountEbook = photoUploaded && !!project?.story_text && characterApproved;
+  const canMakeVideo = bookApproved;
+  const locked = busy || isDemo;
+
+  function exitDemo() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("exemplo");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, "", next);
+    setIsDemo(false);
+    setProject(null);
+    setAssets(null);
+    setPhotoUploaded(false);
+    setChildName("");
+    setChildAge("");
+    setDedication("");
+    setStoryText("");
+    setJobs([]);
+    setAppliedTemplate(null);
   }
 
   return (
@@ -309,6 +476,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           </button>
         )}
       </header>
+
+      {isDemo && (
+        <div className="demo-banner" role="status">
+          <p>Você está vendo um exemplo pronto.</p>
+          <button type="button" onClick={exitDemo}>Criar a minha história</button>
+        </div>
+      )}
 
       {error && <p className="error">{error}</p>}
 
@@ -377,21 +551,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             })}
           </div>
 
-          <h3 className="field-label">2 · Escolha o estilo da arte</h3>
-          <div className="styles">
-            {STYLES.map((s) => (
-              <button
-                key={s.id}
-                disabled={!!project}
-                className={`chip ${style === s.id ? "on" : ""}`}
-                onClick={() => setStyle(s.id)}
-              >
-                {s.label}
-              </button>
-            ))}
-          </div>
-
-          <h3 className="field-label">3 · Nome, idade e dedicatória</h3>
+          <h3 className="field-label">2 · Nome, idade e dedicatória</h3>
           <label>
             Nome da criança
             <input
@@ -432,7 +592,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           </label>
 
           {!project && (
-            <button disabled={busy} onClick={start}>
+            <button disabled={locked} onClick={start}>
               Criar projeto
             </button>
           )}
@@ -454,7 +614,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             Tema: <b>{themeLabel(project.theme ?? theme)}</b>
             {(project.extra_theme ?? extraTheme) && (
               <> + <b>{themeLabel(project.extra_theme ?? extraTheme)}</b></>
-            )} · Estilo: <b>{project.style}</b> ·
+            )} · Estilo: <b>{ART_STYLE_LABEL[project.style ?? "cgi_3d"] ?? "CGI 3D"}</b> ·
             Status: <b>{project.status}</b>
           </p>
 
@@ -462,21 +622,19 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             <input
               type="file"
               accept="image/*"
+              disabled={isDemo}
               onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
             />
-            <button disabled={!photo || busy} onClick={upload}>
+            <button disabled={!photo || locked} onClick={upload}>
               {photoUploaded ? "Foto enviada ✓" : "Enviar foto"}
             </button>
           </div>
-
-          {photoUploaded && (
-            <div style={{ margin: "8px 0" }}>
-              <button disabled={busy} onClick={() => runStep("realistic")}>
-                ✨ Gerar imagem realística{" "}
-                <span className="muted">(referência do vídeo · 1 crédito)</span>
-              </button>
-            </div>
-          )}
+          <p className="muted" style={{ marginTop: 6 }}>
+            Melhor resultado: foto nítida, bem iluminada, <b>um</b> rosto de
+            frente, testa e cabelo visíveis. Evite close de cima, de lado ou
+            rosto tapado. A arte é sempre CGI 3D de filme infantil — o mesmo
+            personagem nas páginas e no vídeo.
+          </p>
 
           <h3 className="field-label">Personagens Extras (amigos, irmãos, etc.)</h3>
           <div className="upload">
@@ -492,14 +650,14 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               maxLength={40}
               style={{ flex: 1, minWidth: 120 }}
             />
-            <button disabled={!extraCharFile || busy} onClick={uploadExtraCharacter}>
+            <button disabled={!extraCharFile || locked} onClick={uploadExtraCharacter}>
               Adicionar
             </button>
           </div>
           {extraChars.length > 0 && (
             <div style={{ margin: "8px 0" }}>
               <p className="muted">{extraChars.length} personagem(ns) extra(s) adicionado(s)</p>
-              <button disabled={busy} onClick={generateExtraCharacters}>
+              <button disabled={locked} onClick={generateExtraCharacters}>
                 Gerar ilustrações dos extras <span className="muted">(1 crédito cada)</span>
               </button>
             </div>
@@ -525,12 +683,57 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             >
               📄 Enviar arquivo
             </button>
+            <button
+              className={`chip ${storyMode === "catalog" ? "on" : ""}`}
+              onClick={openCatalog}
+            >
+              📚 Histórias prontas
+            </button>
           </div>
 
           {storyMode === "invent" && (
-            <button disabled={busy} onClick={() => runStep("story")}>
+            <button disabled={locked} onClick={() => runStep("story")}>
               Gerar história com IA <span className="muted">(1 crédito)</span>
             </button>
+          )}
+
+          {storyMode === "catalog" && (
+            <div className="story-catalog">
+              {!templates && <p className="muted">Carregando catálogo…</p>}
+              {templates && !project?.child_name && (
+                <p className="muted">
+                  Defina o nome da criança ao criar o projeto — ele entra no título e no texto.
+                </p>
+              )}
+              {templates?.map((t) => (
+                <div
+                  key={t.id}
+                  className="catalog-item"
+                  style={{
+                    display: "flex", alignItems: "center", gap: 8,
+                    padding: "8px 0", borderBottom: "1px solid var(--border, #333)",
+                  }}
+                >
+                  <span style={{ fontSize: 22 }}>{t.emoji}</span>
+                  <div style={{ flex: 1 }}>
+                    <strong>
+                      {t.titulo.replace("{NOME}", project?.child_name || "{nome}")}
+                    </strong>
+                    <div className="muted" style={{ fontSize: 12 }}>
+                      {t.tematica} · {t.idade} anos · {t.paginas} páginas
+                      {t.genero !== "unissex" ? ` · ${t.genero}` : ""}
+                    </div>
+                  </div>
+                  <button
+                    disabled={locked || !project}
+                    onClick={() => applyTemplate(t.id)}
+                  >
+                    {appliedTemplate === t.id ? "✓ Aplicada" : "Usar"}
+                    {appliedTemplate !== t.id && <span className="muted"> (grátis)</span>}
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
 
           {storyMode === "file" && (
@@ -550,24 +753,84 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                 value={storyText}
                 onChange={(e) => setStoryText(e.target.value)}
               />
-              <button disabled={busy || !storyText.trim()} onClick={saveStory}>
+              <button disabled={locked || !storyText.trim()} onClick={saveStory}>
                 Salvar história
               </button>
             </div>
           )}
 
+          <div className="result-block" style={{ marginBottom: 16 }}>
+            <h3 className="field-label">Voz da narração</h3>
+            {!customVoiceAvailable ? (
+              <p className="muted">
+                Voz personalizada indisponível (ElevenLabs não configurado). O vídeo narrado usará a
+                narração padrão.
+              </p>
+            ) : (
+              <>
+                <p className="muted" style={{ marginBottom: 10 }}>
+                  Envie 30–60s de fala clara (MP3, WAV ou M4A), sem música de fundo. Fale naturalmente,
+                  como se estivesse contando uma história. A voz fica salva e pode ser reutilizada.
+                </p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+                  <input
+                    type="text"
+                    value={voiceName}
+                    onChange={(e) => setVoiceName(e.target.value)}
+                    placeholder="Nome da voz"
+                  />
+                  <label className="btn" style={{ cursor: voiceUploading ? "wait" : "pointer" }}>
+                    {voiceUploading ? "Clonando..." : "Enviar áudio"}
+                    <input
+                      type="file"
+                      accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/webm,audio/ogg,.mp3,.wav,.m4a,.webm,.ogg"
+                      hidden
+                      disabled={voiceUploading || locked}
+                      onChange={(e) => onVoiceFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                </div>
+                {voices.length > 0 && (
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+                    <select
+                      value={selectedVoiceId}
+                      onChange={(e) => setSelectedVoiceId(e.target.value)}
+                      disabled={locked}
+                    >
+                      <option value="">Automática (padrão da conta ou sistema)</option>
+                      {voices.map((v) => (
+                        <option key={v.id} value={v.id}>
+                          {v.name}
+                          {v.is_default ? " (padrão)" : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {selectedVoiceId && (
+                      <button type="button" disabled={locked} onClick={removeSelectedVoice}>
+                        Remover voz
+                      </button>
+                    )}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+
           <div className="steps">
-            {STEPS.map((s) => (
+            {STEPS.filter((s) => s.key === "ebook").map((s) => (
               <button
                 key={s.key}
                 title={s.hint}
-                disabled={busy || !photoUploaded || !project.story_text}
+                disabled={locked || !canMountEbook}
                 onClick={() => runStep(s.key)}
               >
                 {s.label} <span className="muted">({s.cost})</span>
               </button>
             ))}
           </div>
+          {!characterApproved && photoUploaded && (
+            <p className="muted">Aprove o personagem para montar o e-book.</p>
+          )}
 
           <ProgressList jobs={jobs} />
 
@@ -581,6 +844,18 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                   alt="Personagem gerado"
                   style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
                 />
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                  {characterApproved ? (
+                    <p className="muted">Personagem aprovado. Pode montar o livro.</p>
+                  ) : (
+                    <button disabled={locked} onClick={approveCharacter}>
+                      Aprovar personagem
+                    </button>
+                  )}
+                  <button disabled={locked} onClick={() => runStep("avatar")}>
+                    Regenerar personagem <span className="muted">(1 crédito)</span>
+                  </button>
+                </div>
               </div>
             )}
 
@@ -599,17 +874,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-
-            {assets?.realistic_url && (
-              <div className="result-block">
-                <h3 className="field-label">Imagem realística (referência do vídeo)</h3>
-                <img
-                  src={assets.realistic_url}
-                  alt="Imagem realística"
-                  style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
-                />
               </div>
             )}
 
@@ -642,16 +906,61 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                     📖 Abrir e-book
                   </a>
                 )}
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+                  {bookApproved ? (
+                    <p className="muted">Livro aprovado. PDF, impressão e vídeo liberados.</p>
+                  ) : (
+                    <button disabled={locked || !assets?.ebook_url} onClick={approveBook}>
+                      Aprovar livro
+                    </button>
+                  )}
+                  <button disabled={locked || !canMountEbook} onClick={() => runStep("ebook")}>
+                    Regenerar páginas <span className="muted">(1 crédito)</span>
+                  </button>
+                </div>
+                {bookApproved && (
+                  <div style={{ marginTop: 12 }}>
+                    <h3 className="field-label">Livro impresso</h3>
+                    {printRequested ? (
+                      <p className="muted">
+                        Pedido registrado — em até 24h enviamos a cotação e o prazo.
+                      </p>
+                    ) : (
+                      <button disabled={locked} onClick={requestPrint}>
+                        Pedir livro impresso
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {bookApproved && (
+              <div className="result-block">
+                <h3 className="field-label">Vídeo</h3>
+                <p className="muted">O clipe e o vídeo narrado usam o mesmo personagem 3D do livro.</p>
+                <div className="steps">
+                  {STEPS.filter((s) => s.key !== "ebook").map((s) => (
+                    <button
+                      key={s.key}
+                      title={s.hint}
+                      disabled={locked || !canMakeVideo}
+                      onClick={() => runStep(s.key)}
+                    >
+                      {s.label} <span className="muted">({s.cost})</span>
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
 
             {assets?.video_url && (
               <div className="result-block">
-                <h3 className="field-label">Vídeo</h3>
+                <h3 className="field-label">Animação</h3>
                 {assets.video_url.toLowerCase().includes(".gif") ? (
                   <img
                     src={assets.video_url}
-                    alt="Vídeo fallback animado"
+                    alt="Animação"
                     style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
                   />
                 ) : (
@@ -659,10 +968,29 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                 )}
               </div>
             )}
+
+            {assets?.narrated_video_url && (
+              <div className="result-block">
+                <h3 className="field-label">Vídeo narrado</h3>
+                {assets.narrated_video_url.toLowerCase().includes(".gif") ? (
+                  <img
+                    src={assets.narrated_video_url}
+                    alt="Vídeo narrado"
+                    style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
+                  />
+                ) : (
+                  <video
+                    src={assets.narrated_video_url}
+                    controls
+                    style={{ maxWidth: 360, width: "100%" }}
+                  />
+                )}
+              </div>
+            )}
           </div>
 
-          <button className="link" onClick={() => setProject(null)}>
-            ← Novo projeto
+          <button className="link" onClick={() => (isDemo ? exitDemo() : setProject(null))}>
+            {isDemo ? "← Criar a minha história" : "← Novo projeto"}
           </button>
         </section>
       )}

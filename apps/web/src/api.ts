@@ -1,4 +1,13 @@
-import type { Job, JobAccepted, Project, Style, Theme, UploadUrl } from "./types";
+import type {
+  Job,
+  JobAccepted,
+  Project,
+  StoryTemplate,
+  Theme,
+  UploadUrl,
+  UserVoice,
+  VoiceList,
+} from "./types";
 
 const BASE = ""; // mesmo host (proxy do Vite cobre /v1)
 
@@ -48,13 +57,13 @@ export const api = {
     return req<{ credits: number }>("/v1/credits");
   },
   async createProject(
-    style: Style, theme?: Theme, extraTheme?: Theme, childName?: string, dedication?: string,
+    theme?: Theme, extraTheme?: Theme, childName?: string, dedication?: string,
     childAge?: number,
   ) {
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
-        style, theme,
+        style: "cgi_3d", theme,
         extra_theme: extraTheme || undefined,
         child_name: childName?.trim() || undefined,
         child_age: childAge ?? undefined,
@@ -74,6 +83,7 @@ export const api = {
       page_images: string[];
       ebook_url: string | null;
       video_url: string | null;
+      narrated_video_url: string | null;
     }>(`/v1/projects/${id}/assets`);
   },
   // Upload da foto via API (servidor grava no storage). Evita PUT do navegador.
@@ -103,6 +113,17 @@ export const api = {
     return req<Project>(`/v1/projects/${id}/story/text`, {
       method: "POST",
       body: JSON.stringify({ story_text }),
+    });
+  },
+  // Catálogo de histórias prontas da plataforma.
+  async storyTemplates() {
+    return req<StoryTemplate[]>("/v1/projects/story-templates");
+  },
+  // Usar uma história pronta do catálogo, personalizada com o nome. Sem IA, sem créditos.
+  async applyStoryTemplate(id: string, template_id: string) {
+    return req<Project>(`/v1/projects/${id}/story/template`, {
+      method: "POST",
+      body: JSON.stringify({ template_id }),
     });
   },
   // Extrair o texto de um arquivo (PDF/DOCX/TXT) enviado pelo usuário.
@@ -146,7 +167,7 @@ export const api = {
   },
   async startStep(
     id: string,
-    step: "avatar" | "realistic" | "story" | "ebook" | "video" | "extra-character",
+    step: "avatar" | "realistic" | "story" | "ebook" | "video" | "extra-character" | "narrated-video",
     body: Record<string, unknown> = {},
   ) {
     return req<JobAccepted>(`/v1/projects/${id}/${step}`, {
@@ -154,6 +175,46 @@ export const api = {
       headers: { "Idempotency-Key": uuid() },
       body: JSON.stringify(body),
     });
+  },
+  async listVoices() {
+    return req<VoiceList>("/v1/voices");
+  },
+  async uploadVoice(file: File, name: string, makeDefault = false) {
+    const fd = new FormData();
+    fd.append("file", file);
+    fd.append("name", name);
+    fd.append("make_default", makeDefault ? "true" : "false");
+    const headers = new Headers();
+    if (token) headers.set("Authorization", `Bearer ${token}`);
+    const resp = await fetch(`${BASE}/v1/voices`, { method: "POST", body: fd, headers });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      throw new Error(`${resp.status}: ${detail}`);
+    }
+    return (await resp.json()) as UserVoice;
+  },
+  async setDefaultVoice(id: string) {
+    return req<UserVoice>(`/v1/voices/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_default: true }),
+    });
+  },
+  async deleteVoice(id: string) {
+    return req<void>(`/v1/voices/${id}`, { method: "DELETE" });
+  },
+  async approveCharacter(id: string) {
+    return req<Project>(`/v1/projects/${id}/avatar/approve`, { method: "POST" });
+  },
+  async approveBook(id: string) {
+    return req<Project>(`/v1/projects/${id}/book/approve`, { method: "POST" });
+  },
+  async requestPrint(id: string) {
+    return req<Project>(`/v1/projects/${id}/print-request`, { method: "POST" });
   },
   // Upload de foto de personagem extra
   async uploadExtraCharacter(id: string, file: File, name: string) {

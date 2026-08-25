@@ -29,38 +29,82 @@ const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x
 const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
 const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 
-const NAV_ICONS = [IcHome, IcBook, IcSparkle, IcPlay];
+const NAV_ICONS = [IcHome, IcSparkle, IcBook, IcPlay];
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["foto-matteo.png", "personagem-dino.jpg", "capa-dino2.jpg"];
+/* passo 3: começa na capa e folheia páginas internas (sem a 2ª) */
+const HOW_OPEN_BOOK = ["capa-dino2.jpg", "dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
-  { img: "dica-boa.png", ok: true, focus: "center center" },
+  { img: "dica-boa.png", ok: true, focus: "58% 38%" },
   { img: "dica-multi.png", ok: false, focus: "center center" },
   { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
-const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`);
+const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`).filter((f) => f !== "ebook-2.jpg");
+/* capas sem título queimado — título CSS em 2 linhas (rosto livre) */
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
+const CATALOG_TITLE_LINES: { pt: [string, string]; en: [string, string] }[] = [
+  { pt: ["Lia e o Fundo", "do Mar"], en: ["Lia and the", "Deep Sea"] },
+  { pt: ["Sofia e a Floresta", "Encantada"], en: ["Sofia and the", "Enchanted Forest"] },
+  { pt: ["Matteo e o Mundo", "dos Dinossauros"], en: ["Matteo and the", "Dinosaur World"] },
+  { pt: ["Noah e o Circo", "das Luzes"], en: ["Noah and the", "Circus of Lights"] },
+];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
 const SURPRISE_IMG = "capa-surpresa.jpg";
-/* livro 3D do catálogo: 6 páginas internas (3 spreads) do livro de exemplo de cada tema */
+/* livro 3D do catálogo: páginas internas (sem a 2ª página, p/ flip mais limpo) */
 const BOOK3D = [
-  { bg: "#cfe3f0", pages: ["mar-1.jpg", "mar-2.jpg", "mar-3.jpg", "mar-4.jpg", "mar-5.jpg", "mar-6.jpg"] },
-  { bg: "#e2e6d1", pages: ["flor-1.jpg", "flor-2.jpg", "flor-3.jpg", "flor-4.jpg", "flor-5.jpg", "flor-6.jpg"] },
-  { bg: "#ecd8b2", pages: ["dino-1.jpg", "dino-2.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"] },
-  { bg: "#f4d6da", pages: ["circo-1.jpg", "circo-2.jpg", "circo-3.jpg", "circo-4.jpg", "circo-5.jpg", "circo-6.jpg"] },
+  { bg: "#cfe3f0", pages: ["mar-1.jpg", "mar-3.jpg", "mar-4.jpg", "mar-5.jpg", "mar-6.jpg"] },
+  { bg: "#e2e6d1", pages: ["flor-1.jpg", "flor-3.jpg", "flor-4.jpg", "flor-5.jpg", "flor-6.jpg"] },
+  { bg: "#ecd8b2", pages: ["dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"] },
+  { bg: "#f4d6da", pages: ["circo-1.jpg", "circo-3.jpg", "circo-4.jpg", "circo-5.jpg", "circo-6.jpg"] },
 ];
-const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-9.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
+const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
 const BANNER_IMGS = ["capa-circo.jpg", "capa-oceano.jpg", "capa-dino2.jpg"];
-const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "circo-2.jpg"];
-// Slides do hero: foto real (em cima) -> capa do livro gerado
-const HERO_SLIDES: { photo: string; book: string; photoPos?: string }[] = [
-  { photo: "foto-matteo.png", book: "capa-circo.jpg", photoPos: "center 22%" },
-  { photo: "foto-sofia.png", book: "capa-floresta.jpg" },
-  { photo: "foto-bebe.jpg", book: "capa-oceano.jpg" },
+/* índice em t.catalog — título na capa do banner (circo, oceano, dino) */
+const BANNER_CATALOG_I = [3, 0, 2];
+/* um card por tema do catálogo — src null = ainda sem exemplo de vídeo */
+const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg", "circo-2.jpg"];
+const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4", "video-circo.mp4"];
+/* pares reais foto → personagem (não inventar artes) */
+const BA_PAIRS: { photo: string; art: string; captionI: 0 | 3 | 4 }[] = [
+  { photo: "foto-bebe.jpg", art: "arte-bebe.jpg", captionI: 0 },
+  { photo: "foto-menino.jpg", art: "arte-menino.jpg", captionI: 3 },
+  { photo: "foto-pai.jpg", art: "arte-pai.jpg", captionI: 4 },
 ];
+const FMT_ICONS = [IcBook, IcPlay, IcSparkle];
+// Slides do hero: capa limpa + título CSS em 2 linhas (sempre inteiro dentro do frame)
+const HERO_SLIDES: {
+  photo: string; book: string; catalogI: number;
+  titleLines: { pt: [string, string]; en: [string, string] };
+  bookPos?: string; photoPos?: string;
+}[] = [
+  {
+    photo: "foto-matteo.png", book: "capa-dino2.jpg", catalogI: 2, bookPos: "center 32%", photoPos: "center center",
+    titleLines: {
+      pt: ["Matteo e o Mundo", "dos Dinossauros"],
+      en: ["Matteo and the", "Dinosaur World"],
+    },
+  },
+  {
+    photo: "foto-sofia.png", book: "capa-floresta2.jpg", catalogI: 1, bookPos: "center 26%", photoPos: "center 22%",
+    titleLines: {
+      pt: ["Sofia e a Floresta", "Encantada"],
+      en: ["Sofia and the", "Enchanted Forest"],
+    },
+  },
+  {
+    photo: "foto-bebe.jpg", book: "capa-circo.jpg", catalogI: 3, bookPos: "center 34%", photoPos: "center center",
+    titleLines: {
+      pt: ["Noah e o Circo", "das Luzes"],
+      en: ["Noah and the", "Circus of Lights"],
+    },
+  },
+];
+const FLIP_MS = 600;
+const FLIP_AUTO_MS = 2000;
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
 /* Ilustrações das dicas de enquadramento (SVG inline, sem depender de fotos) */
@@ -130,6 +174,53 @@ function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
   );
 }
 
+/** Vídeo de exemplo: inicia sozinho em mudo e fica em loop. */
+function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
+  const ref = useRef<HTMLVideoElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    el.muted = true;
+    el.defaultMuted = true;
+    const tryPlay = () => {
+      el.muted = true;
+      void el.play().catch(() => { /* autoplay bloqueado até interação */ });
+    };
+    tryPlay();
+    el.addEventListener("loadeddata", tryPlay);
+    el.addEventListener("canplay", tryPlay);
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const en of entries) {
+          if (en.isIntersecting) tryPlay();
+          else el.pause();
+        }
+      },
+      { threshold: 0.25 },
+    );
+    io.observe(el);
+    return () => {
+      el.removeEventListener("loadeddata", tryPlay);
+      el.removeEventListener("canplay", tryPlay);
+      io.disconnect();
+    };
+  }, [src]);
+  return (
+    <video
+      ref={ref}
+      poster={poster}
+      controls
+      muted
+      autoPlay
+      loop
+      playsInline
+      preload="auto"
+    >
+      <source src={src} type="video/mp4" />
+    </video>
+  );
+}
+
 function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   const [open, setOpen] = useState<number | null>(0);
   return (
@@ -146,69 +237,99 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   );
 }
 
-function FlipBook({ pages, compact = false }: { pages: string[]; compact?: boolean }) {
+function FlipBook({
+  pages,
+  compact = false,
+  coverTitle,
+  coverTitleLines,
+}: {
+  pages: string[];
+  compact?: boolean;
+  coverTitle?: string;
+  coverTitleLines?: readonly string[];
+}) {
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(0);
   const [hover, setHover] = useState(false);
   const busy = useRef(false);
   const flip = (dir: "next" | "prev", loop = false) => {
-    if (busy.current) return;
+    if (busy.current || pages.length < 2) return;
     let t = dir === "next" ? i + 1 : i - 1;
     if (t >= pages.length) { if (!loop) return; t = 0; }
     if (t < 0) return;
     busy.current = true;
     setTarget(t);
     setAnim(dir);
-    window.setTimeout(() => { setI(t); setAnim(null); busy.current = false; }, 720);
+    window.setTimeout(() => {
+      setI(t);
+      setAnim(null);
+      busy.current = false;
+    }, FLIP_MS);
   };
-  // transição automática — vira a página sozinho; no modo compacto (catálogo) só roda com o mouse em cima
+  // só folheia com o mouse em cima
   useEffect(() => {
-    if (compact && !hover) return;
-    const id = window.setTimeout(() => flip("next", true), 1500);
+    if (!hover) return;
+    const id = window.setTimeout(() => flip("next", true), FLIP_AUTO_MS);
     return () => window.clearTimeout(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i, pages.length, compact, hover]);
-  // ao tirar o mouse no modo compacto, volta parado na capa
+  }, [i, pages.length, hover]);
+  // ao sair, fecha na capa
   useEffect(() => {
-    if (compact && !hover) {
-      busy.current = false;
-      setAnim(null);
-      setI(0);
-    }
-  }, [hover, compact]);
-  const baseSrc = anim === "next" ? pages[target] : pages[i];
-  const turnSrc = anim === "next" ? pages[i] : pages[target];
+    if (hover) return;
+    busy.current = false;
+    setAnim(null);
+    setI(0);
+    setTarget(0);
+  }, [hover]);
+  const underSrc = anim === "next" ? pages[target] : pages[i];
+  const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
+  const titleLines = coverTitleLines?.length
+    ? coverTitleLines
+    : (coverTitle ? [coverTitle] : null);
+  const showCoverTitle = Boolean(titleLines) && i === 0 && !anim;
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
+    if (!hover) return;
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
   };
   return (
     <div
       className={`flipbook${compact ? " flipbook-mini" : ""}`}
-      onMouseEnter={compact ? () => setHover(true) : undefined}
-      onMouseLeave={compact ? () => setHover(false) : undefined}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
     >
-      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0} aria-label="Página anterior">‹</button>}
+      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label="Página anterior">‹</button>}
       <div className="fb-stage" onClick={onStage} role="button" tabIndex={0} aria-label="Virar página">
         <span className="fb-spine" />
-        <img className="fb-page fb-base" src={exUrl(baseSrc)} alt={`Página ${i + 1}`} />
-        {anim && <img className={`fb-page fb-turn ${anim}`} src={exUrl(turnSrc)} alt="" aria-hidden />}
-        <span className="fb-count">{i + 1} / {pages.length}</span>
+        <img className="fb-page fb-under" src={exUrl(underSrc)} alt="" aria-hidden />
+        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
+          <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? "Capa" : `Página ${i}`} />
+          <span className="fb-leaf-shade" aria-hidden />
+        </div>
+        {showCoverTitle && titleLines && (
+          <span className="fb-cover-title">
+            {titleLines.map((line) => (
+              <span key={line}>{line}</span>
+            ))}
+          </span>
+        )}
+        <span className="fb-count">{i === 0 ? "Capa" : `${i} / ${pages.length - 1}`}</span>
       </div>
-      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1} aria-label="Próxima página">›</button>}
+      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label="Próxima página">›</button>}
     </div>
   );
 }
 
 const I18N = {
   pt: {
-    nav: ["Início", "Livros", "Como funciona", "Vídeos"],
+    nav: ["Início", "Como funciona", "Livros", "Vídeos"],
     explore: "Explorar agora",
     eyebrow: "Sua foto vira uma história",
     h_pre: "Transforme uma foto em uma ", w1: "história", c1: " onde seu filho é o ", w2: "herói", h_suf: ".",
     lead: "Você envia a foto e a gente cria um personagem ilustrado, uma história personalizada, um livro em PDF e até um vídeo narrado.",
     cta_play: "Criar minha história", cta_disc: "Ver como funciona",
+    cta_demo: "Ver um exemplo no estúdio", see_studio: "Ver no estúdio",
     trust: "Encantando famílias do início ao fim",
     ba_before: "ANTES", ba_after: "DEPOIS", ba_caption: "Você envia a foto. A gente cria o encanto.",
     ba_preview: "PRÉ-VISUALIZAÇÃO",
@@ -232,12 +353,14 @@ const I18N = {
     vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
-      { t: "Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
-      { t: "Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
-      { t: "Circo das Luzes", p: "Uma noite mágica cheia de brilho e música." },
+      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
+      { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
+      { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
+      { t: "Noah e o Circo das Luzes", p: "Uma noite mágica cheia de brilho e música." },
     ],
+    vid_soon: "Em breve",
     book_badge: "Exemplo real",
-    story_title: "Folheie um livro de verdade",
+    story_title: "Folheie nossos livros",
     story_sub: "Livros criados pela plataforma a partir de uma única foto — escolha um exemplo.",
     story_hint: "Clique nas laterais do livro (ou use as setas) para virar as páginas.",
     chloe_title: "A História de Chloe",
@@ -247,14 +370,14 @@ const I18N = {
       { t: "Vídeo narrado", price: "R$ 89", unit: "por vídeo", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
       { t: "Animação", price: "R$ 149", unit: "por animação", p: "O personagem ganha vida numa animação cheia de magia.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
-    cat_title: "Escolha um livro", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
+    cat_title: "Nossos livros", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
     price: "US$ 39,99", price_note: "digital ou impresso", personalize: "Personalizar",
     save: "ECONOMIZE 33%",
     catalog: [
-      { t: "Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
-      { t: "Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza", quote: "Onde a gentileza acende vaga-lumes." },
-      { t: "Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade", quote: "Uma viagem divertida à era dos dinossauros." },
-      { t: "Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar", quote: "Uma noite feita para sonhar e brilhar." },
+      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
+      { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza", quote: "Onde a gentileza acende vaga-lumes." },
+      { t: "Matteo e o Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade", quote: "Uma viagem divertida à era dos dinossauros." },
+      { t: "Noah e o Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar", quote: "Uma noite feita para sonhar e brilhar." },
     ],
     surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida", quote: "Cada foto guarda uma aventura secreta." },
     promise_title: "Cada detalhe pensado para ser especial",
@@ -272,6 +395,7 @@ const I18N = {
       { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto apenas para criar o livro e não compartilhamos seus dados." },
       { q: "Recebo digital ou impresso?", a: "Os dois: o e-book digital na hora e, se quiser, o livro impresso enviado até você." },
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
+      { q: "Como funciona o vídeo narrado?", a: "Depois do ebook pronto, na tela de resultado você pode gerar o vídeo narrado (voz + cenas ilustradas) ou uma animação curta do personagem." },
     ],
     rev_title: "O que as famílias dizem", rev_sub: "Histórias que viraram memórias para sempre.",
     reviews: [
@@ -288,12 +412,13 @@ const I18N = {
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   en: {
-    nav: ["Home", "Books", "How it works", "Videos"],
+    nav: ["Home", "How it works", "Books", "Videos"],
     explore: "Explore now",
     eyebrow: "Your photo becomes a story",
     h_pre: "Turn a photo into a ", w1: "story", c1: " where your child is the ", w2: "hero", h_suf: ".",
     lead: "You send the photo and we create an illustrated character, a personalized story, a PDF book and even a narrated video.",
     cta_play: "Create my story", cta_disc: "See how it works",
+    cta_demo: "See an example in the studio", see_studio: "See in studio",
     trust: "Delighting families from start to finish",
     ba_before: "BEFORE", ba_after: "AFTER", ba_caption: "You send the photo. We create the magic.",
     ba_preview: "PREVIEW",
@@ -317,12 +442,14 @@ const I18N = {
     vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
-      { t: "Underwater World", p: "An ocean adventure with enchanting narration." },
-      { t: "Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
-      { t: "Circus of Lights", p: "A magical night full of sparkle and music." },
+      { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
+      { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
+      { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
+      { t: "Noah and the Circus of Lights", p: "A magical night full of sparkle and music." },
     ],
+    vid_soon: "Coming soon",
     book_badge: "Real example",
-    story_title: "Flip through a real book",
+    story_title: "Flip through our books",
     story_sub: "Books created by the platform from a single photo — pick an example.",
     story_hint: "Click the sides of the book (or use the arrows) to turn the pages.",
     chloe_title: "Chloe's Story",
@@ -332,14 +459,14 @@ const I18N = {
       { t: "Narrated video", price: "$49", unit: "per video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
       { t: "Animation", price: "$79", unit: "per animation", p: "The character comes alive in a magical animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
-    cat_title: "Choose a book", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
+    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
     price: "$39.99", price_note: "digital or printed", personalize: "Personalize",
     save: "SAVE 33%",
     catalog: [
-      { t: "Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
-      { t: "Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature", quote: "Where kindness lights up the fireflies." },
-      { t: "Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity", quote: "A fun journey back to the dinosaur age." },
-      { t: "Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine", quote: "A night made to dream and shine." },
+      { t: "Lia and the Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
+      { t: "Sofia and the Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature", quote: "Where kindness lights up the fireflies." },
+      { t: "Matteo and the Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity", quote: "A fun journey back to the dinosaur age." },
+      { t: "Noah and the Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine", quote: "A night made to dream and shine." },
     ],
     surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure", quote: "Every photo hides a secret adventure." },
     promise_title: "Every detail crafted to feel special",
@@ -357,6 +484,7 @@ const I18N = {
       { q: "Are my child's photo and data safe?", a: "Yes. We use the photo only to create the book and never share your data." },
       { q: "Digital or printed?", a: "Both: the digital e-book right away and, if you want, the printed book shipped to you." },
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
+      { q: "How does the narrated video work?", a: "After the ebook is ready, on the result screen you can generate a narrated video (voice + illustrated scenes) or a short character animation." },
     ],
     rev_title: "What families say", rev_sub: "Stories that became memories forever.",
     reviews: [
@@ -385,11 +513,21 @@ export function Landing() {
   const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
   const t = I18N[lang];
-  const navHrefs = ["#top", "#catalogo", "#como", "#videos"];
+  const navHrefs = ["#top", "#como", "#catalogo", "#videos"];
   const exampleBooks = [
-    { title: t.catalog[0].t, cover: CATALOG_IMGS[0], pages: [CATALOG_IMGS[0], ...BOOK3D[0].pages] },
-    { title: t.chloe_title, cover: "ebook-1.jpg", pages: BOOK },
-    ...t.catalog.slice(1).map((c, i) => ({ title: c.t, cover: CATALOG_IMGS[i + 1], pages: [CATALOG_IMGS[i + 1], ...BOOK3D[i + 1].pages] })),
+    {
+      title: t.catalog[0].t,
+      titleLines: CATALOG_TITLE_LINES[0][lang],
+      cover: CATALOG_IMGS[0],
+      pages: [CATALOG_IMGS[0], ...BOOK3D[0].pages],
+    },
+    { title: t.chloe_title, titleLines: undefined as [string, string] | undefined, cover: "ebook-1.jpg", pages: BOOK },
+    ...t.catalog.slice(1).map((c, i) => ({
+      title: c.t,
+      titleLines: CATALOG_TITLE_LINES[i + 1][lang],
+      cover: CATALOG_IMGS[i + 1],
+      pages: [CATALOG_IMGS[i + 1], ...BOOK3D[i + 1].pages],
+    })),
   ];
 
   // Auto-avanço do carrossel do hero
@@ -444,7 +582,7 @@ export function Landing() {
         </div>
       </header>
 
-      {/* HERO — banner full-width (foto real em cima -> capa do livro), carrossel */}
+      {/* HERO — livro grande (retrato), capa + foto real no card */}
       <section className="kbanner-hero" aria-label={t.eyebrow}>
         <div className="kbh-frame">
           {HERO_SLIDES.map((s, i) => (
@@ -452,12 +590,17 @@ export function Landing() {
               <img
                 className="kbh-photo"
                 src={exUrl(s.book)}
-                alt="Capa do livro gerado"
+                alt={t.catalog[s.catalogI].t}
                 loading={i === 0 ? "eager" : "lazy"}
+                style={s.bookPos ? { objectPosition: s.bookPos } : undefined}
               />
+              <span className="kbh-cover-title" aria-hidden>
+                {s.titleLines[lang].map((line) => (
+                  <span key={line}>{line}</span>
+                ))}
+              </span>
               <span className="kbh-tag">
                 <span className="kbh-tag-top"><IcEye className="ei" /> {t.ba_preview}</span>
-                <b>{t.banners[i].t}</b>
               </span>
               <figure className="kbh-book">
                 <img
@@ -473,6 +616,7 @@ export function Landing() {
                 <p>{t.banners[i].p}</p>
                 <div className="khero-cta">
                   <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                  <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.cta_demo}</Link>
                 </div>
               </div>
             </div>
@@ -491,84 +635,26 @@ export function Landing() {
         </div>
       </section>
 
-      {/* FLIPBOOK — destaque */}
-      <section className="ksection featured-book" id="historia-exemplo">
-        <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
-        <h2 className="ktitle reveal">{t.story_title}</h2>
-        <p className="ksub reveal">{t.story_sub}</p>
-        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
-          {exampleBooks.map((b, i) => (
-            <button
-              key={b.title}
-              type="button"
-              className={`ex-tab${i === exBook ? " on" : ""}`}
-              onClick={() => setExBook(i)}
-              role="tab"
-              aria-selected={i === exBook}
-            >
-              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" />
-              <span>{b.title}</span>
-            </button>
-          ))}
-        </div>
-        <div className="reveal"><FlipBook key={exBook} pages={exampleBooks[exBook].pages} /></div>
-        <p className="fb-hint reveal">{t.story_hint}</p>
-      </section>
-
-      {/* BANNERS NARRATIVOS */}
-      <section className="banners">
-        {t.banners.map((b, i) => (
-          <figure className="banner-card reveal" key={b.t}>
-            <img src={exUrl(BANNER_IMGS[i])} alt={b.t} loading="lazy" />
-            <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
-          </figure>
-        ))}
-      </section>
-
-      {/* CATÁLOGO DE LIVROS */}
-      <section className="ksection" id="catalogo">
-        <h2 className="ktitle reveal">{t.cat_title}</h2>
-        <p className="ksub reveal">{t.cat_sub}</p>
-        <div className="cat-grid">
-          {t.catalog.map((c, i) => (
-            <div className="cat-card reveal" key={c.t}>
-              <div className="cat-flip" style={{ background: BOOK3D[i].bg }}>
-                <FlipBook pages={[CATALOG_IMGS[i], ...BOOK3D[i].pages]} compact />
-                <span className="cat-flip-off">{t.save}</span>
-              </div>
-              <div className="cat-body">
-                <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
-                <h3>{c.t}</h3>
-                <p>{c.p}</p>
-                <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
-                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
-              </div>
-            </div>
-          ))}
-          <div className="cat-card surprise reveal">
-            <div className="cat-flip" style={{ background: BOOK3D_SURPRISE.bg }}>
-              <FlipBook pages={[SURPRISE_IMG, ...BOOK3D_SURPRISE.pages]} compact />
-            </div>
-            <div className="cat-body">
-              <div className="cat-badges"><span className="cat-age">{t.surprise.age}</span><span className="cat-tag">{t.surprise.tag}</span></div>
-              <h3>{t.surprise.t}</h3>
-              <p>{t.surprise.p}</p>
-              <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
-              <Link to="/app" className="kbtn kbtn-soft">{t.personalize}</Link>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* COMO FUNCIONA — com exemplos reais */}
+      {/* COMO FUNCIONA */}
       <section className="ksection" id="como">
         <h2 className="ktitle reveal">{t.hiw_title}</h2>
         <p className="ksub reveal">{t.hiw_sub}</p>
         <div className="howex">
           {t.hiw.map((h, i) => (
             <div className="howex-item" key={h.t}>
-              <figure className="howex-card reveal">
-                <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+              <figure className={`howex-card reveal${i === 2 ? " howex-card-book" : ""}`}>
+                {i === 2 ? (
+                  <div className="howex-book">
+                    <FlipBook
+                      pages={HOW_OPEN_BOOK}
+                      compact
+                      coverTitle={t.catalog[2].t}
+                      coverTitleLines={CATALOG_TITLE_LINES[2][lang]}
+                    />
+                  </div>
+                ) : (
+                  <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                )}
                 <span className="howex-num">{i + 1}</span>
                 <figcaption><h3>{h.t}</h3><p>{h.p}</p></figcaption>
               </figure>
@@ -576,9 +662,42 @@ export function Landing() {
             </div>
           ))}
         </div>
+        <div className="howex-cta reveal">
+          <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.cta_demo}</Link>
+        </div>
+      </section>
 
+      {/* ANTES E DEPOIS */}
+      <section className="ksection" id="antes-depois">
+        <h2 className="ktitle reveal">{t.ba_title}</h2>
+        <p className="ksub reveal">{t.ba_sub}</p>
+        <div className="ba-gallery">
+          {BA_PAIRS.map((pair) => (
+            <article className="bapair reveal" key={pair.photo}>
+              <div className="bapair-imgs">
+                <figure className="bap-side">
+                  <img src={exUrl(pair.photo)} alt={t.ba_before} loading="lazy" />
+                  <span className="ba-tag tag-before">{t.ba_before}</span>
+                </figure>
+                <span className="bap-arrow" aria-hidden><IcArrow /></span>
+                <figure className="bap-side">
+                  <img src={exUrl(pair.art)} alt={t.ba_after} loading="lazy" />
+                  <span className="ba-tag tag-after">{t.ba_after}</span>
+                </figure>
+              </div>
+              <p className="bapair-cap"><IcSparkle className="ci" />{t.ba_pairs[pair.captionI]}</p>
+            </article>
+          ))}
+        </div>
+        <p className="reveal" style={{ marginTop: 22 }}>
+          <span className="ba-caption"><IcSparkle className="ci" />{t.ba_caption}</span>
+        </p>
+      </section>
+
+      {/* FOTO PERFEITA */}
+      <section className="ksection" id="foto-perfeita">
         <div className="shot-tips reveal">
-          <h3>{t.shot_title}</h3>
+          <h2 className="ktitle">{t.shot_title}</h2>
           <p className="shot-sub">{t.shot_sub}</p>
           <div className="shot-grid">
             {SHOTS.map((s, i) => (
@@ -600,23 +719,152 @@ export function Landing() {
         </div>
       </section>
 
+      {/* NOSSOS LIVROS */}
+      <section className="ksection" id="catalogo">
+        <h2 className="ktitle reveal">{t.cat_title}</h2>
+        <p className="ksub reveal">{t.cat_sub}</p>
+        <div className="cat-grid">
+          {t.catalog.map((c, i) => (
+            <div className="cat-card reveal" key={c.t}>
+              <div className="cat-flip" style={{ background: BOOK3D[i].bg }}>
+                <FlipBook
+                  pages={[CATALOG_IMGS[i], ...BOOK3D[i].pages]}
+                  compact
+                  coverTitle={c.t}
+                  coverTitleLines={CATALOG_TITLE_LINES[i][lang]}
+                />
+                <span className="cat-flip-off">{t.save}</span>
+              </div>
+              <div className="cat-body">
+                <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
+                <h3>{c.t}</h3>
+                <p>{c.p}</p>
+                <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
+                <div className="cat-actions">
+                  <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
+                  {CATALOG_THEMES[i] === "dinosaurs" && (
+                    <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.see_studio}</Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div className="cat-card surprise reveal">
+            <div className="cat-flip" style={{ background: BOOK3D_SURPRISE.bg }}>
+              <FlipBook pages={[SURPRISE_IMG, ...BOOK3D_SURPRISE.pages]} compact />
+            </div>
+            <div className="cat-body">
+              <div className="cat-badges"><span className="cat-age">{t.surprise.age}</span><span className="cat-tag">{t.surprise.tag}</span></div>
+              <h3>{t.surprise.t}</h3>
+              <p>{t.surprise.p}</p>
+              <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
+              <Link to="/app" className="kbtn kbtn-soft">{t.personalize}</Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* FORMATOS */}
+      <section className="ksection" id="formatos">
+        <h2 className="ktitle reveal">{t.fmt_title}</h2>
+        <p className="ksub reveal">{t.fmt_sub}</p>
+        <div className="fmt-grid">
+          {t.formats.map((f, i) => {
+            const Icon = FMT_ICONS[i] ?? IcBook;
+            return (
+              <div className={`fmt-card reveal${f.badge ? " featured" : ""}`} key={f.t}>
+                {f.badge ? <span className="fmt-badge">{f.badge}</span> : null}
+                <div className="fmt-ic"><Icon /></div>
+                <h3>{f.t}</h3>
+                <div className="fmt-price">{f.price}<span>{f.unit}</span></div>
+                <p>{f.p}</p>
+                <ul className="fmt-feats">
+                  {f.feats.map((feat) => (
+                    <li key={feat}>{feat}</li>
+                  ))}
+                </ul>
+                <Link to="/app" className="kbtn kbtn-primary">{f.cta}</Link>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
       {/* VÍDEOS NARRADOS */}
       <section className="ksection" id="videos">
         <h2 className="ktitle reveal">{t.vid_title}</h2>
         <p className="ksub reveal">{t.vid_sub}</p>
         <div className="vid-grid">
-          {t.videos.map((v, i) => (
-            <figure className="vid-card reveal" key={v.t}>
-              <div className="vid-thumb">
-                <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
-                <span className="vid-play" aria-hidden></span>
-                <span className="vid-dur">{t.vid_dur}</span>
-              </div>
-              <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
-            </figure>
-          ))}
+          {t.videos.map((v, i) => {
+            const src = VIDEO_SRCS[i];
+            const canPlay = Boolean(src);
+            return (
+              <figure className="vid-card reveal" key={v.t}>
+                <div className="vid-thumb">
+                  {canPlay && src ? (
+                    <AutoMutedVideo key={src} src={exUrl(src)} poster={exUrl(VIDEO_IMGS[i])} />
+                  ) : (
+                    <button
+                      type="button"
+                      className="vid-play-btn"
+                      aria-label={`${v.t} — ${t.vid_soon}`}
+                      disabled
+                    >
+                      <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
+                      <span className="vid-dur">{t.vid_soon}</span>
+                    </button>
+                  )}
+                </div>
+                <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
+              </figure>
+            );
+          })}
         </div>
         <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+      </section>
+
+      {/* FOLHEIE NOSSOS LIVROS */}
+      <section className="ksection featured-book" id="historia-exemplo">
+        <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
+        <h2 className="ktitle reveal">{t.story_title}</h2>
+        <p className="ksub reveal">{t.story_sub}</p>
+        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
+          {exampleBooks.map((b, i) => (
+            <button
+              key={b.title}
+              type="button"
+              className={`ex-tab${i === exBook ? " on" : ""}`}
+              onClick={() => setExBook(i)}
+              role="tab"
+              aria-selected={i === exBook}
+            >
+              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" />
+              <span>{b.title}</span>
+            </button>
+          ))}
+        </div>
+        <div className="reveal">
+          <FlipBook
+            key={exBook}
+            pages={exampleBooks[exBook].pages}
+            coverTitle={exampleBooks[exBook].title}
+            coverTitleLines={exampleBooks[exBook].titleLines}
+          />
+        </div>
+        <p className="fb-hint reveal">{t.story_hint}</p>
+        <div className="howex-cta reveal">
+          <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.cta_demo}</Link>
+        </div>
+      </section>
+
+      {/* BANNERS NARRATIVOS — abaixo do folheie */}
+      <section className="banners">
+        {t.banners.map((b, i) => (
+          <figure className="banner-card reveal" key={b.t}>
+            <img src={exUrl(BANNER_IMGS[i])} alt={t.catalog[BANNER_CATALOG_I[i]].t} loading="lazy" />
+            <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
+          </figure>
+        ))}
       </section>
 
       {/* AVALIAÇÕES */}

@@ -1,5 +1,5 @@
 import Constants from "expo-constants";
-import type { Job, Project, Style, UploadUrl } from "./types";
+import type { Job, Project, UploadUrl } from "./types";
 
 // Base da API: use o IP da máquina ao testar em device físico (ex.: http://192.168.0.10:8000).
 const BASE: string =
@@ -50,8 +50,8 @@ export const api = {
       body: JSON.stringify({ email, password }),
     }),
   credits: () => req<{ credits: number }>("/v1/credits"),
-  createProject: (style: Style) =>
-    req<Project>("/v1/projects", { method: "POST", body: JSON.stringify({ style }) }),
+  createProject: () =>
+    req<Project>("/v1/projects", { method: "POST", body: JSON.stringify({ style: "cgi_3d" }) }),
   getProject: (id: string) => req<Project>(`/v1/projects/${id}`),
   listJobs: (id: string) => req<Job[]>(`/v1/projects/${id}/jobs`),
   requestPhotoUpload: (id: string, contentType: string, ext: string) =>

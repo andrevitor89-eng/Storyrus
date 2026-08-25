@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app import queue
-from app.routers import auth, credits, jobs, projects, webhooks
+from app.routers import auth, credits, jobs, projects, voices, webhooks
 from app.services import jobs as jobs_svc
 
 logging.basicConfig(level=settings.log_level)
@@ -32,9 +32,14 @@ app.include_router(auth.router)
 app.include_router(credits.router)
 app.include_router(projects.router)
 app.include_router(jobs.router)
+app.include_router(voices.router)
 app.include_router(webhooks.router)
 
 
 @app.get("/health", tags=["meta"])
 def health() -> dict:
-    return {"status": "ok", "env": settings.app_env}
+    return {
+        "status": "ok",
+        "env": settings.app_env,
+        "has_elevenlabs": bool(settings.elevenlabs_api_key),
+    }

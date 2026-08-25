@@ -9,13 +9,8 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { api } from "./api";
-import type { Job, Project, Style } from "./types";
+import type { Job, Project } from "./types";
 
-const STYLES: { id: Style; label: string }[] = [
-  { id: "realistic", label: "Realista" },
-  { id: "cartoon", label: "Desenho" },
-  { id: "anime", label: "Animação" },
-];
 const STEPS: { key: "avatar" | "story" | "ebook" | "video"; label: string; cost: number }[] = [
   { key: "avatar", label: "Gerar personagem", cost: 1 },
   { key: "story", label: "Escrever história", cost: 1 },
@@ -31,7 +26,6 @@ const DOT: Record<string, string> = {
 
 export function StudioScreen({ onLogout }: { onLogout: () => void }) {
   const [credits, setCredits] = useState<number | null>(null);
-  const [style, setStyle] = useState<Style>("realistic");
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photoUploaded, setPhotoUploaded] = useState(false);
@@ -77,7 +71,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      setProject(await api.createProject(style));
+      setProject(await api.createProject());
       setJobs([]);
       setPhotoUploaded(false);
     } catch (e) {
@@ -137,18 +131,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
       {!project ? (
         <View style={s.card}>
           <Text style={s.h2}>Novo projeto</Text>
-          <Text style={s.muted}>Escolha o estilo:</Text>
-          <View style={s.row}>
-            {STYLES.map((st) => (
-              <Pressable
-                key={st.id}
-                style={[s.chip, style === st.id && s.chipOn]}
-                onPress={() => setStyle(st.id)}
-              >
-                <Text style={s.chipText}>{st.label}</Text>
-              </Pressable>
-            ))}
-          </View>
+          <Text style={s.muted}>Personagem em CGI 3D de filme infantil.</Text>
           <Pressable style={s.btn} onPress={start} disabled={busy}>
             <Text style={s.btnText}>Criar projeto</Text>
           </Pressable>
@@ -157,7 +140,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
         <View style={s.card}>
           <Text style={s.h2}>Projeto</Text>
           <Text style={s.muted}>
-            Estilo: {project.style} · Status: {project.status}
+            Estilo: CGI 3D · Status: {project.status}
           </Text>
 
           <Pressable style={s.btnAlt} onPress={pickAndUpload} disabled={busy}>

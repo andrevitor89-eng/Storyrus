@@ -62,7 +62,10 @@ def _job(db, project, jtype, cost=1, payload=None):
 class FakeImage:
     name = "fake-img"
     async def generate_character(self, **kw): return ImageResult(image_bytes=b"CHAR", mime_type="image/png")
+    async def generate_realistic(self, **kw): return ImageResult(image_bytes=b"REAL", mime_type="image/png")
     async def generate_scene(self, **kw): return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
+    async def refine_identity(self, **kw): return ImageResult(image_bytes=b"REFINED", mime_type="image/png")
+    async def refine_scene(self, **kw): return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png")
 
 
 class FakeText:
@@ -90,6 +93,7 @@ def test_backoff_is_exponential_and_capped():
 
 async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1")); db.commit()
     j = _job(db, p, "AVATAR")
@@ -100,6 +104,8 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.AVATAR_READY.value
     assert p.character_ref and "storage_key" in p.character_ref
+    # generate_character + refine_identity (ilustracao unificada + identidade)
+    assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
 
 
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
@@ -158,6 +164,7 @@ async def test_video_create_and_poll(db, mem_storage, monkeypatch):
             self.polls += 1
             return VideoJob(provider_task_id="t1", status="DONE", video_url="https://cdn/v.mp4")
     monkeypatch.setattr(handlers, "get_video_provider", lambda *a, **k: FakeVideo())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(runner.settings, "video_poll_interval_s", 0.0)
     # evita baixar o video de verdade -> guarda a URL do provedor
     import app.workers.handlers as h
@@ -171,3 +178,153 @@ async def test_video_create_and_poll(db, mem_storage, monkeypatch):
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.VIDEO_READY.value
     assert p.video_url
+
+
+async def test_video_prefers_keyframe_reference(db, mem_storage, monkeypatch):
+    """Keyframe da cena 1 tem prioridade sobre character_ref / realistic."""
+    created = {}
+
+    class FakeVideo:
+        async def create_video(self, **kw):
+            created["image"] = kw["image"]
+            created["duration_s"] = kw["duration_s"]
+            return VideoJob(provider_task_id="t1", status="DONE", video_url="https://cdn/v.mp4")
+
+        async def poll_video(self, **kw):
+            return VideoJob(provider_task_id="t1", status="DONE", video_url="https://cdn/v.mp4")
+
+    monkeypatch.setattr(handlers, "get_video_provider", lambda *a, **k: FakeVideo())
+    monkeypatch.setattr(handlers, "_use_video_offline", lambda: False)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(runner.settings, "video_poll_interval_s", 0.0)
+
+    store = mem_storage
+    store["char1"] = b"CHAR"
+    store["kf1"] = b"KEYFRAME1"
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    db.add(Asset(
+        project_id=p.id,
+        kind=AssetKind.PAGE_IMAGE.value,
+        storage_key="kf1",
+        meta={"keyframe": 1},
+    ))
+    db.commit()
+    j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 5})
+
+    await runner.process_job(db, j)
+
+    assert created["image"] == b"KEYFRAME1"
+    assert created["duration_s"] == 5
+    db.refresh(p)
+    assert p.status == ProjectStatus.VIDEO_READY.value
+
+
+async def test_video_uses_character_ref_not_realistic(db, mem_storage, monkeypatch):
+    """Sem keyframe, o vídeo usa o avatar 3D — não a imagem realística extra."""
+    created = {}
+
+    class FakeVideo:
+        async def create_video(self, **kw):
+            created["image"] = kw["image"]
+            return VideoJob(provider_task_id="t1", status="DONE", video_url="https://cdn/v.mp4")
+
+        async def poll_video(self, **kw):
+            return VideoJob(provider_task_id="t1", status="DONE", video_url="https://cdn/v.mp4")
+
+    monkeypatch.setattr(handlers, "get_video_provider", lambda *a, **k: FakeVideo())
+    monkeypatch.setattr(handlers, "_use_video_offline", lambda: False)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(runner.settings, "video_poll_interval_s", 0.0)
+
+    store = mem_storage
+    store["char1"] = b"CHAR3D"
+    store["real1"] = b"REALISTIC"
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    db.add(Asset(
+        project_id=p.id,
+        kind=AssetKind.REALISTIC.value,
+        storage_key="real1",
+    ))
+    db.commit()
+    j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 5})
+
+    await runner.process_job(db, j)
+
+    assert created["image"] == b"CHAR3D"
+
+
+async def test_avatar_clears_approvals(db, mem_storage, monkeypatch):
+    from datetime import datetime, timezone
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_approved_at = datetime.now(timezone.utc)
+    p.book_approved_at = datetime.now(timezone.utc)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+
+    db.refresh(p)
+    assert p.character_approved_at is None
+    assert p.book_approved_at is None
+
+
+async def test_narrated_video_gif_fallback(db, mem_storage, monkeypatch):
+    """Sem ffmpeg: monta GIF a partir do storyboard + TTS mock."""
+    from app.media import assemble as assemble_mod
+
+    class FakeTts:
+        name = "fake"
+
+        async def synthesize(self, text, **kw):
+            return b"ID3fakeaudio"
+
+    monkeypatch.setattr("app.media.tts.get_tts_provider", lambda **kw: FakeTts())
+    monkeypatch.setattr(assemble_mod, "ffmpeg_available", lambda: False)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", True)
+
+    store = mem_storage
+    store["char1"] = b"CHARIMG"
+    # PIL precisa de PNG real para o GIF fallback — gera um PNG minimo
+    from io import BytesIO
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (64, 64), (200, 180, 160)).save(buf, format="PNG")
+    store["char1"] = buf.getvalue()
+
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: Ola.\nPagina 2: Fim."
+    sb = {
+        "scenes": [
+            {"n": 1, "narration": "Ola mundo.", "video_prompt": "wave"},
+            {"n": 2, "narration": "Fim da historia.", "video_prompt": "bow"},
+        ]
+    }
+    import json
+
+    store["sb1"] = json.dumps(sb).encode()
+    db.add(Asset(project_id=p.id, kind=AssetKind.STORYBOARD.value, storage_key="sb1"))
+    db.commit()
+    j = _job(db, p, "NARRATED_VIDEO", cost=8)
+
+    await runner.process_job(db, j)
+
+    db.refresh(p)
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    assert p.narrated_video_url
+    assert store[p.narrated_video_url].startswith(b"GIF") or len(store[p.narrated_video_url]) > 10
+
+
+def test_clamp_kling_duration():
+    assert handlers._clamp_kling_duration(5) == 5
+    assert handlers._clamp_kling_duration(7) == 5
+    assert handlers._clamp_kling_duration(8) == 10
+    assert handlers._clamp_kling_duration(10) == 10
+
