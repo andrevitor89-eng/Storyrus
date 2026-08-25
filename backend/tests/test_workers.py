@@ -329,3 +329,49 @@ def test_clamp_kling_duration():
     assert handlers._clamp_kling_duration(8) == 10
     assert handlers._clamp_kling_duration(10) == 10
 
+
+async def test_ebook_catalog_uses_illustration_notes(db, mem_storage, monkeypatch):
+    """Livro de catálogo ilustra a nota (ex. arara), não inventa a cena pelo texto."""
+    from app.models import JobType
+    from app.story_templates import render_template
+
+    prompts: list[str] = []
+
+    class RecordingImage(FakeImage):
+        async def generate_scene(self, **kw):
+            prompts.append(kw.get("prompt") or "")
+            return await super().generate_scene(**kw)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: RecordingImage())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    _, p = _seed(db)
+    p.child_name = "Matteo"
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = render_template("alfabeto_amazonia", "Matteo", gender="boy")
+    p.status = ProjectStatus.STORY_READY.value
+    db.add(
+        Job(
+            project_id=p.id,
+            type=JobType.STORY.value,
+            status=JobStatus.DONE.value,
+            cost_credits=0,
+            result={"source": "template", "template_id": "alfabeto_amazonia"},
+        )
+    )
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    db.refresh(p)
+    assert p.status == ProjectStatus.EBOOK_READY.value
+    # P1 dedicatória não gera cena; P3 (arara) usa a nota do catálogo
+    assert len(prompts) == 28
+    arara = prompts[1]
+    assert "letra grande abstrata A" in arara
+    assert "arara" in arara.lower()
+    assert "Pagina de alfabeto" in arara
+    assert "NUNCA texto legivel" in arara
+    macaco = prompts[13]
+    assert "pulando de galho em galho" in macaco
+    assert "letra grande abstrata M" in macaco
+

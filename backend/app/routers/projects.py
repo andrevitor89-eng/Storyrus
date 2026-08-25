@@ -412,7 +412,7 @@ def apply_story_template(
             "Defina o nome da criança no projeto antes de usar uma história pronta",
         )
     try:
-        text = story_templates.render_template(body.template_id, name)
+        text = story_templates.render_template(body.template_id, name, gender=body.gender)
     except KeyError:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "História não encontrada no catálogo")
     project.story_text = text

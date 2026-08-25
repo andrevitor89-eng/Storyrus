@@ -354,3 +354,11 @@ def build_scene_prompt(
         "parede) para receber o texto impresso."
     )
     return " ".join(parts)
+
+
+ALPHABET_SCENE_EXTRAS = (
+    "Pagina de alfabeto: destaque UM animal com a acao pedida na cena; "
+    "inclua uma letra grande abstrata (madeira, espuma ou topiaria na forma da "
+    "letra da pagina). A letra e so silhueta — NUNCA texto legivel, palavras, "
+    "legendas, captions ou o nome do animal escrito na arte."
+)

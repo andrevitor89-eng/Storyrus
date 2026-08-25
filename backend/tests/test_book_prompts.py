@@ -1,5 +1,6 @@
 """Testes do modulo de prompts do livro (avatar + expressao + cena)."""
 from app.ai_clients.book_prompts import (
+    ALPHABET_SCENE_EXTRAS,
     AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
     REFINE_SCENE_PROMPT,
@@ -110,6 +111,19 @@ def test_scene_keeps_emotion_separate_from_identity():
     assert "expressao NEUTRA" in SCENE_GEN_PREFIX or "NAO a copie" in SCENE_GEN_PREFIX
     assert "PRESERVE a EXPRESSAO FACIAL" in REFINE_SCENE_PROMPT
     assert "neutra do avatar" in REFINE_SCENE_PROMPT.lower() or "emocao da pagina" in REFINE_SCENE_PROMPT.lower()
+
+
+def test_alphabet_extras_forbid_readable_text():
+    prompt = build_scene_prompt(
+        page=15,
+        text="O macaco pula de galho em galho.",
+        scene="Matteo vendo um macaco-prego pulando de galho em galho; letra grande abstrata M.",
+        extras=ALPHABET_SCENE_EXTRAS,
+        child_name="Matteo",
+    )
+    assert "Pagina de alfabeto" in prompt
+    assert "NUNCA texto legivel" in prompt
+    assert "letra grande abstrata M" in prompt
 
 
 def test_expression_directive():

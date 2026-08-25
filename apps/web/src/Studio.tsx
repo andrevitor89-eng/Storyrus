@@ -126,6 +126,15 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     if (q && THEMES.some((x) => x.id === q)) setSelectedThemes([q as Theme]);
   }, []);
 
+  // Abre histórias prontas quando a landing manda /app?historia=alfabeto_amazonia
+  useEffect(() => {
+    if (demoIdFromSearch()) return;
+    const h = new URLSearchParams(window.location.search).get("historia");
+    if (!h) return;
+    setStoryMode("catalog");
+    api.storyTemplates().then(setTemplates).catch((e) => setError((e as Error).message));
+  }, []);
+
   useEffect(() => {
     if (!isDemo) return;
     const demo = getDemoExample();
