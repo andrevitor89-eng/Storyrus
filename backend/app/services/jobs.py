@@ -25,6 +25,8 @@ COST_BY_TYPE: dict[JobType, int] = {
     JobType.EBOOK: settings.cost_ebook_credits,
     JobType.STORYBOARD: settings.cost_avatar_credits,
     JobType.VIDEO: settings.cost_video_credits,
+    JobType.NARRATED_VIDEO: settings.cost_narrated_video_credits,
+    JobType.EXTRA_CHARACTER: settings.cost_avatar_credits,
 }
 
 PROVIDER_BY_TYPE: dict[JobType, str] = {
@@ -34,6 +36,8 @@ PROVIDER_BY_TYPE: dict[JobType, str] = {
     JobType.EBOOK: "internal",
     JobType.STORYBOARD: settings.image_provider,
     JobType.VIDEO: settings.video_provider,
+    JobType.NARRATED_VIDEO: "ffmpeg+tts",
+    JobType.EXTRA_CHARACTER: settings.image_provider,
 }
 
 # Hook de enfileiramento no broker real. Default: no-op (worker faz polling de PENDING).
@@ -43,10 +47,7 @@ enqueue_fn: Callable[[uuid.UUID], None] = lambda job_id: None
 def _active_jobs(db: Session, user: User) -> int:
     """Conta jobs ativos para o limite de backpressure.
 
-    VIDEO fica de fora: pode permanecer RUNNING por muito tempo (poll de ate
-    video_poll_timeout_s por tentativa, com retry/backoff ate job_max_attempts
-    vezes), e contá-lo travava outras acoes do usuario com 429 falso-positivo
-    enquanto um unico video ainda estava sendo gerado.
+    VIDEO / NARRATED_VIDEO ficam de fora: podem permanecer RUNNING por muito tempo.
     """
     stmt = (
         select(func.count(Job.id))
@@ -54,7 +55,7 @@ def _active_jobs(db: Session, user: User) -> int:
         .where(
             Project.user_id == user.id,
             Job.status.in_([JobStatus.PENDING.value, JobStatus.RUNNING.value]),
-            Job.type != JobType.VIDEO.value,
+            Job.type.notin_([JobType.VIDEO.value, JobType.NARRATED_VIDEO.value]),
         )
     )
     return db.scalar(stmt) or 0

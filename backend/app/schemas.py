@@ -33,7 +33,7 @@ class UserOut(BaseModel):
 
 # ---- Projects ----
 class ProjectCreateIn(BaseModel):
-    style: ProjectStyle = ProjectStyle.REALISTIC
+    style: ProjectStyle = ProjectStyle.CGI_3D
     # Tema narrativo da história (aventura, princesas, espaco, ...). Aberto por design.
     theme: str | None = Field(default=None, max_length=32)
     # Segundo tema opcional (máx. 2 na mesma história): `theme` continua definindo
@@ -71,6 +71,11 @@ class ProjectOut(BaseModel):
     story_text: str | None
     ebook_url: str | None
     video_url: str | None
+    narrated_video_url: str | None = None
+    character_approved_at: datetime | None = None
+    book_approved_at: datetime | None = None
+    print_requested_at: datetime | None = None
+    print_status: str | None = None
     created_at: datetime
 
 
@@ -87,8 +92,15 @@ class UploadUrlOut(BaseModel):
 
 
 class VideoRequestIn(BaseModel):
-    duration_s: int = Field(default=30, ge=5, le=120)
+    """Pedido de Animação (Kling image2video). Duração: 5 ou 10 segundos."""
+    duration_s: int = Field(default=5, ge=5, le=10)
     provider: str | None = None
+
+
+class NarratedVideoRequestIn(BaseModel):
+    """Pedido de vídeo narrado (TTS + montagem). voice_id = UUID interno de UserVoice."""
+
+    voice_id: uuid.UUID | None = None
 
 
 class StoryTextIn(BaseModel):
@@ -99,6 +111,22 @@ class StoryTextIn(BaseModel):
 class StoryExtractOut(BaseModel):
     """Texto extraído de um arquivo enviado (PDF/DOCX/TXT)."""
     text: str
+
+
+class StoryTemplateOut(BaseModel):
+    """Metadados de uma história pronta do catálogo (templates traduzidos)."""
+    id: str
+    titulo: str
+    genero: str
+    idade: str
+    tematica: str
+    emoji: str
+    paginas: int
+
+
+class StoryTemplateApplyIn(BaseModel):
+    """Aplicar uma história pronta do catálogo ao projeto (sem IA, sem créditos)."""
+    template_id: str = Field(min_length=1, max_length=64)
 
 
 # ---- Jobs ----

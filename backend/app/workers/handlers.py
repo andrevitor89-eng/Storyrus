@@ -12,7 +12,9 @@ from __future__ import annotations
 import json
 import logging
 import re
+import uuid
 from io import BytesIO
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -20,10 +22,17 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
 from app.ai_clients.base import ImageResult, ProviderError
+from app.ai_clients.book_prompts import (
+    AVATAR_PROMPT,
+    build_scene_prompt,
+    infer_expression,
+)
+from app.ai_clients.book_prompts import (
+    STYLE as BOOK_STYLE,
+)
 from app.config import settings
-from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
+from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
 from app.workers import ebook as ebook_builder
-
 
 logger = logging.getLogger("worker")
 
@@ -120,7 +129,7 @@ def _offline_video_bytes(label: str) -> bytes:
     return (
         f"Fallback offline do video indisponivel para: {label}\n"
         "Use o provedor configurado para gerar o mp4 real quando houver acesso.\n"
-    ).encode("utf-8")
+    ).encode()
 
 
 # --------------------------------------------------------------------------- #
@@ -754,39 +763,51 @@ async def handle_avatar(db: Session, job: Job) -> None:
             cost_usd=0.0,
         )
     else:
+        # CGI 3D de filme infantil: generate_character + refine de identidade.
         provider = get_image_provider(job.provider)
-        result = await provider.generate_character(
-            prompt="Retrato do personagem principal, corpo inteiro, fundo neutro.",
-            reference_images=refs,
-            style=project.style or "realistic",
-        )
-        result = await _refine_identity(provider, refs[0], result, project.style or "realistic")
+        style = BOOK_STYLE
+        try:
+            result = await provider.generate_character(
+                prompt=AVATAR_PROMPT,
+                reference_images=refs,
+                style=style,
+            )
+        except ProviderError:
+            result = await provider.generate_realistic(
+                photo=refs[0], prompt=AVATAR_PROMPT, style=style
+            )
+        result = await _refine_identity(provider, refs[0], result, style, retries=1)
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
     db.add(Asset(project_id=project.id, kind=AssetKind.CHARACTER.value, storage_key=key,
                  meta={"mime": result.mime_type}))
     project.character_ref = {"storage_key": key, "mime": result.mime_type}
+    project.character_approved_at = None
+    project.book_approved_at = None
     job.cost_usd = result.cost_usd
     _set_status(db, project, ProjectStatus.AVATAR_READY)
 
 
-async def _refine_identity(provider, photo_bytes, result, style):
+async def _refine_identity(provider, photo_bytes, result, style, *, retries: int = 0):
     """Passe opcional: corrige a ilustracao para ficar mais fiel a foto.
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
+    `retries` = tentativas extras apos a primeira falha (avatar usa 1).
     """
     refine = getattr(provider, "refine_identity", None)
     if refine is None or not photo_bytes:
         return result
-    try:
-        refined = await refine(
-            photo=photo_bytes, illustration=result.image_bytes, style=style
-        )
-        if refined and getattr(refined, "image_bytes", None):
-            return refined
-    except Exception:  # noqa: BLE001 - refinamento e opcional
-        pass
+    attempts = 1 + max(0, retries)
+    for _ in range(attempts):
+        try:
+            refined = await refine(
+                photo=photo_bytes, illustration=result.image_bytes, style=style
+            )
+            if refined and getattr(refined, "image_bytes", None):
+                return refined
+        except Exception:  # noqa: BLE001 - refinamento e opcional
+            continue
     return result
 
 
@@ -839,9 +860,9 @@ async def handle_extra_character(db: Session, job: Job) -> None:
             result = await provider.generate_character(
                 prompt=f"Retrato do personagem '{ec.get('name', '')}', corpo inteiro, fundo neutro.",
                 reference_images=[photo_bytes],
-                style=project.style or "realistic",
+                style=BOOK_STYLE,
             )
-            result = await _refine_identity(provider, photo_bytes, result, project.style or "realistic")
+            result = await _refine_identity(provider, photo_bytes, result, BOOK_STYLE)
 
         char_key = storage.new_key(project.id, "extra_character", _ext(result.mime_type))
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
@@ -878,7 +899,7 @@ REALISTIC_NEGATIVE = (
 async def handle_realistic(db: Session, job: Job) -> None:
     """Gera a imagem realistica a partir da foto (prompt fixo) e guarda no banco.
 
-    O asset (kind=realistic_avatar) e a referencia preferencial para o video.
+    Endpoint legado. O vídeo usa o avatar 3D (character_ref) ou o keyframe da cena.
     """
     project = _project(db, job)
     photos = db.scalars(
@@ -910,19 +931,36 @@ async def handle_realistic(db: Session, job: Job) -> None:
     db.commit()
 
 
-def _video_reference_key(db: Session, project: Project) -> str:
-    """Imagem usada como base do video: prioriza a realistica; senao o personagem."""
-    realistic = db.scalar(
+def _kling_configured() -> bool:
+    return bool(settings.kling_access_key and settings.kling_secret_key)
+
+
+def _use_video_offline() -> bool:
+    """GIF offline quando não há chaves Kling; com chaves, sempre usa o provedor real."""
+    return not _kling_configured()
+
+
+def _clamp_kling_duration(duration_s: int) -> int:
+    """Kling aceita apenas 5s ou 10s."""
+    return 10 if int(duration_s) >= 8 else 5
+
+
+def _video_reference_key(db: Session, project: Project, *, scene_n: int = 1) -> str:
+    """Imagem base da animação: keyframe da cena, senão o avatar 3D (character_ref)."""
+    page_assets = db.scalars(
         select(Asset)
-        .where(Asset.project_id == project.id, Asset.kind == AssetKind.REALISTIC.value)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
         .order_by(Asset.created_at.desc())
-    )
-    if realistic:
-        return realistic.storage_key
+    ).all()
+    for asset in page_assets:
+        meta = asset.meta or {}
+        if meta.get("keyframe") == scene_n:
+            return asset.storage_key
+
     if project.character_ref and project.character_ref.get("storage_key"):
         return project.character_ref["storage_key"]
     raise ProviderError(
-        "Imagem de referencia ausente: gere o personagem ou a imagem realistica antes",
+        "Imagem de referencia ausente: gere e aprove o personagem antes",
         transient=False,
     )
 
@@ -1086,7 +1124,7 @@ async def handle_story(db: Session, job: Job) -> None:
 
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(
-        brief=brief, style=project.style or "realistic", pages=settings.ebook_pages,
+        brief=brief, style=BOOK_STYLE, pages=settings.ebook_pages,
         language=language, age=project.child_age,
     )
     project.story_text = result.text
@@ -1128,6 +1166,9 @@ async def handle_ebook(db: Session, job: Job) -> None:
         raise ProviderError("Historia ausente: rode STORY antes", transient=False)
     if not project.character_ref:
         raise ProviderError("Personagem ausente: rode AVATAR antes", transient=False)
+    project.book_approved_at = None
+    project.print_requested_at = None
+    project.print_status = None
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
     char_bytes = storage.get_bytes(project.character_ref["storage_key"])
@@ -1147,7 +1188,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         captions = _short_captions(pages_text)
         try:
             ai_caps = await get_text_provider().summarize_pages(
-                pages=pages_text, style=project.style or "", language=language
+                pages=pages_text, style=BOOK_STYLE, language=language
             )
             if len(ai_caps) == len(pages_text) and all(c.strip() for c in ai_caps):
                 captions = [c.strip() for c in ai_caps]
@@ -1167,19 +1208,21 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 cost_usd=0.0,
             )
         else:
+            caption_text = (caption or "").strip()
+            scene_text = full_text[:900]
+            expr = infer_expression(full_text, caption_text)
             scene = await image_provider.generate_scene(
-                prompt=(
-                    f"Pagina {idx} da historia. Ilustre exatamente esta cena (contexto completo), "
-                    f"com o personagem principal (da imagem de referencia) como protagonista, "
-                    f"mantendo rosto/roupa identicos. Composicao QUADRADA (1:1), pintura digital "
-                    f"quente e luminosa de livro infantil premium, luz dourada suave; deixe uma "
-                    f"area mais calma/limpa (ceu, campo, parede) para receber o texto impresso. "
-                    f"Trecho: {full_text[:900]}"
+                prompt=build_scene_prompt(
+                    page=idx,
+                    text=caption_text or scene_text,
+                    scene=scene_text,
+                    expression=expr,
+                    child_name=(project.child_name or "").strip(),
                 ),
                 character_ref=char_bytes,
-                style=project.style or "realistic",
+                style=BOOK_STYLE,
             )
-            scene = await _refine_scene(image_provider, char_bytes, scene, project.style or "realistic")
+            scene = await _refine_scene(image_provider, char_bytes, scene, BOOK_STYLE)
         img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
         storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
         db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
@@ -1261,8 +1304,8 @@ def _parse_storyboard_json(text: str) -> dict | None:
     """Extrai e normaliza o JSON do roteiro (tolerante a cercas de código e texto extra)."""
     if not text:
         return None
-    t = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.S)
-    m = re.search(r"\{.*\}", t, flags=re.S)
+    t = re.sub(r"^```(?:json)?\s*|\s*```$", "", text.strip(), flags=re.DOTALL)
+    m = re.search(r"\{.*\}", t, flags=re.DOTALL)
     if not m:
         return None
     try:
@@ -1374,7 +1417,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
     if project.character_ref and project.character_ref.get("storage_key"):
         char_bytes = storage.get_bytes(project.character_ref["storage_key"])
         image_provider = get_image_provider()
-        style = project.style or "realistic"
+        style = BOOK_STYLE
         for sc in sb["scenes"][:6]:
             prompt = sc.get("image_prompt") or sc.get("narration") or ""
             if not prompt:
@@ -1402,39 +1445,42 @@ async def handle_storyboard(db: Session, job: Job) -> None:
 # Etapa 14-15: video (create + poll; pode tambem concluir via webhook)
 # --------------------------------------------------------------------------- #
 async def handle_video(db: Session, job: Job) -> None:
+    """Animação curta (Kling image2video) — não é o vídeo narrado longo."""
     import asyncio
     import time
 
     project = _project(db, job)
-    ref_key = _video_reference_key(db, project)  # prioriza a imagem realistica
+    payload = _payload(job)
+    sb = _latest_storyboard(db, project)
+    ref_key = _video_reference_key(db, project, scene_n=1)
     _set_status(db, project, ProjectStatus.VIDEO_RUNNING)
 
-    payload = _payload(job)
     base_image = storage.get_bytes(ref_key)
     source_url: str | None = None
-    if settings.offline_fallback:
+    task = None
+    if _use_video_offline():
         video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "gif")
-        prompt = _latest_storyboard(db, project)
-        video_label = "Video offline"
-        if prompt and prompt.get("scenes"):
-            video_label = (prompt["scenes"][0].get("video_prompt") or video_label)[:32]
+        video_label = "Animacao offline"
+        if sb and sb.get("scenes"):
+            video_label = (sb["scenes"][0].get("video_prompt") or video_label)[:32]
         storage.put_bytes(video_key, _offline_gif(video_label), "image/gif")
         stored = video_key
         source_url = "offline:local"
     else:
         provider = get_video_provider(payload.get("provider") or job.provider)
 
-        # Usa o roteiro (storyboard) gerado em background, quando existir.
         prompt = "Anime o personagem com movimento suave e expressivo."
-        sb = _latest_storyboard(db, project)
         if sb and sb.get("scenes"):
             first = sb["scenes"][0]
             prompt = first.get("video_prompt") or prompt
 
+        duration_s = _clamp_kling_duration(
+            int(payload.get("duration_s", settings.default_video_duration_s))
+        )
         task = await provider.create_video(
             image=base_image,
             prompt=prompt,
-            duration_s=int(payload.get("duration_s", settings.default_video_duration_s)),
+            duration_s=duration_s,
         )
         job.result = {**(job.result or {}), "provider_task_id": task.provider_task_id}
         db.commit()
@@ -1450,7 +1496,6 @@ async def handle_video(db: Session, job: Job) -> None:
             raise ProviderError("Provedor de video falhou", transient=True)
 
         video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "mp4")
-        # Baixa o video do provedor e republica no nosso storage (URL assinada propria).
         try:
             import httpx
 
@@ -1465,10 +1510,138 @@ async def handle_video(db: Session, job: Job) -> None:
             source_url = task.video_url
 
     db.add(Asset(project_id=project.id, kind=AssetKind.VIDEO.value, storage_key=stored,
-                 meta={"source": source_url}))
+                 meta={"source": source_url, "kind": "animation"}))
     project.video_url = stored
-    job.cost_usd = 0.0 if settings.offline_fallback else getattr(task, "cost_usd", None)
+    job.cost_usd = 0.0 if _use_video_offline() else getattr(task, "cost_usd", None)
     _set_status(db, project, ProjectStatus.VIDEO_READY)
+
+
+def _scene_image_bytes(db: Session, project: Project, scene_n: int) -> bytes:
+    """Imagem da cena: keyframe, senão page_image por ordem, senão character."""
+    try:
+        key = _video_reference_key(db, project, scene_n=scene_n)
+        return storage.get_bytes(key)
+    except ProviderError:
+        pass
+    pages = db.scalars(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+        .order_by(Asset.created_at.asc())
+    ).all()
+    # Páginas sem meta keyframe (ebook) — usa índice 0-based
+    non_kf = [a for a in pages if not (a.meta or {}).get("keyframe")]
+    if non_kf:
+        idx = max(0, min(scene_n - 1, len(non_kf) - 1))
+        return storage.get_bytes(non_kf[idx].storage_key)
+    if pages:
+        idx = max(0, min(scene_n - 1, len(pages) - 1))
+        return storage.get_bytes(pages[idx].storage_key)
+    if project.character_ref and project.character_ref.get("storage_key"):
+        return storage.get_bytes(project.character_ref["storage_key"])
+    raise ProviderError("Sem imagens para montar o video narrado", transient=False)
+
+
+def _resolve_elevenlabs_voice_id(db: Session, user_id: uuid.UUID, payload: dict) -> str | None:
+    """Resolve voice_id interno do payload (ou default do usuário) para ID ElevenLabs."""
+    voice_uuid = None
+    raw = (payload or {}).get("voice_id")
+    if raw:
+        try:
+            voice_uuid = uuid.UUID(str(raw))
+        except (ValueError, TypeError):
+            voice_uuid = None
+    if voice_uuid is not None:
+        voice = db.get(UserVoice, voice_uuid)
+        if voice and voice.user_id == user_id:
+            return voice.elevenlabs_voice_id
+    default = db.scalar(
+        select(UserVoice).where(UserVoice.user_id == user_id, UserVoice.is_default.is_(True))
+    )
+    if default:
+        return default.elevenlabs_voice_id
+    return None
+
+
+async def handle_narrated_video(db: Session, job: Job) -> None:
+    """Vídeo narrado multi-cena: TTS + Ken Burns (ffmpeg) a partir do storyboard."""
+    from app.media.assemble import (
+        AssembleError,
+        SceneClip,
+        assemble_narrated_video,
+        assemble_slideshow_gif,
+        ffmpeg_available,
+    )
+    from app.media.tts import TtsError, get_tts_provider
+
+    project = _project(db, job)
+    sb = _latest_storyboard(db, project)
+    if not sb or not sb.get("scenes"):
+        raise ProviderError(
+            "Storyboard ausente: aguarde a geracao do roteiro ou rode STORYBOARD",
+            transient=False,
+        )
+
+    _set_status(db, project, ProjectStatus.VIDEO_RUNNING)
+    language = project.language or sb.get("language") or "pt-BR"
+    el_voice_id = _resolve_elevenlabs_voice_id(db, project.user_id, _payload(job))
+    tts = get_tts_provider(voice_id=el_voice_id)
+    clips: list[SceneClip] = []
+
+    for sc in sb["scenes"]:
+        n = int(sc.get("n") or len(clips) + 1)
+        narration = (sc.get("narration") or "").strip() or f"Cena {n}."
+        try:
+            audio = await tts.synthesize(narration, language=language)
+        except TtsError as exc:
+            if not settings.offline_fallback:
+                raise ProviderError(str(exc), transient=exc.transient) from exc
+            # Tom curto silencioso via edge falhou — usa beep mínimo (áudio vazio gera GIF)
+            audio = b""
+        image = _scene_image_bytes(db, project, n)
+        if not audio:
+            # Sem áudio: ainda entra no fallback GIF
+            clips.append(SceneClip(image_bytes=image, audio_bytes=b"\x00" * 0, image_ext="png"))
+        else:
+            clips.append(SceneClip(image_bytes=image, audio_bytes=audio, image_ext="png"))
+
+    # Descarta cenas sem áudio válido se ffmpeg estiver disponível
+    usable = [c for c in clips if c.audio_bytes]
+    music = None
+    music_path = Path(__file__).resolve().parent.parent / "assets" / "audio" / "bed.mp3"
+    if music_path.is_file():
+        music = music_path.read_bytes()
+
+    try:
+        if ffmpeg_available() and usable:
+            video_bytes = assemble_narrated_video(usable, music_bytes=music)
+            ext, mime = "mp4", "video/mp4"
+        else:
+            video_bytes = assemble_slideshow_gif(clips or usable)
+            ext, mime = "gif", "image/gif"
+    except AssembleError as exc:
+        if settings.offline_fallback:
+            video_bytes = assemble_slideshow_gif(clips)
+            ext, mime = "gif", "image/gif"
+        else:
+            raise ProviderError(str(exc), transient=False) from exc
+
+    key = storage.new_key(project.id, AssetKind.NARRATED_VIDEO.value, ext)
+    storage.put_bytes(key, video_bytes, mime)
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.NARRATED_VIDEO.value,
+            storage_key=key,
+            meta={"scenes": len(sb["scenes"]), "mime": mime},
+        )
+    )
+    project.narrated_video_url = key
+    job.cost_usd = 0.0
+    # Não sobrescreve VIDEO_READY da animação se já existir — usa status genérico pronto
+    if project.status != ProjectStatus.VIDEO_READY.value:
+        _set_status(db, project, ProjectStatus.VIDEO_READY)
+    else:
+        db.commit()
 
 
 def _ext(mime: str) -> str:
@@ -1482,4 +1655,6 @@ HANDLERS = {
     "EBOOK": handle_ebook,
     "STORYBOARD": handle_storyboard,
     "VIDEO": handle_video,
+    "NARRATED_VIDEO": handle_narrated_video,
+    "EXTRA_CHARACTER": handle_extra_character,
 }

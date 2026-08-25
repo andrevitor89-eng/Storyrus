@@ -19,7 +19,7 @@ from app.security import decode_access_token
 # auto_error=False: a ausência de token não gera mais 401.
 _bearer = HTTPBearer(auto_error=False)
 
-GUEST_EMAIL = "guest@storyrus.local"
+GUEST_EMAIL = "guest@storyrus.app"
 GUEST_CREDITS = 9999
 
 

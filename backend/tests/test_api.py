@@ -19,8 +19,10 @@ def test_duplicate_signup_conflicts(client):
     assert r.status_code == 409
 
 
-def test_protected_requires_token(client):
-    assert client.get("/v1/auth/me").status_code == 403  # sem bearer
+def test_unauthenticated_uses_guest(client):
+    me = client.get("/v1/auth/me")
+    assert me.status_code == 200
+    assert me.json()["email"] == "guest@storyrus.app"
 
 
 def test_create_and_list_project(auth_client):
@@ -102,6 +104,21 @@ def test_insufficient_credits(auth_client):
     r2 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v2"})
     assert r1.status_code == 202 and r2.status_code == 202
     assert auth_client.get("/v1/credits").json()["credits"] == 0
+
+
+def test_create_defaults_to_cgi_3d(client):
+    r = client.post("/v1/projects", json={})
+    assert r.status_code == 201
+    assert r.json()["style"] == "cgi_3d"
+    assert r.json()["character_approved_at"] is None
+    assert r.json()["print_status"] is None
+
+
+def test_approve_and_print_require_preview(client):
+    pid = client.post("/v1/projects", json={}).json()["id"]
+    assert client.post(f"/v1/projects/{pid}/avatar/approve").status_code == 400
+    assert client.post(f"/v1/projects/{pid}/book/approve").status_code == 400
+    assert client.post(f"/v1/projects/{pid}/print-request").status_code == 400
 
 
 def test_cannot_access_others_project(client):

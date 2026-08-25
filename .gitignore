@@ -11,11 +11,10 @@ dist/
 .vite/
 *.tsbuildinfo
 
-# Testes / E2E (fora do repositorio; mantidos localmente)
+# Relatórios de teste (specs e2e ficam versionados)
 playwright-report/
 test-results/
 coverage/
-apps/web/e2e/
 
 # Backend + render.yaml versionados (deploy no Render).
 # Os segredos ficam em backend/.env, que continua ignorado.
@@ -24,17 +23,37 @@ apps/web/e2e/
 backend/app/assets/fonts/*.ttf
 backend/app/assets/fonts/OFL.txt
 
+# Arquivo local (rascunhos, entregas, scripts avulsos — nao versionar)
+/arquivo/
+
 # Artefatos locais do pipeline (nao versionar)
 pipeline_out/
 livro_menino/
 livro_menino2/
+app_out/
+entregas-novas-criancas/
+fotos-novas/
+livros5/
+/Andika/
+/Raleway/
+/historia*.json
+/Livro*.pdf
+/Seis_Historias*.pdf
+/Plano_Implantacao_StoryRus.pdf
+/prompt_geracao_historias.md
 run_book.py
 run_example.py
 run_ba.py
+run_books4.py
+run_books4_fix.py
 run_books5.py
+run_covers.py
+run_criancas_aleatorias.py
 run_story.py
-fotos-novas/
-livros5/
+run_mar6.py
+run_historia*.py
+run_novas_criancas*.py
+export_exemplo_livro.py
 
 # Expo
 .expo/
@@ -62,7 +81,7 @@ diag.txt
 *.docx
 examples/
 
-# Exemplos da landing: versionar apenas as 6 imagens usadas
+# Exemplos da landing: versionar fotos, artes, páginas, vídeos e o mapa da pasta
 apps/web/public/exemplos/*
 !apps/web/public/exemplos/foto-bebe.jpg
 !apps/web/public/exemplos/arte-bebe.jpg
@@ -111,3 +130,8 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/foto-matteo.png
 !apps/web/public/exemplos/foto-sofia.png
 !apps/web/public/exemplos/personagem-dino.jpg
+!apps/web/public/exemplos/video-*.mp4
+!apps/web/public/exemplos/LEIA-ME.txt
+
+.vercel
+.env*

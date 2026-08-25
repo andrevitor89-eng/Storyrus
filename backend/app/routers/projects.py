@@ -5,23 +5,37 @@ from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile,
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import storage, story_import, story_templates
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
-from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, User
+from app.models import (
+    Asset,
+    AssetKind,
+    Job,
+    JobStatus,
+    JobType,
+    Project,
+    ProjectStatus,
+    User,
+    UserVoice,
+    _now,
+)
 from app.schemas import (
     JobAcceptedOut,
     JobOut,
+    NarratedVideoRequestIn,
     ProjectCreateIn,
     ProjectOut,
     StoryExtractOut,
+    StoryTemplateApplyIn,
+    StoryTemplateOut,
     StoryTextIn,
     UploadUrlIn,
     UploadUrlOut,
     VideoRequestIn,
 )
 from app.services import jobs as jobs_svc
-from app import storage, story_import
 
 router = APIRouter(prefix="/v1/projects", tags=["projects"])
 
@@ -63,6 +77,15 @@ def list_projects(
             select(Project).where(Project.user_id == user.id).order_by(Project.created_at.desc())
         )
     )
+
+
+# Rota literal declarada ANTES de /{project_id} para não ser capturada como UUID.
+@router.get("/story-templates", response_model=list[StoryTemplateOut])
+def list_story_templates(
+    user: User = Depends(get_current_user),
+) -> list[dict]:
+    """Catálogo de histórias prontas da plataforma (traduzidas e personalizáveis)."""
+    return story_templates.list_templates()
 
 
 @router.get("/{project_id}", response_model=ProjectOut)
@@ -121,6 +144,25 @@ def project_assets(
             else url_for(project.video_url)
         )
 
+    narrated_video_url = None
+    if project.narrated_video_url:
+        narrated_video_url = (
+            project.narrated_video_url
+            if str(project.narrated_video_url).startswith("http")
+            else url_for(project.narrated_video_url)
+        )
+    else:
+        narrated_asset = db.scalar(
+            select(Asset)
+            .where(
+                Asset.project_id == project.id,
+                Asset.kind == AssetKind.NARRATED_VIDEO.value,
+            )
+            .order_by(Asset.created_at.desc())
+        )
+        if narrated_asset:
+            narrated_video_url = url_for(narrated_asset.storage_key)
+
     # Personagens extras (URLs assinadas)
     extra_characters_out = []
     for ec in (project.extra_characters or []):
@@ -139,6 +181,7 @@ def project_assets(
         "ebook_url": ebook_url,
         "storyboard_url": storyboard_url,
         "video_url": video_url,
+        "narrated_video_url": narrated_video_url,
     }
 
 
@@ -264,6 +307,10 @@ def start_avatar(
     )
     if not has_photo:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
+    project.character_approved_at = None
+    project.book_approved_at = None
+    project.print_requested_at = None
+    project.print_status = None
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.AVATAR, idempotency_key=idempotency_key
     )
@@ -277,7 +324,7 @@ def start_realistic(
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
-    """Gera a imagem realistica (prompt fixo) a partir da foto; guardada como referencia do video."""
+    """Legado: gera imagem extra a partir da foto. O vídeo usa o avatar 3D (character_ref)."""
     project = _get_owned_project(db, user, project_id)
     has_photo = db.scalar(
         select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
@@ -345,6 +392,57 @@ def set_story_text(
     return project
 
 
+@router.post("/{project_id}/story/template", response_model=ProjectOut)
+def apply_story_template(
+    project_id: uuid.UUID,
+    body: StoryTemplateApplyIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    """Usar uma história pronta do catálogo, personalizada com o nome da criança.
+
+    Sem IA, sem créditos: o texto do template vai direto para story_text no formato
+    padrão ('Título:' + 'Página N:'), com {NOME} substituído pelo nome do projeto.
+    """
+    project = _get_owned_project(db, user, project_id)
+    name = (project.child_name or "").strip()
+    if not name:
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Defina o nome da criança no projeto antes de usar uma história pronta",
+        )
+    try:
+        text = story_templates.render_template(body.template_id, name)
+    except KeyError:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "História não encontrada no catálogo")
+    project.story_text = text
+    project.status = ProjectStatus.STORY_READY.value
+    # Registra um job concluído para a história aparecer no progresso, sem custo.
+    db.add(
+        Job(
+            project_id=project.id,
+            type=JobType.STORY.value,
+            status=JobStatus.DONE.value,
+            cost_credits=0,
+            attempts=1,
+            result={"source": "template", "template_id": body.template_id},
+        )
+    )
+    # Em background: gera o roteiro completo (storyboard) do vídeo, sem custo.
+    db.add(
+        Job(
+            project_id=project.id,
+            type=JobType.STORYBOARD.value,
+            status=JobStatus.PENDING.value,
+            cost_credits=0,
+            result={"payload": {"auto": True, "source": "template_story"}},
+        )
+    )
+    db.commit()
+    db.refresh(project)
+    return project
+
+
 @router.post("/{project_id}/story/extract", response_model=StoryExtractOut)
 async def extract_story(
     project_id: uuid.UUID,
@@ -378,10 +476,65 @@ def start_ebook(
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
     project = _get_owned_project(db, user, project_id)
+    project.book_approved_at = None
+    project.print_requested_at = None
+    project.print_status = None
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.EBOOK, idempotency_key=idempotency_key
     )
     return _accept(job)
+
+
+@router.post("/{project_id}/avatar/approve", response_model=ProjectOut)
+def approve_avatar(
+    project_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    project = _get_owned_project(db, user, project_id)
+    if not project.character_ref:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Gere o personagem antes de aprovar")
+    project.character_approved_at = _now()
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@router.post("/{project_id}/book/approve", response_model=ProjectOut)
+def approve_book(
+    project_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    project = _get_owned_project(db, user, project_id)
+    if not project.character_approved_at:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Aprove o personagem antes do livro")
+    if not project.ebook_url:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Monte o e-book antes de aprovar o livro")
+    project.book_approved_at = _now()
+    db.commit()
+    db.refresh(project)
+    return project
+
+
+@router.post("/{project_id}/print-request", response_model=ProjectOut)
+def request_print(
+    project_id: uuid.UUID,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> Project:
+    """Registra pedido de livro impresso (cotação com parceiro). Sem gráfica interna."""
+    project = _get_owned_project(db, user, project_id)
+    if not project.book_approved_at:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Aprove o livro antes de pedir o impresso")
+    if not project.ebook_url:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "E-book ausente")
+    if not project.print_requested_at:
+        project.print_requested_at = _now()
+        project.print_status = "requested"
+        db.commit()
+        db.refresh(project)
+    return project
 
 
 @router.post("/{project_id}/extra-character", response_model=JobAcceptedOut, status_code=202)
@@ -421,6 +574,35 @@ def start_video(
         user=user,
         project=project,
         job_type=JobType.VIDEO,
+        idempotency_key=idempotency_key,
+        payload=payload,
+    )
+    return _accept(job)
+
+
+@router.post("/{project_id}/narrated-video", response_model=JobAcceptedOut, status_code=202)
+def start_narrated_video(
+    project_id: uuid.UUID,
+    body: NarratedVideoRequestIn | None = None,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> JobAcceptedOut:
+    project = _get_owned_project(db, user, project_id)
+    if not (project.story_text or "").strip():
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Historia ausente")
+    payload: dict = {}
+    voice_id = body.voice_id if body else None
+    if voice_id is not None:
+        voice = db.get(UserVoice, voice_id)
+        if voice is None or voice.user_id != user.id:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, "Voz nao encontrada")
+        payload["voice_id"] = str(voice.id)
+    job = jobs_svc.enqueue_job(
+        db,
+        user=user,
+        project=project,
+        job_type=JobType.NARRATED_VIDEO,
         idempotency_key=idempotency_key,
         payload=payload,
     )

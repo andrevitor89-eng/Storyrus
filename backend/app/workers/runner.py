@@ -55,8 +55,8 @@ def claim_next(db: Session) -> Job | None:
 
 async def process_job(db: Session, job: Job) -> None:
     """Executa um job com retry/backoff. Importa handlers tardiamente (evita ciclo)."""
-    from app.workers.handlers import HANDLERS
     from app.ai_clients.base import ProviderError
+    from app.workers.handlers import HANDLERS
 
     handler = HANDLERS.get(job.type)
     if handler is None:
@@ -82,7 +82,7 @@ async def process_job(db: Session, job: Job) -> None:
                 jobs_svc.mark_failed_and_refund(db, job, str(exc))
                 return
             await asyncio.sleep(backoff_delay(job.attempts))
-        except Exception as exc:  # noqa: BLE001 - erro inesperado = falha definitiva
+        except Exception as exc:
             logger.exception("job %s erro inesperado", job.id)
             jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
             return
