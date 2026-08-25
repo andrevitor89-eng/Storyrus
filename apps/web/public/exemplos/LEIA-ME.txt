@@ -18,6 +18,7 @@ Outras histórias (catálogo, flipbook, vídeos)
   Oceano    foto —          capa-oceano.jpg     mar-1..6.jpg     video-mar.mp4
   Floresta  foto-sofia.png  capa-floresta2.jpg  flor-1..6.jpg    video-flor.mp4
   Circo     foto-bebe.jpg   capa-circo.jpg      circo-1..6.jpg   video-circo.mp4
+  Amazônia  foto-matteo.png capa-amazonia.jpg   amazonia-1/3/4/5/6.jpg  —
   Chloe     —               ebook-1.jpg         ebook-3..11.jpg  —
 
 Dicas de foto: dica-boa.png (ok), dica-multi.png e dica-lado.png (evitar).

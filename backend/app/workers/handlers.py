@@ -23,6 +23,7 @@ from app import storage
 from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
+    ALPHABET_SCENE_EXTRAS,
     AVATAR_PROMPT,
     build_scene_prompt,
     infer_expression,
@@ -32,6 +33,11 @@ from app.ai_clients.book_prompts import (
 )
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
+from app.story_templates import (
+    ALPHABET_TEMPLATE_IDS,
+    illustration_notes,
+    page_layouts,
+)
 from app.workers import ebook as ebook_builder
 
 logger = logging.getLogger("worker")
@@ -1157,6 +1163,25 @@ def _enqueue_auto_storyboard(db: Session, project: Project, source_job: Job) -> 
     db.commit()
 
 
+def _catalog_template_id(db: Session, project: Project) -> str | None:
+    """template_id se a história veio do catálogo (último job STORY)."""
+    job = db.scalar(
+        select(Job)
+        .where(
+            Job.project_id == project.id,
+            Job.type == JobType.STORY.value,
+            Job.status == JobStatus.DONE.value,
+        )
+        .order_by(Job.created_at.desc())
+    )
+    if job is None or not isinstance(job.result, dict):
+        return None
+    if job.result.get("source") != "template":
+        return None
+    tid = (job.result.get("template_id") or "").strip()
+    return tid or None
+
+
 # --------------------------------------------------------------------------- #
 # Etapa 9-10: ebook (ilustracoes por pagina + montagem)
 # --------------------------------------------------------------------------- #
@@ -1175,6 +1200,11 @@ async def handle_ebook(db: Session, job: Job) -> None:
     image_provider = get_image_provider()
 
     language = project.language or "pt-BR"
+    child_name = (project.child_name or "").strip()
+    template_id = _catalog_template_id(db, project)
+    notes = illustration_notes(template_id, child_name) if template_id else []
+    layouts = page_layouts(template_id) if template_id else []
+    alphabet = template_id in ALPHABET_TEMPLATE_IDS if template_id else False
 
     # 1) Divide a historia em paginas (toda a historia, sem limite fixo).
     pages_text = _parse_pages(project.story_text)
@@ -1196,8 +1226,16 @@ async def handle_ebook(db: Session, job: Job) -> None:
             pass
 
     # 3) Uma pagina = ilustracao (contexto completo do trecho) + texto da pagina.
+    #    Dedicatoria de catalogo e so texto (creme), sem cena.
     pages: list[dict] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
+        layout = layouts[idx - 1] if idx - 1 < len(layouts) else "story"
+        if layout == "dedication":
+            pages.append({"text": caption, "image": None, "layout": "dedication"})
+            continue
+        note = notes[idx - 1] if idx - 1 < len(notes) else ""
+        scene_desc = (note or full_text)[:900]
+        extras = ALPHABET_SCENE_EXTRAS if alphabet else ""
         if settings.offline_fallback:
             scene = ImageResult(
                 image_bytes=_offline_png(
@@ -1209,15 +1247,15 @@ async def handle_ebook(db: Session, job: Job) -> None:
             )
         else:
             caption_text = (caption or "").strip()
-            scene_text = full_text[:900]
-            expr = infer_expression(full_text, caption_text)
+            expr = infer_expression(full_text, caption_text, note)
             scene = await image_provider.generate_scene(
                 prompt=build_scene_prompt(
                     page=idx,
-                    text=caption_text or scene_text,
-                    scene=scene_text,
+                    text=caption_text or scene_desc,
+                    scene=scene_desc,
                     expression=expr,
-                    child_name=(project.child_name or "").strip(),
+                    extras=extras,
+                    child_name=child_name,
                 ),
                 character_ref=char_bytes,
                 style=BOOK_STYLE,
@@ -1227,7 +1265,12 @@ async def handle_ebook(db: Session, job: Job) -> None:
         storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
         db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
                      storage_key=img_key, meta={"page": idx}))
-        pages.append({"text": caption, "image": scene.image_bytes, "mime": scene.mime_type})
+        pages.append({
+            "text": caption,
+            "image": scene.image_bytes,
+            "mime": scene.mime_type,
+            "layout": layout,
+        })
     db.commit()
 
     name = (project.child_name or "").strip()

@@ -127,6 +127,7 @@ class StoryTemplateOut(BaseModel):
 class StoryTemplateApplyIn(BaseModel):
     """Aplicar uma história pronta do catálogo ao projeto (sem IA, sem créditos)."""
     template_id: str = Field(min_length=1, max_length=64)
+    gender: str | None = Field(default=None, max_length=16)
 
 
 # ---- Jobs ----

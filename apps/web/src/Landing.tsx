@@ -45,14 +45,21 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
 ];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`).filter((f) => f !== "ebook-2.jpg");
 /* capas sem título queimado — título CSS em 2 linhas (rosto livre) */
-const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
+const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg", "capa-amazonia.jpg"];
 const CATALOG_TITLE_LINES: { pt: [string, string]; en: [string, string] }[] = [
   { pt: ["Lia e o Fundo", "do Mar"], en: ["Lia and the", "Deep Sea"] },
   { pt: ["Sofia e a Floresta", "Encantada"], en: ["Sofia and the", "Enchanted Forest"] },
   { pt: ["Matteo e o Mundo", "dos Dinossauros"], en: ["Matteo and the", "Dinosaur World"] },
   { pt: ["Noah e o Circo", "das Luzes"], en: ["Noah and the", "Circus of Lights"] },
+  { pt: ["Matteo na Amazônia", "Alfabeto dos Animais"], en: ["Matteo in the Amazon", "Animal Alphabet"] },
 ];
-const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
+const CATALOG_HREFS = [
+  "/app?tema=underwater",
+  "/app?tema=fantasy",
+  "/app?tema=dinosaurs",
+  "/app?tema=adventure",
+  "/app?historia=alfabeto_amazonia",
+];
 const SURPRISE_IMG = "capa-surpresa.jpg";
 /* livro 3D do catálogo: páginas internas (sem a 2ª página, p/ flip mais limpo) */
 const BOOK3D = [
@@ -60,6 +67,7 @@ const BOOK3D = [
   { bg: "#e2e6d1", pages: ["flor-1.jpg", "flor-3.jpg", "flor-4.jpg", "flor-5.jpg", "flor-6.jpg"] },
   { bg: "#ecd8b2", pages: ["dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"] },
   { bg: "#f4d6da", pages: ["circo-1.jpg", "circo-3.jpg", "circo-4.jpg", "circo-5.jpg", "circo-6.jpg"] },
+  { bg: "#d4e8d0", pages: ["amazonia-1.jpg", "amazonia-3.jpg", "amazonia-4.jpg", "amazonia-5.jpg", "amazonia-6.jpg"] },
 ];
 const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
 const BANNER_IMGS = ["capa-circo.jpg", "capa-oceano.jpg", "capa-dino2.jpg"];
@@ -378,6 +386,7 @@ const I18N = {
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza", quote: "Onde a gentileza acende vaga-lumes." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade", quote: "Uma viagem divertida à era dos dinossauros." },
       { t: "Noah e o Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar", quote: "Uma noite feita para sonhar e brilhar." },
+      { t: "Matteo na Amazônia", p: "O alfabeto dos animais da floresta, com o seu filho como guia.", age: "3-7 anos", tag: "Alfabeto e natureza", quote: "Cada letra abre um amigo da floresta." },
     ],
     surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida", quote: "Cada foto guarda uma aventura secreta." },
     promise_title: "Cada detalhe pensado para ser especial",
@@ -467,6 +476,7 @@ const I18N = {
       { t: "Sofia and the Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature", quote: "Where kindness lights up the fireflies." },
       { t: "Matteo and the Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity", quote: "A fun journey back to the dinosaur age." },
       { t: "Noah and the Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine", quote: "A night made to dream and shine." },
+      { t: "Matteo in the Amazon", p: "The rainforest animal alphabet, with your child as the guide.", age: "ages 3-7", tag: "Alphabet & nature", quote: "Each letter opens a forest friend." },
     ],
     surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure", quote: "Every photo hides a secret adventure." },
     promise_title: "Every detail crafted to feel special",
@@ -741,9 +751,12 @@ export function Landing() {
                 <p>{c.p}</p>
                 <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
                 <div className="cat-actions">
-                  <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
-                  {CATALOG_THEMES[i] === "dinosaurs" && (
+                  <Link to={CATALOG_HREFS[i]} className="kbtn kbtn-primary">{t.personalize}</Link>
+                  {CATALOG_HREFS[i].includes("dinosaurs") && (
                     <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.see_studio}</Link>
+                  )}
+                  {CATALOG_HREFS[i].includes("alfabeto_amazonia") && (
+                    <Link to="/app?historia=alfabeto_amazonia" className="kbtn kbtn-soft">{t.see_studio}</Link>
                   )}
                 </div>
               </div>

@@ -477,17 +477,22 @@ def build_pdf(
     c.showPage()
 
     # -------------------------------------------- 2) POEMA DE ABERTURA
-    bg(CREAM)
-    corner_flourish(26, H - 120, 1, 1)
-    corner_flourish(W - 26, 120, -1, -1)
-    c.setFillColorRGB(*INK)
-    c.setFont(F["italic"], 17)
-    lines = split_lines(tr["opening"], F["italic"], 17, W * 0.66)
-    y = H / 2 + (len(lines) - 1) * 14
-    for ln in lines:
-        c.drawCentredString(W / 2, y, ln)
-        y -= 28
-    c.showPage()
+    # Catalogo com dedicatória própria (P1) substitui o poema genérico do México.
+    has_dedication_page = any(
+        (p.get("layout") or "") == "dedication" for p in (pages or [])
+    )
+    if not has_dedication_page:
+        bg(CREAM)
+        corner_flourish(26, H - 120, 1, 1)
+        corner_flourish(W - 26, 120, -1, -1)
+        c.setFillColorRGB(*INK)
+        c.setFont(F["italic"], 17)
+        lines = split_lines(tr["opening"], F["italic"], 17, W * 0.66)
+        y = H / 2 + (len(lines) - 1) * 14
+        for ln in lines:
+            c.drawCentredString(W / 2, y, ln)
+            y -= 28
+        c.showPage()
 
     # ------------------------- 3) FEITO ESPECIALMENTE PARA {NOME}
     if name or portrait:
@@ -591,11 +596,28 @@ def build_pdf(
     story_size = 20.5
     story_leading = 29
     for idx, p in enumerate(visible_pages):
+        layout = (p.get("layout") or "story").strip()
+        text = p.get("text", "")
+        if layout == "dedication":
+            bg(CREAM)
+            corner_flourish(26, H - 120, 1, 1)
+            corner_flourish(W - 26, 120, -1, -1)
+            c.setFillColorRGB(*INK)
+            c.setFont(F["italic"], 17)
+            raw = (text or "").replace("\r\n", "\n").strip()
+            dlines = [ln.strip() for ln in raw.split("\n") if ln.strip()] or split_lines(
+                raw, F["italic"], 17, W * 0.66
+            )
+            y = H / 2 + (len(dlines) - 1) * 14
+            for ln in dlines:
+                c.drawCentredString(W / 2, y, _win(ln))
+                y -= 28
+            c.showPage()
+            continue
         bg(CREAM)
         ir = reader(p.get("image"))
         if ir:
             full_bleed(ir)
-        text = p.get("text", "")
         if idx % 2 == 0:
             overlay(text, story_font, story_size, story_leading, 36, bottom=48)
         else:
