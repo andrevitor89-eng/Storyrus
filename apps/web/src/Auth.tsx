@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { api, setToken } from "./api";
-import { SHARED, useLang, reportFirstInvalid, validityHandlers } from "./i18n";
+import { SHARED, useLang, type Lang } from "./i18n";
 import { SimpleShell } from "./SiteChrome";
 
 const AUTH = {
@@ -60,19 +60,61 @@ function AuthCard({
   );
 }
 
+type FieldErr = { field: string; message: string } | null;
+
+function firstFieldError(form: HTMLFormElement, lang: Lang): FieldErr {
+  const t = SHARED[lang];
+  const fields = [...form.querySelectorAll("input")] as HTMLInputElement[];
+  for (const el of fields) {
+    if (el.disabled) continue;
+    if (!el.value.trim()) return { field: el.name || el.id, message: t.required };
+    if (el.type === "email" && el.validity.typeMismatch) {
+      return { field: el.name || el.id, message: t.email_invalid };
+    }
+    if (el.validity.tooShort) {
+      return { field: el.name || el.id, message: t.too_short.replace("{n}", String(el.minLength)) };
+    }
+  }
+  return null;
+}
+
+function Field({
+  label,
+  error,
+  children,
+}: {
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label>
+      {label}
+      {children}
+      {error ? <span className="auth-field-error" role="alert">{error}</span> : null}
+    </label>
+  );
+}
+
 export function Login() {
   const [lang] = useLang();
   const t = AUTH[lang];
-  const v = validityHandlers(lang);
   const nav = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<FieldErr>(null);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (reportFirstInvalid(e.currentTarget, lang)) return;
+    const next = firstFieldError(e.currentTarget, lang);
+    setFieldErr(next);
+    if (next) {
+      const el = e.currentTarget.querySelector(`[name="${next.field}"]`) as HTMLInputElement | null;
+      el?.focus();
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
@@ -94,31 +136,27 @@ export function Login() {
         foot={<>{t.no_account} <Link to="/register">{t.signup_link}</Link></>}
       >
         <form className="auth-form" onSubmit={onSubmit} noValidate>
-          <label>
-            {t.email}
+          <Field label={t.email} error={fieldErr?.field === "email" ? fieldErr.message : undefined}>
             <input
               type="email"
               name="email"
               autoComplete="email"
               value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
+              onChange={(ev) => { setEmail(ev.target.value); setFieldErr(null); }}
               required
-              {...v}
             />
-          </label>
-          <label>
-            {t.password}
+          </Field>
+          <Field label={t.password} error={fieldErr?.field === "password" ? fieldErr.message : undefined}>
             <input
               type="password"
               name="password"
               autoComplete="current-password"
               value={password}
-              onChange={(ev) => setPassword(ev.target.value)}
+              onChange={(ev) => { setPassword(ev.target.value); setFieldErr(null); }}
               required
               minLength={8}
-              {...v}
             />
-          </label>
+          </Field>
           {error && <p className="auth-error" role="alert">{error}</p>}
           <button className="kbtn kbtn-primary auth-cta" type="submit" disabled={busy}>
             {busy ? t.login_busy : t.login_cta}
@@ -132,17 +170,23 @@ export function Login() {
 export function Register() {
   const [lang] = useLang();
   const t = AUTH[lang];
-  const v = validityHandlers(lang);
   const nav = useNavigate();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [fieldErr, setFieldErr] = useState<FieldErr>(null);
   const [busy, setBusy] = useState(false);
 
   async function onSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (reportFirstInvalid(e.currentTarget, lang)) return;
+    const next = firstFieldError(e.currentTarget, lang);
+    setFieldErr(next);
+    if (next) {
+      const el = e.currentTarget.querySelector(`[name="${next.field}"]`) as HTMLInputElement | null;
+      el?.focus();
+      return;
+    }
     setError(null);
     setBusy(true);
     try {
@@ -163,47 +207,41 @@ export function Register() {
         lead={t.register_lead}
         foot={<>{t.has_account} <Link to="/login">{SHARED[lang].login}</Link></>}
       >
-        <form className="auth-form" onSubmit={onSubmit} noValidate>
-          <label>
-            {t.name}
+        <form className="auth-form" onSubmit={onSubmit} noValidate autoComplete="off">
+          <Field label={t.name} error={fieldErr?.field === "fullName" ? fieldErr.message : undefined}>
             <input
               id="register-name"
               type="text"
               name="fullName"
-              autoComplete="name"
+              autoComplete="off"
               value={name}
-              onChange={(ev) => setName(ev.target.value)}
+              onChange={(ev) => { setName(ev.target.value); setFieldErr(null); }}
               required
               minLength={2}
               maxLength={80}
-              {...v}
             />
-          </label>
-          <label>
-            {t.email}
+          </Field>
+          <Field label={t.email} error={fieldErr?.field === "email" ? fieldErr.message : undefined}>
             <input
               type="email"
               name="email"
-              autoComplete="email"
+              autoComplete="off"
               value={email}
-              onChange={(ev) => setEmail(ev.target.value)}
+              onChange={(ev) => { setEmail(ev.target.value); setFieldErr(null); }}
               required
-              {...v}
             />
-          </label>
-          <label>
-            {t.password}
+          </Field>
+          <Field label={t.password} error={fieldErr?.field === "password" ? fieldErr.message : undefined}>
             <input
               type="password"
               name="password"
               autoComplete="new-password"
               value={password}
-              onChange={(ev) => setPassword(ev.target.value)}
+              onChange={(ev) => { setPassword(ev.target.value); setFieldErr(null); }}
               required
               minLength={8}
-              {...v}
             />
-          </label>
+          </Field>
           {error && <p className="auth-error" role="alert">{error}</p>}
           <button className="kbtn kbtn-primary auth-cta" type="submit" disabled={busy}>
             {busy ? t.register_busy : t.register_cta}

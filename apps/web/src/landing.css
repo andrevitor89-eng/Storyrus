@@ -700,6 +700,7 @@
 .auth-form input:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(58,95,174,.18); }
 .auth-cta { width: 100%; justify-content: center; margin-top: 6px; }
 .auth-error { color: #c4473a; font-weight: 700; }
+.auth-field-error { display: block; margin-top: 6px; color: #e07a6e; font-size: .88rem; font-weight: 700; }
 .auth-foot { margin: 18px 0 0; color: #6b6890; }
 .auth-foot a { color: var(--purple); font-weight: 800; }
 
