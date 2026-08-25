@@ -3,7 +3,7 @@
 
 Regras de ouro:
 - 1 avatar-base gerado da foto; reusado como character_ref em TODAS as paginas
-- Personagem em CGI 3D de filme infantil, nunca foto nem pintura 2D
+- Rosto CGI 3D fiel a foto; pescoco, ombros, bracos e roupa mais desenho
 - Identidade da foto e imutavel: nao inventar franja, olhos, idade, etnia
 - Proporcoes naturais da foto (cabeca anatomica, sem aumento); sem chibi/funko
 - Expressao facial MUDA por pagina e deve coincidir com a historia
@@ -160,12 +160,16 @@ _FACE_FIDELITY = (
 )
 
 _CGI_3D_STYLE = (
-    "ESTILO CGI 3D DE FILME INFANTIL OBRIGATORIO: personagem em render 3D de "
-    "animacao infantil — volumes suaves, luz de estudio; pele, cabelo, corpo, "
-    "roupa e fundo no MESMO material CGI. Claramente um personagem de filme, "
-    "fofo e estilizado. "
-    "PROIBIDO: fotografia, filtro de beleza, pintura 2D, oleo, colagem, "
-    "recorte, linha preta, chibi, olhos anime."
+    "ESTILO CGI 3D DE FILME INFANTIL OBRIGATORIO, com recorte cabeca/corpo: "
+    "ROSTO: CGI 3D fiel a foto — volumes suaves, luz de estudio, pele CGI "
+    "(nao poros). Junta limpa no pescoco. NAO colar o rosto fotografico. "
+    "CORPO E ROUPA: mais DESENHO/ilustracao infantil do que o rosto — "
+    "pescoco, ombros, bracos e pecas de roupa claramente ilustrados; tecido "
+    "grafico, volumes simplificados, patch e costuras desenhados; menos "
+    "textura fotografica. "
+    "Luz de estudio, fundo liso. Claramente um personagem de livro infantil. "
+    "PROIBIDO: fotografia, filtro de beleza, oleo realista, colagem, recorte, "
+    "linha preta pesada, chibi, olhos anime."
 )
 
 _WATERMARK_LOCK = (
@@ -201,20 +205,23 @@ AVATAR_PROMPT = (
     "foto for pequena) — so o rosto-padrao de referencia; nas cenas do livro a "
     "expressao facial MUDARA conforme a historia. Fundo neutro, "
     "liso, creme suave — SEM cenario, SEM objetos, SEM texto, SEM moldura, SEM "
-    "marca d'agua. Roupa da foto, peca por peca, volumes CGI 3D.\n\n"
+    "marca d'agua. Roupa da foto, peca por peca, corpo e roupa mais desenhados "
+    "que o rosto (junta limpa no pescoco).\n\n"
     "SAIDA: uma unica imagem limpa do personagem 3D. Este arquivo sera o character_ref "
     "imutavel de todas as paginas."
 )
 
 STYLE = (
-    "CGI 3D de filme infantil (rosto e corpo no mesmo material 3D, nao copia "
-    "da foto); personagem fofo de animacao; identidade da foto; cabeca em "
-    "proporcao NATURAL (sem aumentar, sem chibi); fundo liso; sem texto"
+    "CGI 3D de filme infantil (rosto fiel a foto; corpo e roupa mais "
+    "desenho que o rosto, nao copia da foto); personagem fofo de animacao; "
+    "identidade da foto; cabeca em proporcao NATURAL (sem aumentar, sem "
+    "chibi); fundo liso; sem texto"
 )
 
 CHARACTER_GEN_PREFIX = (
     "Crie um personagem em CGI 3D DE FILME INFANTIL a partir das fotos de "
-    "referencia: render 3D (nao copiado da foto), corpo no mesmo material CGI. "
+    "referencia: render 3D (nao copiado da foto), rosto fiel a foto, corpo e "
+    "roupa mais desenhados que o rosto. "
     "TRAVE A IDENTIDADE: mesmo formato de rosto, mesmos olhos (cor e tamanho "
     "NATURAL), mesmo nariz, boca e sobrancelhas, mesmo cabelo e penteado da "
     "foto (franja so se a foto tiver franja; testa visivel se a foto mostrar "

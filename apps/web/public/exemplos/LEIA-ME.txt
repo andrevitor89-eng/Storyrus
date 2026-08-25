@@ -1,0 +1,28 @@
+Mapa dos exemplos usados pela landing e pelo modo demo do Studio.
+
+Não invente artes: só pares foto → personagem que existem de verdade.
+
+Antes e depois (landing #antes-depois)
+  foto-bebe.jpg        → arte-bebe.jpg
+  foto-menino.jpg      → arte-menino.jpg
+  foto-pai.jpg         → arte-pai.jpg
+
+Pipeline canônico — Matteo / dinossauros (/app?exemplo=dinosaurs)
+  foto-matteo.png      foto real
+  personagem-dino.jpg  personagem (rosto fiel + corpo mais desenho)
+  capa-dino2.jpg       capa
+  dino-1.jpg … dino-6.jpg   páginas (dino-2.jpg é poster do vídeo)
+  video-dino.mp4       vídeo narrado
+
+Outras histórias (catálogo, flipbook, vídeos)
+  Oceano    foto —          capa-oceano.jpg     mar-1..6.jpg     video-mar.mp4
+  Floresta  foto-sofia.png  capa-floresta2.jpg  flor-1..6.jpg    video-flor.mp4
+  Circo     foto-bebe.jpg   capa-circo.jpg      circo-1..6.jpg   video-circo.mp4
+  Chloe     —               ebook-1.jpg         ebook-3..11.jpg  —
+
+Dicas de foto: dica-boa.png (ok), dica-multi.png e dica-lado.png (evitar).
+Hero: foto-matteo.png, foto-sofia.png, foto-bebe.jpg sobre as capas.
+
+Pares extra no disco (ainda sem seção própria):
+  foto-menina.jpg / arte-menina.jpg
+  foto-bebe2.jpg  / arte-bebe2.jpg

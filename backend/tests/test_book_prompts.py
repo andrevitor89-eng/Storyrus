@@ -79,6 +79,8 @@ def test_avatar_prompt_face_fidelity_and_head():
     assert "IDENTITY LOCK" in AVATAR_PROMPT
     assert "Ignore adultos" in AVATAR_PROMPT
     assert "sorriso largo de banco de imagens" in AVATAR_PROMPT
+    assert "rosto fiel" in AVATAR_PROMPT.lower() or "ROSTO: CGI 3D fiel" in AVATAR_PROMPT
+    assert "mais DESENHO" in AVATAR_PROMPT or "mais desenhados que o rosto" in AVATAR_PROMPT
 
 
 def test_refine_identity_orders_photo_first():
@@ -102,6 +104,7 @@ def test_scene_and_style_are_cgi_3d_not_photo():
     assert "2D nitida" not in SCENE_GEN_PREFIX
     assert "PROIBIDO Pixar" not in SCENE_GEN_PREFIX
     assert "CGI 3D" in SCENE_GEN_PREFIX
+    assert "mais DESENHO" in SCENE_GEN_PREFIX or "corpo e roupa mais desenhados" in SCENE_GEN_PREFIX
 
 
 def test_scene_keeps_emotion_separate_from_identity():
