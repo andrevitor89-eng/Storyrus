@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import { afterAll, afterEach, beforeAll } from "vitest";
+import { setToken } from "../api";
 import { server, state } from "./server";
 
 // crypto.randomUUID em ambiente de teste (caso o jsdom não exponha).
@@ -12,5 +13,11 @@ beforeAll(() => server.listen({ onUnhandledRequest: "error" }));
 afterEach(() => {
   server.resetHandlers();
   state.reset();
+  setToken(null);
+  try {
+    localStorage.clear();
+  } catch {
+    /* ignore */
+  }
 });
 afterAll(() => server.close());

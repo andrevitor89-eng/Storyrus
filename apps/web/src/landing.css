@@ -42,13 +42,12 @@
 }
 .kbrand img {
   height: 132px;
-  /* contorno branco mais visível no nome da logo */
+  /* contorno branco fino e uniforme (sem “bolhas” nos cantos) */
   filter:
-    drop-shadow(1.35px 0 0 #fff) drop-shadow(-1.35px 0 0 #fff)
-    drop-shadow(0 1.35px 0 #fff) drop-shadow(0 -1.35px 0 #fff)
-    drop-shadow(1px 1px 0 #fff) drop-shadow(-1px 1px 0 #fff)
-    drop-shadow(1px -1px 0 #fff) drop-shadow(-1px -1px 0 #fff)
-    drop-shadow(0 0 1.5px rgba(255, 255, 255, 0.85));
+    drop-shadow(0.9px 0 0 #fff) drop-shadow(-0.9px 0 0 #fff)
+    drop-shadow(0 0.9px 0 #fff) drop-shadow(0 -0.9px 0 #fff)
+    drop-shadow(0.7px 0.7px 0 #fff) drop-shadow(-0.7px 0.7px 0 #fff)
+    drop-shadow(0.7px -0.7px 0 #fff) drop-shadow(-0.7px -0.7px 0 #fff);
 }
 .klinks { margin-left: auto; display: flex; align-items: center; gap: 4px; }
 .klinks a {
@@ -101,8 +100,14 @@
 /* ---------- HERO — livro grande (retrato), não banner full-bleed ---------- */
 .kbanner-hero {
   position: relative; z-index: 1; max-width: 1180px; margin: 6px auto 0;
-  padding: 18px 22px 8px; display: flex; justify-content: center;
+  padding: 18px 22px 8px; display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
+.khero-intro {
+  text-align: center; max-width: 42rem;
+}
+.khero-intro h1 { font-size: clamp(2rem, 4.8vw, 3.15rem); line-height: 1.1; margin: 14px 0 10px; }
+.khero-intro .klead { margin-inline: auto; }
+.khero-intro .khero-cta { justify-content: center; }
 .kbh-frame {
   position: relative; width: min(520px, 92vw); border-radius: 14px 6px 6px 14px;
   overflow: hidden; aspect-ratio: 3 / 4; background: #12203f;
@@ -523,7 +528,6 @@
 
 /* ---------- Como funciona com exemplos ---------- */
 .howex { display: flex; align-items: stretch; justify-content: center; gap: 8px; flex-wrap: wrap; max-width: 1180px; margin: 0 auto; }
-.howex-cta { margin-top: 28px; }
 .howex-item { display: flex; align-items: stretch; gap: 8px; flex: 1 1 0; min-width: 240px; }
 .howex-card {
   position: relative; width: auto; flex: 1; min-width: 0; margin: 0; background: #172140; border-radius: 22px; overflow: hidden;
@@ -629,8 +633,6 @@
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
 .cat-price span { display: block; font-size: .82rem; font-weight: 600; color: #9fabce; }
 .cat-body .kbtn { margin-top: auto; justify-content: center; }
-.cat-actions { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
-.cat-actions .kbtn { margin-top: 0; }
 .cat-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .cat-age { font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px; text-transform: uppercase; color: #1f3568; background: var(--yellow); padding: 3px 9px; border-radius: 999px; }
 .cat-tag { font-size: .78rem; font-weight: 600; color: #b9c3e2; background: #222e52; border: 1px solid #33406e; padding: 3px 9px; border-radius: 999px; }
@@ -813,6 +815,7 @@
 .reveal.in { opacity: 1; transform: none; }
 @media (prefers-reduced-motion: reduce) {
   .ba-card, .ba-arrow, .flow-arrow, .sp, .shine, .dstar, .dmoon { animation: none !important; }
+  .reveal { opacity: 1; transform: none; transition: none; }
 }
 
 /* ---------- responsivo ---------- */
@@ -830,11 +833,14 @@
   .feat:nth-child(2) { border-right: none; }
   .khamb { display: block; }
   .klinks {
-    position: absolute; top: 70px; right: 14px; left: 14px; flex-direction: column; align-items: stretch;
-    background: #fff; border-radius: 22px; padding: 14px; gap: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.15);
-    display: none;
+    position: absolute; top: calc(100% + 8px); right: 14px; left: 14px; flex-direction: column; align-items: stretch;
+    background: #172140; border-radius: 22px; padding: 14px; gap: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.15);
+    display: none; z-index: 30;
   }
   .klinks.open { display: flex; }
+  [data-theme="light"] .kid .klinks {
+    background: #fff;
+  }
 }
 @media (max-width: 520px) {
   .featurebar { grid-template-columns: 1fr; }
@@ -881,6 +887,10 @@
 .kid .kfoot-contact { background: #172140; color: #e9eefb; box-shadow: 0 6px 14px rgba(0,0,0,.45); }
 .kid .kfoot-contact:hover { color: var(--yellow); }
 .kid .kfoot-copy { color: #7f8bb0; }
+
+.legal-page main { padding-bottom: 64px; }
+.legal-page main h2 { font-size: 1.3rem; margin: 1.5rem 0 0.4rem; }
+.legal-page main p { line-height: 1.55; }
 
 /* ===== botão de tema, preço, footer ===== */
 .theme-toggle { width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
@@ -994,26 +1004,12 @@
   width: min(100%, 440px);
   padding: 1.5rem 1.25rem 2.5rem;
 }
-.auth-shell-wide {
-  width: min(100%, 480px);
-}
 .auth-card {
   background: #fff;
   border: 3px solid #fff;
   border-radius: 28px;
   box-shadow: 0 24px 54px rgba(31, 53, 104, 0.16);
   padding: 1.6rem 1.55rem 1.7rem;
-}
-.auth-back {
-  display: inline-block;
-  margin: 0 0 0.35rem;
-  color: #1f3568;
-  font-weight: 700;
-  font-size: 0.95rem;
-  text-decoration: none;
-}
-.auth-back:hover {
-  color: var(--coral);
 }
 .auth-logo {
   display: flex;
@@ -1028,12 +1024,12 @@
   margin: 0 0 0.35rem;
   text-align: center;
   font-size: clamp(2rem, 5vw, 2.45rem);
-  color: #1f3568;
+  color: var(--ink);
 }
 .auth-lead {
   margin: 0 0 1.25rem;
   text-align: center;
-  color: #1f3568;
+  color: #6b6890;
   font-weight: 600;
   font-size: 1.02rem;
 }
@@ -1045,37 +1041,23 @@
   display: grid;
   gap: 0.4rem;
   font-weight: 700;
-  color: #1f3568;
+  color: var(--ink);
   font-size: 0.95rem;
 }
-.auth-form input,
-.auth-form select {
+.auth-form input {
   width: 100%;
   border-radius: 14px;
-  border: 1.5px solid rgba(31, 53, 104, 0.22);
+  border: 1.5px solid rgba(31, 53, 104, 0.14);
   background: #f7fbff;
   padding: 0.85rem 1rem;
   font: inherit;
-  font-weight: 700;
-  color: #1f3568;
-  -webkit-text-fill-color: #1f3568;
-}
-.auth-form input::placeholder {
-  color: rgba(31, 53, 104, 0.45);
-  -webkit-text-fill-color: rgba(31, 53, 104, 0.45);
   font-weight: 600;
+  color: var(--ink);
 }
-.auth-form input:focus,
-.auth-form select:focus {
+.auth-form input:focus {
   outline: 2px solid rgba(58, 95, 174, 0.28);
   border-color: var(--purple);
   background: #fff;
-}
-.auth-hint {
-  color: #4a5170;
-  font-weight: 500;
-  font-size: 0.85rem;
-  line-height: 1.4;
 }
 .auth-error {
   margin: 0;

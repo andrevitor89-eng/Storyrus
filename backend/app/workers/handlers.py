@@ -9,6 +9,7 @@ quando faltam, levantam ProviderError(transient=False) -> falha definitiva clara
 """  # pipeline v2 (livro estilo referencia)
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 import re
@@ -24,14 +25,31 @@ from app.ai_clients import get_image_provider, get_text_provider, get_video_prov
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
+    CHARACTER_SHEET_PROMPT,
+    EXPRESSION_SHEET_KEYS,
+    EXPRESSION_SHEET_PROMPT,
     build_scene_prompt,
+    costume_extras_for_template,
+    costume_extras_for_theme,
+    costume_lock_prompt,
     infer_expression,
+    name_scene_extras_for_template,
+    normalize_expression,
+    normalize_shot,
+    normalize_text_band,
+    scene_extras_for_template,
 )
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
 )
+from app.ai_clients.face_detect import face_reference, identity_images
+from app.ai_clients.face_match import score_face_match
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
+from app.story_templates import (
+    illustration_notes,
+    page_layouts,
+)
 from app.workers import ebook as ebook_builder
 
 logger = logging.getLogger("worker")
@@ -737,6 +755,26 @@ def _short_captions(pages: list[str]) -> list[str]:
     return out
 
 
+async def _project_photo_bytes(db: Session, project: Project) -> bytes | None:
+    """Recorte do rosto da primeira foto do projeto, se existir.
+
+    E a verdade do rosto em TODA pagina do livro, nao so no avatar: por isso usa
+    a caixa detectada, e nao a janela geometrica que cortava a boca fora.
+    """
+    photos = db.scalars(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+        .order_by(Asset.created_at.desc())
+    ).all()
+    if not photos:
+        return None
+    try:
+        raw = storage.get_bytes(photos[0].storage_key)
+    except Exception:  # noqa: BLE001
+        return None
+    return await face_reference(raw)
+
+
 # --------------------------------------------------------------------------- #
 # Etapa 2-4: personagem
 # --------------------------------------------------------------------------- #
@@ -763,20 +801,22 @@ async def handle_avatar(db: Session, job: Job) -> None:
             cost_usd=0.0,
         )
     else:
-        # CGI 3D de filme infantil: generate_character + refine de identidade.
+        # Personagem hibrido: generate_character + refine de identidade.
         provider = get_image_provider(job.provider)
         style = BOOK_STYLE
+        gen_refs = (await identity_images(refs[0])) + refs[1:]
+        face = gen_refs[0]
         try:
             result = await provider.generate_character(
                 prompt=AVATAR_PROMPT,
-                reference_images=refs,
+                reference_images=gen_refs,
                 style=style,
             )
         except ProviderError:
             result = await provider.generate_realistic(
-                photo=refs[0], prompt=AVATAR_PROMPT, style=style
+                photo=face, prompt=AVATAR_PROMPT, style=style
             )
-        result = await _refine_identity(provider, refs[0], result, style, retries=1)
+        result = await _refine_identity(provider, face, result, style, passes=2)
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -789,42 +829,68 @@ async def handle_avatar(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.AVATAR_READY)
 
 
-async def _refine_identity(provider, photo_bytes, result, style, *, retries: int = 0):
-    """Passe opcional: corrige a ilustracao para ficar mais fiel a foto.
+async def _refine_identity(
+    provider, photo_bytes, result, style, *, retries: int = 0, passes: int = 1
+):
+    """Passe opcional: corrige o rosto para ficar mais fiel a foto, preservando o corpo desenhado.
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
-    `retries` = tentativas extras apos a primeira falha (avatar usa 1).
+    `passes` = correcoes em sequencia (avatar usa 2).
+    `retries` = tentativas extras apos falha em cada passe.
     """
     refine = getattr(provider, "refine_identity", None)
     if refine is None or not photo_bytes:
         return result
-    attempts = 1 + max(0, retries)
-    for _ in range(attempts):
-        try:
-            refined = await refine(
-                photo=photo_bytes, illustration=result.image_bytes, style=style
-            )
-            if refined and getattr(refined, "image_bytes", None):
-                return refined
-        except Exception:  # noqa: BLE001 - refinamento e opcional
-            continue
+    extra = max(0, retries)
+    for _ in range(max(1, passes)):
+        attempt = 0
+        while True:
+            try:
+                refined = await refine(
+                    photo=photo_bytes, illustration=result.image_bytes, style=style
+                )
+                if refined and getattr(refined, "image_bytes", None):
+                    result = refined
+                break
+            except Exception:  # noqa: BLE001 - refinamento e opcional
+                if attempt < extra:
+                    attempt += 1
+                    continue
+                break
     return result
 
 
-async def _refine_scene(provider, character_ref, result, style):
-    """Passe opcional de cena: corrige o protagonista para bater com o personagem-base.
+async def _refine_scene(provider, character_ref, result, style, *, photo: bytes | None = None):
+    """Passe opcional de cena: corrige o protagonista (foto = rosto, se houver).
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
+    `EBOOK_REFINE_SCENE=false` corta o segundo passe (nunca refina).
+    Com o juiz ligado, quem dispara o refine e a nota de identidade — esta funcao
+    so executa o passe quando o caller pede.
     """
+    if not settings.ebook_refine_scene:
+        return result
     refine = getattr(provider, "refine_scene", None)
     if refine is None or not character_ref:
         return result
     try:
         refined = await refine(
-            character_ref=character_ref, scene=result.image_bytes, style=style
+            character_ref=character_ref,
+            scene=result.image_bytes,
+            style=style,
+            photo=photo,
         )
         if refined and getattr(refined, "image_bytes", None):
             return refined
+    except TypeError:
+        try:
+            refined = await refine(
+                character_ref=character_ref, scene=result.image_bytes, style=style
+            )
+            if refined and getattr(refined, "image_bytes", None):
+                return refined
+        except Exception:  # noqa: BLE001
+            pass
     except Exception:  # noqa: BLE001 - refinamento e opcional
         pass
     return result
@@ -857,12 +923,13 @@ async def handle_extra_character(db: Session, job: Job) -> None:
                 cost_usd=0.0,
             )
         else:
+            refs = await identity_images(photo_bytes)
             result = await provider.generate_character(
                 prompt=f"Retrato do personagem '{ec.get('name', '')}', corpo inteiro, fundo neutro.",
-                reference_images=[photo_bytes],
+                reference_images=refs,
                 style=BOOK_STYLE,
             )
-            result = await _refine_identity(provider, photo_bytes, result, BOOK_STYLE)
+            result = await _refine_identity(provider, refs[0], result, BOOK_STYLE)
 
         char_key = storage.new_key(project.id, "extra_character", _ext(result.mime_type))
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
@@ -879,20 +946,32 @@ async def handle_extra_character(db: Session, job: Job) -> None:
     )
 
 
-# Prompt fixo para a imagem realistica (usada como referencia do video).
+# Prompt fixo para a imagem hibrida (usada como referencia do video).
 REALISTIC_PROMPT = (
-    "Transform this photo of a child into a semi-realistic children's book illustration, "
-    "in the style of a warm painterly digital painting. Keep the child's exact facial features, "
-    "expression, hair color and texture, skin tone, and the same outfit, so they remain fully "
-    "recognizable. Render with soft golden \"magic hour\" lighting, gentle glow, delicate freckles "
-    "and luminous eyes. Place them in a whimsical storybook setting (sunlit fields, soft clouds, "
-    "distant castle, or cozy adventure scene) with painterly brush textures, rich warm colors, and "
-    "a dreamy bokeh background. High detail, wholesome, enchanting, professional illustration "
-    "quality. Portrait/3-4 view, soft focus background, vertical composition."
+    "Tell My Tale (TMT) style: transform this photo of a child into a hybrid "
+    "children's-book character. FACE: photoreal digital painting of THIS child, "
+    "camera quality with a slight painterly finish — more real than drawn "
+    "(natural skin, lashes, iris, lips, hair strands; not a raw photo cutout, "
+    "not cartoon). BODY: 3D storybook illustration (drawn neck, shoulders, arms). "
+    "CLOTHES: illustrated story costume matching the scene (explorer, doctor, "
+    "sailor, etc.) — do NOT copy the photo outfit. Identity from the photo "
+    "wins over stylization: keep the child's exact facial features, eye size as the same "
+    "fraction of the face as in the photo (if unsure, make eyes smaller, never larger), "
+    "hair color and texture, skin tone, so they remain fully recognizable. "
+    "Natural head proportions; no chibi; no doll eyes; no giant iris; "
+    "no lens-flare covering the eye. Cinematic warm light, soft glow, rim light, "
+    "magical atmosphere without enlarging the eyes for cuteness. Place "
+    "them in a rich painterly storybook setting with depth, saturated color, and a "
+    "dreamy bokeh background. High detail, wholesome, professional illustration "
+    "quality. Portrait/3-4 view, vertical composition."
 )
 REALISTIC_NEGATIVE = (
-    "photorealistic skin, distorted face, extra fingers, text, watermark, harsh lighting, "
-    "changing the child's identity or clothing."
+    "photo collage, pasted face, fully cartoon face, raw unstyled photo face, "
+    "heavy airbrush, same illustrated look on face and body, copying the photo outfit, "
+    "overalls from the source photo, distorted face, extra fingers, "
+    "text, watermark, harsh lighting, plastic doll skin, enlarged cartoon eyes, "
+    "giant iris, doll eyes, cute oversized eyes, Pixar CGI, "
+    "changing the child's facial identity."
 )
 
 
@@ -1157,6 +1236,360 @@ def _enqueue_auto_storyboard(db: Session, project: Project, source_job: Job) -> 
     db.commit()
 
 
+def _catalog_template_id(db: Session, project: Project) -> str | None:
+    """template_id se a história veio do catálogo (último job STORY)."""
+    job = db.scalar(
+        select(Job)
+        .where(
+            Job.project_id == project.id,
+            Job.type == JobType.STORY.value,
+            Job.status == JobStatus.DONE.value,
+        )
+        .order_by(Job.created_at.desc())
+    )
+    if job is None or not isinstance(job.result, dict):
+        return None
+    if job.result.get("source") != "template":
+        return None
+    tid = (job.result.get("template_id") or "").strip()
+    return tid or None
+
+
+def _book_costume_line(
+    briefs: list[dict], template_id: str | None, theme: str | None
+) -> str:
+    for brief in briefs:
+        line = (brief.get("costume") or "").strip()
+        if line:
+            return line
+    return costume_extras_for_template(template_id) or costume_extras_for_theme(theme)
+
+
+def _scene_to_brief(sc: dict, page_text: str, *, page_index: int = 0) -> dict:
+    """Normaliza uma cena de storyboard num brief de pagina do ebook."""
+    scene = (
+        str(sc.get("scene") or "").strip()
+        or str(sc.get("action") or "").strip()
+        or str(sc.get("setting") or "").strip()
+        or str(sc.get("image_prompt") or "").strip()
+        or page_text
+    )
+    expression = normalize_expression(
+        sc.get("expression") or sc.get("mood") or infer_expression(page_text, scene)
+    )
+    band = sc.get("text_band") or ("top" if page_index % 2 == 0 else "bottom")
+    return {
+        "n": int(sc.get("n") or page_index + 1),
+        "scene": scene,
+        "expression": expression,
+        "shot": normalize_shot(sc.get("shot")),
+        "costume": str(sc.get("costume") or "").strip(),
+        "text_band": normalize_text_band(band),
+    }
+
+
+def _fallback_page_briefs(
+    pages: list[str],
+    *,
+    notes: list[str] | None = None,
+    costume: str = "",
+    layouts: list[str] | None = None,
+) -> list[dict]:
+    briefs = []
+    for i, page in enumerate(pages):
+        note = notes[i] if notes and i < len(notes) else ""
+        scene = (note or page).strip()
+        layout = layouts[i] if layouts and i < len(layouts) else "story"
+        briefs.append({
+            "n": i + 1,
+            "scene": scene,
+            "expression": infer_expression(page, note),
+            "shot": "wide" if layout == "name" else "medium",
+            "costume": costume,
+            "text_band": "left" if layout == "name" else (
+                "top" if i % 2 == 0 else "bottom"
+            ),
+        })
+    return briefs
+
+
+def _save_storyboard_asset(
+    db: Session, project: Project, sb: dict, *, auto: bool
+) -> None:
+    key = storage.new_key(project.id, AssetKind.STORYBOARD.value, "json")
+    storage.put_bytes(
+        key, json.dumps(sb, ensure_ascii=False, indent=2).encode("utf-8"), "application/json"
+    )
+    db.add(Asset(
+        project_id=project.id,
+        kind=AssetKind.STORYBOARD.value,
+        storage_key=key,
+        meta={"scenes": len(sb.get("scenes") or []), "auto": auto},
+    ))
+    db.commit()
+
+
+async def _compose_storyboard(
+    db: Session,
+    project: Project,
+    pages: list[str],
+    *,
+    title: str,
+    theme_combined: str,
+    language: str,
+    auto: bool = False,
+    require_ai: bool = False,
+) -> dict:
+    """Carrega o storyboard se bater com as paginas; senao gera (Claude ou fallback)."""
+    existing = _latest_storyboard(db, project)
+    if existing and len(existing.get("scenes") or []) == len(pages):
+        return existing
+
+    sb: dict | None = None
+    text_provider = get_text_provider()
+    gen = getattr(text_provider, "generate_storyboard", None)
+    if gen is not None:
+        try:
+            result = await gen(
+                story=project.story_text,
+                theme=theme_combined,
+                title=title,
+                language=language,
+            )
+            sb = _parse_storyboard_json(result.text)
+        except ProviderError as exc:
+            if require_ai and exc.transient:
+                raise
+            sb = None
+    if not sb:
+        sb = _fallback_storyboard(pages, title=title, theme=theme_combined)
+
+    extra_theme = (project.extra_theme or "").strip() or None
+    theme = project.theme or "adventure"
+    if extra_theme == theme:
+        extra_theme = None
+    sb.update({
+        "version": 1,
+        "theme": theme,
+        "extra_theme": extra_theme,
+        "language": language,
+        "title": sb.get("title") or title,
+        "total_duration_s": sum(s.get("duration_s", 5) for s in sb["scenes"]),
+    })
+    _save_storyboard_asset(db, project, sb, auto=auto)
+    return sb
+
+
+async def ensure_page_briefs(
+    db: Session,
+    project: Project,
+    pages: list[str],
+    *,
+    template_id: str | None,
+    notes: list[str],
+    layouts: list[str] | None,
+    language: str,
+) -> list[dict]:
+    """Roteiro visual por pagina: catálogo preserva illustration_notes na scene."""
+    costume = (
+        costume_extras_for_template(template_id)
+        if template_id
+        else costume_extras_for_theme(project.theme)
+    )
+    if template_id:
+        briefs = _fallback_page_briefs(
+            pages, notes=notes, costume=costume, layouts=layouts
+        )
+        for i, brief in enumerate(briefs):
+            if i < len(notes) and (notes[i] or "").strip():
+                brief["scene"] = notes[i].strip()
+        return briefs
+
+    title = _parse_title(project.story_text) or ""
+    theme = project.theme or "adventure"
+    extra_theme = (project.extra_theme or "").strip() or None
+    if extra_theme == theme:
+        extra_theme = None
+    theme_combined = f"{theme} + {extra_theme}" if extra_theme else theme
+    sb = await _compose_storyboard(
+        db, project, pages, title=title, theme_combined=theme_combined,
+        language=language, auto=True,
+    )
+    scenes = sb.get("scenes") or []
+    briefs = []
+    for i, page in enumerate(pages):
+        sc = scenes[i] if i < len(scenes) else {}
+        brief = _scene_to_brief(sc, page, page_index=i)
+        if not brief.get("costume"):
+            brief["costume"] = costume
+        briefs.append(brief)
+    return briefs
+
+
+async def _store_bible_asset(
+    db: Session, project: Project, kind: AssetKind, result: ImageResult
+) -> bytes:
+    key = storage.new_key(project.id, kind.value, _ext(result.mime_type))
+    storage.put_bytes(key, result.image_bytes, result.mime_type)
+    db.add(Asset(
+        project_id=project.id,
+        kind=kind.value,
+        storage_key=key,
+        meta={"mime": result.mime_type},
+    ))
+    return result.image_bytes
+
+
+async def _generate_character_bible(
+    db: Session,
+    project: Project,
+    provider,
+    *,
+    photo: bytes | None,
+    avatar: bytes,
+    costume: str,
+    style: str,
+) -> dict[str, bytes]:
+    """3 folhas (turnaround, expressoes, figurino). Best-effort: falha nao aborta o livro."""
+    bible: dict[str, bytes] = {}
+    refs = [img for img in (photo, avatar) if img]
+
+    async def _one(kind: AssetKind, prompt: str, extra: list[bytes]) -> None:
+        try:
+            result = await provider.generate_character(
+                prompt=prompt,
+                reference_images=refs + extra,
+                style=style,
+            )
+        except Exception:  # noqa: BLE001
+            logger.warning("Ficha %s falhou; ebook segue sem ela", kind.value)
+            return
+        if not result or not result.image_bytes:
+            return
+        bible[kind.value] = await _store_bible_asset(db, project, kind, result)
+
+    await _one(AssetKind.CHARACTER_SHEET, CHARACTER_SHEET_PROMPT, [])
+    sheet = bible.get(AssetKind.CHARACTER_SHEET.value)
+    extra_sheet = [sheet] if sheet else []
+    await _one(AssetKind.EXPRESSION_SHEET, EXPRESSION_SHEET_PROMPT, extra_sheet)
+    await _one(
+        AssetKind.COSTUME_LOCK, costume_lock_prompt(costume), extra_sheet
+    )
+    db.commit()
+    return bible
+
+
+def _scene_extra_refs(
+    bible: dict[str, bytes], expression: str, *, style_ref: bytes | None = None
+) -> list[bytes]:
+    extras: list[bytes] = []
+    costume = bible.get(AssetKind.COSTUME_LOCK.value)
+    sheet = bible.get(AssetKind.CHARACTER_SHEET.value)
+    expr_sheet = bible.get(AssetKind.EXPRESSION_SHEET.value)
+    if costume:
+        extras.append(costume)
+    if sheet:
+        extras.append(sheet)
+    if expr_sheet and normalize_expression(expression) in EXPRESSION_SHEET_KEYS:
+        extras.append(expr_sheet)
+    if style_ref:
+        extras.append(style_ref)
+    return extras
+
+
+async def _score_page_face(photo: bytes | None, scene: bytes) -> float | None:
+    if not settings.ebook_face_match or not photo or not scene:
+        return None
+    try:
+        return await score_face_match(photo, scene)
+    except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o livro
+        logger.warning("Juiz de rosto falhou; pagina segue sem refine")
+        return None
+
+
+async def _illustrate_page(
+    provider,
+    *,
+    idx: int,
+    caption: str,
+    brief: dict,
+    extras: str,
+    child_name: str,
+    char_bytes: bytes,
+    photo_bytes: bytes | None,
+    bible: dict[str, bytes],
+    style_lock: asyncio.Lock,
+    good_style: list[bytes],
+) -> ImageResult:
+    """Gera uma pagina; refine/retry so se o juiz disser que o rosto nao bate."""
+    prompt = build_scene_prompt(
+        page=idx,
+        text=caption,
+        scene=(brief.get("scene") or caption)[:900],
+        expression=brief.get("expression"),
+        extras=extras,
+        child_name=child_name,
+        shot=brief.get("shot") or "",
+        text_band=brief.get("text_band") or "",
+    )
+    extra_refs = _scene_extra_refs(bible, brief.get("expression") or "")
+    scene = await provider.generate_scene(
+        prompt=prompt,
+        character_ref=char_bytes,
+        style=BOOK_STYLE,
+        photo=photo_bytes,
+        extra_refs=extra_refs or None,
+    )
+    threshold = settings.ebook_face_match_min
+    best = scene
+    best_score = await _score_page_face(photo_bytes, scene.image_bytes)
+
+    async def _keep_if_better(candidate: ImageResult) -> None:
+        nonlocal best, best_score
+        score = await _score_page_face(photo_bytes, candidate.image_bytes)
+        if score is None:
+            if best_score is None or best_score < threshold:
+                best = candidate
+            return
+        if best_score is None or score >= best_score:
+            best = candidate
+            best_score = score
+
+    needs_fix = (
+        settings.ebook_refine_scene
+        and best_score is not None
+        and best_score < threshold
+    )
+    if needs_fix:
+        refined = await _refine_scene(
+            provider, char_bytes, best, BOOK_STYLE, photo=photo_bytes
+        )
+        if refined is not best:
+            await _keep_if_better(refined)
+        if best_score is not None and best_score < threshold:
+            style_ref = None
+            async with style_lock:
+                if good_style:
+                    style_ref = good_style[0]
+            retry_refs = _scene_extra_refs(
+                bible, brief.get("expression") or "", style_ref=style_ref
+            )
+            retried = await provider.generate_scene(
+                prompt=prompt,
+                character_ref=char_bytes,
+                style=BOOK_STYLE,
+                photo=photo_bytes,
+                extra_refs=retry_refs or None,
+            )
+            await _keep_if_better(retried)
+
+    if best_score is None or best_score >= threshold:
+        async with style_lock:
+            if best.image_bytes not in good_style:
+                good_style.append(best.image_bytes)
+    return best
+
+
 # --------------------------------------------------------------------------- #
 # Etapa 9-10: ebook (ilustracoes por pagina + montagem)
 # --------------------------------------------------------------------------- #
@@ -1172,17 +1605,37 @@ async def handle_ebook(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
     char_bytes = storage.get_bytes(project.character_ref["storage_key"])
+    photo_bytes = await _project_photo_bytes(db, project)
     image_provider = get_image_provider()
 
     language = project.language or "pt-BR"
+    child_name = (project.child_name or "").strip()
+    template_id = _catalog_template_id(db, project)
+    notes = illustration_notes(template_id, child_name) if template_id else []
+    layouts = page_layouts(template_id) if template_id else []
+    extras = (
+        scene_extras_for_template(template_id)
+        if template_id
+        else costume_extras_for_theme(project.theme)
+    )
 
     # 1) Divide a historia em paginas (toda a historia, sem limite fixo).
     pages_text = _parse_pages(project.story_text)
+    briefs = await ensure_page_briefs(
+        db, project, pages_text,
+        template_id=template_id, notes=notes, layouts=layouts, language=language,
+    )
 
     # 2) Texto impresso por pagina. Historias geradas pelo pipeline ja vem como
     #    estrofes curtas rimadas (estilo WonderWraps) -> imprime o verso integral.
     #    Historias importadas/longas -> resume em legenda curta.
-    if all(len(p) <= 260 for p in pages_text):
+    #    Dedicatoria de catalogo pode passar de 260 caracteres; nao dispara o
+    #    resumo das demais paginas e nunca e resumida.
+    story_too_long = any(
+        (layouts[i] if i < len(layouts) else "story") != "dedication" and len(p) > 260
+        for i, p in enumerate(pages_text)
+    )
+    if not story_too_long:
         captions = list(pages_text)
     else:
         captions = _short_captions(pages_text)
@@ -1194,12 +1647,32 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 captions = [c.strip() for c in ai_caps]
         except Exception:  # noqa: BLE001 - se o resumo falhar, usa o fallback local
             pass
+        for i, p in enumerate(pages_text):
+            if i < len(captions) and (layouts[i] if i < len(layouts) else "story") == "dedication":
+                captions[i] = p
 
-    # 3) Uma pagina = ilustracao (contexto completo do trecho) + texto da pagina.
-    pages: list[dict] = []
+    bible: dict[str, bytes] = {}
+    if not settings.offline_fallback:
+        bible = await _generate_character_bible(
+            db, project, image_provider,
+            photo=photo_bytes,
+            avatar=char_bytes,
+            costume=_book_costume_line(briefs, template_id, project.theme),
+            style=BOOK_STYLE,
+        )
+
+    # 3) Uma pagina = ilustracao (brief visual) + texto. Dedicatoria = so texto.
+    work: list[tuple[int, str, dict, str]] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
-        if settings.offline_fallback:
-            scene = ImageResult(
+        layout = layouts[idx - 1] if idx - 1 < len(layouts) else "story"
+        brief = briefs[idx - 1] if idx - 1 < len(briefs) else _scene_to_brief({}, full_text, page_index=idx - 1)
+        if layout != "dedication":
+            work.append((idx, caption, brief, layout))
+
+    generated: dict[int, ImageResult] = {}
+    if settings.offline_fallback:
+        for idx, caption, _brief, _layout in work:
+            generated[idx] = ImageResult(
                 image_bytes=_offline_png(
                     f"Pagina {idx}: {caption[:28]}",
                     palette=((233, 242, 255), (255, 255, 255)),
@@ -1207,27 +1680,58 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 mime_type="image/png",
                 cost_usd=0.0,
             )
-        else:
-            caption_text = (caption or "").strip()
-            scene_text = full_text[:900]
-            expr = infer_expression(full_text, caption_text)
-            scene = await image_provider.generate_scene(
-                prompt=build_scene_prompt(
-                    page=idx,
-                    text=caption_text or scene_text,
-                    scene=scene_text,
-                    expression=expr,
-                    child_name=(project.child_name or "").strip(),
-                ),
-                character_ref=char_bytes,
-                style=BOOK_STYLE,
+    else:
+        sem = asyncio.Semaphore(max(1, settings.ebook_page_concurrency))
+        style_lock = asyncio.Lock()
+        good_style: list[bytes] = []
+
+        async def _one(item: tuple[int, str, dict, str]) -> tuple[int, ImageResult]:
+            idx, caption, brief, layout = item
+            page_extras = (
+                name_scene_extras_for_template(template_id)
+                if layout == "name"
+                else extras
             )
-            scene = await _refine_scene(image_provider, char_bytes, scene, BOOK_STYLE)
+            async with sem:
+                result = await _illustrate_page(
+                    image_provider,
+                    idx=idx,
+                    caption=caption,
+                    brief=brief,
+                    extras=page_extras,
+                    child_name=child_name,
+                    char_bytes=char_bytes,
+                    photo_bytes=photo_bytes,
+                    bible=bible,
+                    style_lock=style_lock,
+                    good_style=good_style,
+                )
+            return idx, result
+
+        done = await asyncio.gather(*[_one(item) for item in work])
+        generated = {idx: result for idx, result in done}
+
+    pages: list[dict] = []
+    for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
+        layout = layouts[idx - 1] if idx - 1 < len(layouts) else "story"
+        if layout == "dedication":
+            pages.append({"text": caption, "image": None, "layout": "dedication"})
+            continue
+        scene = generated[idx]
         img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
         storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
-        db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
-                     storage_key=img_key, meta={"page": idx}))
-        pages.append({"text": caption, "image": scene.image_bytes, "mime": scene.mime_type})
+        db.add(Asset(
+            project_id=project.id,
+            kind=AssetKind.PAGE_IMAGE.value,
+            storage_key=img_key,
+            meta={"page": idx},
+        ))
+        pages.append({
+            "text": caption,
+            "image": scene.image_bytes,
+            "mime": scene.mime_type,
+            "layout": layout,
+        })
     db.commit()
 
     name = (project.child_name or "").strip()
@@ -1237,7 +1741,6 @@ async def handle_ebook(db: Session, job: Job) -> None:
         else (f"A Grande Aventura de {name}" if name else "A Minha Grande Aventura")
     )
 
-    # Carrega imagens dos personagens extras
     extra_chars = []
     for ec in (project.extra_characters or []):
         char_key = ec.get("character_storage_key")
@@ -1291,6 +1794,11 @@ def _fallback_storyboard(pages: list[str], *, title: str, theme: str) -> dict:
             "narration": page.strip(),
             "setting": "",
             "action": first[:220],
+            "scene": flat[:400],
+            "expression": infer_expression(page),
+            "shot": "medium",
+            "costume": costume_extras_for_theme(theme.split(" + ")[0] if theme else None),
+            "text_band": "top" if (i - 1) % 2 == 0 else "bottom",
             "camera": _CAMERA_FALLBACK[(i - 1) % len(_CAMERA_FALLBACK)],
             "mood": "",
             "duration_s": 5,
@@ -1328,6 +1836,11 @@ def _parse_storyboard_json(text: str) -> dict | None:
             "narration": str(sc.get("narration") or "").strip(),
             "setting": str(sc.get("setting") or "").strip(),
             "action": str(sc.get("action") or "").strip(),
+            "scene": str(sc.get("scene") or sc.get("action") or sc.get("setting") or "").strip(),
+            "expression": normalize_expression(sc.get("expression") or sc.get("mood")),
+            "shot": normalize_shot(sc.get("shot")),
+            "costume": str(sc.get("costume") or "").strip(),
+            "text_band": normalize_text_band(sc.get("text_band")),
             "camera": str(sc.get("camera") or "").strip(),
             "mood": str(sc.get("mood") or "").strip(),
             "duration_s": min(8, max(4, dur)),
@@ -1360,9 +1873,9 @@ def _latest_storyboard(db: Session, project: Project) -> dict | None:
 
 
 async def handle_storyboard(db: Session, job: Job) -> None:
-    """Gera o ROTEIRO COMPLETO do vídeo (JSON) e, se já houver personagem, os keyframes.
+    """Gera o ROTEIRO COMPLETO (JSON) para o ebook e o vídeo.
 
-    O roteiro fica salvo como asset (kind=storyboard) para a etapa de vídeo usar depois.
+    Não gera mais keyframes: o vídeo usa as page_image do ebook.
     """
     project = _project(db, job)
     if not (project.story_text or "").strip():
@@ -1373,72 +1886,17 @@ async def handle_storyboard(db: Session, job: Job) -> None:
     extra_theme = (project.extra_theme or "").strip() or None
     if extra_theme == theme:
         extra_theme = None
-    # Roteirista recebe os dois temas combinados (string simples, sem mudar a
-    # assinatura do provider) — a história já fundiu os dois na etapa STORY.
     theme_combined = f"{theme} + {extra_theme}" if extra_theme else theme
     title = _parse_title(project.story_text) or ""
     pages = _parse_pages(project.story_text)
-
-    # 1) Roteiro completo via IA; fallback local determinístico se indisponível/inválido.
-    sb: dict | None = None
-    text_provider = get_text_provider()
-    gen = getattr(text_provider, "generate_storyboard", None)
-    if gen is not None:
-        try:
-            result = await gen(
-                story=project.story_text, theme=theme_combined, title=title, language=language
-            )
-            sb = _parse_storyboard_json(result.text)
-            job.cost_usd = result.cost_usd
-        except ProviderError as exc:
-            if exc.transient:
-                raise  # deixa o runner reprocessar
-            sb = None
-    if not sb:
-        sb = _fallback_storyboard(pages, title=title, theme=theme_combined)
-
-    sb.update({
-        "version": 1,
-        "theme": theme,
-        "extra_theme": extra_theme,
-        "language": language,
-        "title": sb.get("title") or title,
-        "total_duration_s": sum(s.get("duration_s", 5) for s in sb["scenes"]),
-    })
-    key = storage.new_key(project.id, AssetKind.STORYBOARD.value, "json")
-    storage.put_bytes(
-        key, json.dumps(sb, ensure_ascii=False, indent=2).encode("utf-8"), "application/json"
+    await _compose_storyboard(
+        db, project, pages,
+        title=title,
+        theme_combined=theme_combined,
+        language=language,
+        auto=bool(_payload(job).get("auto")),
+        require_ai=True,
     )
-    db.add(Asset(project_id=project.id, kind=AssetKind.STORYBOARD.value, storage_key=key,
-                 meta={"scenes": len(sb["scenes"]), "auto": bool(_payload(job).get("auto"))}))
-    db.commit()
-
-    # 2) Keyframes por cena (best-effort; só quando o personagem já existe).
-    if project.character_ref and project.character_ref.get("storage_key"):
-        char_bytes = storage.get_bytes(project.character_ref["storage_key"])
-        image_provider = get_image_provider()
-        style = BOOK_STYLE
-        for sc in sb["scenes"][:6]:
-            prompt = sc.get("image_prompt") or sc.get("narration") or ""
-            if not prompt:
-                continue
-            try:
-                kf = await image_provider.generate_scene(
-                    prompt=(
-                        f"Keyframe {sc['n']} para vídeo, composição cinematográfica 16:9, "
-                        f"mesmo protagonista da referência: {prompt[:600]}"
-                    ),
-                    character_ref=char_bytes,
-                    style=style,
-                )
-                kf = await _refine_scene(image_provider, char_bytes, kf, style)
-                k = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(kf.mime_type))
-                storage.put_bytes(k, kf.image_bytes, kf.mime_type)
-                db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
-                             storage_key=k, meta={"keyframe": sc["n"]}))
-            except Exception:  # noqa: BLE001 - keyframe é opcional; o roteiro já está salvo
-                continue
-        db.commit()
 
 
 # --------------------------------------------------------------------------- #

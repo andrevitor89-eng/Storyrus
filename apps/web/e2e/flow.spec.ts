@@ -21,6 +21,7 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   const id = () => `id-${++state.seq}`;
 
+  await page.route("**/v1/auth/guest", (r) => json(r, { access_token: "e2e-token" }, 201));
   await page.route("**/v1/credits", (r) => json(r, { credits: state.credits }));
   await page.route("**/v1/voices", (r) => json(r, { items: [], custom_voice_available: false }));
 
@@ -125,6 +126,8 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
     mimeType: "image/jpeg",
     buffer: Buffer.from("x"),
   });
+  await expect(page.getByRole("button", { name: /enviar foto/i })).toBeDisabled();
+  await page.getByRole("checkbox", { name: /responsável legal/i }).check();
   await page.getByRole("button", { name: /enviar foto/i }).click();
   await expect(page.getByText("AVATAR")).toBeVisible();
   await expect(page.getByText("DONE").first()).toBeVisible({ timeout: 15_000 });
@@ -141,4 +144,36 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
 
   await page.getByRole("button", { name: /criar projeto/i }).click();
   await expect(page.getByRole("button", { name: /montar ebook/i })).toBeDisabled();
+});
+
+test("path inexistente mostra 404", async ({ page }) => {
+  await page.goto("/pagina-que-nao-existe");
+  await expect(page.getByRole("heading", { name: /página não encontrada/i })).toBeVisible();
+  await expect(page.getByRole("link", { name: /^início$/i })).toBeVisible();
+});
+
+test("landing sem preço e EN atualiza lang", async ({ page }) => {
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("link", { name: /personalizar/i }).first()).toBeVisible();
+  await expect(page.locator("body")).not.toContainText("US$ 39,99");
+  await expect(page.locator("body")).not.toContainText("$39.99");
+  await expect(page.locator("body")).not.toContainText("ECONOMIZE 33%");
+  await page.getByRole("button", { name: /^EN$/ }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+});
+
+test("menu mobile abre abaixo da logo", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  const menuBtn = page.getByRole("button", { name: /menu/i });
+  await menuBtn.click();
+  await expect(menuBtn).toHaveAttribute("aria-expanded", "true");
+  const logo = page.locator(".kbrand img");
+  const panel = page.locator("#site-menu");
+  await expect(panel).toBeVisible();
+  const logoBox = await logo.boundingBox();
+  const panelBox = await panel.boundingBox();
+  expect(logoBox).toBeTruthy();
+  expect(panelBox).toBeTruthy();
+  expect(panelBox!.y).toBeGreaterThanOrEqual((logoBox!.y + logoBox!.height) - 8);
 });

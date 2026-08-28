@@ -1,28 +1,20 @@
-Mapa dos exemplos usados pela landing e pelo modo demo do Studio.
+Coloque aqui as 6 imagens dos exemplos "Antes e Depois" da landing page.
 
-Não invente artes: só pares foto → personagem que existem de verdade.
+Use EXATAMENTE estes nomes (tudo minúsculo, extensão .jpg):
 
-Antes e depois (landing #antes-depois)
-  foto-bebe.jpg        → arte-bebe.jpg
-  foto-menino.jpg      → arte-menino.jpg
-  foto-pai.jpg         → arte-pai.jpg
+  Exemplo 1 (bebê body do sol)
+    foto-bebe.jpg      = a FOTO real
+    arte-bebe.jpg      = a ILUSTRAÇÃO
 
-Pipeline canônico — Matteo / dinossauros (/app?exemplo=dinosaurs)
-  foto-matteo.png      foto real
-  personagem-dino.jpg  personagem (rosto fiel + corpo mais desenho)
-  capa-dino2.jpg       capa
-  dino-1.jpg … dino-6.jpg   páginas (dino-2.jpg é poster do vídeo)
-  video-dino.mp4       vídeo narrado
+  Exemplo 2 (menino macacão azul)
+    foto-menino.jpg    = a FOTO real
+    arte-menino.jpg    = a ILUSTRAÇÃO
 
-Outras histórias (catálogo, flipbook, vídeos)
-  Oceano    foto —          capa-oceano.jpg     mar-1..6.jpg     video-mar.mp4
-  Floresta  foto-sofia.png  capa-floresta2.jpg  flor-1..6.jpg    video-flor.mp4
-  Circo     foto-bebe.jpg   capa-circo.jpg      circo-1..6.jpg   video-circo.mp4
-  Chloe     —               ebook-1.jpg         ebook-3..11.jpg  —
+  Exemplo 3 (pai com bebê)
+    foto-pai.jpg       = a FOTO real
+    arte-pai.jpg       = a ILUSTRAÇÃO
 
-Dicas de foto: dica-boa.png (ok), dica-multi.png e dica-lado.png (evitar).
-Hero: foto-matteo.png, foto-sofia.png, foto-bebe.jpg sobre as capas.
-
-Pares extra no disco (ainda sem seção própria):
-  foto-menina.jpg / arte-menina.jpg
-  foto-bebe2.jpg  / arte-bebe2.jpg
+Dicas:
+- Se a ilustração estiver em .png, pode salvar como .jpg (ou me avise que eu ajusto o código).
+- A foto e a arte de cada par devem ter o mesmo enquadramento, para a transição "varrer" certinho.
+- Depois de salvar, me avise que eu gero a prévia e publico.

@@ -11,7 +11,47 @@ front/equipe), nunca entram no texto do livro.
 """
 from __future__ import annotations
 
+import json
+import unicodedata
+from pathlib import Path
+
 PLACEHOLDER = "{NOME}"
+STORIES_DIR = Path(__file__).resolve().parent / "stories"
+ALPHABET_TEMPLATE_IDS = frozenset({"alfabeto_amazonia", "alfabeto_frutas"})
+NUMBER_TEMPLATE_IDS = frozenset({"numeros_1_15"})
+COLOR_TEMPLATE_IDS = frozenset({"cores_basicas"})
+OPPOSITES_TEMPLATE_IDS = frozenset({"grande_pequeno"})
+
+# Qualidades de conforto/impulso para a página do NOME (nunca animal).
+_CHILD_QUALITIES: dict[str, list[str]] = {
+    "A": ["amigo", "alegre", "amoroso"],
+    "B": ["bondoso", "brilhante"],
+    "C": ["corajoso", "carinhoso", "curioso"],
+    "D": ["doce", "determinado"],
+    "E": ["especial", "esperto"],
+    "F": ["forte", "feliz"],
+    "G": ["gentil", "grande"],
+    "H": ["honesto"],
+    "I": ["incrível"],
+    "J": ["justo"],
+    "K": ["querido"],
+    "L": ["leal", "luz"],
+    "M": ["magia"],
+    "N": ["nobre"],
+    "O": ["ousado", "amoroso"],
+    "P": ["paciente"],
+    "Q": ["querido"],
+    "R": ["risonho"],
+    "S": ["sonhador", "sorriso"],
+    "T": ["terno", "talentoso", "tão especial"],
+    "U": ["único"],
+    "V": ["valente"],
+    "W": ["valente"],
+    "X": ["especial"],
+    "Y": ["único"],
+    "Z": ["zeloso"],
+}
+_QUALITY_FALLBACK = ["especial", "querido", "valente", "amigo", "luz"]
 
 # id -> template. `paginas` é uma lista de (texto_da_pagina, nota_de_ilustracao).
 STORY_TEMPLATES: dict[str, dict] = {
@@ -257,6 +297,122 @@ STORY_TEMPLATES: dict[str, dict] = {
 }
 
 
+def _load_json_templates() -> dict[str, dict]:
+    """Carrega histórias extras em JSON (texto + nota + layout por página)."""
+    out: dict[str, dict] = {}
+    if not STORIES_DIR.is_dir():
+        return out
+    for path in sorted(STORIES_DIR.glob("*.json")):
+        data = json.loads(path.read_text(encoding="utf-8"))
+        tid = str(data.get("id") or path.stem)
+        pages = []
+        for p in data.get("pages") or []:
+            pages.append(
+                {
+                    "texto": p.get("text") or "",
+                    "nota": p.get("illustration_note") or "",
+                    "layout": p.get("layout") or "story",
+                }
+            )
+        out[tid] = {
+            "titulo": data.get("titulo") or data.get("title") or "{NOME}",
+            "genero": data.get("genero") or "unissex",
+            "idade": data.get("idade") or "3-7",
+            "tematica": data.get("tematica") or data.get("theme") or "",
+            "emoji": data.get("emoji") or "📖",
+            "paginas": pages,
+        }
+    return out
+
+
+STORY_TEMPLATES.update(_load_json_templates())
+
+
+def _page_dict(item: tuple | dict) -> dict:
+    if isinstance(item, dict):
+        return {
+            "texto": item.get("texto") or item.get("text") or "",
+            "nota": item.get("nota") or item.get("illustration_note") or "",
+            "layout": item.get("layout") or "story",
+        }
+    texto, nota = item
+    return {"texto": texto, "nota": nota, "layout": "story"}
+
+
+def name_letters(child_name: str) -> list[str]:
+    """Letras A–Z do nome (sem acento), na ordem."""
+    folded = unicodedata.normalize("NFKD", child_name or "")
+    stripped = "".join(c for c in folded if not unicodedata.combining(c))
+    return [c.upper() for c in stripped if "A" <= c.upper() <= "Z"][:12]
+
+
+def _is_girl(gender: str | None) -> bool:
+    return (gender or "").strip().lower() in ("girl", "menina", "f", "female")
+
+
+def _child_role(gender: str | None) -> str:
+    g = (gender or "").strip().lower()
+    if g in ("boy", "menino", "m", "male"):
+        return "menino valente"
+    if _is_girl(gender):
+        return "menina valente"
+    return "coração valente"
+
+
+def _gender_dedication(texto: str, gender: str | None) -> str:
+    """Ajusta aventureiro/o leve na dedicatória (qualquer livro do catálogo)."""
+    if not _is_girl(gender):
+        return texto
+    return (
+        texto.replace("pequeno aventureiro", "pequena aventureira")
+        .replace(" o leve a lugares", " a leve a lugares")
+    )
+
+
+def build_name_rhyme(child_name: str, gender: str | None = None) -> str:
+    """P2: soletração + rima sobre a criança (nunca animal)."""
+    name = (child_name or "").strip()
+    letters = name_letters(name)
+    if not name or not letters:
+        return name
+    spelled = " · ".join(letters)
+    used: set[str] = set()
+    bits: list[str] = []
+    for letter in letters:
+        options = list(_CHILD_QUALITIES.get(letter) or _QUALITY_FALLBACK)
+        word = next((w for w in options if w not in used), None)
+        if word is None:
+            word = next((w for w in _QUALITY_FALLBACK if w not in used), options[0])
+        used.add(word)
+        bits.append(f"{letter} é {word}.")
+    role = _child_role(gender)
+    return (
+        f"{name} se soletra assim: {spelled}.\n"
+        f"{name}, {role}, caminha com a gente.\n"
+        + " ".join(bits)
+    )
+
+
+def illustration_notes(template_id: str, child_name: str) -> list[str]:
+    """Notas de ilustração já personalizadas (uma por página)."""
+    template = STORY_TEMPLATES.get(template_id)
+    if template is None:
+        return []
+    name = (child_name or "").strip()
+    notes = []
+    for item in template["paginas"]:
+        page = _page_dict(item)
+        notes.append(page["nota"].replace(PLACEHOLDER, name) if name else page["nota"])
+    return notes
+
+
+def page_layouts(template_id: str) -> list[str]:
+    template = STORY_TEMPLATES.get(template_id)
+    if template is None:
+        return []
+    return [_page_dict(item)["layout"] for item in template["paginas"]]
+
+
 def list_templates() -> list[dict]:
     """Metadados dos templates para a listagem no app (sem o texto integral)."""
     return [
@@ -273,7 +429,7 @@ def list_templates() -> list[dict]:
     ]
 
 
-def render_template(template_id: str, child_name: str) -> str:
+def render_template(template_id: str, child_name: str, gender: str | None = None) -> str:
     """Gera o story_text no formato padrão da plataforma ('Título:' + 'Página N:').
 
     O nome da criança substitui {NOME} no título e em todas as páginas. As notas
@@ -287,6 +443,13 @@ def render_template(template_id: str, child_name: str) -> str:
         raise ValueError("child_name obrigatório para personalizar o template")
 
     lines = ["Título: " + template["titulo"].replace(PLACEHOLDER, name)]
-    for i, (texto, _nota) in enumerate(template["paginas"], 1):
-        lines.append(f"Página {i}: " + texto.replace(PLACEHOLDER, name))
+    for i, item in enumerate(template["paginas"], 1):
+        page = _page_dict(item)
+        if template_id in ALPHABET_TEMPLATE_IDS and page["layout"] == "name":
+            texto = build_name_rhyme(name, gender)
+        else:
+            texto = page["texto"].replace(PLACEHOLDER, name)
+            if page["layout"] == "dedication":
+                texto = _gender_dedication(texto, gender)
+        lines.append(f"Página {i}: " + texto)
     return "\n".join(lines)

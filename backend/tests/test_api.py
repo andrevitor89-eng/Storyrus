@@ -19,10 +19,64 @@ def test_duplicate_signup_conflicts(client):
     assert r.status_code == 409
 
 
-def test_unauthenticated_uses_guest(client):
+def test_unauthenticated_is_401(client):
     me = client.get("/v1/auth/me")
-    assert me.status_code == 200
-    assert me.json()["email"] == "guest@storyrus.app"
+    assert me.status_code == 401
+    assert client.post("/v1/projects", json={}).status_code == 401
+    assert client.get("/v1/credits").status_code == 401
+
+
+def test_guest_is_isolated(client):
+    a = client.post("/v1/auth/guest")
+    b = client.post("/v1/auth/guest")
+    assert a.status_code == 201 and b.status_code == 201
+    ta, tb = a.json()["access_token"], b.json()["access_token"]
+    assert ta != tb
+
+    me_a = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {ta}"}).json()
+    me_b = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {tb}"}).json()
+    assert me_a["id"] != me_b["id"]
+    assert me_a["email"].startswith("guest-")
+    assert me_a["credits"] == 10
+
+    pid = client.post(
+        "/v1/projects", json={}, headers={"Authorization": f"Bearer {ta}"}
+    ).json()["id"]
+    listed_b = client.get("/v1/projects", headers={"Authorization": f"Bearer {tb}"}).json()
+    assert listed_b == []
+    other = client.get(f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {tb}"})
+    assert other.status_code == 404
+
+
+def test_grant_without_secret_is_forbidden(auth_client):
+    r = auth_client.post("/v1/credits/grant", json={"amount": 5})
+    assert r.status_code == 403
+    assert auth_client.get("/v1/credits").json()["credits"] == 10
+
+
+def test_grant_with_admin_secret(auth_client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "credit_grant_secret", "test-grant-secret")
+    r = auth_client.post(
+        "/v1/credits/grant",
+        json={"amount": 5},
+        headers={"X-Admin-Secret": "test-grant-secret"},
+    )
+    assert r.status_code == 200
+    assert r.json()["credits"] == 15
+
+
+def test_grant_wrong_secret_is_forbidden(auth_client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "credit_grant_secret", "test-grant-secret")
+    r = auth_client.post(
+        "/v1/credits/grant",
+        json={"amount": 5},
+        headers={"X-Admin-Secret": "nope"},
+    )
+    assert r.status_code == 403
 
 
 def test_create_and_list_project(auth_client):
@@ -106,28 +160,28 @@ def test_insufficient_credits(auth_client):
     assert auth_client.get("/v1/credits").json()["credits"] == 0
 
 
-def test_create_defaults_to_cgi_3d(client):
-    r = client.post("/v1/projects", json={})
+def test_create_defaults_to_cgi_3d(auth_client):
+    r = auth_client.post("/v1/projects", json={})
     assert r.status_code == 201
     assert r.json()["style"] == "cgi_3d"
     assert r.json()["character_approved_at"] is None
     assert r.json()["print_status"] is None
 
 
-def test_approve_and_print_require_preview(client):
-    pid = client.post("/v1/projects", json={}).json()["id"]
-    assert client.post(f"/v1/projects/{pid}/avatar/approve").status_code == 400
-    assert client.post(f"/v1/projects/{pid}/book/approve").status_code == 400
-    assert client.post(f"/v1/projects/{pid}/print-request").status_code == 400
+def test_approve_and_print_require_preview(auth_client):
+    pid = auth_client.post("/v1/projects", json={}).json()["id"]
+    assert auth_client.post(f"/v1/projects/{pid}/avatar/approve").status_code == 400
+    assert auth_client.post(f"/v1/projects/{pid}/book/approve").status_code == 400
+    assert auth_client.post(f"/v1/projects/{pid}/print-request").status_code == 400
 
 
 def test_cannot_access_others_project(client):
-    a = client.post("/v1/auth/signup", json={"email": "o1@x.com", "password": "password123"}).json()
+    a = client.post("/v1/auth/guest").json()
     pid = client.post(
         "/v1/projects", json={"style": "realistic"},
         headers={"Authorization": f"Bearer {a['access_token']}"},
     ).json()["id"]
-    b = client.post("/v1/auth/signup", json={"email": "o2@x.com", "password": "password123"}).json()
+    b = client.post("/v1/auth/guest").json()
     r = client.get(
         f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"}
     )

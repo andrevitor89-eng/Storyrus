@@ -26,7 +26,11 @@ describe("Fluxo E2E (sem login)", () => {
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
     await user.upload(fileInput, file);
-    await user.click(screen.getByRole("button", { name: /enviar foto/i }));
+    const sendPhoto = screen.getByRole("button", { name: /enviar foto/i });
+    expect(sendPhoto).toBeDisabled();
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    expect(sendPhoto).toBeEnabled();
+    await user.click(sendPhoto);
     expect(await screen.findByText("AVATAR")).toBeInTheDocument();
 
     // gera a história (modo "inventar com IA")
@@ -54,6 +58,7 @@ describe("Fluxo E2E (sem login)", () => {
     // envia foto (gera personagem) e a história
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /enviar foto/i }));
     await user.click(screen.getByRole("button", { name: /gerar história com ia/i }));
     await screen.findByText(/pagina 1: ola/i, undefined, { timeout: 9000 });

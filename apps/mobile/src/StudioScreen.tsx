@@ -131,7 +131,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
       {!project ? (
         <View style={s.card}>
           <Text style={s.h2}>Novo projeto</Text>
-          <Text style={s.muted}>Personagem em CGI 3D de filme infantil.</Text>
+          <Text style={s.muted}>Personagem fotografico fiel a foto.</Text>
           <Pressable style={s.btn} onPress={start} disabled={busy}>
             <Text style={s.btnText}>Criar projeto</Text>
           </Pressable>
@@ -140,7 +140,7 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
         <View style={s.card}>
           <Text style={s.h2}>Projeto</Text>
           <Text style={s.muted}>
-            Estilo: CGI 3D · Status: {project.status}
+            Estilo: rosto realista · Status: {project.status}
           </Text>
 
           <Pressable style={s.btnAlt} onPress={pickAndUpload} disabled={busy}>

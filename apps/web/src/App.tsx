@@ -1,8 +1,8 @@
 import { Studio } from "./Studio";
 
 /**
- * Sem autenticação: o app abre direto no estúdio.
- * O acesso ao backend é feito como usuário convidado (ver backend/app/deps.py).
+ * Sem tela de login: o estúdio pede um JWT de convidado isolado
+ * (POST /v1/auth/guest) na primeira chamada à API.
  */
 export function App() {
   return <Studio />;

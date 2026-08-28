@@ -1,5 +1,6 @@
 # Python
 __pycache__/
+backend/scripts/out/
 *.pyc
 .venv/
 *.egg-info/
@@ -123,6 +124,8 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/flor-*.jpg
 !apps/web/public/exemplos/dino-*.jpg
 !apps/web/public/exemplos/circo-*.jpg
+!apps/web/public/exemplos/capa-amazonia.jpg
+!apps/web/public/exemplos/amazonia-*.jpg
 !apps/web/public/exemplos/capa-floresta.jpg
 !apps/web/public/exemplos/dica-boa.png
 !apps/web/public/exemplos/dica-lado.png

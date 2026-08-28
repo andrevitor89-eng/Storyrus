@@ -364,64 +364,88 @@ class AnthropicTextProvider:
 
         if _lang(language) == "en":
             system = (
-                "You are a senior scriptwriter for children's animation. You receive a "
-                "finished picture-book story and return the COMPLETE storyboard to "
+                "You are a senior children's picture-book art director AND animation "
+                "scriptwriter. You receive a finished picture-book story and return "
+                "the COMPLETE storyboard used both to illustrate each page and to "
                 "produce a narrated animated video. Reply ONLY with valid UTF-8 JSON — "
                 "no markdown, no comments, no extra text."
             )
             user = (
                 f"Title: {title}\nTheme: {theme}\n\nSTORY (one page per stanza):\n{story}\n\n"
-                "Build the full storyboard for the animated video of this story.\n"
+                "Build the full storyboard for this story (picture book + video).\n"
                 "Rules:\n"
                 "- One scene per page, in the SAME order (do not skip pages).\n"
                 "- narration: the page text, proofread — it will be read aloud.\n"
                 "- setting and action: concrete and visual (place, light, what the hero does).\n"
+                "- scene: one visual description to ILLUSTRATE the page (composition, "
+                "who is where, key object). This is what the image model follows.\n"
+                "- expression: one of alegria, curiosidade, medo_gentil, determinacao, "
+                "surpresa, calma, tristeza_leve, concentracao, carinho, orgulho, "
+                "vergonha, animacao.\n"
+                "- shot: one of close, medium, wide, detail.\n"
+                "- costume: ONE short line for the whole book (story outfit, not the "
+                "photo clothes). Repeat the SAME costume on every scene.\n"
+                "- text_band: top or bottom — empty band of the frame for the printed stanza.\n"
                 "- camera: one simple move (slow push-in, pan, lateral tracking, zoom out...).\n"
                 "- mood: the emotional tone of the scene.\n"
                 "- duration_s: integer from 4 to 8.\n"
-                "- image_prompt: detailed prompt to illustrate the scene keyframe (same hero "
-                "as the reference image, same outfit).\n"
+                "- image_prompt: detailed prompt to illustrate the scene (same hero "
+                "as the reference image; story costume, not the photo outfit).\n"
                 "- video_prompt: 1-2 sentences describing the scene motion for an "
                 "image-to-video generator.\n"
                 "- logline: one-sentence summary. moral: what the child learns.\n"
                 'Reply ONLY with valid JSON in this format:\n'
                 '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
-                '"narration": "...", "setting": "...", "action": "...", "camera": "...", '
-                '"mood": "...", "duration_s": 5, "image_prompt": "...", "video_prompt": "..."}]}'
+                '"narration": "...", "setting": "...", "action": "...", "scene": "...", '
+                '"expression": "alegria", "shot": "medium", "costume": "...", '
+                '"text_band": "bottom", "camera": "...", "mood": "...", "duration_s": 5, '
+                '"image_prompt": "...", "video_prompt": "..."}]}'
             )
         else:
             system = (
-                "Você é roteirista sênior de animações infantis. Recebe a história pronta "
-                "de um livro ilustrado e devolve o ROTEIRO COMPLETO (storyboard) para "
-                "produzir um vídeo animado narrado. Responda APENAS com JSON válido em "
-                "UTF-8 — sem markdown, sem comentários, sem texto extra."
+                "Você é diretor de arte de livro infantil E roteirista de animação. "
+                "Recebe a história pronta e devolve o ROTEIRO COMPLETO (storyboard) "
+                "usado tanto para ilustrar cada página quanto para o vídeo narrado. "
+                "Responda APENAS com JSON válido em UTF-8 — sem markdown, sem "
+                "comentários, sem texto extra."
             )
             user = (
                 f"Título: {title}\nTema: {theme}\n\nHISTÓRIA (uma página por estrofe):\n{story}\n\n"
-                "Monte o roteiro completo do vídeo animado desta história.\n"
+                "Monte o roteiro completo desta história (livro ilustrado + vídeo).\n"
                 "Regras:\n"
                 "- Uma cena por página, na MESMA ordem (não pule páginas).\n"
                 "- narration: o texto da página revisado (ortografia e acentos perfeitos) — "
                 "será narrado em voz alta.\n"
                 "- setting e action: concretos e visuais (lugar, luz, o que o protagonista faz).\n"
+                "- scene: uma descrição visual para ILUSTRAR a página (composição, quem "
+                "está onde, objeto-chave). É o que o modelo de imagem segue.\n"
+                "- expression: uma de alegria, curiosidade, medo_gentil, determinacao, "
+                "surpresa, calma, tristeza_leve, concentracao, carinho, orgulho, "
+                "vergonha, animacao.\n"
+                "- shot: uma de close, medium, wide, detail.\n"
+                "- costume: UMA linha só para o livro inteiro (figurino da história, "
+                "não a roupa da foto). Repita o MESMO figurino em todas as cenas.\n"
+                "- text_band: top ou bottom — faixa vazia do quadro para a estrofe impressa.\n"
                 "- camera: um movimento simples (aproximação lenta, panorâmica, travelling "
                 "lateral, zoom out...).\n"
                 "- mood: o clima emocional da cena.\n"
                 "- duration_s: inteiro de 4 a 8.\n"
                 "- image_prompt: prompt detalhado para ilustrar o keyframe da cena (mesmo "
-                "protagonista da imagem de referência, mesma roupa).\n"
+                "protagonista da imagem de referência; figurino da história, não a roupa da foto).\n"
                 "- video_prompt: 1-2 frases descrevendo o movimento da cena para um gerador "
                 "de vídeo image-to-video.\n"
                 "- logline: resumo de 1 frase. moral: o que a criança aprende.\n"
                 'Responda SOMENTE com JSON válido neste formato:\n'
                 '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
-                '"narration": "...", "setting": "...", "action": "...", "camera": "...", '
-                '"mood": "...", "duration_s": 5, "image_prompt": "...", "video_prompt": "..."}]}'
+                '"narration": "...", "setting": "...", "action": "...", "scene": "...", '
+                '"expression": "alegria", "shot": "medium", "costume": "...", '
+                '"text_band": "bottom", "camera": "...", "mood": "...", "duration_s": 5, '
+                '"image_prompt": "...", "video_prompt": "..."}]}'
             )
 
         payload = {
             "model": _MODEL,
-            "max_tokens": 6000,
+            "max_tokens": 8000,
             "system": system,
             "messages": [{"role": "user", "content": user}],
         }

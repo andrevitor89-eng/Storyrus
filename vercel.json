@@ -19,6 +19,26 @@
       "headers": [
         { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
+    },
+    {
+      "source": "/exemplos/(.*)",
+      "headers": [
+        { "key": "X-Robots-Tag", "value": "noindex" }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "storyrus.vercel.app" }],
+      "destination": "https://storyrus.ai/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.storyrus.ai" }],
+      "destination": "https://storyrus.ai/:path*",
+      "permanent": true
     }
   ],
   "rewrites": [

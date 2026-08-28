@@ -5,10 +5,10 @@ import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import logo from "./assets/logo.png";
 
 const ART_STYLE_LABEL: Record<string, string> = {
-  cgi_3d: "CGI 3D",
-  realistic: "CGI 3D",
-  cartoon: "CGI 3D",
-  anime: "CGI 3D",
+  cgi_3d: "Rosto realista",
+  realistic: "Rosto realista",
+  cartoon: "Rosto realista",
+  anime: "Rosto realista",
 };
 
 // Temas narrativos do briefing — a história nasce ao redor do tema escolhido.
@@ -64,7 +64,7 @@ type StoryMode = "invent" | "write" | "file" | "catalog";
 
 const HOW = [
   "Envie uma foto de frente (um rosto, luz boa).",
-  "Aprove o personagem em CGI 3D.",
+  "Aprove o personagem (rosto realista).",
   "Escolha o tema ou uma história pronta.",
   "Aprove o livro (capa e páginas).",
   "Baixe o PDF, peça o impresso ou gere o vídeo narrado.",
@@ -110,6 +110,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
+  const [mediaConsent, setMediaConsent] = useState(false);
 
   // aplica o tema (claro/escuro) salvo na landing
   useEffect(() => {
@@ -124,6 +125,15 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     if (demoIdFromSearch()) return;
     const q = new URLSearchParams(window.location.search).get("tema");
     if (q && THEMES.some((x) => x.id === q)) setSelectedThemes([q as Theme]);
+  }, []);
+
+  // Abre histórias prontas quando a landing manda /app?historia=alfabeto_amazonia
+  useEffect(() => {
+    if (demoIdFromSearch()) return;
+    const h = new URLSearchParams(window.location.search).get("historia");
+    if (!h) return;
+    setStoryMode("catalog");
+    api.storyTemplates().then(setTemplates).catch((e) => setError((e as Error).message));
   }, []);
 
   useEffect(() => {
@@ -219,6 +229,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       setPhotoUploaded(false);
       setAssets(null);
       setStoryText("");
+      setMediaConsent(false);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -228,6 +239,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
   async function upload() {
     if (!project || !photo || isDemo) return;
+    if (!mediaConsent) {
+      setError("Marque o consentimento para enviar a foto.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -305,6 +320,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
   async function onVoiceFile(file: File | null) {
     if (!file || isDemo) return;
+    if (!mediaConsent) {
+      setError("Marque o consentimento para clonar a voz.");
+      return;
+    }
     setVoiceUploading(true);
     setError(null);
     try {
@@ -395,6 +414,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   // Upload de personagem extra
   async function uploadExtraCharacter() {
     if (!project || !extraCharFile || isDemo) return;
+    if (!mediaConsent) {
+      setError("Marque o consentimento para enviar a foto do personagem extra.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -444,6 +467,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setProject(null);
     setAssets(null);
     setPhotoUploaded(false);
+    setMediaConsent(false);
     setChildName("");
     setChildAge("");
     setDedication("");
@@ -614,9 +638,19 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             Tema: <b>{themeLabel(project.theme ?? theme)}</b>
             {(project.extra_theme ?? extraTheme) && (
               <> + <b>{themeLabel(project.extra_theme ?? extraTheme)}</b></>
-            )} · Estilo: <b>{ART_STYLE_LABEL[project.style ?? "cgi_3d"] ?? "CGI 3D"}</b> ·
+            )} · Estilo: <b>{ART_STYLE_LABEL[project.style ?? "cgi_3d"] ?? "Rosto realista"}</b> ·
             Status: <b>{project.status}</b>
           </p>
+
+          <label className="consent">
+            <input
+              type="checkbox"
+              checked={mediaConsent}
+              disabled={isDemo}
+              onChange={(e) => setMediaConsent(e.target.checked)}
+            />
+            Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.
+          </label>
 
           <div className="upload">
             <input
@@ -625,14 +659,14 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               disabled={isDemo}
               onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
             />
-            <button disabled={!photo || locked} onClick={upload}>
+            <button disabled={!photo || locked || !mediaConsent} onClick={upload}>
               {photoUploaded ? "Foto enviada ✓" : "Enviar foto"}
             </button>
           </div>
           <p className="muted" style={{ marginTop: 6 }}>
             Melhor resultado: foto nítida, bem iluminada, <b>um</b> rosto de
             frente, testa e cabelo visíveis. Evite close de cima, de lado ou
-            rosto tapado. A arte é sempre CGI 3D de filme infantil — o mesmo
+            rosto tapado. A arte é fotográfica, com a criança igual à foto — o mesmo
             personagem nas páginas e no vídeo.
           </p>
 
@@ -650,7 +684,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               maxLength={40}
               style={{ flex: 1, minWidth: 120 }}
             />
-            <button disabled={!extraCharFile || locked} onClick={uploadExtraCharacter}>
+            <button disabled={!extraCharFile || locked || !mediaConsent} onClick={uploadExtraCharacter}>
               Adicionar
             </button>
           </div>
@@ -785,7 +819,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                       type="file"
                       accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/webm,audio/ogg,.mp3,.wav,.m4a,.webm,.ogg"
                       hidden
-                      disabled={voiceUploading || locked}
+                      disabled={voiceUploading || locked || !mediaConsent}
                       onChange={(e) => onVoiceFile(e.target.files?.[0] || null)}
                     />
                   </label>

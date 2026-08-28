@@ -189,6 +189,29 @@ def _win(s: str) -> str:
     return "".join(out)
 
 
+def _name_page_parts(text: str) -> tuple[str, str, str, list[str]]:
+    """Separa o acróstico da P2 sem alterar suas palavras."""
+    lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
+    if not lines:
+        return "", "", "", []
+
+    heading = lines[0]
+    spelled = ""
+    if ":" in heading:
+        heading, spelled = heading.split(":", 1)
+        heading = f"{heading.strip()}:"
+        spelled = spelled.strip()
+
+    role = lines[1] if len(lines) > 1 else ""
+    quality_blob = " ".join(lines[2:]).strip()
+    qualities = [
+        f"{part.strip()}."
+        for part in quality_blob.split(".")
+        if part.strip()
+    ]
+    return heading, spelled, role, qualities
+
+
 def _img_tag(image_bytes: bytes | None, mime: str = "image/png") -> str:
     if not image_bytes:
         return ""
@@ -387,6 +410,120 @@ def build_pdf(
             y -= leading
         return y0, ph
 
+    def name_panel(text):
+        """Painel botânico lateral da página do nome, fora do protagonista."""
+        heading, spelled, role, qualities = _name_page_parts(text)
+        x0, y0 = 22.0, 28.0
+        panel_w, panel_h = W * 0.46, H - 56.0
+        panel_top = y0 + panel_h
+        center_x = x0 + panel_w / 2
+        inset = 22.0
+        content_w = panel_w - 2 * inset
+
+        # Sombra, papel creme translúcido e moldura dupla.
+        c.setFillColorRGB(*NAVY)
+        c.setFillAlpha(0.18)
+        c.roundRect(x0 + 5, y0 - 5, panel_w, panel_h, 22, fill=1, stroke=0)
+        c.setFillColorRGB(*CREAM)
+        c.setFillAlpha(0.94)
+        c.roundRect(x0, y0, panel_w, panel_h, 22, fill=1, stroke=0)
+        c.setFillAlpha(1)
+        c.setStrokeColorRGB(*GOLD)
+        c.setLineWidth(2.2)
+        c.roundRect(x0, y0, panel_w, panel_h, 22, fill=0, stroke=1)
+        c.setStrokeColorRGB(*LEAF)
+        c.setLineWidth(0.8)
+        c.roundRect(x0 + 8, y0 + 8, panel_w - 16, panel_h - 16, 16, fill=0, stroke=1)
+
+        # Pequenos ramos nos cantos mantêm a linguagem visual do livro.
+        leaf(x0 + 15, panel_top - 20, 6, -18, LEAF)
+        leaf(x0 + 26, panel_top - 13, 5, -42, LEAF)
+        flower(x0 + panel_w - 18, panel_top - 18, 4.5, CORAL)
+        leaf(x0 + panel_w - 17, y0 + 17, 6, 162, LEAF)
+        leaf(x0 + panel_w - 29, y0 + 12, 5, 142, LEAF)
+
+        def fitted_size(value, font, maximum, minimum, max_width):
+            value = _win(value)
+            size = maximum
+            while size > minimum and c.stringWidth(value, font, size) > max_width:
+                size -= 0.5
+            return max(minimum, size)
+
+        y = panel_top - 48
+        c.setFillColorRGB(*NAVY)
+        c.setFont(F["italic"], 13.5)
+        for line in split_lines(heading, F["italic"], 13.5, content_w):
+            c.drawCentredString(center_x, y, line)
+            y -= 18
+
+        if spelled:
+            y -= 7
+            spelling_size = fitted_size(spelled, F["brand"], 24, 13, content_w)
+            c.setFillColorRGB(*NAVY)
+            c.setFont(F["brand"], spelling_size)
+            c.drawCentredString(center_x, y, _win(spelled))
+            y -= spelling_size + 15
+
+        c.setStrokeColorRGB(*GOLD)
+        c.setLineWidth(1.4)
+        c.line(x0 + inset + 18, y, x0 + panel_w - inset - 18, y)
+        star(center_x, y, 4.5, GOLD)
+        y -= 28
+
+        c.setFillColorRGB(*INK)
+        role_size = 12.5
+        c.setFont(F["italic"], role_size)
+        for line in split_lines(role, F["italic"], role_size, content_w - 4):
+            c.drawCentredString(center_x, y, line)
+            y -= 17
+        y -= 14
+
+        if qualities:
+            columns = 2 if len(qualities) > 1 else 1
+            rows = math.ceil(len(qualities) / columns)
+            gap_x, gap_y = 8.0, 9.0
+            card_w = (
+                (content_w - gap_x) / 2 if columns == 2 else content_w
+            )
+            available_h = y - (y0 + 42)
+            card_h = min(45.0, (available_h - gap_y * (rows - 1)) / rows)
+            card_h = max(32.0, card_h)
+
+            for idx, quality in enumerate(qualities):
+                col = idx % columns
+                row = idx // columns
+                card_x = x0 + inset + col * (card_w + gap_x)
+                card_y = y - card_h - row * (card_h + gap_y)
+                card_cy = card_y + card_h / 2
+
+                c.setFillColorRGB(1, 1, 1)
+                c.setFillAlpha(0.62)
+                c.roundRect(card_x, card_y, card_w, card_h, 10, fill=1, stroke=0)
+                c.setFillAlpha(1)
+                c.setStrokeColorRGB(*GOLD)
+                c.setLineWidth(0.8)
+                c.roundRect(card_x, card_y, card_w, card_h, 10, fill=0, stroke=1)
+
+                letter, _, description = quality.partition(" ")
+                badge_x = card_x + 15
+                c.setFillColorRGB(*GOLD)
+                c.circle(badge_x, card_cy, 9, fill=1, stroke=0)
+                c.setFillColorRGB(*NAVY)
+                c.setFont(F["brand"], 8.8)
+                c.drawCentredString(badge_x, card_cy - 3.1, _win(letter))
+
+                description = description.strip()
+                desc_size = fitted_size(
+                    description, F["body"], 10.5, 8.0, card_w - 37
+                )
+                c.setFillColorRGB(*INK)
+                c.setFont(F["body"], desc_size)
+                c.drawString(
+                    card_x + 30,
+                    card_cy - desc_size * 0.34,
+                    _win(description),
+                )
+
     # ------------------------------------------------------------- 1) CAPA ESTILIZADA
     pr_cov = reader(cover) or reader(portrait)
     bg(SKY)
@@ -477,17 +614,22 @@ def build_pdf(
     c.showPage()
 
     # -------------------------------------------- 2) POEMA DE ABERTURA
-    bg(CREAM)
-    corner_flourish(26, H - 120, 1, 1)
-    corner_flourish(W - 26, 120, -1, -1)
-    c.setFillColorRGB(*INK)
-    c.setFont(F["italic"], 17)
-    lines = split_lines(tr["opening"], F["italic"], 17, W * 0.66)
-    y = H / 2 + (len(lines) - 1) * 14
-    for ln in lines:
-        c.drawCentredString(W / 2, y, ln)
-        y -= 28
-    c.showPage()
+    # Catalogo com dedicatória própria (P1) substitui o poema genérico do México.
+    has_dedication_page = any(
+        (p.get("layout") or "") == "dedication" for p in (pages or [])
+    )
+    if not has_dedication_page:
+        bg(CREAM)
+        corner_flourish(26, H - 120, 1, 1)
+        corner_flourish(W - 26, 120, -1, -1)
+        c.setFillColorRGB(*INK)
+        c.setFont(F["italic"], 17)
+        lines = split_lines(tr["opening"], F["italic"], 17, W * 0.66)
+        y = H / 2 + (len(lines) - 1) * 14
+        for ln in lines:
+            c.drawCentredString(W / 2, y, ln)
+            y -= 28
+        c.showPage()
 
     # ------------------------- 3) FEITO ESPECIALMENTE PARA {NOME}
     if name or portrait:
@@ -591,12 +733,41 @@ def build_pdf(
     story_size = 20.5
     story_leading = 29
     for idx, p in enumerate(visible_pages):
+        layout = (p.get("layout") or "story").strip()
+        text = p.get("text", "")
+        if layout == "dedication":
+            bg(CREAM)
+            corner_flourish(26, H - 120, 1, 1)
+            corner_flourish(W - 26, 120, -1, -1)
+            raw = (text or "").replace("\r\n", "\n").strip()
+            poem, sep, prose = raw.partition("\n\n")
+            if not sep:
+                poem, prose = raw, ""
+            poem_lines = split_lines(poem, F["italic"], 17, W * 0.66)
+            prose_lines = split_lines(prose, F["italic"], 15, W * 0.68) if prose.strip() else []
+            items: list[tuple[str, str, float, float]] = [
+                (ln, F["italic"], 17.0, 28.0) for ln in poem_lines
+            ]
+            if poem_lines and prose_lines:
+                items.append(("", F["italic"], 0.0, 12.0))
+            items.extend((ln, F["italic"], 15.0, 22.0) for ln in prose_lines)
+            total_h = sum(item[3] for item in items) if items else 0.0
+            y = H / 2 + total_h / 2
+            c.setFillColorRGB(*INK)
+            for ln, font, size, leading in items:
+                if ln:
+                    c.setFont(font, size)
+                    c.drawCentredString(W / 2, y - size * 0.75, _win(ln))
+                y -= leading
+            c.showPage()
+            continue
         bg(CREAM)
         ir = reader(p.get("image"))
         if ir:
             full_bleed(ir)
-        text = p.get("text", "")
-        if idx % 2 == 0:
+        if layout == "name":
+            name_panel(text)
+        elif idx % 2 == 0:
             overlay(text, story_font, story_size, story_leading, 36, bottom=48)
         else:
             overlay(text, story_font, story_size, story_leading, 36, top=42)

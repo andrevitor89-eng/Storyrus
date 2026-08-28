@@ -1,4 +1,6 @@
-"""Cadastro, login e perfil."""
+"""Cadastro, login, convidado e perfil."""
+import uuid
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -20,6 +22,21 @@ def signup(body: SignupIn, db: Session = Depends(get_db)) -> TokenOut:
     user = User(
         email=body.email,
         password_hash=hash_password(body.password),
+        credits=settings.signup_bonus_credits,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    return TokenOut(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/guest", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
+def guest(db: Session = Depends(get_db)) -> TokenOut:
+    """Cria um usuario isolado por sessao (sem e-mail real) e devolve JWT."""
+    uid = uuid.uuid4()
+    user = User(
+        email=f"guest-{uid}@storyrus.app",
+        password_hash="!guest",
         credits=settings.signup_bonus_credits,
     )
     db.add(user)

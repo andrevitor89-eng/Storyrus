@@ -159,6 +159,22 @@ button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff
 details { margin: 1rem 0; }
 summary { cursor: pointer; color: var(--teal-deep); font-weight: 700; }
 
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 0 4px;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--muted);
+  cursor: pointer;
+}
+.consent input[type="checkbox"] {
+  width: auto;
+  margin-top: 3px;
+  flex: none;
+}
+
 /* =========================================================
    TEMA ESCURO (login + estúdio)
    ========================================================= */

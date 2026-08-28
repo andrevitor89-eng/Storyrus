@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -28,8 +28,20 @@ const IcTruck = ({ className }: IconProps) => (<Svg className={className}><path 
 const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="M10 9.5l4.5 2.5-4.5 2.5z" fill="currentColor" stroke="none" /></Svg>);
 const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
 const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
+const IcMail = ({ className }: IconProps) => (
+  <Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.5 7.5 12 13l8.5-5.5" /></Svg>
+);
+const IcInstagram = ({ className }: IconProps) => (
+  <Svg className={className}>
+    <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+    <circle cx="12" cy="12" r="4" />
+    <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
+  </Svg>
+);
 
 const NAV_ICONS = [IcHome, IcSparkle, IcBook, IcPlay];
+const CONTACT_EMAIL = "Storyrus@outlook.com";
+const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
@@ -39,7 +51,7 @@ const HOW_OPEN_BOOK = ["capa-dino2.jpg", "dino-1.jpg", "dino-3.jpg", "dino-4.jpg
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
-  { img: "dica-boa.png", ok: true, focus: "58% 38%" },
+  { img: "dica-boa.png", ok: true, focus: "center center" },
   { img: "dica-multi.png", ok: false, focus: "center center" },
   { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
@@ -68,13 +80,6 @@ const BANNER_CATALOG_I = [3, 0, 2];
 /* um card por tema do catálogo — src null = ainda sem exemplo de vídeo */
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg", "circo-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4", "video-circo.mp4"];
-/* pares reais foto → personagem (não inventar artes) */
-const BA_PAIRS: { photo: string; art: string; captionI: 0 | 3 | 4 }[] = [
-  { photo: "foto-bebe.jpg", art: "arte-bebe.jpg", captionI: 0 },
-  { photo: "foto-menino.jpg", art: "arte-menino.jpg", captionI: 3 },
-  { photo: "foto-pai.jpg", art: "arte-pai.jpg", captionI: 4 },
-];
-const FMT_ICONS = [IcBook, IcPlay, IcSparkle];
 // Slides do hero: capa limpa + título CSS em 2 linhas (sempre inteiro dentro do frame)
 const HERO_SLIDES: {
   photo: string; book: string; catalogI: number;
@@ -174,9 +179,10 @@ function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
   );
 }
 
-/** Vídeo de exemplo: inicia sozinho em mudo e fica em loop. */
+/** Vídeo de exemplo: carrega e toca só quando entra na tela. */
 function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
   const ref = useRef<HTMLVideoElement>(null);
+  const [activeSrc, setActiveSrc] = useState<string | undefined>(undefined);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
@@ -186,37 +192,39 @@ function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
       el.muted = true;
       void el.play().catch(() => { /* autoplay bloqueado até interação */ });
     };
-    tryPlay();
-    el.addEventListener("loadeddata", tryPlay);
-    el.addEventListener("canplay", tryPlay);
     const io = new IntersectionObserver(
       (entries) => {
         for (const en of entries) {
-          if (en.isIntersecting) tryPlay();
-          else el.pause();
+          if (en.isIntersecting) {
+            setActiveSrc(src);
+            tryPlay();
+          } else {
+            el.pause();
+          }
         }
       },
       { threshold: 0.25 },
     );
     io.observe(el);
-    return () => {
-      el.removeEventListener("loadeddata", tryPlay);
-      el.removeEventListener("canplay", tryPlay);
-      io.disconnect();
-    };
+    return () => io.disconnect();
   }, [src]);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !activeSrc) return;
+    el.muted = true;
+    void el.play().catch(() => { /* autoplay bloqueado até interação */ });
+  }, [activeSrc]);
   return (
     <video
       ref={ref}
       poster={poster}
       controls
       muted
-      autoPlay
-      loop
       playsInline
-      preload="auto"
+      preload="metadata"
+      loop
     >
-      <source src={src} type="video/mp4" />
+      {activeSrc ? <source src={activeSrc} type="video/mp4" /> : null}
     </video>
   );
 }
@@ -225,14 +233,26 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   const [open, setOpen] = useState<number | null>(0);
   return (
     <div className="faq">
-      {items.map((it, i) => (
+      {items.map((it, i) => {
+        const qid = `faq-q-${i}`;
+        const aid = `faq-a-${i}`;
+        return (
         <div className={`faq-item${open === i ? " open" : ""}`} key={it.q}>
-          <button className="faq-q" onClick={() => setOpen(open === i ? null : i)} aria-expanded={open === i}>
+          <button
+            className="faq-q"
+            id={qid}
+            onClick={() => setOpen(open === i ? null : i)}
+            aria-expanded={open === i}
+            aria-controls={aid}
+          >
             <span>{it.q}</span><IcChevron className="faq-chev" />
           </button>
-          <div className="faq-a"><p>{it.a}</p></div>
+          <div className="faq-a" id={aid} role="region" aria-labelledby={qid} aria-hidden={open !== i}>
+            <p>{it.a}</p>
+          </div>
         </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
@@ -242,11 +262,13 @@ function FlipBook({
   compact = false,
   coverTitle,
   coverTitleLines,
+  labels,
 }: {
   pages: string[];
   compact?: boolean;
   coverTitle?: string;
   coverTitleLines?: readonly string[];
+  labels?: { prev: string; next: string; turn: string; cover: string };
 }) {
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
@@ -288,10 +310,19 @@ function FlipBook({
     ? coverTitleLines
     : (coverTitle ? [coverTitle] : null);
   const showCoverTitle = Boolean(titleLines) && i === 0 && !anim;
+  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
-    if (!hover) return;
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
+  };
+  const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
+      e.preventDefault();
+      flip("next", true);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      flip("prev");
+    }
   };
   return (
     <div
@@ -299,12 +330,12 @@ function FlipBook({
       onMouseEnter={() => setHover(true)}
       onMouseLeave={() => setHover(false)}
     >
-      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label="Página anterior">‹</button>}
-      <div className="fb-stage" onClick={onStage} role="button" tabIndex={0} aria-label="Virar página">
+      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label={L.prev}>‹</button>}
+      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={L.turn}>
         <span className="fb-spine" />
         <img className="fb-page fb-under" src={exUrl(underSrc)} alt="" aria-hidden />
         <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
-          <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? "Capa" : `Página ${i}`} />
+          <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
           <span className="fb-leaf-shade" aria-hidden />
         </div>
         {showCoverTitle && titleLines && (
@@ -314,9 +345,9 @@ function FlipBook({
             ))}
           </span>
         )}
-        <span className="fb-count">{i === 0 ? "Capa" : `${i} / ${pages.length - 1}`}</span>
+        <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
       </div>
-      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label="Próxima página">›</button>}
+      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
     </div>
   );
 }
@@ -329,7 +360,6 @@ const I18N = {
     h_pre: "Transforme uma foto em uma ", w1: "história", c1: " onde seu filho é o ", w2: "herói", h_suf: ".",
     lead: "Você envia a foto e a gente cria um personagem ilustrado, uma história personalizada, um livro em PDF e até um vídeo narrado.",
     cta_play: "Criar minha história", cta_disc: "Ver como funciona",
-    cta_demo: "Ver um exemplo no estúdio", see_studio: "Ver no estúdio",
     trust: "Encantando famílias do início ao fim",
     ba_before: "ANTES", ba_after: "DEPOIS", ba_caption: "Você envia a foto. A gente cria o encanto.",
     ba_preview: "PRÉ-VISUALIZAÇÃO",
@@ -366,13 +396,22 @@ const I18N = {
     chloe_title: "A História de Chloe",
     fmt_title: "Escolha o formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
-      { t: "Livro para impressão", price: "US$ 39,99", unit: "por livro", p: "Um livro ilustrado em PDF, pronto para imprimir e ter na estante.", feats: ["Capa + páginas ilustradas", "PDF em alta para impressão", "Personagem fiel à foto"], cta: "Criar meu livro", badge: "Mais amado" },
-      { t: "Vídeo narrado", price: "R$ 89", unit: "por vídeo", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
-      { t: "Animação", price: "R$ 149", unit: "por animação", p: "O personagem ganha vida numa animação cheia de magia.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
+      { t: "Livro em PDF", p: "Capa e páginas ilustradas, prontas na plataforma. O impresso é sob consulta.", feats: ["Capa + páginas ilustradas", "PDF na hora", "Personagem fiel à foto"], cta: "Criar meu livro", badge: "Mais amado" },
+      { t: "Vídeo narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
+      { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
     cat_title: "Nossos livros", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
-    price: "US$ 39,99", price_note: "digital ou impresso", personalize: "Personalizar",
-    save: "ECONOMIZE 33%",
+    personalize: "Personalizar",
+    a11y_theme: "Alternar tema claro/escuro",
+    a11y_menu: "Menu",
+    a11y_slide: "Slide",
+    photo_real_alt: "Foto de exemplo da criança",
+    fb_prev: "Página anterior",
+    fb_next: "Próxima página",
+    fb_turn: "Virar página",
+    fb_cover: "Capa",
+    privacy_link: "Privacidade",
+    terms_link: "Termos",
     catalog: [
       { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza", quote: "Onde a gentileza acende vaga-lumes." },
@@ -381,19 +420,19 @@ const I18N = {
     ],
     surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida", quote: "Cada foto guarda uma aventura secreta." },
     promise_title: "Cada detalhe pensado para ser especial",
-    promise_sub: "Do envio da foto à entrega, tudo é feito para o livro chegar pronto para presentear.",
+    promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
     promise: [
-      { t: "Privacidade da foto", p: "A imagem é usada só para preparar o livro do seu filho — nunca para divulgação." },
+      { t: "Privacidade da foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
       { t: "Impressão pensada como presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
       { t: "Prévia antes de avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
-      { t: "Entrega sem complicação", p: "Acompanhamos da personalização ao envio para tudo chegar prontinho." },
+      { t: "Entrega sem complicação", p: "O PDF fica pronto na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
     ],
     faq_title: "Perguntas frequentes", faq_sub: "Tudo o que você precisa saber.",
     faq: [
       { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
       { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
-      { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto apenas para criar o livro e não compartilhamos seus dados." },
-      { q: "Recebo digital ou impresso?", a: "Os dois: o e-book digital na hora e, se quiser, o livro impresso enviado até você." },
+      { q: "A foto e os dados da criança estão seguros?", a: "Sim. Usamos a foto que você envia apenas para criar o livro e não compartilhamos seus dados. Os exemplos da página inicial são demonstrações, separados do que você envia." },
+      { q: "Recebo digital ou impresso?", a: "O e-book digital fica pronto na plataforma. Se quiser o impresso, peça a cotação depois de aprovar o livro." },
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
       { q: "Como funciona o vídeo narrado?", a: "Depois do ebook pronto, na tela de resultado você pode gerar o vídeo narrado (voz + cenas ilustradas) ou uma animação curta do personagem." },
     ],
@@ -418,7 +457,6 @@ const I18N = {
     h_pre: "Turn a photo into a ", w1: "story", c1: " where your child is the ", w2: "hero", h_suf: ".",
     lead: "You send the photo and we create an illustrated character, a personalized story, a PDF book and even a narrated video.",
     cta_play: "Create my story", cta_disc: "See how it works",
-    cta_demo: "See an example in the studio", see_studio: "See in studio",
     trust: "Delighting families from start to finish",
     ba_before: "BEFORE", ba_after: "AFTER", ba_caption: "You send the photo. We create the magic.",
     ba_preview: "PREVIEW",
@@ -455,13 +493,22 @@ const I18N = {
     chloe_title: "Chloe's Story",
     fmt_title: "Choose the format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
-      { t: "Printable book", price: "$39.99", unit: "per book", p: "An illustrated PDF book, ready to print and keep on the shelf.", feats: ["Cover + illustrated pages", "High-res PDF for printing", "Character true to the photo"], cta: "Create my book", badge: "Most loved" },
-      { t: "Narrated video", price: "$49", unit: "per video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
-      { t: "Animation", price: "$79", unit: "per animation", p: "The character comes alive in a magical animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
+      { t: "PDF book", p: "Cover and illustrated pages, ready on the platform. Print is quoted on request.", feats: ["Cover + illustrated pages", "PDF right away", "Character true to the photo"], cta: "Create my book", badge: "Most loved" },
+      { t: "Narrated video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
+      { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
     cat_title: "Our books", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
-    price: "$39.99", price_note: "digital or printed", personalize: "Personalize",
-    save: "SAVE 33%",
+    personalize: "Personalize",
+    a11y_theme: "Toggle light/dark theme",
+    a11y_menu: "Menu",
+    a11y_slide: "Slide",
+    photo_real_alt: "Example photo of the child",
+    fb_prev: "Previous page",
+    fb_next: "Next page",
+    fb_turn: "Turn page",
+    fb_cover: "Cover",
+    privacy_link: "Privacy",
+    terms_link: "Terms",
     catalog: [
       { t: "Lia and the Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature", quote: "Where kindness lights up the fireflies." },
@@ -470,19 +517,19 @@ const I18N = {
     ],
     surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure", quote: "Every photo hides a secret adventure." },
     promise_title: "Every detail crafted to feel special",
-    promise_sub: "From the photo to delivery, everything is made so the book arrives ready to gift.",
+    promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
     promise: [
-      { t: "Photo privacy", p: "The image is used only to prepare your child's book — never for promotion." },
+      { t: "Photo privacy", p: "The photo you upload is used only to create the book — never for promotion. The examples on this page are platform demos." },
       { t: "Print made as a gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
       { t: "Preview before you continue", p: "You see the cover and pages and understand what you're creating before finishing." },
-      { t: "Hassle-free delivery", p: "We follow from personalization to shipping so everything arrives ready." },
+      { t: "Hassle-free delivery", p: "The PDF is ready on the platform. Printed books are quoted on request — we send price and timing within 24 hours." },
     ],
     faq_title: "Frequently asked questions", faq_sub: "Everything you need to know.",
     faq: [
       { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
       { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
-      { q: "Are my child's photo and data safe?", a: "Yes. We use the photo only to create the book and never share your data." },
-      { q: "Digital or printed?", a: "Both: the digital e-book right away and, if you want, the printed book shipped to you." },
+      { q: "Are my child's photo and data safe?", a: "Yes. We use the photo you upload only to create the book and never share your data. Homepage examples are demos, separate from what you send." },
+      { q: "Digital or printed?", a: "The digital e-book is ready on the platform. If you want a printed copy, request a quote after you approve the book." },
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
       { q: "How does the narrated video work?", a: "After the ebook is ready, on the result screen you can generate a narrated video (voice + illustrated scenes) or a short character animation." },
     ],
@@ -505,7 +552,13 @@ const I18N = {
 export function Landing() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [navOpen, setNavOpen] = useState(false);
-  const [lang, setLang] = useState<Lang>("pt");
+  const [lang, setLang] = useState<Lang>(() => {
+    try {
+      const s = localStorage.getItem("lang");
+      if (s === "pt" || s === "en") return s;
+    } catch { /* ignore */ }
+    return "pt";
+  });
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
@@ -513,6 +566,7 @@ export function Landing() {
   const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
   const t = I18N[lang];
+  const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
   const navHrefs = ["#top", "#como", "#catalogo", "#videos"];
   const exampleBooks = [
     {
@@ -532,6 +586,7 @@ export function Landing() {
 
   // Auto-avanço do carrossel do hero
   useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = setInterval(() => setHeroI((v) => (v + 1) % HERO_SLIDES.length), 5200);
     return () => clearInterval(id);
   }, []);
@@ -543,6 +598,11 @@ export function Landing() {
   }, [theme]);
 
   useEffect(() => {
+    document.documentElement.lang = lang === "en" ? "en" : "pt-BR";
+    try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
+  }, [lang]);
+
+  useEffect(() => {
     const els = rootRef.current?.querySelectorAll(".reveal") ?? [];
     const io = new IntersectionObserver((entries) => {
       entries.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("in"); io.unobserve(en.target); } });
@@ -550,6 +610,15 @@ export function Landing() {
     els.forEach((el, i) => { (el as HTMLElement).style.transitionDelay = `${(i % 3) * 0.1}s`; io.observe(el); });
     return () => io.disconnect();
   }, []);
+
+  useEffect(() => {
+    if (!navOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setNavOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
 
   const closeNav = () => setNavOpen(false);
 
@@ -563,7 +632,7 @@ export function Landing() {
 
       <header className="knav">
         <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
-        <nav className={`klinks${navOpen ? " open" : ""}`}>
+        <nav id="site-menu" className={`klinks${navOpen ? " open" : ""}`}>
           {t.nav.map((label, i) => {
             const Icon = NAV_ICONS[i];
             return (<a key={label} href={navHrefs[i]} onClick={closeNav}><Icon className="ni" />{label}</a>);
@@ -571,19 +640,34 @@ export function Landing() {
           <Link to="/app" className="kbtn kbtn-go" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
         <div className="kright">
-          <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Alternar tema claro/escuro">
+          <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
             {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
           </button>
           <div className="lang" role="group" aria-label="Idioma / Language">
             <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
             <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
           </div>
-          <button className="khamb" aria-label="Menu" onClick={() => setNavOpen((v) => !v)}>☰</button>
+          <button
+            className="khamb"
+            aria-label={t.a11y_menu}
+            aria-expanded={navOpen}
+            aria-controls="site-menu"
+            onClick={() => setNavOpen((v) => !v)}
+          >☰</button>
         </div>
       </header>
 
-      {/* HERO — livro grande (retrato), capa + foto real no card */}
+      {/* HERO — proposta de valor + livro grande */}
       <section className="kbanner-hero" aria-label={t.eyebrow}>
+        <div className="khero-intro">
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
+          <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
+          <p className="klead">{t.lead}</p>
+          <div className="khero-cta">
+            <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+            <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
+          </div>
+        </div>
         <div className="kbh-frame">
           {HERO_SLIDES.map((s, i) => (
             <div className={`kbh-slide${i === heroI ? " on" : ""}`} key={s.book} aria-hidden={i !== heroI}>
@@ -605,20 +689,11 @@ export function Landing() {
               <figure className="kbh-book">
                 <img
                   src={exUrl(s.photo)}
-                  alt="Foto real da criança"
+                  alt={t.photo_real_alt}
                   loading={i === 0 ? "eager" : "lazy"}
                   style={s.photoPos ? { objectPosition: s.photoPos } : undefined}
                 />
               </figure>
-              <div className="kbh-overlay">
-                <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-                <h1>{t.banners[i].t}.</h1>
-                <p>{t.banners[i].p}</p>
-                <div className="khero-cta">
-                  <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-                  <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.cta_demo}</Link>
-                </div>
-              </div>
             </div>
           ))}
           <div className="ba-dots kbh-dots">
@@ -627,7 +702,7 @@ export function Landing() {
                 key={i}
                 className={i === heroI ? "on" : ""}
                 onClick={() => setHeroI(i)}
-                aria-label={`Slide ${i + 1}`}
+                aria-label={`${t.a11y_slide} ${i + 1}`}
                 aria-current={i === heroI}
               />
             ))}
@@ -650,6 +725,7 @@ export function Landing() {
                       compact
                       coverTitle={t.catalog[2].t}
                       coverTitleLines={CATALOG_TITLE_LINES[2][lang]}
+                      labels={flipLabels}
                     />
                   </div>
                 ) : (
@@ -662,36 +738,6 @@ export function Landing() {
             </div>
           ))}
         </div>
-        <div className="howex-cta reveal">
-          <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.cta_demo}</Link>
-        </div>
-      </section>
-
-      {/* ANTES E DEPOIS */}
-      <section className="ksection" id="antes-depois">
-        <h2 className="ktitle reveal">{t.ba_title}</h2>
-        <p className="ksub reveal">{t.ba_sub}</p>
-        <div className="ba-gallery">
-          {BA_PAIRS.map((pair) => (
-            <article className="bapair reveal" key={pair.photo}>
-              <div className="bapair-imgs">
-                <figure className="bap-side">
-                  <img src={exUrl(pair.photo)} alt={t.ba_before} loading="lazy" />
-                  <span className="ba-tag tag-before">{t.ba_before}</span>
-                </figure>
-                <span className="bap-arrow" aria-hidden><IcArrow /></span>
-                <figure className="bap-side">
-                  <img src={exUrl(pair.art)} alt={t.ba_after} loading="lazy" />
-                  <span className="ba-tag tag-after">{t.ba_after}</span>
-                </figure>
-              </div>
-              <p className="bapair-cap"><IcSparkle className="ci" />{t.ba_pairs[pair.captionI]}</p>
-            </article>
-          ))}
-        </div>
-        <p className="reveal" style={{ marginTop: 22 }}>
-          <span className="ba-caption"><IcSparkle className="ci" />{t.ba_caption}</span>
-        </p>
       </section>
 
       {/* FOTO PERFEITA */}
@@ -732,61 +778,28 @@ export function Landing() {
                   compact
                   coverTitle={c.t}
                   coverTitleLines={CATALOG_TITLE_LINES[i][lang]}
+                  labels={flipLabels}
                 />
-                <span className="cat-flip-off">{t.save}</span>
               </div>
               <div className="cat-body">
                 <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
                 <h3>{c.t}</h3>
                 <p>{c.p}</p>
-                <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
-                <div className="cat-actions">
-                  <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
-                  {CATALOG_THEMES[i] === "dinosaurs" && (
-                    <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.see_studio}</Link>
-                  )}
-                </div>
+                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
               </div>
             </div>
           ))}
           <div className="cat-card surprise reveal">
             <div className="cat-flip" style={{ background: BOOK3D_SURPRISE.bg }}>
-              <FlipBook pages={[SURPRISE_IMG, ...BOOK3D_SURPRISE.pages]} compact />
+              <FlipBook pages={[SURPRISE_IMG, ...BOOK3D_SURPRISE.pages]} compact labels={flipLabels} />
             </div>
             <div className="cat-body">
               <div className="cat-badges"><span className="cat-age">{t.surprise.age}</span><span className="cat-tag">{t.surprise.tag}</span></div>
               <h3>{t.surprise.t}</h3>
               <p>{t.surprise.p}</p>
-              <div className="cat-price">{t.price}<span>· {t.price_note}</span></div>
               <Link to="/app" className="kbtn kbtn-soft">{t.personalize}</Link>
             </div>
           </div>
-        </div>
-      </section>
-
-      {/* FORMATOS */}
-      <section className="ksection" id="formatos">
-        <h2 className="ktitle reveal">{t.fmt_title}</h2>
-        <p className="ksub reveal">{t.fmt_sub}</p>
-        <div className="fmt-grid">
-          {t.formats.map((f, i) => {
-            const Icon = FMT_ICONS[i] ?? IcBook;
-            return (
-              <div className={`fmt-card reveal${f.badge ? " featured" : ""}`} key={f.t}>
-                {f.badge ? <span className="fmt-badge">{f.badge}</span> : null}
-                <div className="fmt-ic"><Icon /></div>
-                <h3>{f.t}</h3>
-                <div className="fmt-price">{f.price}<span>{f.unit}</span></div>
-                <p>{f.p}</p>
-                <ul className="fmt-feats">
-                  {f.feats.map((feat) => (
-                    <li key={feat}>{feat}</li>
-                  ))}
-                </ul>
-                <Link to="/app" className="kbtn kbtn-primary">{f.cta}</Link>
-              </div>
-            );
-          })}
         </div>
       </section>
 
@@ -836,25 +849,25 @@ export function Landing() {
               className={`ex-tab${i === exBook ? " on" : ""}`}
               onClick={() => setExBook(i)}
               role="tab"
+              id={`ex-tab-${i}`}
               aria-selected={i === exBook}
+              aria-controls="ex-book-panel"
             >
-              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" />
+              <img src={exUrl(b.cover)} alt="" />
               <span>{b.title}</span>
             </button>
           ))}
         </div>
-        <div className="reveal">
+        <div className="reveal" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
           <FlipBook
             key={exBook}
             pages={exampleBooks[exBook].pages}
             coverTitle={exampleBooks[exBook].title}
             coverTitleLines={exampleBooks[exBook].titleLines}
+            labels={flipLabels}
           />
         </div>
         <p className="fb-hint reveal">{t.story_hint}</p>
-        <div className="howex-cta reveal">
-          <Link to="/app?exemplo=dinosaurs" className="kbtn kbtn-soft">{t.cta_demo}</Link>
-        </div>
       </section>
 
       {/* BANNERS NARRATIVOS — abaixo do folheie */}
@@ -926,6 +939,23 @@ export function Landing() {
       <footer className="kfoot">
         <div className="kfoot-nav">
           {t.nav.map((label, i) => { const Icon = NAV_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
+        </div>
+        <div className="kfoot-contacts">
+          <a href={`mailto:${CONTACT_EMAIL}`} className="kfoot-contact">
+            <IcMail className="ni" />
+            <span>{CONTACT_EMAIL}</span>
+          </a>
+          <a
+            href={`https://instagram.com/${CONTACT_INSTA}`}
+            className="kfoot-contact"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <IcInstagram className="ni" />
+            <span>@{CONTACT_INSTA}</span>
+          </a>
+          <Link to="/privacidade" className="kfoot-contact">{t.privacy_link}</Link>
+          <Link to="/termos" className="kfoot-contact">{t.terms_link}</Link>
         </div>
         <p className="kfoot-tag"><IcHeart className="ci" /> {t.tagline}</p>
         <p className="kfoot-copy">{t.foot_copy}</p>

@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC
 
 import pytest
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
@@ -328,4 +328,321 @@ def test_clamp_kling_duration():
     assert handlers._clamp_kling_duration(7) == 5
     assert handlers._clamp_kling_duration(8) == 10
     assert handlers._clamp_kling_duration(10) == 10
+
+
+async def test_refine_scene_can_be_disabled(monkeypatch):
+    """EBOOK_REFINE_SCENE=false corta o segundo passe (metade das chamadas do livro)."""
+    calls: list[dict] = []
+
+    class Counting(FakeImage):
+        async def refine_scene(self, **kw):
+            calls.append(kw)
+            return await super().refine_scene(**kw)
+
+    provider = Counting()
+    scene = ImageResult(image_bytes=b"SCENE", mime_type="image/png")
+
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", False)
+    kept = await handlers._refine_scene(provider, b"char", scene, "style")
+    assert kept is scene
+    assert calls == []
+
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
+    refined = await handlers._refine_scene(provider, b"char", scene, "style")
+    assert refined.image_bytes == b"SCENE_R"
+    assert len(calls) == 1
+
+
+async def test_ebook_catalog_uses_illustration_notes(db, mem_storage, monkeypatch):
+    """Livro de catálogo ilustra a nota (ex. arara), não inventa a cena pelo texto."""
+    from app.models import JobType
+    from app.story_templates import render_template
+
+    prompts: list[str] = []
+
+    class RecordingImage(FakeImage):
+        async def generate_scene(self, **kw):
+            prompts.append(kw.get("prompt") or "")
+            return await super().generate_scene(**kw)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: RecordingImage())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    _, p = _seed(db)
+    p.child_name = "Matteo"
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = render_template("alfabeto_amazonia", "Matteo", gender="boy")
+    p.status = ProjectStatus.STORY_READY.value
+    db.add(
+        Job(
+            project_id=p.id,
+            type=JobType.STORY.value,
+            status=JobStatus.DONE.value,
+            cost_credits=0,
+            result={"source": "template", "template_id": "alfabeto_amazonia"},
+        )
+    )
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    db.refresh(p)
+    assert p.status == ProjectStatus.EBOOK_READY.value
+    # P1 dedicatória não gera cena; P3 (arara) usa a nota do catálogo
+    assert len(prompts) == 28
+    name_page = prompts[0]
+    assert "lado esquerdo" in name_page
+    assert "'wide'" in name_page
+    assert "PROIBIDO desenhar letras" in name_page
+    assert "destaque UM animal" not in name_page
+    arara = prompts[1]
+    assert "letra grande abstrata A" in arara
+    assert "arara" in arara.lower()
+    assert "Pagina de alfabeto" in arara
+    assert "NUNCA texto legivel" in arara
+    macaco = prompts[13]
+    assert "pulando de galho em galho" in macaco
+    assert "letra grande abstrata M" in macaco
+
+
+async def test_ebook_catalog_extras_by_template(db, mem_storage, monkeypatch):
+    """Cada livro da série educativa injeta o extra de cena correspondente."""
+    from app.models import JobType
+    from app.story_templates import render_template
+
+    recorded: dict[str, list[str]] = {}
+
+    class RecordingImage(FakeImage):
+        def __init__(self):
+            self._tid = ""
+
+        async def generate_scene(self, **kw):
+            recorded.setdefault(self._tid, []).append(kw.get("prompt") or "")
+            return await super().generate_scene(**kw)
+
+    img = RecordingImage()
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: img)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+
+    cases = (
+        ("alfabeto_frutas", 28, "abacaxi", "Pagina de alfabeto"),
+        ("numeros_1_15", 17, "UMA maca", "Pagina de numeros"),
+        ("cores_basicas", 14, "cor dominante PRETO", "Pagina de cores"),
+        ("grande_pequeno", 14, "elefante", "Pagina de opostos"),
+    )
+    for tid, n_scenes, marker, extra in cases:
+        img._tid = tid
+        _, p = _seed(db)
+        p.child_name = "Matteo"
+        p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+        p.story_text = render_template(tid, "Matteo", gender="boy")
+        p.status = ProjectStatus.STORY_READY.value
+        db.add(
+            Job(
+                project_id=p.id,
+                type=JobType.STORY.value,
+                status=JobStatus.DONE.value,
+                cost_credits=0,
+                result={"source": "template", "template_id": tid},
+            )
+        )
+        db.commit()
+        await runner.process_job(db, _job(db, p, "EBOOK"))
+        db.refresh(p)
+        assert p.status == ProjectStatus.EBOOK_READY.value, tid
+        prompts = recorded[tid]
+        assert len(prompts) == n_scenes, tid
+        first = prompts[0]
+        assert extra in first, tid
+        assert any(marker.lower() in p.lower() for p in prompts), tid
+
+
+async def test_storyboard_does_not_generate_keyframes(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "STORYBOARD"))
+
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
+    boards = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.STORYBOARD.value)
+    ).all()
+    assert len(boards) == 1
+
+
+async def test_ebook_invent_uses_storyboard_scene_not_caption(db, mem_storage, monkeypatch):
+    import json
+
+    class BriefText(FakeText):
+        async def generate_storyboard(self, **kw):
+            return TextResult(text=json.dumps({
+                "title": "T",
+                "scenes": [
+                    {
+                        "n": 1,
+                        "narration": "ola",
+                        "scene": "CENA_JSON_PORQUINHO",
+                        "expression": "carinho",
+                        "shot": "close",
+                        "costume": "pijama azul",
+                        "text_band": "top",
+                    },
+                    {
+                        "n": 2,
+                        "narration": "fim",
+                        "scene": "CENA_JSON_FINAL",
+                        "expression": "orgulho",
+                        "shot": "wide",
+                        "costume": "pijama azul",
+                        "text_band": "bottom",
+                    },
+                ],
+            }))
+
+    prompts: list[str] = []
+
+    class RecordingImage(FakeImage):
+        async def generate_scene(self, **kw):
+            prompts.append(kw.get("prompt") or "")
+            return await super().generate_scene(**kw)
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: BriefText())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: RecordingImage())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.child_name = "Matteo"
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert any("CENA_JSON_PORQUINHO" in p for p in prompts)
+    assert any("carinho" in p for p in prompts)
+    assert any("ENQUADRAMENTO OBRIGATORIO" in p and "'close'" in p for p in prompts)
+
+
+async def test_ebook_generate_scene_receives_costume_extra_refs(db, mem_storage, monkeypatch):
+    extra_seen: list[list] = []
+
+    class TaggedImage(FakeImage):
+        async def generate_character(self, **kw):
+            prompt = kw.get("prompt") or ""
+            if "FIGURINO LOCK" in prompt:
+                return ImageResult(image_bytes=b"COSTUME", mime_type="image/png")
+            if "GRADE DE EXPRESSOES" in prompt:
+                return ImageResult(image_bytes=b"EXPR", mime_type="image/png")
+            return ImageResult(image_bytes=b"SHEET", mime_type="image/png")
+
+        async def generate_scene(self, **kw):
+            extra_seen.append(list(kw.get("extra_refs") or []))
+            return await super().generate_scene(**kw)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: TaggedImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola feliz.\nPagina 2: fim."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert extra_seen
+    assert extra_seen[0][0] == b"COSTUME"
+    assert b"SHEET" in extra_seen[0]
+
+
+async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch):
+    refines: list[int] = []
+    scenes: list[int] = []
+
+    class Counting(FakeImage):
+        async def generate_scene(self, **kw):
+            scenes.append(1)
+            return await super().generate_scene(**kw)
+
+        async def refine_scene(self, **kw):
+            refines.append(1)
+            return await super().refine_scene(**kw)
+
+    async def low_score(_photo, _scene):
+        return 0.4
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", low_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert len(refines) == 2
+    assert len(scenes) == 4  # 2 iniciais + 2 retries
+
+
+async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
+    refines: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_scene(self, **kw):
+            refines.append(1)
+            return await super().refine_scene(**kw)
+
+    async def high_score(_photo, _scene):
+        return 0.91
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", high_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert refines == []
+
+
+async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkeypatch):
+    from sqlalchemy import select as sel
+
+    class OrderedImage(FakeImage):
+        async def generate_scene(self, **kw):
+            prompt = kw.get("prompt") or ""
+            tag = b"P1" if "Pagina 1" in prompt else b"P2"
+            return ImageResult(image_bytes=tag, mime_type="image/png")
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: OrderedImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_page_concurrency", 2)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    pages = db.scalars(
+        sel(Asset)
+        .where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+        .order_by(Asset.created_at.asc())
+    ).all()
+    assert [a.meta.get("page") for a in pages] == [1, 2]
+    assert mem_storage[pages[0].storage_key] == b"P1"
+    assert mem_storage[pages[1].storage_key] == b"P2"
 

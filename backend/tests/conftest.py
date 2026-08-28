@@ -10,8 +10,20 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.config import settings
 from app.database import Base, get_db
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def _no_face_detection_network(monkeypatch):
+    """Teste nao chama a API para detectar rosto.
+
+    A deteccao entrou no caminho do avatar E no de toda pagina do livro; sem
+    isto a suite passa a depender de rede (e de cota) sem avisar. Modelo vazio
+    faz `detect_face_box` devolver None e cair no recorte geometrico offline.
+    """
+    monkeypatch.setattr(settings, "gemini_face_model", "")
 
 
 @pytest.fixture()
@@ -39,7 +51,7 @@ def client():
 
 @pytest.fixture()
 def auth_client(client):
-    r = client.post("/v1/auth/signup", json={"email": "a@b.com", "password": "password123"})
+    r = client.post("/v1/auth/guest")
     assert r.status_code == 201, r.text
     token = r.json()["access_token"]
     client.headers.update({"Authorization": f"Bearer {token}"})

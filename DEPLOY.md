@@ -61,50 +61,59 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - Em `vercel.json` (raiz e `apps/web`), a `destination` deve ser a URL real da api (ex.: `https://storyrus-api.onrender.com`). Se a URL do Render for diferente, ajuste e dê `git push` (a Vercel redeploya sozinha).
 
 ### Como ver o site
-- No projeto da Vercel → aba **Deployments** → o deploy mais recente fica **Ready**.
-- Clique em **Visit** para abrir (ex.: `https://storyrus.vercel.app`). Essa é a home (landing).
+- URL canônica: **https://storyrus.ai**
+- `https://www.storyrus.ai` redireciona para a raiz.
+- `https://storyrus.vercel.app` redireciona para `https://storyrus.ai` (regra nos `vercel.json`).
 - A cada `git push` no `main`, a Vercel atualiza a produção automaticamente.
 
 ---
 
 ## 3) Domínio da GoDaddy no Vercel
 
-A **GoDaddy só guarda o domínio**. O site continua hospedado na Vercel (`storyrus.vercel.app`). Não use hospedagem, construtor de sites nem encaminhamento da GoDaddy.
+A **GoDaddy só guarda o DNS**. O site continua hospedado na Vercel. Não use hospedagem, construtor de sites nem encaminhamento da GoDaddy.
+
+O projeto **storyrus** já tem `storyrus.ai` e `www.storyrus.ai`. O `www` e o `storyrus.vercel.app` redirecionam para `https://storyrus.ai` via `vercel.json`.
+
+Há e-mail Microsoft 365 no domínio (`storyrus-ai.mail.protection.outlook.com`). **Não apague MX** e **não troque nameservers**.
 
 ### Na Vercel
 
-1. Abra o projeto **storyrus** → **Settings → Domains**.
-2. Adicione o domínio raiz (ex.: `seudominio.com`) e o `www` (ex.: `www.seudominio.com`).
-3. Escolha o redirecionamento **www → raiz** (ou o contrário). A Vercel emite o HTTPS sozinha.
-4. Abra o card do domínio e **copie os registros que a Vercel mostrar**. O CNAME do `www` pode ser específico do projeto (não invente o valor).
+Já feito: Settings → Domains no projeto **storyrus**. HTTPS a Vercel emite sozinha depois do DNS.
 
 ### Na GoDaddy (DNS)
 
-Painel GoDaddy → **Domínios** → o domínio → **DNS** / **Gerenciar DNS**.
+Painel GoDaddy → **Domínios** → `storyrus.ai` → **DNS** / **Gerenciar DNS**.
 
-**Não apague MX** se o e-mail do domínio estiver na GoDaddy (ou em outro provedor). Apague só o que aponta o *site* para a GoDaddy.
+**Criar/atualizar** (TTL 600):
 
-| Tipo  | Nome | Valor | TTL |
-|-------|------|-------|-----|
-| **A** | `@` | `76.76.21.21` | 600 (ou 1 hora) |
-| **CNAME** | `www` | o valor do card da Vercel (em geral `cname.vercel-dns.com`) | 600 |
+| Tipo  | Nome | Valor |
+|-------|------|-------|
+| **A** | `@` | `216.198.79.1` |
+| **A** | `@` | `64.29.17.1` |
+| **CNAME** | `www` | `b1f150d36b8308d7.vercel-dns-017.com` |
 
-Antes de salvar, remova conflitos:
+Fallback se a GoDaddy só aceitar um A: `@` → `76.76.21.21`. Alternativa de CNAME: `cname.vercel-dns.com`.
 
-- Registro **A** antigo em `@` (parking da GoDaddy: IPs tipo `3.33.…`, `15.197.…`, `Parked`).
-- **CNAME** de `www` apontando para parking / `secureserver` / construtor de sites.
-- **Encaminhamento de domínio** (Domain Forwarding) — desligue.
-- **Hospedagem / Website Builder** da GoDaddy no mesmo domínio — desconecte.
+**Remover só o parking do site** (hoje em `3.33.130.190` e `15.197.148.33`):
 
-Mantenha os **nameservers da GoDaddy**. Só mude nameserver para `ns1.vercel-dns.com` / `ns2.vercel-dns.com` se quiser a Vercel gerenciando *todo* o DNS (aí os MX de e-mail precisam ser recriados na Vercel).
+- Registros **A** antigos em `@` com esses IPs.
+- **CNAME** de `www` apontando para `storyrus.ai` / parking / `secureserver`.
+- **Encaminhamento de domínio** (Domain Forwarding) — desligar.
+- Website Builder / hospedagem GoDaddy nesse domínio — desconectar.
+
+**Manter:**
+
+- Nameservers `ns09.domaincontrol.com` / `ns10.domaincontrol.com`
+- MX `storyrus-ai.mail.protection.outlook.com` (e TXT/CNAME de Outlook, se existirem)
 
 ### Conferir
 
-1. Na Vercel, o domínio deve ir para **Valid Configuration**.
-2. Abra `https://seudominio.com` e `https://www.seudominio.com` — landing e `/app` (estúdio) devem responder.
-3. O front chama `/v1` no **mesmo domínio**; a Vercel faz proxy para o Render. Não precisa CORS extra.
+1. Vercel: `storyrus.ai` e `www` em **Valid Configuration**.
+2. `https://storyrus.ai` e `https://www.storyrus.ai` — landing e `/app`.
+3. `https://storyrus.vercel.app` deve redirecionar para `https://storyrus.ai`.
+4. O front chama `/v1` no **mesmo domínio**; a Vercel faz proxy para o Render. Não precisa CORS extra.
 
-Propagação: minutos na maioria dos casos; até 24–48 h se a GoDaddy tinha parking/encaminhamento. Se ficar inválido, o card da Vercel mostra o registro que ainda falta.
+Propagação: minutos na maioria dos casos; até 24–48 h se havia parking. Reverificar com `vercel domains verify storyrus.ai`.
 
 ---
 
@@ -136,7 +145,7 @@ docker compose up -d --build
 | Camada    | Plataforma | Observação |
 |-----------|------------|------------|
 | Frontend  | Vercel     | Root = raiz; `vercel.json` constrói `apps/web` |
-| Domínio   | GoDaddy → Vercel | DNS na GoDaddy; site na Vercel (não hospeda na GoDaddy) |
+| Domínio   | GoDaddy → Vercel | `storyrus.ai`; DNS na GoDaddy; site na Vercel |
 | API       | Render     | Docker; `dockerCommand` roda `alembic upgrade` + uvicorn |
 | Worker    | Render     | Processa os jobs de IA |
 | Banco     | Render Postgres | `DATABASE_URL` automática |

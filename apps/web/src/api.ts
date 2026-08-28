@@ -10,13 +10,53 @@ import type {
 } from "./types";
 
 const BASE = ""; // mesmo host (proxy do Vite cobre /v1)
+const TOKEN_KEY = "storyrus_token";
 
-let token: string | null = null;
+function readStoredToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
+let token: string | null = readStoredToken();
+let guestPromise: Promise<void> | null = null;
+
 export function setToken(t: string | null) {
   token = t;
+  try {
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+    else localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 export function getToken() {
   return token;
+}
+
+export async function ensureGuest(): Promise<void> {
+  if (token) return;
+  if (!guestPromise) {
+    guestPromise = (async () => {
+      const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
+      if (!resp.ok) {
+        let detail = resp.statusText;
+        try {
+          detail = (await resp.json()).detail ?? detail;
+        } catch {
+          /* corpo vazio */
+        }
+        throw new Error(`${resp.status}: ${detail}`);
+      }
+      const data = (await resp.json()) as { access_token: string };
+      setToken(data.access_token);
+    })().finally(() => {
+      guestPromise = null;
+    });
+  }
+  await guestPromise;
 }
 
 function uuid(): string {
@@ -24,6 +64,11 @@ function uuid(): string {
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const skipGuest =
+    path.startsWith("/v1/auth/signup") ||
+    path.startsWith("/v1/auth/login") ||
+    path.startsWith("/v1/auth/guest");
+  if (!skipGuest) await ensureGuest();
   const headers = new Headers(init.headers);
   headers.set("Content-Type", "application/json");
   if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -42,16 +87,20 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
 
 export const api = {
   async signup(email: string, password: string) {
-    return req<{ access_token: string }>("/v1/auth/signup", {
+    const out = await req<{ access_token: string }>("/v1/auth/signup", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+    setToken(out.access_token);
+    return out;
   },
   async login(email: string, password: string) {
-    return req<{ access_token: string }>("/v1/auth/login", {
+    const out = await req<{ access_token: string }>("/v1/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
+    setToken(out.access_token);
+    return out;
   },
   async credits() {
     return req<{ credits: number }>("/v1/credits");
@@ -88,6 +137,7 @@ export const api = {
   },
   // Upload da foto via API (servidor grava no storage). Evita PUT do navegador.
   async uploadPhoto(id: string, file: File) {
+    await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
     const headers = new Headers();
@@ -128,6 +178,7 @@ export const api = {
   },
   // Extrair o texto de um arquivo (PDF/DOCX/TXT) enviado pelo usuário.
   async extractStory(id: string, file: File) {
+    await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
     const headers = new Headers();
@@ -180,6 +231,7 @@ export const api = {
     return req<VoiceList>("/v1/voices");
   },
   async uploadVoice(file: File, name: string, makeDefault = false) {
+    await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
     fd.append("name", name);
@@ -218,6 +270,7 @@ export const api = {
   },
   // Upload de foto de personagem extra
   async uploadExtraCharacter(id: string, file: File, name: string) {
+    await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
     fd.append("name", name);

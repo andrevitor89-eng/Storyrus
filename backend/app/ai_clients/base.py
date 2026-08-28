@@ -60,7 +60,13 @@ class ImageProvider(Protocol):
         """Gera o personagem 2D a partir das fotos (etapa 2)."""
 
     async def generate_scene(
-        self, *, prompt: str, character_ref: bytes, style: str
+        self,
+        *,
+        prompt: str,
+        character_ref: bytes,
+        style: str,
+        photo: bytes | None = None,
+        extra_refs: list[bytes] | None = None,
     ) -> ImageResult:
         """Gera uma ilustracao de pagina reutilizando a referencia do personagem."""
 
@@ -75,7 +81,12 @@ class ImageProvider(Protocol):
         """Segundo passe: corrige a ilustracao para ficar fiel a foto real (opcional)."""
 
     async def refine_scene(
-        self, *, character_ref: bytes, scene: bytes, style: str = "realistic"
+        self,
+        *,
+        character_ref: bytes,
+        scene: bytes,
+        style: str = "realistic",
+        photo: bytes | None = None,
     ) -> ImageResult:
         """Segundo passe de cena: corrige o protagonista para bater com o personagem (opcional)."""
 

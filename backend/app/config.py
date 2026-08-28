@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-prod"
     jwt_algorithm: str = "HS256"
     access_token_ttl_min: int = 60 * 24
+    # Vazio / default = POST /v1/credits/grant recusa. Nao exponha no front.
+    credit_grant_secret: str = ""
 
     # Storage (R2/S3)
     storage_bucket: str = "stories-dev"
@@ -54,7 +56,26 @@ class Settings(BaseSettings):
     webhook_signing_secret: str = "change-me-webhook"
 
     # Provedores de IA
-    gemini_api_key: str | None = None       # Nano Banana (Gemini 2.5 Flash Image)
+    gemini_api_key: str | None = None       # Nano Banana Pro (Gemini 3 Pro Image)
+    gemini_image_model: str = "gemini-3-pro-image"
+    # So Nano Banana Pro nas imagens. A lane devolve 503 ("high demand") em picos;
+    # sem fallback o job falha e estorna depois dos retries. Vazio desliga a
+    # queda. O modelo usado vai em `meta`.
+    gemini_image_model_fallback: str = ""
+    # 1K | 2K | 4K. A pagina do PDF e quadrada de 8,5" => 2K ~ 241 DPI (1K ~ 120 DPI).
+    # Vazio desliga o campo: `gemini-2.5-flash-image` rejeita `imageSize`.
+    gemini_image_size: str = "2K"
+    # Nano Banana Pro pensa antes de gerar: bem mais lento que o 2.5 Flash.
+    gemini_timeout_s: float = 240.0
+    # true | system | false. `system` usa a loja de certificados do SO, necessario
+    # quando antivirus/proxy reassina o TLS (o httpx fixa o bundle do certifi).
+    gemini_ssl_verify: str = "true"
+    # Localiza o rosto da crianca para o recorte de identidade. Modelo de texto:
+    # custa ~1200 tokens por foto, nao gera imagem.
+    gemini_face_model: str = "gemini-3.1-flash-lite"
+    gemini_face_timeout_s: float = 60.0
+    # Insistencia curta: e pre-processamento, nao pode dominar o tempo do avatar.
+    gemini_face_retries: int = 3
     # Retries HTTP no Nano Banana (503/429/rede): tentativas totais com backoff+jitter
     gemini_max_retries: int = 5
     gemini_retry_base_s: float = 2.0
@@ -78,6 +99,15 @@ class Settings(BaseSettings):
     retry_backoff_base_s: float = 2.0
     retry_backoff_max_s: float = 60.0
     ebook_pages: int = 12
+    # True = refine de cena permitido. Quem dispara e o juiz de rosto
+    # (`ebook_face_match`); false nunca refina (corte de custo).
+    ebook_refine_scene: bool = True
+    # Paginas ilustradas em paralelo (writes no banco ficam em serie, depois).
+    ebook_page_concurrency: int = 3
+    # Gemini Flash compara recorte da foto x cena; abaixo do limiar roda 1 refine
+    # (e 1 retry se ainda falhar). Falha do juiz = nao refina.
+    ebook_face_match: bool = True
+    ebook_face_match_min: float = 0.72
     video_poll_interval_s: float = 10.0
     video_poll_timeout_s: float = 600.0
 

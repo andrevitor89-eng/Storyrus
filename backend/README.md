@@ -1,8 +1,8 @@
 # Plataforma de Histórias — API (núcleo)
 
 MVP do backend: **foto → personagem → ebook → vídeo animado**. Pipeline assíncrono com
-créditos, jobs idempotentes, moderação/segurança e clients reais de IA (Nano Banana —
-Gemini 2.5 Flash Image, Claude, Kling). FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
+créditos, jobs idempotentes, moderação/segurança e clients reais de IA (Nano Banana Pro —
+Gemini 3 Pro Image, Claude, Kling). FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
 
 ## Estrutura
 
@@ -75,8 +75,8 @@ pytest            # usa SQLite em memória; não chama provedores externos
   contagem — fica RUNNING por muito tempo (polling + retries) e travava outras ações
   do usuário com 429 enquanto um vídeo ainda gerava.
 - **Consistência de personagem**: `character_ref` é reutilizada em todas as cenas.
-- **Segurança/LGPD**: chaves só no backend, entregáveis via URL assinada de curta duração,
-  callbacks validados por assinatura.
+- **Segurança/LGPD**: convidados recebem JWT isolado (`POST /v1/auth/guest`); chaves só no
+  backend, entregáveis via URL assinada de curta duração, callbacks validados por assinatura.
 - **Troca de provedor** sem reescrever o fluxo: tudo atrás de `ai_clients` (factory).
 
 ## Workers (pipeline)
