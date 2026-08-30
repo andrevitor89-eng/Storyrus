@@ -1,8 +1,8 @@
 """Compara o rosto da foto com o protagonista de uma cena do livro.
 
 Mesmo stack da deteccao de rosto (`gemini_face_model`): JSON curto, best-effort.
-Qualquer falha devolve None — o ebook NAO refina quando o juiz nao responde,
-para nao explodir custo.
+Qualquer falha devolve None. O caller (`identity_lock.judge_identity`) trata
+None com o juiz LIGADO como fail-closed (retry e recusa), nao como skip.
 """
 from __future__ import annotations
 

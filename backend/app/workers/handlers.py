@@ -44,6 +44,15 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.face_detect import face_reference, identity_images
 from app.ai_clients.face_match import score_face_match
+from app.ai_clients.identity_lock import (
+    IDENTITY_MISMATCH_ERROR,
+    FaceVerdict,
+    IdentityLock,
+    build_identity_lock,
+    judge_identity,
+    prefer_verdict,
+    require_character_ref,
+)
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
 from app.story_templates import (
@@ -930,6 +939,23 @@ async def handle_extra_character(db: Session, job: Job) -> None:
                 style=BOOK_STYLE,
             )
             result = await _refine_identity(provider, refs[0], result, BOOK_STYLE)
+            extra_lock = build_identity_lock(
+                character_ref=result.image_bytes,
+                face_crop=refs[0],
+                photo=photo_bytes,
+            )
+            verdict = await _judge_page(extra_lock, result.image_bytes)
+            if not verdict.accepted(settings.ebook_face_match_min):
+                result = await _refine_identity(
+                    provider, refs[0], result, BOOK_STYLE, retries=1, passes=1
+                )
+                verdict = await _judge_page(extra_lock, result.image_bytes)
+                if not verdict.accepted(settings.ebook_face_match_min):
+                    raise ProviderError(
+                        f"Personagem extra '{ec.get('name', idx + 1)}': "
+                        f"{IDENTITY_MISMATCH_ERROR}",
+                        transient=False,
+                    )
 
         char_key = storage.new_key(project.id, "extra_character", _ext(result.mime_type))
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
@@ -1497,14 +1523,9 @@ def _scene_extra_refs(
     return extras
 
 
-async def _score_page_face(photo: bytes | None, scene: bytes) -> float | None:
-    if not settings.ebook_face_match or not photo or not scene:
-        return None
-    try:
-        return await score_face_match(photo, scene)
-    except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o livro
-        logger.warning("Juiz de rosto falhou; pagina segue sem refine")
-        return None
+async def _judge_page(lock: IdentityLock, scene: bytes) -> FaceVerdict:
+    """Nota de identidade; None com juiz ligado e unverified (fail-closed)."""
+    return await judge_identity(lock, scene, scorer=score_face_match)
 
 
 async def _illustrate_page(
@@ -1515,13 +1536,13 @@ async def _illustrate_page(
     brief: dict,
     extras: str,
     child_name: str,
-    char_bytes: bytes,
-    photo_bytes: bytes | None,
+    lock: IdentityLock,
     bible: dict[str, bytes],
     style_lock: asyncio.Lock,
     good_style: list[bytes],
 ) -> ImageResult:
-    """Gera uma pagina; refine/retry so se o juiz disser que o rosto nao bate."""
+    """Gera uma pagina com o lock obrigatorio; recusa se o rosto nao bater."""
+    refs = lock.scene_kwargs()
     prompt = build_scene_prompt(
         page=idx,
         text=caption,
@@ -1533,40 +1554,35 @@ async def _illustrate_page(
         text_band=brief.get("text_band") or "",
     )
     extra_refs = _scene_extra_refs(bible, brief.get("expression") or "")
-    scene = await provider.generate_scene(
-        prompt=prompt,
-        character_ref=char_bytes,
-        style=BOOK_STYLE,
-        photo=photo_bytes,
-        extra_refs=extra_refs or None,
-    )
+
+    async def _generate(page_extra_refs: list[bytes] | None = extra_refs) -> ImageResult:
+        return await provider.generate_scene(
+            prompt=prompt,
+            style=BOOK_STYLE,
+            extra_refs=page_extra_refs or None,
+            **refs,
+        )
+
+    scene = await _generate()
     threshold = settings.ebook_face_match_min
     best = scene
-    best_score = await _score_page_face(photo_bytes, scene.image_bytes)
+    best_verdict = await _judge_page(lock, scene.image_bytes)
 
-    async def _keep_if_better(candidate: ImageResult) -> None:
-        nonlocal best, best_score
-        score = await _score_page_face(photo_bytes, candidate.image_bytes)
-        if score is None:
-            if best_score is None or best_score < threshold:
-                best = candidate
-            return
-        if best_score is None or score >= best_score:
+    async def _consider(candidate: ImageResult) -> None:
+        nonlocal best, best_verdict
+        verdict = await _judge_page(lock, candidate.image_bytes)
+        if prefer_verdict(verdict, best_verdict, threshold):
             best = candidate
-            best_score = score
+            best_verdict = verdict
 
-    needs_fix = (
-        settings.ebook_refine_scene
-        and best_score is not None
-        and best_score < threshold
-    )
-    if needs_fix:
-        refined = await _refine_scene(
-            provider, char_bytes, best, BOOK_STYLE, photo=photo_bytes
-        )
-        if refined is not best:
-            await _keep_if_better(refined)
-        if best_score is not None and best_score < threshold:
+    if not best_verdict.accepted(threshold):
+        if settings.ebook_refine_scene:
+            refined = await _refine_scene(
+                provider, refs["character_ref"], best, BOOK_STYLE, photo=refs["photo"]
+            )
+            if refined is not best:
+                await _consider(refined)
+        if not best_verdict.accepted(threshold):
             style_ref = None
             async with style_lock:
                 if good_style:
@@ -1574,19 +1590,21 @@ async def _illustrate_page(
             retry_refs = _scene_extra_refs(
                 bible, brief.get("expression") or "", style_ref=style_ref
             )
-            retried = await provider.generate_scene(
-                prompt=prompt,
-                character_ref=char_bytes,
-                style=BOOK_STYLE,
-                photo=photo_bytes,
-                extra_refs=retry_refs or None,
-            )
-            await _keep_if_better(retried)
+            retried = await _generate(retry_refs)
+            await _consider(retried)
 
-    if best_score is None or best_score >= threshold:
-        async with style_lock:
-            if best.image_bytes not in good_style:
-                good_style.append(best.image_bytes)
+    if not best_verdict.accepted(threshold):
+        note = (
+            f"{best_verdict.score:.2f}" if best_verdict.score is not None else "sem nota"
+        )
+        raise ProviderError(
+            f"Pagina {idx}: {IDENTITY_MISMATCH_ERROR} (nota={note})",
+            transient=False,
+        )
+
+    async with style_lock:
+        if best.image_bytes not in good_style:
+            good_style.append(best.image_bytes)
     return best
 
 
@@ -1604,8 +1622,13 @@ async def handle_ebook(db: Session, job: Job) -> None:
     project.print_status = None
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
-    char_bytes = storage.get_bytes(project.character_ref["storage_key"])
+    char_bytes = require_character_ref(
+        storage.get_bytes(project.character_ref["storage_key"])
+    )
     photo_bytes = await _project_photo_bytes(db, project)
+    lock = build_identity_lock(
+        character_ref=char_bytes, face_crop=photo_bytes, photo=photo_bytes
+    )
     image_provider = get_image_provider()
 
     language = project.language or "pt-BR"
@@ -1700,8 +1723,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
                     brief=brief,
                     extras=page_extras,
                     child_name=child_name,
-                    char_bytes=char_bytes,
-                    photo_bytes=photo_bytes,
+                    lock=lock,
                     bible=bible,
                     style_lock=style_lock,
                     good_style=good_style,

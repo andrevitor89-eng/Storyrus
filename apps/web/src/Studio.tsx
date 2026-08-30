@@ -666,8 +666,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <p className="muted" style={{ marginTop: 6 }}>
             Melhor resultado: foto nítida, bem iluminada, <b>um</b> rosto de
             frente, testa e cabelo visíveis. Evite close de cima, de lado ou
-            rosto tapado. A arte é fotográfica, com a criança igual à foto — o mesmo
-            personagem nas páginas e no vídeo.
+            rosto tapado. Travamos o rosto da foto no personagem — o mesmo
+            rosto, cabelo e idade em todas as páginas e no vídeo. Pose,
+            expressão e roupa da história podem mudar. Página que não parecer
+            a mesma criança não é publicada.
           </p>
 
           <h3 className="field-label">Personagens Extras (amigos, irmãos, etc.)</h3>
@@ -972,7 +974,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             {bookApproved && (
               <div className="result-block">
                 <h3 className="field-label">Vídeo</h3>
-                <p className="muted">O clipe e o vídeo narrado usam o mesmo personagem 3D do livro.</p>
+                <p className="muted">O clipe e o vídeo narrado usam o personagem travado do livro — o mesmo rosto das páginas.</p>
                 <div className="steps">
                   {STEPS.filter((s) => s.key !== "ebook").map((s) => (
                     <button

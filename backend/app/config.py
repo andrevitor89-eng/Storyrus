@@ -104,8 +104,10 @@ class Settings(BaseSettings):
     ebook_refine_scene: bool = True
     # Paginas ilustradas em paralelo (writes no banco ficam em serie, depois).
     ebook_page_concurrency: int = 3
-    # Gemini Flash compara recorte da foto x cena; abaixo do limiar roda 1 refine
-    # (e 1 retry se ainda falhar). Falha do juiz = nao refina.
+    # Gemini Flash compara recorte da foto x cena. Abaixo do limiar: refine +
+    # 1 retry, depois recusa a pagina. Juiz LIGADO que devolve None = fail-closed
+    # (nao publica outra crianca). Juiz desligado (flag/modelo/chave vazios) =
+    # nao exige nota.
     ebook_face_match: bool = True
     ebook_face_match_min: float = 0.72
     video_poll_interval_s: float = 10.0

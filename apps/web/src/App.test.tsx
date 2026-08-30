@@ -21,6 +21,10 @@ describe("Fluxo E2E (sem login)", () => {
 
     await user.click(screen.getByRole("button", { name: /criar projeto/i }));
     expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
+    expect(screen.queryByText(/criança igual à foto/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByText(/travamos o rosto da foto no personagem/i),
+    ).toBeInTheDocument();
 
     // envia a foto -> personagem é gerado automaticamente
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;

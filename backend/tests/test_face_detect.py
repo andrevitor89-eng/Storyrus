@@ -115,6 +115,19 @@ async def test_detects_box_and_converts_to_pixels():
 
 
 @pytest.mark.asyncio
+async def test_short_eye_only_box_extends_down_to_chin():
+    """Caixa so de olhos (larga e baixa) e estendida para caber boca/queixo."""
+    # ymin=200, ymax=350 -> 90px de altura; largura 200px => min_h = 210
+    _Client.reply = _Resp(200, _reply([200, 250, 350, 750]))
+    box = await fd.detect_face_box(_png(400, 600))
+    assert box is not None
+    left, top, right, bottom = box
+    assert right - left == 200
+    assert bottom - top >= int(200 * 1.05)
+    assert bottom > 90 + 60  # passou da boca/queixo, nao parou nos olhos
+
+
+@pytest.mark.asyncio
 async def test_box_covering_whole_photo_is_rejected():
     """Caixa cobrindo tudo significa que nao localizou nada."""
     _Client.reply = _Resp(200, _reply([0, 0, 1000, 1000]))
@@ -168,5 +181,5 @@ async def test_identity_images_uses_the_detected_crop():
     refs = await fd.identity_images(photo)
     assert len(refs) == 2
     assert refs[1] == photo
-    # Caixa de 200x240 px + folga de 12% (24 em x, 28 em y) em cada lado.
-    assert Image.open(BytesIO(refs[0])).size == (248, 296)
+    # Caixa 200x240 + folga 12% nos lados/topo e 28% embaixo (boca/queixo).
+    assert Image.open(BytesIO(refs[0])).size == (248, 335)

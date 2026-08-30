@@ -68,7 +68,7 @@ class ImageProvider(Protocol):
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
     ) -> ImageResult:
-        """Gera uma ilustracao de pagina reutilizando a referencia do personagem."""
+        """Gera uma ilustracao de pagina. `character_ref` e obrigatorio (lock)."""
 
     async def generate_realistic(
         self, *, photo: bytes, prompt: str, negative: str = "", style: str = "realistic"
