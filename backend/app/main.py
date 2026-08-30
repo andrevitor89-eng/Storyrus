@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import queue
 from app.config import settings
-from app.routers import auth, credits, jobs, projects, voices, webhooks
+from app.routers import auth, credits, jobs, media, projects, voices, webhooks
 from app.services import jobs as jobs_svc
 
 logging.basicConfig(level=settings.log_level)
@@ -30,6 +30,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(credits.router)
+app.include_router(media.router)
 app.include_router(projects.router)
 app.include_router(jobs.router)
 app.include_router(voices.router)

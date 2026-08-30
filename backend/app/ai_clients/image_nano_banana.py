@@ -25,6 +25,7 @@ from app.ai_clients.gemini_api import TRANSIENT_STATUS as _TRANSIENT_STATUS
 from app.ai_clients.gemini_api import api_message as _api_message
 from app.ai_clients.gemini_api import inline_part as _inline
 from app.ai_clients.gemini_api import ssl_verify as _ssl_verify
+from app.ai_clients.identity_lock import require_character_ref
 from app.ai_clients.resilience import OutageError
 from app.config import settings
 
@@ -299,6 +300,7 @@ class NanoBananaImageProvider:
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
     ) -> ImageResult:
+        character_ref = require_character_ref(character_ref)
         extras = [img for img in (extra_refs or []) if img]
         identity = ""
         if photo:

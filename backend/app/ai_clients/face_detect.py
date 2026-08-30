@@ -134,7 +134,22 @@ async def detect_face_box(photo: bytes) -> tuple[int, int, int, int] | None:
     pixels = _pixels(box or [], size)
     if pixels is None:
         logger.warning("Deteccao de rosto devolveu caixa implausivel: %s", box)
-    return pixels
+        return None
+    return _ensure_mouth_chin(pixels, size)
+
+
+def _ensure_mouth_chin(
+    box: tuple[int, int, int, int], size: tuple[int, int]
+) -> tuple[int, int, int, int]:
+    """Estende caixas curtas (so olhos) para baixo ate caber boca e queixo."""
+    left, top, right, bottom = box
+    _w, h = size
+    face_w = max(1, right - left)
+    face_h = bottom - top
+    min_h = int(face_w * 1.05)
+    if face_h < min_h:
+        bottom = min(h, top + min_h)
+    return left, top, right, bottom
 
 
 async def face_reference(photo: bytes) -> bytes:

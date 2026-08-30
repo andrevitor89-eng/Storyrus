@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     # Vazio / default = POST /v1/credits/grant recusa. Nao exponha no front.
     credit_grant_secret: str = ""
 
-    # Storage (R2/S3)
+    # Storage (R2/S3). Sem ACCESS/SECRET o backend grava em disco local
+    # (`storage_local_dir`) e serve em GET /v1/media/... — Studio local.
     storage_bucket: str = "stories-dev"
+    storage_local_dir: str = "./data/storage"
     storage_endpoint_url: str | None = None  # R2/MinIO; None = AWS S3 padrao
     # Endpoint visto pelo navegador para URLs assinadas (presign). Em dev local
     # com MinIO: containers usam http://minio:9000 e o navegador http://localhost:9000.
@@ -104,10 +106,14 @@ class Settings(BaseSettings):
     ebook_refine_scene: bool = True
     # Paginas ilustradas em paralelo (writes no banco ficam em serie, depois).
     ebook_page_concurrency: int = 3
-    # Gemini Flash compara recorte da foto x cena; abaixo do limiar roda 1 refine
-    # (e 1 retry se ainda falhar). Falha do juiz = nao refina.
+    # Gemini Flash compara recorte da foto x cena. Abaixo do limiar: refine +
+    # 1 retry, depois recusa a pagina. Juiz LIGADO que devolve None = fail-closed
+    # (nao publica outra crianca). Juiz desligado (flag/modelo/chave vazios) =
+    # nao exige nota.
     ebook_face_match: bool = True
     ebook_face_match_min: float = 0.72
+    # Close-up nao pode inflar o olho: acima disto (0–1) a pagina e recusada.
+    ebook_eye_inflate_max: float = 0.15
     video_poll_interval_s: float = 10.0
     video_poll_timeout_s: float = 600.0
 

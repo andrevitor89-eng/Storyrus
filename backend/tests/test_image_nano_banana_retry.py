@@ -294,6 +294,13 @@ async def test_retry_after_is_capped_by_settings(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_generate_scene_requires_character_ref():
+    provider = nb.NanoBananaImageProvider(api_key="test-key")
+    with pytest.raises(ProviderError, match="character_ref"):
+        await provider.generate_scene(prompt="cena", character_ref=b"", style="x")
+
+
+@pytest.mark.asyncio
 async def test_scene_uses_square_aspect_ratio():
     _FakeAsyncClient.script = [_FakeResponse(200, _ok_body(b"scene"))]
     provider = nb.NanoBananaImageProvider(api_key="test-key")

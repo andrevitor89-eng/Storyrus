@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.ai_clients.base import ImageResult, ProviderError, TextResult, VideoJob
+from app.ai_clients.face_match import FaceScore
 from app.database import Base
 from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus, User
 from app.workers import handlers, runner
@@ -451,8 +452,9 @@ async def test_ebook_catalog_extras_by_template(db, mem_storage, monkeypatch):
         assert p.status == ProjectStatus.EBOOK_READY.value, tid
         prompts = recorded[tid]
         assert len(prompts) == n_scenes, tid
-        first = prompts[0]
-        assert extra in first, tid
+        # Dedicatória não ilustra. Alfabeto começa na página de nome (sem extra
+        # da série); números/cores/opostos já ilustram com o extra na 1ª cena.
+        assert any(extra in p for p in prompts), tid
         assert any(marker.lower() in p.lower() for p in prompts), tid
 
 
@@ -558,7 +560,50 @@ async def test_ebook_generate_scene_receives_costume_extra_refs(db, mem_storage,
     assert b"SHEET" in extra_seen[0]
 
 
-async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch):
+def _enable_face_judge(monkeypatch):
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers.settings, "gemini_api_key", "test-key")
+    monkeypatch.setattr(handlers.settings, "gemini_face_model", "gemini-test-flash")
+
+
+async def test_ebook_generate_scene_always_receives_locked_refs(db, mem_storage, monkeypatch):
+    """character_ref do avatar e o recorte da foto entram em TODA generate_scene."""
+    from io import BytesIO
+
+    from PIL import Image
+
+    seen: list[dict] = []
+
+    class Recording(FakeImage):
+        async def generate_scene(self, **kw):
+            seen.append(kw)
+            return await super().generate_scene(**kw)
+
+    buf = BytesIO()
+    Image.new("RGB", (64, 80), (30, 90, 40)).save(buf, format="PNG")
+    mem_storage["char1"] = b"LOCKED_AVATAR"
+    mem_storage["photo1"] = buf.getvalue()
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Recording())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert seen
+    for kw in seen:
+        assert kw.get("character_ref") == b"LOCKED_AVATAR"
+        assert kw.get("photo")  # recorte (ou foto) obrigatorio no lock
+
+
+async def test_ebook_face_match_low_retries_then_rejects(db, mem_storage, monkeypatch):
+    """Nota baixa: refine + retry, depois recusa — nao publica outra crianca."""
     refines: list[int] = []
     scenes: list[int] = []
 
@@ -577,18 +622,153 @@ async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "score_face_match", low_score)
-    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
-    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _enable_face_judge(monkeypatch)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    j = _job(db, p, "EBOOK")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(p)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
+    assert p.ebook_url is None
+    assert len(refines) >= 1
+    assert len(scenes) >= 2  # inicial + retry (as duas paginas correm em paralelo)
+
+
+async def test_ebook_face_match_none_does_not_skip(db, mem_storage, monkeypatch):
+    """Juiz ligado que devolve None nao publica a pagina (fail-closed)."""
+    scenes: list[int] = []
+
+    class Counting(FakeImage):
+        async def generate_scene(self, **kw):
+            scenes.append(1)
+            return await super().generate_scene(**kw)
+
+    async def none_score(_photo, _scene):
+        return None
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", none_score)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    j = _job(db, p, "EBOOK")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
+    assert len(scenes) >= 2  # gerou e tentou de novo; nao pulou o refine/retry
+
+
+async def test_ebook_face_match_low_then_high_publishes(db, mem_storage, monkeypatch):
+    scores = iter([0.4, 0.4, 0.91])
+
+    async def stepwise(_photo, _scene):
+        return next(scores, 0.91)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", stepwise)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
-    assert len(refines) == 2
-    assert len(scenes) == 4  # 2 iniciais + 2 retries
+    db.refresh(p)
+    assert p.status == ProjectStatus.EBOOK_READY.value
+    assert p.ebook_url
+
+
+async def test_extra_character_face_match_low_rejects(db, mem_storage, monkeypatch):
+    async def low_score(_photo, _scene):
+        return 0.3
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", low_score)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.extra_characters = [{"name": "Lia", "storage_key": "extra-photo"}]
+    j = _job(db, p, "EXTRA_CHARACTER")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(p)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    assert not (p.extra_characters or [{}])[0].get("character_storage_key")
+
+
+async def test_ebook_enlarged_eyes_close_rejects(db, mem_storage, monkeypatch):
+    """Close da banana: match alto, olhos maiores → recusa."""
+
+    async def banana_eyes(_photo, _scene, **_kw):
+        return FaceScore(match=0.88, eye_inflate=0.42, geometry=0.9, age=0.85, hair=0.8)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", banana_eyes)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: close da banana."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    j = _job(db, p, "EBOOK")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(j)
+    db.refresh(p)
+    assert j.status == JobStatus.FAILED.value
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
+    assert "olhos maiores" in (j.error or "")
+
+
+async def test_ebook_face_geometry_mismatch_rejects(db, mem_storage, monkeypatch):
+    """Abacaxi: ainda parece menino loiro, boca/queixo/idade nao batem."""
+
+    async def pineapple_jaw(_photo, _scene, **_kw):
+        return FaceScore(match=0.80, eye_inflate=0.06, geometry=0.35, age=0.48, hair=0.8)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", pineapple_jaw)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: Matteo com o abacaxi."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    j = _job(db, p, "EBOOK")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
 
 
 async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
@@ -605,9 +785,7 @@ async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "score_face_match", high_score)
-    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
-    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _enable_face_judge(monkeypatch)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
@@ -645,4 +823,24 @@ async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkey
     assert [a.meta.get("page") for a in pages] == [1, 2]
     assert mem_storage[pages[0].storage_key] == b"P1"
     assert mem_storage[pages[1].storage_key] == b"P2"
+
+
+async def test_ebook_max_pages_stops_early(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: um.\nPagina 2: dois.\nPagina 3: tres.\nPagina 4: quatro."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK", payload={"max_pages": 2}))
+    from sqlalchemy import select as sel
+
+    pages = db.scalars(
+        sel(Asset)
+        .where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+        .order_by(Asset.created_at.asc())
+    ).all()
+    assert [a.meta.get("page") for a in pages] == [1, 2]
 
