@@ -451,8 +451,9 @@ async def test_ebook_catalog_extras_by_template(db, mem_storage, monkeypatch):
         assert p.status == ProjectStatus.EBOOK_READY.value, tid
         prompts = recorded[tid]
         assert len(prompts) == n_scenes, tid
-        first = prompts[0]
-        assert extra in first, tid
+        # Dedicatória não ilustra. Alfabeto começa na página de nome (sem extra
+        # da série); números/cores/opostos já ilustram com o extra na 1ª cena.
+        assert any(extra in p for p in prompts), tid
         assert any(marker.lower() in p.lower() for p in prompts), tid
 
 
