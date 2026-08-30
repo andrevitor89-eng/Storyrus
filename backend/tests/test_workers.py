@@ -824,3 +824,23 @@ async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkey
     assert mem_storage[pages[0].storage_key] == b"P1"
     assert mem_storage[pages[1].storage_key] == b"P2"
 
+
+async def test_ebook_max_pages_stops_early(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: um.\nPagina 2: dois.\nPagina 3: tres.\nPagina 4: quatro."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK", payload={"max_pages": 2}))
+    from sqlalchemy import select as sel
+
+    pages = db.scalars(
+        sel(Asset)
+        .where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+        .order_by(Asset.created_at.asc())
+    ).all()
+    assert [a.meta.get("page") for a in pages] == [1, 2]
+

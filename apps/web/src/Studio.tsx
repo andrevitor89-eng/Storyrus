@@ -111,6 +111,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
   const [mediaConsent, setMediaConsent] = useState(false);
+  const maxPages = (() => {
+    const n = Number(new URLSearchParams(window.location.search).get("paginas") || 0);
+    return Number.isFinite(n) && n > 0 ? Math.min(40, Math.floor(n)) : 0;
+  })();
 
   // aplica o tema (claro/escuro) salvo na landing
   useEffect(() => {
@@ -267,6 +271,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     try {
       let body: Record<string, unknown> = {};
       if (step === "video") body = { duration_s: 5 };
+      if (step === "ebook" && maxPages > 0) body = { max_pages: maxPages };
       if (step === "narrated-video" && selectedVoiceId) body = { voice_id: selectedVoiceId };
       await api.startStep(project.id, step, body);
       const js = await api.listJobs(project.id);
@@ -640,6 +645,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               <> + <b>{themeLabel(project.extra_theme ?? extraTheme)}</b></>
             )} · Estilo: <b>{ART_STYLE_LABEL[project.style ?? "cgi_3d"] ?? "Rosto realista"}</b> ·
             Status: <b>{project.status}</b>
+            {maxPages > 0 && (
+              <> · Gerando até a página <b>{maxPages}</b></>
+            )}
           </p>
 
           <label className="consent">

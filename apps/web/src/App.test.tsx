@@ -11,6 +11,22 @@ afterEach(() => {
 });
 
 describe("Fluxo E2E (sem login)", () => {
+  it("respeita ?paginas=5 no e-book do Studio", async () => {
+    window.history.replaceState({}, "", "/app?paginas=5");
+    const start = vi.spyOn(api, "startStep").mockResolvedValue({
+      job_id: "j1",
+      status: "PENDING",
+      type: "EBOOK",
+      estimated_cost_credits: 1,
+    } as never);
+    vi.spyOn(api, "listJobs").mockResolvedValue([]);
+    const user = userEvent.setup();
+    render(<App />);
+    await user.click(await screen.findByRole("button", { name: /criar projeto/i }));
+    expect(await screen.findByText(/gerando até a página/i)).toBeInTheDocument();
+    start.mockRestore();
+  });
+
   it("estúdio → projeto → foto gera personagem → história", async () => {
     state.credits = 10;
     const user = userEvent.setup();

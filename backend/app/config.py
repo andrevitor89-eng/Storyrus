@@ -24,8 +24,10 @@ class Settings(BaseSettings):
     # Vazio / default = POST /v1/credits/grant recusa. Nao exponha no front.
     credit_grant_secret: str = ""
 
-    # Storage (R2/S3)
+    # Storage (R2/S3). Sem ACCESS/SECRET o backend grava em disco local
+    # (`storage_local_dir`) e serve em GET /v1/media/... — Studio local.
     storage_bucket: str = "stories-dev"
+    storage_local_dir: str = "./data/storage"
     storage_endpoint_url: str | None = None  # R2/MinIO; None = AWS S3 padrao
     # Endpoint visto pelo navegador para URLs assinadas (presign). Em dev local
     # com MinIO: containers usam http://minio:9000 e o navegador http://localhost:9000.

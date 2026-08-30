@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 backend/scripts/out/
+backend/data/
 *.pyc
 .venv/
 *.egg-info/

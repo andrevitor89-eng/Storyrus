@@ -175,6 +175,19 @@ def test_approve_and_print_require_preview(auth_client):
     assert auth_client.post(f"/v1/projects/{pid}/print-request").status_code == 400
 
 
+def test_ebook_accepts_max_pages_payload(auth_client):
+    pid = auth_client.post("/v1/projects", json={}).json()["id"]
+    r = auth_client.post(
+        f"/v1/projects/{pid}/ebook",
+        json={"max_pages": 5},
+        headers={"Idempotency-Key": "ebook-p5"},
+    )
+    assert r.status_code == 202
+    jobs = auth_client.get(f"/v1/projects/{pid}/jobs").json()
+    ebook = next(j for j in jobs if j["type"] == "EBOOK")
+    assert ebook["status"] == "PENDING"
+
+
 def test_cannot_access_others_project(client):
     a = client.post("/v1/auth/guest").json()
     pid = client.post(

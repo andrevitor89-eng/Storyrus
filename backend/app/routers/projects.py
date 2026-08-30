@@ -22,6 +22,7 @@ from app.models import (
     _now,
 )
 from app.schemas import (
+    EbookIn,
     JobAcceptedOut,
     JobOut,
     NarratedVideoRequestIn,
@@ -471,6 +472,7 @@ async def extract_story(
 @router.post("/{project_id}/ebook", response_model=JobAcceptedOut, status_code=202)
 def start_ebook(
     project_id: uuid.UUID,
+    body: EbookIn | None = None,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
@@ -479,8 +481,14 @@ def start_ebook(
     project.book_approved_at = None
     project.print_requested_at = None
     project.print_status = None
+    payload = body.model_dump(exclude_none=True) if body else None
     job = jobs_svc.enqueue_job(
-        db, user=user, project=project, job_type=JobType.EBOOK, idempotency_key=idempotency_key
+        db,
+        user=user,
+        project=project,
+        job_type=JobType.EBOOK,
+        idempotency_key=idempotency_key,
+        payload=payload or None,
     )
     return _accept(job)
 

@@ -1644,7 +1644,17 @@ async def handle_ebook(db: Session, job: Job) -> None:
     )
 
     # 1) Divide a historia em paginas (toda a historia, sem limite fixo).
+    #    Studio pode mandar max_pages (ex.: Matteo Cores ate a pagina 5).
     pages_text = _parse_pages(project.story_text)
+    raw_max = _payload(job).get("max_pages")
+    try:
+        max_pages = int(raw_max) if raw_max is not None else 0
+    except (TypeError, ValueError):
+        max_pages = 0
+    if max_pages > 0:
+        pages_text = pages_text[:max_pages]
+        notes = notes[:max_pages]
+        layouts = layouts[:max_pages]
     briefs = await ensure_page_briefs(
         db, project, pages_text,
         template_id=template_id, notes=notes, layouts=layouts, language=language,

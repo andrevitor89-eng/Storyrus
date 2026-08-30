@@ -144,6 +144,11 @@ class JobOut(BaseModel):
     created_at: datetime
 
 
+class EbookIn(BaseModel):
+    """Corpo opcional ao montar o e-book (Studio pode limitar paginas)."""
+    max_pages: int | None = Field(default=None, ge=1, le=40)
+
+
 class JobAcceptedOut(BaseModel):
     """Resposta 202 padrao para etapas assincronas."""
     job_id: uuid.UUID
