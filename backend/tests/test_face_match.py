@@ -14,10 +14,11 @@ def _png() -> bytes:
     return buf.getvalue()
 
 
-def _reply(match) -> dict:
+def _reply(match, **extra) -> dict:
     import json
 
-    return {"candidates": [{"content": {"parts": [{"text": json.dumps({"match": match})}]}}]}
+    payload = {"match": match, **extra}
+    return {"candidates": [{"content": {"parts": [{"text": json.dumps(payload)}]}}]}
 
 
 class _Resp:
@@ -34,6 +35,7 @@ class _Client:
     reply = None
     script: list = []
     posts = 0
+    last_json = None
 
     def __init__(self, *a, **k):
         pass
@@ -45,6 +47,7 @@ class _Client:
         return False
 
     async def post(self, url, json=None, headers=None):
+        _Client.last_json = json
         item = _Client.reply
         if _Client.script:
             idx = min(_Client.posts, len(_Client.script) - 1)
@@ -69,6 +72,7 @@ def _fake_http(monkeypatch):
     _Client.reply = None
     _Client.script = []
     _Client.posts = 0
+    _Client.last_json = None
     yield
 
 
@@ -81,10 +85,40 @@ def test_parse_match_clamps_and_rejects_garbage():
     assert fm._parse_match('{"match": "x"}') is None
 
 
+def test_parse_face_score_reads_geometry_fields():
+    score = fm.parse_face_score(
+        '{"match": 0.88, "eye_inflate": 0.4, "geometry": 0.9, "age": 0.8, "hair": 0.7}'
+    )
+    assert score is not None
+    assert score.match == 0.88
+    assert score.eye_inflate == 0.4
+    assert score.geometry == 0.9
+    assert score.age == 0.8
+    assert score.hair == 0.7
+
+
+def test_coerce_float_fills_passing_geometry_for_legacy_mocks():
+    score = fm.coerce_face_score(0.91)
+    assert score is not None
+    assert score.match == 0.91
+    assert score.eye_inflate == 0.0
+    assert score.geometry == 1.0
+
+
 async def test_score_face_match_reads_json():
-    _Client.reply = _Resp(200, _reply(0.73))
+    _Client.reply = _Resp(200, _reply(0.73, eye_inflate=0.1, geometry=0.9, age=0.9))
     score = await fm.score_face_match(_png(), _png())
-    assert score == 0.73
+    assert score is not None
+    assert score.match == 0.73
+    assert score.eye_inflate == 0.1
+    assert _Client.posts == 1
+
+
+async def test_score_face_match_sends_avatar_when_given():
+    _Client.reply = _Resp(200, _reply(0.8, eye_inflate=0.0, geometry=0.9, age=0.9))
+    await fm.score_face_match(_png(), _png(), avatar=_png())
+    parts = _Client.last_json["contents"][0]["parts"]
+    assert sum(1 for p in parts if "inline_data" in p or "inlineData" in p) == 3
     assert _Client.posts == 1
 
 

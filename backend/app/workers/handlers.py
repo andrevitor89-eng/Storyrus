@@ -1597,8 +1597,9 @@ async def _illustrate_page(
         note = (
             f"{best_verdict.score:.2f}" if best_verdict.score is not None else "sem nota"
         )
+        why = best_verdict.reason or "sem nota"
         raise ProviderError(
-            f"Pagina {idx}: {IDENTITY_MISMATCH_ERROR} (nota={note})",
+            f"Pagina {idx}: {IDENTITY_MISMATCH_ERROR} (nota={note}; {why})",
             transient=False,
         )
 

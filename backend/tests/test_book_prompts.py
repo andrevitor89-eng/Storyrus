@@ -157,6 +157,7 @@ def test_scene_and_style_are_hybrid_illustration():
     assert "2D nitida" not in SCENE_GEN_PREFIX
     assert "PROIBIDO Pixar" not in SCENE_GEN_PREFIX
     assert "fracao do rosto" in SCENE_GEN_PREFIX
+    assert "CLOSE NAO AUMENTA OS OLHOS" in SCENE_GEN_PREFIX
     assert "ACIMA DO ESTILO" in SCENE_GEN_PREFIX or "ACIMA do estilo" in SCENE_GEN_PREFIX
     assert "REDUZA" in REFINE_SCENE_PROMPT
     assert "cenario pintado" in REFINE_SCENE_PROMPT

@@ -110,6 +110,8 @@ class Settings(BaseSettings):
     # nao exige nota.
     ebook_face_match: bool = True
     ebook_face_match_min: float = 0.72
+    # Close-up nao pode inflar o olho: acima disto (0–1) a pagina e recusada.
+    ebook_eye_inflate_max: float = 0.15
     video_poll_interval_s: float = 10.0
     video_poll_timeout_s: float = 600.0
 

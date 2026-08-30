@@ -1,15 +1,15 @@
 """Locked identity reused on every page, extra, and video still.
 
-The approved avatar (`character_ref`) is the single required reference for
-`generate_scene`. Prompt text is not a lock. The photo face crop (mouth and
-chin included) is the truth for `face_match`.
+The approved avatar (`character_ref`) plus the photo face crop are required
+for `generate_scene`. Prompt text is not a lock.
 
-A page that fails the judge — low score *or* None while the judge is on —
-is retried, then refused. It is never published as a different child.
+The judge scores craniofacial geometry, not "is this a blond boy":
+eye fraction (close-up inflation), spacing, nose, mouth width, jaw/chin,
+apparent age, hairline/part. Expression may change; bone structure and
+eye SIZE may not.
 
-The judge is *disabled* (no enforcement) only when `ebook_face_match` is off
-or the face model/key is unset. A configured judge that returns None is
-unverified, not a silent skip.
+A page that fails — low match, inflated eyes, drifted mouth/jaw/age, or
+None while the judge is on — is retried, then refused.
 """
 from __future__ import annotations
 
@@ -17,7 +17,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 from app.ai_clients.base import ProviderError
-from app.ai_clients.face_match import score_face_match
+from app.ai_clients.face_match import FaceScore, coerce_face_score, score_face_match
 from app.config import settings
 
 IDENTITY_REQUIRED_ERROR = (
@@ -76,13 +76,76 @@ def build_identity_lock(
 class FaceVerdict:
     status: Literal["disabled", "unverified", "scored"]
     score: float | None = None
+    eye_inflate: float | None = None
+    geometry: float | None = None
+    age: float | None = None
+    hair: float | None = None
+    reason: str = ""
 
-    def accepted(self, threshold: float) -> bool:
+    def accepted(
+        self,
+        threshold: float,
+        *,
+        max_eye_inflate: float | None = None,
+    ) -> bool:
         if self.status == "disabled":
             return True
         if self.status != "scored" or self.score is None:
             return False
-        return self.score >= threshold
+        limit = (
+            settings.ebook_eye_inflate_max if max_eye_inflate is None else max_eye_inflate
+        )
+        return identity_geometry_ok(
+            FaceScore(
+                match=self.score,
+                eye_inflate=self.eye_inflate,
+                geometry=self.geometry,
+                age=self.age,
+                hair=self.hair,
+            ),
+            min_match=threshold,
+            max_eye_inflate=limit,
+        )
+
+
+def identity_geometry_ok(
+    score: FaceScore,
+    *,
+    min_match: float,
+    max_eye_inflate: float,
+) -> bool:
+    """Fail closed: olhos maiores, boca/queixo/idade ou match baixo."""
+    if score.match < min_match:
+        return False
+    if score.eye_inflate is None or score.eye_inflate > max_eye_inflate:
+        return False
+    if score.geometry is None or score.geometry < min_match:
+        return False
+    if score.age is None or score.age < min_match:
+        return False
+    if score.hair is not None and score.hair < min_match:
+        return False
+    return True
+
+
+def verdict_reason(score: FaceScore, *, min_match: float, max_eye_inflate: float) -> str:
+    if score.eye_inflate is None:
+        return "eye_inflate ausente"
+    if score.eye_inflate > max_eye_inflate:
+        return "olhos maiores que a foto/avatar"
+    if score.geometry is None:
+        return "geometry ausente"
+    if score.geometry < min_match:
+        return "boca/queixo/nariz nao batem"
+    if score.age is None:
+        return "age ausente"
+    if score.age < min_match:
+        return "idade aparente nao bate"
+    if score.hair is not None and score.hair < min_match:
+        return "linha do cabelo/risca nao bate"
+    if score.match < min_match:
+        return "match baixo"
+    return ""
 
 
 def judge_configured() -> bool:
@@ -96,6 +159,10 @@ def prefer_verdict(new: FaceVerdict, old: FaceVerdict, threshold: float) -> bool
     if old.accepted(threshold) and not new.accepted(threshold):
         return False
     if new.status == "scored" and old.status == "scored":
+        new_eye = new.eye_inflate if new.eye_inflate is not None else 1.0
+        old_eye = old.eye_inflate if old.eye_inflate is not None else 1.0
+        if new_eye != old_eye:
+            return new_eye < old_eye
         return (new.score or 0.0) >= (old.score or 0.0)
     if new.status == "scored" and old.status != "scored":
         return True
@@ -104,22 +171,43 @@ def prefer_verdict(new: FaceVerdict, old: FaceVerdict, threshold: float) -> bool
     return True
 
 
+async def _call_scorer(scorer, lock: IdentityLock, truth: bytes, scene: bytes):
+    try:
+        return await scorer(truth, scene, avatar=lock.character_ref)
+    except TypeError:
+        return await scorer(truth, scene)
+
+
 async def judge_identity(
     lock: IdentityLock,
     scene: bytes,
     *,
     scorer=score_face_match,
 ) -> FaceVerdict:
-    """Score scene vs photo crop (or avatar). None + configured judge = unverified."""
+    """Score scene vs photo crop + avatar. None + configured judge = unverified."""
     if not settings.ebook_face_match:
         return FaceVerdict("disabled")
     truth = lock.face_truth or lock.character_ref
     if not truth or not scene:
-        return FaceVerdict("unverified")
+        return FaceVerdict("unverified", reason="sem recorte/cena")
     try:
-        score = await scorer(truth, scene)
+        raw = await _call_scorer(scorer, lock, truth, scene)
     except Exception:  # noqa: BLE001 - caller fail-closes on unverified
-        return FaceVerdict("unverified") if judge_configured() else FaceVerdict("disabled")
-    if score is not None:
-        return FaceVerdict("scored", score)
-    return FaceVerdict("unverified") if judge_configured() else FaceVerdict("disabled")
+        return FaceVerdict("unverified", reason="juiz falhou") if judge_configured() else FaceVerdict("disabled")
+    score = coerce_face_score(raw)
+    if score is None:
+        return FaceVerdict("unverified", reason="sem nota") if judge_configured() else FaceVerdict("disabled")
+    reason = verdict_reason(
+        score,
+        min_match=settings.ebook_face_match_min,
+        max_eye_inflate=settings.ebook_eye_inflate_max,
+    )
+    return FaceVerdict(
+        "scored",
+        score=score.match,
+        eye_inflate=score.eye_inflate,
+        geometry=score.geometry,
+        age=score.age,
+        hair=score.hair,
+        reason=reason,
+    )

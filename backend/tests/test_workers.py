@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.ai_clients.base import ImageResult, ProviderError, TextResult, VideoJob
+from app.ai_clients.face_match import FaceScore
 from app.database import Base
 from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus, User
 from app.workers import handlers, runner
@@ -714,6 +715,60 @@ async def test_extra_character_face_match_low_rejects(db, mem_storage, monkeypat
     db.refresh(j)
     assert j.status == JobStatus.FAILED.value
     assert not (p.extra_characters or [{}])[0].get("character_storage_key")
+
+
+async def test_ebook_enlarged_eyes_close_rejects(db, mem_storage, monkeypatch):
+    """Close da banana: match alto, olhos maiores → recusa."""
+
+    async def banana_eyes(_photo, _scene, **_kw):
+        return FaceScore(match=0.88, eye_inflate=0.42, geometry=0.9, age=0.85, hair=0.8)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", banana_eyes)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: close da banana."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    j = _job(db, p, "EBOOK")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(j)
+    db.refresh(p)
+    assert j.status == JobStatus.FAILED.value
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
+    assert "olhos maiores" in (j.error or "")
+
+
+async def test_ebook_face_geometry_mismatch_rejects(db, mem_storage, monkeypatch):
+    """Abacaxi: ainda parece menino loiro, boca/queixo/idade nao batem."""
+
+    async def pineapple_jaw(_photo, _scene, **_kw):
+        return FaceScore(match=0.80, eye_inflate=0.06, geometry=0.35, age=0.48, hair=0.8)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", pineapple_jaw)
+    _enable_face_judge(monkeypatch)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: Matteo com o abacaxi."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    j = _job(db, p, "EBOOK")
+    db.commit()
+
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    assert pages == []
 
 
 async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
