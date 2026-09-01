@@ -1,0 +1,67 @@
+{
+  "title": "Matteo e seus amigos no fundo do mar",
+  "child_name": "Matteo",
+  "dedication": "A todos os pequenos corações: que cuidem do oceano inteiro.",
+  "pages": [
+    {
+      "text": "Matteo é um sereiazinho que vive num recife cheio de cores.",
+      "note": "Matteo sereia (cauda colorida) diante de um recife vibrante de corais.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Todos os dias nada pelo recife, dando oi para os amigos.",
+      "note": "Matteo nadando e acenando para peixinhos, tartaruga e cavalo-marinho.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Um dia, uma correnteza o desvia um pouquinho do caminho. Matteo vê partes do recife que não conhecia.",
+      "note": "Correnteza desenhada em linhas curvas levando Matteo para uma área nova e mais escura do recife.",
+      "expression": "surpresa"
+    },
+    {
+      "text": "Algo o surpreende: há lixo por toda parte. Garrafas, sacolas e latas cobrem as casinhas dos peixinhos.",
+      "note": "Área do recife com garrafas, sacolas e latas sobre os corais; cores apagadas.",
+      "expression": "surpresa"
+    },
+    {
+      "text": "Um peixinho pequeno aparece devagarinho. Ele conta que está doente por causa do lixo.",
+      "note": "Peixinho pálido e triste saindo de trás de uma lata; Matteo ouvindo preocupado.",
+      "expression": "tristeza_leve"
+    },
+    {
+      "text": "Matteo fica muito triste, e nada rápido para chamar seus amigos para ajudar.",
+      "note": "Matteo nadando veloz com expressão determinada, rastro de bolhas.",
+      "expression": "determinacao"
+    },
+    {
+      "text": "O baiacu, o polvo e a peixinha veloz se arrumam rapidinho para limpar o mar.",
+      "note": "Os três amigos em fila, prontos como uma equipe de limpeza.",
+      "expression": "determinacao"
+    },
+    {
+      "text": "Matteo junta os papéis. O polvo junta as latas. O baiacu empurra as garrafas com sua barriguinha redonda, e a peixinha junta o que é pequenininho.",
+      "note": "Cena de mutirão: cada amigo com sua tarefa, sacos/cestos improvisados de algas.",
+      "expression": "concentracao"
+    },
+    {
+      "text": "Pouco a pouco, o mar fica mais limpo. A água começa a brilhar de novo!",
+      "note": "Recife recuperando as cores, água com brilhos e raios de sol.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Os peixes saem de suas casinhas limpas. O peixinho doente já se sente bem melhor.",
+      "note": "Peixinhos saindo dos corais coloridos; o peixinho antes doente agora corado e sorridente.",
+      "expression": "alegria"
+    },
+    {
+      "text": "E brincam todos felizes entre as bolhas, num mar limpo, colorido e brilhante.",
+      "note": "Todos brincando entre bolhas num recife vibrante e limpo.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Cada pequena ação conta. Se jogamos o lixo no lugar certo e cuidamos dos nossos mares, ajudamos os peixes e todos os animais marinhos a terem um lar limpo e feliz. O mar também precisa do nosso carinho!",
+      "note": "Cena de fechamento: Matteo e todos os amigos em volta de um coração feito de bolhas; lixeirinha simbólica na areia.",
+      "expression": "orgulho"
+    }
+  ]
+}

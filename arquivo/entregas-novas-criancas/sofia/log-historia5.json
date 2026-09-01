@@ -1,0 +1,23 @@
+{
+  "historia": 5,
+  "child": "sofia",
+  "avatar_refinamento": "ok",
+  "avatar": "ok",
+  "pagina-1": "ERRO ProviderError('Falha de rede: peer closed connection without sending complete message body (incomplete chunked read)')",
+  "pagina-2-refinamento": "ok",
+  "pagina-2": "ok",
+  "pagina-3": "ERRO ProviderError('Gemini 503')",
+  "pagina-4-refinamento": "ok",
+  "pagina-4": "ok",
+  "pagina-5": "ERRO ProviderError('Falha de rede: Server disconnected without sending a response.')",
+  "pagina-6": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-7": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-8": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-9": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-10": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-11": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-12": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-13": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pagina-14": "ERRO ProviderError('Falha de rede: [Errno -2] Name or service not known')",
+  "pdf": "pendente: faltam 12 pagina(s)"
+}

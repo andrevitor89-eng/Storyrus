@@ -1,0 +1,72 @@
+{
+  "title": "As aventuras de Matteo e Dino",
+  "child_name": "Matteo",
+  "dedication": "A todos os pequenos aventureiros: que nunca deixem de tentar.",
+  "pages": [
+    {
+      "text": "Matteo e seu amigo Dino brincam juntos todos os dias.",
+      "note": "Matteo e Dino (dinossauro fofo verde) brincando de correr num campo.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Uma noite chove muito, muito, e o rio cresce e os deixa separados. Cada um de um lado.",
+      "note": "Chuva forte à noite; de manhã, rio largo entre os dois amigos acenando de lados opostos.",
+      "expression": "tristeza_leve"
+    },
+    {
+      "text": "Matteo e Dino querem voltar a brincar juntos e decidem construir uma ponte.",
+      "note": "Os dois com caras decididas, mãos/patas na cintura, olhando o rio.",
+      "expression": "determinacao"
+    },
+    {
+      "text": "Primeiro juntam folhas grandes e as colocam sobre o rio com muito cuidado.",
+      "note": "Cada um colocando folhas gigantes sobre a água com cuidado.",
+      "expression": "concentracao"
+    },
+    {
+      "text": "Mas o vento sopra... e leva todas as folhas voando.",
+      "note": "Vento personificado soprando suave; folhas voando pelo ar; caras de surpresa.",
+      "expression": "surpresa"
+    },
+    {
+      "text": "Matteo e Dino ficam pensando e têm uma ideia nova: usar gravetos.",
+      "note": "Os dois com o dedo no queixo pensando; lampadinha acesa; gravetos por perto.",
+      "expression": "curiosidade"
+    },
+    {
+      "text": "Colocam os gravetos um ao lado do outro, formando um caminhozinho sobre a água.",
+      "note": "Caminhinho de gravetos atravessando o rio, ainda frágil.",
+      "expression": "concentracao"
+    },
+    {
+      "text": "Mas o rio corre forte... e leva os gravetos boiando.",
+      "note": "Correnteza levando os gravetos; os dois olhando com carinha de 'ah, não!'.",
+      "expression": "surpresa"
+    },
+    {
+      "text": "Matteo e Dino pensam mais uma vez e descobrem algo: podem usar pedras.",
+      "note": "Os dois animados apontando para pedras grandes na margem.",
+      "expression": "curiosidade"
+    },
+    {
+      "text": "Cada um coloca pedras do seu lado, uma por uma, chegando perto do meio.",
+      "note": "Matteo de um lado e Dino do outro, empilhando pedras que avançam para o centro do rio.",
+      "expression": "determinacao"
+    },
+    {
+      "text": "A ponte cresce pouquinho a pouquinho, firme e segura, até que os dois lados se encontram.",
+      "note": "As duas metades da ponte de pedras se encontrando no meio do rio.",
+      "expression": "concentracao"
+    },
+    {
+      "text": "Matteo e Dino se abraçam felizes por terem construído sua nova ponte.",
+      "note": "Matteo e Dino se abraçando em cima da ponte pronta, sol brilhando.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Nunca deixe de tentar. Quando uma ideia não funciona, sempre dá para encontrar outra. Com paciência, esforço e coragem, você pode conseguir coisas maravilhosas.",
+      "note": "Cena final dos dois brincando de novo juntos; a ponte de pedras ao fundo como conquista.",
+      "expression": "orgulho"
+    }
+  ]
+}

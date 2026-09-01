@@ -1,0 +1,16 @@
+{
+  "Matteo": {
+    "foto": "ja existia (pulado)",
+    "avatar": "ERRO ProviderError('Falha de rede: 403 Forbidden')",
+    "personagem": "ERRO ProviderError('Falha de rede: 403 Forbidden')",
+    "historia": "ERRO ProviderError('Anthropic 401: Unauthorized')"
+  },
+  "Oliver": {
+    "foto": "ja existia (pulado)",
+    "modo": "dry-run: nenhuma chamada de API feita"
+  },
+  "Sofia": {
+    "foto": "ja existia (pulado)",
+    "modo": "dry-run: nenhuma chamada de API feita"
+  }
+}

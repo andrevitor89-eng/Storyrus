@@ -1,0 +1,77 @@
+{
+  "title": "Sofia e os bichinhos da fazenda",
+  "child_name": "Sofia",
+  "dedication": "A todos os pequenos sonhadores: que escutem com o coração.",
+  "pages": [
+    {
+      "text": "Sofia adorava a fazenda da sua vovó.",
+      "note": "Sofia correndo feliz pela fazenda; vovó acenando da varanda; animais ao fundo.",
+      "expression": "alegria"
+    },
+    {
+      "text": "Um dia, um carneirinho baliu bem forte. Béee! Béee!",
+      "note": "Carneirinho fofo balindo, boquinha aberta; Sofia se virando para olhar.",
+      "expression": "surpresa"
+    },
+    {
+      "text": "Ele queria alguma coisa. Mas ninguém entendia o quê.",
+      "note": "Carneirinho com carinha aflita; Sofia e outros animais com pontos de interrogação.",
+      "expression": "curiosidade"
+    },
+    {
+      "text": "A vovó lhe ensinou um segredo: escutar com o coração.",
+      "note": "Vovó agachada cochichando no ouvido de Sofia, coração desenhado entre as duas.",
+      "expression": "carinho"
+    },
+    {
+      "text": "Sofia pensou que ele estava com sede. Levou aguinha fresca para ele.",
+      "note": "Sofia carregando um baldinho de água com cuidado até o carneirinho.",
+      "expression": "determinacao"
+    },
+    {
+      "text": "Mas o carneirinho continuou balindo. Béee!",
+      "note": "Carneirinho ao lado do balde cheio, ainda balindo; Sofia coçando a cabeça.",
+      "expression": "curiosidade"
+    },
+    {
+      "text": "Ela o levou com muito cuidado até a sombrinha.",
+      "note": "Sofia guiando o carneirinho até a sombra de uma árvore.",
+      "expression": "carinho"
+    },
+    {
+      "text": "Mas o carneirinho baliu de novo. Béee! Béee!",
+      "note": "Carneirinho na sombra, ainda balindo; Sofia pensativa.",
+      "expression": "tristeza_leve"
+    },
+    {
+      "text": "Sofia queria desistir. A vovó sorriu: aprender leva tempo.",
+      "note": "Sofia desanimada sentada num toco; vovó sorrindo com a mão no ombro dela.",
+      "expression": "tristeza_leve"
+    },
+    {
+      "text": "Então Sofia sentou bem quietinha. E olhou com atenção.",
+      "note": "Sofia sentada em silêncio na grama, observando o carneirinho com calma.",
+      "expression": "calma"
+    },
+    {
+      "text": "O carneirinho se aninhou juntinho dela. Ele só queria companhia!",
+      "note": "Carneirinho deitando a cabeça no colo de Sofia, os dois tranquilos.",
+      "expression": "carinho"
+    },
+    {
+      "text": "Desde esse dia, o carneirinho e Sofia se tornaram bons amigos.",
+      "note": "Sofia e o carneirinho brincando juntos pela fazenda.",
+      "expression": "alegria"
+    },
+    {
+      "text": "E toda tarde, na fazenda, aprendiam a se entender, coração com coração.",
+      "note": "Pôr do sol na fazenda; os dois sentados lado a lado; coraçõezinhos no ar.",
+      "expression": "calma"
+    },
+    {
+      "text": "Quando escutamos com atenção e com o coração, descobrimos o que os outros realmente precisam.",
+      "note": "Cena de fechamento: vovó, Sofia e o carneirinho juntos na varanda, tarde dourada.",
+      "expression": "carinho"
+    }
+  ]
+}
