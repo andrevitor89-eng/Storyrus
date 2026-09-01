@@ -1,16 +1,17 @@
 """Montagem do ebook como livro infantil ilustrado premium (estilo WonderWraps).
 
 build_pdf gera um PDF QUADRADO (formato dos livros personalizados impressos) com:
-  1. capa em sangria total com o titulo (nome da crianca em destaque) + selo da marca;
+  1. capa — jaqueta wraparound 2:1 (frente = metade direita com titulo vetorial)
+     ou quadrado com faixa dourada;
   2. pagina-poema de abertura ("Para todos os pequenos aventureiros...");
   3. pagina "Feito especialmente para {NOME}" com retrato do personagem em moldura;
   4. dedicatoria opcional dos pais;
-  5. paginas da historia em sangria total com a estrofe mesclada na arte;
-  6. contracapa com poema de encerramento em moldura + selo;
+  5. paginas da historia em sangria total (estrofe ja composta na arte);
+  6. contracapa — metade esquerda da jaqueta, ou poema + selo;
   7. pagina final "Obrigado".
 Usa reportlab (puro Python, sem deps de sistema).
-Fonte: Megifera Indica.
-"""  # layout v3 — Megifera Indica + capa redesenhada + preview limitado
+Fonte: Andika / Megifera Indica.
+"""  # layout v4 — texto composto na arte; titulo da capa no PDF
 from __future__ import annotations
 
 import base64
@@ -203,6 +204,56 @@ def render_pdf(html_str: str) -> tuple[bytes, str]:
         return html_str.encode("utf-8"), "text/html"
 
 
+WRAPAROUND_MIN_RATIO = 1.6
+BRAND_SITE = "storyrus.ai"
+BRAND_EMAIL = "Storyrus@outlook.com"
+BRAND_INSTA = "@storyrusbr"
+
+
+def crop_spread_2x1(image_bytes: bytes) -> bytes:
+    """Recorta uma paisagem (ex. 16:9) para 2:1 exato, centro na vertical ou horizontal."""
+    from PIL import Image
+
+    im = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    w, h = im.size
+    if w <= 0 or h <= 0:
+        raise ValueError("imagem de capa vazia")
+    ratio = w / h
+    if abs(ratio - 2.0) >= 0.01:
+        if ratio < 2.0:
+            target_h = max(1, round(w / 2))
+            top = max(0, (h - target_h) // 2)
+            im = im.crop((0, top, w, min(h, top + target_h)))
+        else:
+            target_w = max(1, round(h * 2))
+            left = max(0, (w - target_w) // 2)
+            im = im.crop((left, 0, min(w, left + target_w), h))
+    buf = io.BytesIO()
+    im.save(buf, format="PNG")
+    return buf.getvalue()
+
+
+def is_wraparound_cover(image_bytes: bytes | None) -> bool:
+    """True se a arte e larga o bastante para frente+verso (16:9 ou 2:1)."""
+    if not image_bytes:
+        return False
+    try:
+        from PIL import Image
+
+        im = Image.open(io.BytesIO(image_bytes))
+        w, h = im.size
+        return h > 0 and (w / h) >= WRAPAROUND_MIN_RATIO
+    except Exception:  # noqa: BLE001
+        return False
+
+
+def _name_page_parts(text: str) -> tuple[str, str, str, list[str]]:
+    """Compat: acróstico da página de nome (usado nos testes e no compositor)."""
+    from app.workers.page_compose import name_page_parts
+
+    return name_page_parts(text)
+
+
 def build_pdf(
     title: str,
     pages: list[dict],
@@ -244,6 +295,21 @@ def build_pdf(
         dw, dh = iw * s, ih * s
         c.drawImage(ir, (W - dw) / 2, (H - dh) / 2, dw, dh,
                     preserveAspectRatio=False, mask="auto")
+
+    def bleed_spread_half(ir, side: str):
+        """Mostra a metade esquerda (verso) ou direita (frente) de uma jaqueta 2:1."""
+        iw, ih = ir.getSize()
+        half_w = max(iw / 2.0, 1.0)
+        s = max(W / half_w, H / ih)
+        dw, dh = iw * s, ih * s
+        x = (W - dw) if side == "right" else 0.0
+        y = (H - dh) / 2.0
+        c.saveState()
+        clip = c.beginPath()
+        clip.rect(0, 0, W, H)
+        c.clipPath(clip, stroke=0, fill=0)
+        c.drawImage(ir, x, y, dw, dh, preserveAspectRatio=False, mask="auto")
+        c.restoreState()
 
     def star(cx, cy, r, color=GOLD, alpha=1.0):
         c.setFillAlpha(alpha)
@@ -379,55 +445,78 @@ def build_pdf(
             y -= leading
         return y0, ph
 
-    # ------------------------------------------------------------- 1) CAPA REDESENHADA
-    cov = reader(cover) or (reader(pages[0].get("image")) if pages and pages[0].get("image") else None)
-    bg(SKY)
-    if cov:
-        full_bleed(cov)
-        # overlay escuro suave para o titulo destacar
-        c.setFillColorRGB(0, 0, 0)
-        c.setFillAlpha(0.28)
-        c.rect(0, 0, W, H, fill=1, stroke=0)
+    # ------------------------------------------------------------- 1) CAPA
+    wraparound = is_wraparound_cover(cover)
+    spread_ir = reader(cover) if wraparound else None
+
+    def draw_wraparound_title():
+        """Titulo branco no terco superior, sem painel — o ceu da arte e o fundo."""
+        t = _win(title or "")
+        upper_name = _win(name).upper()
+        y_cursor = H * 0.10
+        if name and upper_name and upper_name in t.upper():
+            i = t.upper().index(upper_name)
+            before, after = t[:i].strip(" ,-"), t[i + len(name):].strip(" ,-")
+            if before:
+                overlay(before, F["italic"], 18, 22, 56, top=y_cursor)
+                y_cursor += 28
+            overlay(name, F["body"], 36, 40, 40, top=y_cursor)
+            y_cursor += 48
+            if after:
+                overlay(after, F["body"], 20, 26, 48, top=y_cursor)
+        else:
+            overlay(t, F["body"], 28, 34, 42, top=y_cursor)
+
+    if wraparound and spread_ir:
+        bleed_spread_half(spread_ir, "right")
+        draw_wraparound_title()
+        c.showPage()
+    else:
+        cov = reader(cover) or (
+            reader(pages[0].get("image")) if pages and pages[0].get("image") else None
+        )
+        bg(SKY)
+        if cov:
+            full_bleed(cov)
+            c.setFillColorRGB(0, 0, 0)
+            c.setFillAlpha(0.28)
+            c.rect(0, 0, W, H, fill=1, stroke=0)
+            c.setFillAlpha(1)
+
+        c.setFillColorRGB(*GOLD)
+        c.setFillAlpha(0.85)
+        c.rect(0, H - 110, W, 110, fill=1, stroke=0)
         c.setFillAlpha(1)
 
-    # faixa decorativa superior com brilho
-    c.setFillColorRGB(*GOLD)
-    c.setFillAlpha(0.85)
-    c.rect(0, H - 110, W, 110, fill=1, stroke=0)
-    c.setFillAlpha(1)
+        t = _win(title or "")
+        upper_name = _win(name).upper()
+        if name and upper_name and upper_name in t.upper():
+            i = t.upper().index(upper_name)
+            before, after = t[:i].strip(" ,-"), t[i + len(name):].strip(" ,-")
+            y_cursor = H - 38
+            if before:
+                overlay(before, F["italic"], 20, 24, 56, top=y_cursor)
+                y_cursor += 30
+            overlay(name, F["body"], 42, 46, 40, top=y_cursor)
+            y_cursor += 54
+            if after:
+                overlay(after, F["body"], 24, 30, 48, top=y_cursor)
+        else:
+            overlay(t, F["body"], 34, 40, 42, top=H - 36)
 
-    # titulo com o nome em destaque (linha propria, maior), mesclado na arte
-    t = _win(title or "")
-    upper_name = _win(name).upper()
-    if name and upper_name and upper_name in t.upper():
-        i = t.upper().index(upper_name)
-        before, after = t[:i].strip(" ,-"), t[i + len(name):].strip(" ,-")
-        y_cursor = H - 38
-        if before:
-            overlay(before, F["italic"], 20, 24, 56, top=y_cursor)
-            y_cursor += 30
-        overlay(name if name.isupper() else name, F["body"], 42, 46, 40, top=y_cursor)
-        y_cursor += 54
-        if after:
-            overlay(after, F["body"], 24, 30, 48, top=y_cursor)
-    else:
-        overlay(t, F["body"], 34, 40, 42, top=H - 36)
+        star(46, H - 52, 10, GOLD)
+        star(W - 50, H - 84, 8, CORAL)
+        star(W / 2 - 80, H - 140, 6, GOLD, 0.7)
+        star(W / 2 + 80, H - 140, 6, GOLD, 0.7)
 
-    # estrelas decorativas na capa
-    star(46, H - 52, 10, GOLD)
-    star(W - 50, H - 84, 8, CORAL)
-    star(W / 2 - 80, H - 140, 6, GOLD, 0.7)
-    star(W / 2 + 80, H - 140, 6, GOLD, 0.7)
+        c.setStrokeColorRGB(*GOLD)
+        c.setLineWidth(2.5)
+        c.setFillAlpha(0)
+        c.roundRect(18, 18, W - 36, H - 36, 16, fill=0, stroke=1)
+        c.setFillAlpha(1)
 
-    # moldura decorativa fina na borda
-    c.setStrokeColorRGB(*GOLD)
-    c.setLineWidth(2.5)
-    c.setFillAlpha(0)
-    c.roundRect(18, 18, W - 36, H - 36, 16, fill=0, stroke=1)
-    c.setFillAlpha(1)
-
-    brand_badge()
-    c.showPage()
+        brand_badge()
+        c.showPage()
 
     # -------------------------------------------- 2) POEMA DE ABERTURA
     bg(CREAM)
@@ -535,22 +624,44 @@ def build_pdf(
         c.drawCentredString(W / 2, H * 0.32, _win(tr["with_love"]))
         c.showPage()
 
-    # ------ 5) PAGINAS (arte em sangria + estrofe mesclada, sem numeracao)
+    # ------ 5) PAGINAS (arte em sangria; estrofe ja composta na imagem)
     # Se preview_pages estiver definido, limita as paginas da historia
     is_preview = preview_pages is not None and len(pages) > preview_pages
     visible_pages = pages[:preview_pages] if is_preview else pages
 
-    for idx, p in enumerate(visible_pages):
+    for p in visible_pages:
+        layout = (p.get("layout") or "story").strip()
+        text = p.get("text", "")
+        if layout == "dedication":
+            bg(CREAM)
+            corner_flourish(26, H - 120, 1, 1)
+            corner_flourish(W - 26, 120, -1, -1)
+            raw = (text or "").replace("\r\n", "\n").strip()
+            poem, sep, prose = raw.partition("\n\n")
+            if not sep:
+                poem, prose = raw, ""
+            poem_lines = split_lines(poem, F["italic"], 17, W * 0.66)
+            prose_lines = split_lines(prose, F["italic"], 15, W * 0.68) if prose.strip() else []
+            items: list[tuple[str, str, float, float]] = [
+                (ln, F["italic"], 17.0, 28.0) for ln in poem_lines
+            ]
+            if poem_lines and prose_lines:
+                items.append(("", F["italic"], 0.0, 12.0))
+            items.extend((ln, F["italic"], 15.0, 22.0) for ln in prose_lines)
+            total_h = sum(item[3] for item in items) if items else 0.0
+            y = H / 2 + total_h / 2
+            c.setFillColorRGB(*INK)
+            for ln, font, size, leading in items:
+                if ln:
+                    c.setFont(font, size)
+                    c.drawCentredString(W / 2, y - size * 0.75, _win(ln))
+                y -= leading
+            c.showPage()
+            continue
         bg(CREAM)
         ir = reader(p.get("image"))
         if ir:
             full_bleed(ir)
-        text = p.get("text", "")
-        # alterna texto embaixo/em cima, como nos livros de referencia
-        if idx % 2 == 0:
-            overlay(text, F["body"], 16, 23, 42, bottom=44)
-        else:
-            overlay(text, F["body"], 16, 23, 42, top=38)
         c.showPage()
 
     # Pagina de preview: aviso de que o livro completo esta disponivel
@@ -574,21 +685,49 @@ def build_pdf(
         brand_badge(y=H * 0.28)
         c.showPage()
 
-    # --------------------- 6) CONTRACAPA: POEMA DE ENCERRAMENTO
-    bg(SKY)
-    last = reader(pages[-1].get("image")) if pages and pages[-1].get("image") else None
-    if last:
-        full_bleed(last)
-        c.setFillColorRGB(1, 1, 1)
-        c.setFillAlpha(0.25)
-        c.rect(0, 0, W, H, fill=1, stroke=0)
+    # --------------------- 6) CONTRACAPA
+    if wraparound and spread_ir:
+        bleed_spread_half(spread_ir, "left")
+        card_w, card_h = W * 0.72, 220.0
+        card_x = (W - card_w) / 2
+        card_y = (H - card_h) / 2 - 16
+        c.setFillColorRGB(*NAVY)
+        c.setFillAlpha(0.88)
+        c.roundRect(card_x, card_y, card_w, card_h, 18, fill=1, stroke=0)
         c.setFillAlpha(1)
-    closing = tr["closing_named"].format(name=_win(name)) if name else tr["closing"]
-    poem_panel(closing, H * 0.62)
-    brand_badge(y=H * 0.24)
-    star(60, H - 70, 10, GOLD)
-    star(W - 64, H - 96, 8, CORAL)
-    c.showPage()
+        c.setStrokeColorRGB(*GOLD)
+        c.setLineWidth(1.8)
+        c.roundRect(card_x + 8, card_y + 8, card_w - 16, card_h - 16, 14, fill=0, stroke=1)
+        y = card_y + card_h - 48
+        c.setFillColorRGB(1, 1, 1)
+        c.setFont(F["brand"], 16)
+        c.drawCentredString(W / 2, y, "Story R Us")
+        y -= 22
+        c.setFillColorRGB(*GOLD)
+        c.setFont(F["italic"], 11)
+        c.drawCentredString(W / 2, y, _win(tr["tagline"]))
+        y -= 28
+        c.setFillColorRGB(1, 1, 1)
+        c.setFont(F["body"], 13)
+        for line in (BRAND_SITE, BRAND_EMAIL, BRAND_INSTA):
+            c.drawCentredString(W / 2, y, line)
+            y -= 20
+        c.showPage()
+    else:
+        bg(SKY)
+        last = reader(pages[-1].get("image")) if pages and pages[-1].get("image") else None
+        if last:
+            full_bleed(last)
+            c.setFillColorRGB(1, 1, 1)
+            c.setFillAlpha(0.25)
+            c.rect(0, 0, W, H, fill=1, stroke=0)
+            c.setFillAlpha(1)
+        closing = tr["closing_named"].format(name=_win(name)) if name else tr["closing"]
+        poem_panel(closing, H * 0.62)
+        brand_badge(y=H * 0.24)
+        star(60, H - 70, 10, GOLD)
+        star(W - 64, H - 96, 8, CORAL)
+        c.showPage()
 
     # ----------------------------------------- 7) OBRIGADO / THANK YOU
     bg(CREAM)

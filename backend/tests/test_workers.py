@@ -117,6 +117,32 @@ async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
     assert p.status == ProjectStatus.EBOOK_READY.value and p.ebook_url
 
 
+async def test_ebook_scene_prompt_forbids_painted_letters(db, mem_storage, monkeypatch):
+    prompts: list[str] = []
+
+    class CaptureImage(FakeImage):
+        async def generate_scene(self, **kw):
+            prompts.append(kw.get("prompt") or "")
+            return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
+
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: CaptureImage())
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+
+    assert prompts
+    joined = " ".join(prompts)
+    assert "PROIBIDO letras" in joined
+    assert "AREA DE TEXTO" in joined
+    assert "Trecho:" not in joined
+    assert "TEXTO OBRIGATORIO NA ARTE" not in joined
+
+
 async def test_retry_then_success(db, mem_storage, monkeypatch):
     # backoff zero para nao atrasar o teste
     monkeypatch.setattr(runner.settings, "retry_backoff_base_s", 0.0)

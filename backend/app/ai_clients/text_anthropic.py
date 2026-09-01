@@ -380,14 +380,19 @@ class AnthropicTextProvider:
                 "- mood: the emotional tone of the scene.\n"
                 "- duration_s: integer from 4 to 8.\n"
                 "- image_prompt: detailed prompt to illustrate the scene keyframe (same hero "
-                "as the reference image, same outfit).\n"
+                "as the reference image, same outfit). Do NOT ask the model to paint any "
+                "letters, words, titles or captions — leave a small calm empty pocket "
+                "(sky, water or soft foliage) for typesetting later.\n"
+                "- text_band: top or bottom — empty calm pocket (not a reserved empty band "
+                "and not a place to paint the stanza).\n"
                 "- video_prompt: 1-2 sentences describing the scene motion for an "
                 "image-to-video generator.\n"
                 "- logline: one-sentence summary. moral: what the child learns.\n"
                 'Reply ONLY with valid JSON in this format:\n'
                 '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
                 '"narration": "...", "setting": "...", "action": "...", "camera": "...", '
-                '"mood": "...", "duration_s": 5, "image_prompt": "...", "video_prompt": "..."}]}'
+                '"mood": "...", "duration_s": 5, "text_band": "bottom", '
+                '"image_prompt": "...", "video_prompt": "..."}]}'
             )
         else:
             system = (
@@ -409,14 +414,19 @@ class AnthropicTextProvider:
                 "- mood: o clima emocional da cena.\n"
                 "- duration_s: inteiro de 4 a 8.\n"
                 "- image_prompt: prompt detalhado para ilustrar o keyframe da cena (mesmo "
-                "protagonista da imagem de referência, mesma roupa).\n"
+                "protagonista da imagem de referência, mesma roupa). NÃO peça para pintar "
+                "letras, palavras, título ou legendas — deixe um bolsão calmo VAZIO "
+                "(céu, água ou folhagem suave) para o texto ser composto depois.\n"
+                "- text_band: top ou bottom — bolsão calmo vazio (não uma faixa reservada "
+                "e não o lugar onde a estrofe é pintada).\n"
                 "- video_prompt: 1-2 frases descrevendo o movimento da cena para um gerador "
                 "de vídeo image-to-video.\n"
                 "- logline: resumo de 1 frase. moral: o que a criança aprende.\n"
                 'Responda SOMENTE com JSON válido neste formato:\n'
                 '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
                 '"narration": "...", "setting": "...", "action": "...", "camera": "...", '
-                '"mood": "...", "duration_s": 5, "image_prompt": "...", "video_prompt": "..."}]}'
+                '"mood": "...", "duration_s": 5, "text_band": "bottom", '
+                '"image_prompt": "...", "video_prompt": "..."}]}'
             )
 
         payload = {

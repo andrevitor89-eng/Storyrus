@@ -23,6 +23,7 @@ from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
 from app.workers import ebook as ebook_builder
+from app.workers.page_compose import compose_page
 
 
 logger = logging.getLogger("worker")
@@ -1167,24 +1168,42 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 cost_usd=0.0,
             )
         else:
+            band = "top" if (idx - 1) % 2 == 0 else "bottom"
+            lado = "superior" if band == "top" else "inferior"
             scene = await image_provider.generate_scene(
                 prompt=(
-                    f"Pagina {idx} da historia. Ilustre exatamente esta cena (contexto completo), "
-                    f"com o personagem principal (da imagem de referencia) como protagonista, "
-                    f"mantendo rosto/roupa identicos. Composicao QUADRADA (1:1), pintura digital "
-                    f"quente e luminosa de livro infantil premium, luz dourada suave; deixe uma "
-                    f"area mais calma/limpa (ceu, campo, parede) para receber o texto impresso. "
-                    f"Trecho: {full_text[:900]}"
+                    f"Pagina {idx} da historia. Ilustre a cena com o personagem principal "
+                    f"(da imagem de referencia) como protagonista, mantendo rosto/roupa identicos. "
+                    f"Composicao QUADRADA (1:1), pintura digital quente e luminosa de livro "
+                    f"infantil premium, luz dourada suave. "
+                    f"AREA DE TEXTO: bolsao calmo VAZIO na area {lado} do quadro ({band}) — "
+                    f"ceu, campo ou parede suave — para receber o texto impresso depois. "
+                    f"E uma AREA pequena; NAO esvazie 45% do quadro. "
+                    f"PROIBIDO letras, palavras, titulo, legendas ou qualquer texto na arte. "
+                    f"Cena visual (NAO escreva estas palavras na imagem): {full_text[:900]}"
                 ),
                 character_ref=char_bytes,
                 style=project.style or "realistic",
             )
             scene = await _refine_scene(image_provider, char_bytes, scene, project.style or "realistic")
+        text_band = "top" if (idx - 1) % 2 == 0 else "bottom"
+        composed = compose_page(
+            scene.image_bytes, caption, layout="story", text_band=text_band,
+        )
         img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
-        storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
-        db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
-                     storage_key=img_key, meta={"page": idx}))
-        pages.append({"text": caption, "image": scene.image_bytes, "mime": scene.mime_type})
+        storage.put_bytes(img_key, composed, scene.mime_type)
+        db.add(Asset(
+            project_id=project.id,
+            kind=AssetKind.PAGE_IMAGE.value,
+            storage_key=img_key,
+            meta={"page": idx, "layout": "story", "text_band": text_band},
+        ))
+        pages.append({
+            "text": caption,
+            "image": composed,
+            "mime": scene.mime_type,
+            "layout": "story",
+        })
     db.commit()
 
     name = (project.child_name or "").strip()
@@ -1251,7 +1270,11 @@ def _fallback_storyboard(pages: list[str], *, title: str, theme: str) -> dict:
             "camera": _CAMERA_FALLBACK[(i - 1) % len(_CAMERA_FALLBACK)],
             "mood": "",
             "duration_s": 5,
-            "image_prompt": f"Cena {i} da história (tema {theme}): {flat[:400]}",
+            "image_prompt": (
+                f"Cena {i} da história (tema {theme}): {flat[:400]}. "
+                "Bolsão calmo vazio para o texto. PROIBIDO letras na arte."
+            ),
+            "text_band": "top" if (i - 1) % 2 == 0 else "bottom",
             "video_prompt": f"Anime a cena com movimento suave e expressivo: {first[:200]}",
         })
     return {"title": title, "logline": "", "moral": "", "scenes": scenes}
@@ -1290,6 +1313,7 @@ def _parse_storyboard_json(text: str) -> dict | None:
             "duration_s": min(8, max(4, dur)),
             "image_prompt": str(sc.get("image_prompt") or "").strip(),
             "video_prompt": str(sc.get("video_prompt") or "").strip(),
+            "text_band": str(sc.get("text_band") or ("top" if i % 2 == 1 else "bottom")).strip(),
         })
     if not scenes:
         return None
@@ -1383,7 +1407,8 @@ async def handle_storyboard(db: Session, job: Job) -> None:
                 kf = await image_provider.generate_scene(
                     prompt=(
                         f"Keyframe {sc['n']} para vídeo, composição cinematográfica 16:9, "
-                        f"mesmo protagonista da referência: {prompt[:600]}"
+                        f"mesmo protagonista da referência. PROIBIDO letras, palavras ou "
+                        f"legendas na arte. {prompt[:600]}"
                     ),
                     character_ref=char_bytes,
                     style=style,
