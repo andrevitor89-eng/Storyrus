@@ -88,6 +88,7 @@ class JobType(str, enum.Enum):
     EBOOK = "EBOOK"
     STORYBOARD = "STORYBOARD"
     VIDEO = "VIDEO"
+    EXTRA_CHARACTER = "EXTRA_CHARACTER"
 
 
 class JobStatus(str, enum.Enum):

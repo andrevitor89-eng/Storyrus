@@ -4,9 +4,9 @@ import logging
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.config import settings
 from app import queue
-from app.routers import auth, credits, jobs, projects, webhooks
+from app.config import settings
+from app.routers import auth, credits, jobs, projects, usage, webhooks
 from app.services import jobs as jobs_svc
 
 logging.basicConfig(level=settings.log_level)
@@ -33,6 +33,7 @@ app.include_router(credits.router)
 app.include_router(projects.router)
 app.include_router(jobs.router)
 app.include_router(webhooks.router)
+app.include_router(usage.router)
 
 
 @app.get("/health", tags=["meta"])

@@ -61,14 +61,23 @@ def _job(db, project, jtype, cost=1, payload=None):
 # ---- fakes ----
 class FakeImage:
     name = "fake-img"
-    async def generate_character(self, **kw): return ImageResult(image_bytes=b"CHAR", mime_type="image/png")
-    async def generate_scene(self, **kw): return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
+    async def generate_character(self, **kw):
+        return ImageResult(image_bytes=b"CHAR", mime_type="image/png", cost_usd=0.04)
+    async def generate_scene(self, **kw):
+        return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
+    async def refine_identity(self, **kw):
+        return ImageResult(image_bytes=b"CHAR2", mime_type="image/png", cost_usd=0.03)
+    async def refine_scene(self, **kw):
+        return ImageResult(image_bytes=b"SCENE2", mime_type="image/png", cost_usd=0.03)
 
 
 class FakeText:
     name = "fake-text"
+    last_cost_usd = 0.12
     async def generate_story(self, **kw):
-        return TextResult(text="Pagina 1: ola.\nPagina 2: fim.")
+        return TextResult(text="Pagina 1: ola.\nPagina 2: fim.", cost_usd=0.12)
+    async def summarize_pages(self, **kw):
+        return ["ola", "fim"]
 
 
 class FlakyText:
@@ -100,6 +109,19 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.AVATAR_READY.value
     assert p.character_ref and "storage_key" in p.character_ref
+    assert float(j.cost_usd or 0) == 0.0  # offline_fallback padrao
+
+
+async def test_avatar_sums_generate_and_refine_cost(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR")
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert float(j.cost_usd) == 0.07  # generate 0.04 + refine 0.03
 
 
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
@@ -112,9 +134,12 @@ async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
     db.refresh(p)
     assert p.status == ProjectStatus.STORY_READY.value and "Pagina" in p.story_text
 
-    await runner.process_job(db, _job(db, p, "EBOOK"))
+    ebook = _job(db, p, "EBOOK")
+    await runner.process_job(db, ebook)
     db.refresh(p)
+    db.refresh(ebook)
     assert p.status == ProjectStatus.EBOOK_READY.value and p.ebook_url
+    assert float(ebook.cost_usd or 0) == 0.0  # offline_fallback padrao
 
 
 async def test_ebook_scene_prompt_forbids_painted_letters(db, mem_storage, monkeypatch):
@@ -123,17 +148,22 @@ async def test_ebook_scene_prompt_forbids_painted_letters(db, mem_storage, monke
     class CaptureImage(FakeImage):
         async def generate_scene(self, **kw):
             prompts.append(kw.get("prompt") or "")
-            return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
+            return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
 
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", False)
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: CaptureImage())
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 
-    await runner.process_job(db, _job(db, p, "EBOOK"))
+    job = _job(db, p, "EBOOK")
+    await runner.process_job(db, job)
+    db.refresh(job)
+    assert float(job.cost_usd) == 0.14  # 2 cenas * (0.04 + refine_identity 0.03)
 
     assert prompts
     joined = " ".join(prompts)
@@ -141,6 +171,39 @@ async def test_ebook_scene_prompt_forbids_painted_letters(db, mem_storage, monke
     assert "AREA DE TEXTO" in joined
     assert "Trecho:" not in joined
     assert "TEXTO OBRIGATORIO NA ARTE" not in joined
+
+
+async def test_ebook_identity_retry_then_fail(db, mem_storage, monkeypatch):
+    from app.ai_clients.face_match import FaceScore
+
+    scenes = 0
+
+    class Counting(FakeImage):
+        async def generate_scene(self, **kw):
+            nonlocal scenes
+            scenes += 1
+            return await super().generate_scene(**kw)
+
+    async def reject(*_a, **_k):
+        return FaceScore(match=0.2, eye_inflate=0.0, geometry=0.2, age=0.2, hair=0.2)
+
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers, "score_face_match", reject)
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    job = _job(db, p, "EBOOK")
+    await runner.process_job(db, job)
+    db.refresh(job)
+    assert job.status == JobStatus.FAILED.value
+    assert job.error and "identidade" in job.error.lower()
+    assert scenes == 2
 
 
 async def test_retry_then_success(db, mem_storage, monkeypatch):

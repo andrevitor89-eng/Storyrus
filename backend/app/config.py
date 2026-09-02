@@ -48,15 +48,42 @@ class Settings(BaseSettings):
     cost_ebook_credits: int = 1
     cost_video_credits: int = 5
 
+    # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503).
+    usage_dashboard_password: str | None = None
+
+    # Precos USD (sobrescreva por env se o provedor mudar a tabela)
+    price_gemini_image_usd: float = 0.039
+    price_gemini_input_per_mtok: float = 0.30
+    price_gemini_output_per_mtok: float = 30.0
+    price_claude_input_per_mtok: float = 15.0
+    price_claude_output_per_mtok: float = 75.0
+    price_kling_per_second_usd: float = 0.10
+
     # Webhooks
     webhook_signing_secret: str = "change-me-webhook"
 
     # Provedores de IA
     gemini_api_key: str | None = None       # Nano Banana (Gemini 2.5 Flash Image)
+    # true | system | false. `system` usa a loja do SO (antivirus/proxy).
+    gemini_ssl_verify: str = "true"
+    # Fallback do juiz InsightFace (vazio = nao chama Gemini).
+    gemini_face_model: str = ""
+    gemini_face_timeout_s: float = 60.0
+    gemini_face_retries: int = 3
     anthropic_api_key: str | None = None    # historia (Claude)
     kling_access_key: str | None = None     # video MVP
     kling_secret_key: str | None = None
     veo_api_key: str | None = None          # video fase 2
+    # Fal.ai: avatar + passe de cabeca (PuLID). Cena continua no Gemini.
+    fal_key: str | None = None
+    fal_pulid_endpoint: str = "fal-ai/flux-pulid"
+    fal_refine_endpoint: str = "easel-ai/advanced-face-swap"
+    fal_timeout_s: float = 180.0
+    fal_safety_checker: bool = True
+    identity_head_provider: Literal["pulid", "gemini"] = "pulid"
+    face_match_backend: Literal["insightface", "gemini"] = "insightface"
+    ebook_face_match: bool = True
+    ebook_face_match_min: float = 0.72
 
     # Selecao de provedores por etapa
     image_provider: str = "nano-banana"

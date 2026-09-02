@@ -12,6 +12,7 @@ import httpx
 
 from app.ai_clients.base import ImageResult, ProviderError
 from app.config import settings
+from app.services.pricing import image_cost
 
 _MODEL = "gemini-2.5-flash-image"
 _BASE = "https://generativelanguage.googleapis.com/v1beta"
@@ -54,6 +55,8 @@ class NanoBananaImageProvider:
             )
 
         data = resp.json()
+        usage = data.get("usageMetadata") or data.get("usage_metadata") or {}
+        cost = image_cost(usage if usage else None)
         for cand in data.get("candidates", []):
             for part in cand.get("content", {}).get("parts", []):
                 inline = part.get("inline_data") or part.get("inlineData")
@@ -62,7 +65,8 @@ class NanoBananaImageProvider:
                     return ImageResult(
                         image_bytes=base64.b64decode(inline["data"]),
                         mime_type=mime,
-                        meta={"model": _MODEL},
+                        cost_usd=cost,
+                        meta={"model": _MODEL, "usage": usage},
                     )
         raise ProviderError("Resposta sem imagem", transient=False)
 

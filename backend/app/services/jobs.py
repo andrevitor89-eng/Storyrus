@@ -25,6 +25,7 @@ COST_BY_TYPE: dict[JobType, int] = {
     JobType.EBOOK: settings.cost_ebook_credits,
     JobType.STORYBOARD: settings.cost_avatar_credits,
     JobType.VIDEO: settings.cost_video_credits,
+    JobType.EXTRA_CHARACTER: settings.cost_avatar_credits,
 }
 
 PROVIDER_BY_TYPE: dict[JobType, str] = {
@@ -34,6 +35,7 @@ PROVIDER_BY_TYPE: dict[JobType, str] = {
     JobType.EBOOK: "internal",
     JobType.STORYBOARD: settings.image_provider,
     JobType.VIDEO: settings.video_provider,
+    JobType.EXTRA_CHARACTER: settings.image_provider,
 }
 
 # Hook de enfileiramento no broker real. Default: no-op (worker faz polling de PENDING).

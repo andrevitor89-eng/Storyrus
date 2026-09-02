@@ -20,8 +20,10 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
 from app.ai_clients.base import ImageResult, ProviderError
+from app.ai_clients.face_match import identity_accepted, score_face_match
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
+from app.services.pricing import add_usd, video_cost
 from app.workers import ebook as ebook_builder
 from app.workers.page_compose import compose_page
 
@@ -785,10 +787,23 @@ async def _refine_identity(provider, photo_bytes, result, style):
             photo=photo_bytes, illustration=result.image_bytes, style=style
         )
         if refined and getattr(refined, "image_bytes", None):
+            refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
             return refined
     except Exception:  # noqa: BLE001 - refinamento e opcional
         pass
     return result
+
+
+def _project_photo_bytes(db: Session, project: Project) -> bytes | None:
+    photo = db.scalars(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+        .order_by(Asset.created_at.desc())
+    ).first()
+    if not photo:
+        return None
+    blob = storage.get_bytes(photo.storage_key)
+    return blob or None
 
 
 async def _refine_scene(provider, character_ref, result, style):
@@ -804,10 +819,46 @@ async def _refine_scene(provider, character_ref, result, style):
             character_ref=character_ref, scene=result.image_bytes, style=style
         )
         if refined and getattr(refined, "image_bytes", None):
+            refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
             return refined
     except Exception:  # noqa: BLE001 - refinamento e opcional
         pass
     return result
+
+
+IDENTITY_MISMATCH_ERROR = (
+    "identidade nao bateu com a crianca da foto; a pagina nao foi publicada"
+)
+
+
+async def _illustrate_page(
+    provider,
+    *,
+    prompt: str,
+    character_ref: bytes,
+    photo: bytes | None,
+    style: str,
+    page: int,
+) -> ImageResult:
+    """Cena Gemini + passe de cabeca (foto). Juiz recusa → 1 retry, depois falha."""
+    for attempt in range(2):
+        scene = await provider.generate_scene(
+            prompt=prompt, character_ref=character_ref, style=style
+        )
+        if photo:
+            scene = await _refine_identity(provider, photo, scene, style)
+        if not settings.ebook_face_match or not photo:
+            return scene
+        score = await score_face_match(photo, scene.image_bytes, avatar=character_ref)
+        if identity_accepted(score):
+            return scene
+        logger.warning(
+            "Pagina %s identidade recusada (tentativa %s): %s",
+            page,
+            attempt + 1,
+            None if score is None else score.as_details(),
+        )
+    raise ProviderError(f"Pagina {page}: {IDENTITY_MISMATCH_ERROR}", transient=False)
 
 
 async def handle_extra_character(db: Session, job: Job) -> None:
@@ -848,15 +899,14 @@ async def handle_extra_character(db: Session, job: Job) -> None:
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
         extras[idx]["character_storage_key"] = char_key
         extras[idx]["character_mime"] = result.mime_type
+        extras[idx]["cost_usd"] = float(result.cost_usd or 0.0)
         updated = True
 
     if updated:
         project.extra_characters = extras
         db.commit()
 
-    job.cost_usd = sum(
-        e.get("cost_usd", 0.0) for e in extras if not e.get("character_storage_key")
-    )
+    job.cost_usd = add_usd(*(e.get("cost_usd") for e in extras))
 
 
 # Prompt fixo para a imagem realistica (usada como referencia do video).
@@ -1132,6 +1182,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
     char_bytes = storage.get_bytes(project.character_ref["storage_key"])
+    photo_bytes = _project_photo_bytes(db, project)
     image_provider = get_image_provider()
 
     language = project.language or "pt-BR"
@@ -1142,20 +1193,24 @@ async def handle_ebook(db: Session, job: Job) -> None:
     # 2) Texto impresso por pagina. Historias geradas pelo pipeline ja vem como
     #    estrofes curtas rimadas (estilo WonderWraps) -> imprime o verso integral.
     #    Historias importadas/longas -> resume em legenda curta.
+    summarize_cost = 0.0
     if all(len(p) <= 260 for p in pages_text):
         captions = list(pages_text)
     else:
         captions = _short_captions(pages_text)
         try:
-            ai_caps = await get_text_provider().summarize_pages(
+            text_provider = get_text_provider()
+            ai_caps = await text_provider.summarize_pages(
                 pages=pages_text, style=project.style or "", language=language
             )
             if len(ai_caps) == len(pages_text) and all(c.strip() for c in ai_caps):
                 captions = [c.strip() for c in ai_caps]
+                summarize_cost = float(getattr(text_provider, "last_cost_usd", 0.0) or 0.0)
         except Exception:  # noqa: BLE001 - se o resumo falhar, usa o fallback local
             pass
 
     # 3) Uma pagina = ilustracao (contexto completo do trecho) + texto da pagina.
+    scene_costs: list[float] = []
     pages: list[dict] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
         if settings.offline_fallback:
@@ -1170,7 +1225,8 @@ async def handle_ebook(db: Session, job: Job) -> None:
         else:
             band = "top" if (idx - 1) % 2 == 0 else "bottom"
             lado = "superior" if band == "top" else "inferior"
-            scene = await image_provider.generate_scene(
+            scene = await _illustrate_page(
+                image_provider,
                 prompt=(
                     f"Pagina {idx} da historia. Ilustre a cena com o personagem principal "
                     f"(da imagem de referencia) como protagonista, mantendo rosto/roupa identicos. "
@@ -1183,9 +1239,11 @@ async def handle_ebook(db: Session, job: Job) -> None:
                     f"Cena visual (NAO escreva estas palavras na imagem): {full_text[:900]}"
                 ),
                 character_ref=char_bytes,
+                photo=photo_bytes,
                 style=project.style or "realistic",
+                page=idx,
             )
-            scene = await _refine_scene(image_provider, char_bytes, scene, project.style or "realistic")
+        scene_costs.append(float(scene.cost_usd or 0.0))
         text_band = "top" if (idx - 1) % 2 == 0 else "bottom"
         composed = compose_page(
             scene.image_bytes, caption, layout="story", text_band=text_band,
@@ -1242,6 +1300,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     db.add(Asset(project_id=project.id, kind=AssetKind.EBOOK.value, storage_key=ebook_key,
                  meta={"mime": mime}))
     project.ebook_url = ebook_key
+    job.cost_usd = add_usd(summarize_cost, *scene_costs)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
 
 
@@ -1395,6 +1454,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
     db.commit()
 
     # 2) Keyframes por cena (best-effort; só quando o personagem já existe).
+    keyframe_costs: list[float] = []
     if project.character_ref and project.character_ref.get("storage_key"):
         char_bytes = storage.get_bytes(project.character_ref["storage_key"])
         image_provider = get_image_provider()
@@ -1414,6 +1474,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
                     style=style,
                 )
                 kf = await _refine_scene(image_provider, char_bytes, kf, style)
+                keyframe_costs.append(float(kf.cost_usd or 0.0))
                 k = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(kf.mime_type))
                 storage.put_bytes(k, kf.image_bytes, kf.mime_type)
                 db.add(Asset(project_id=project.id, kind=AssetKind.PAGE_IMAGE.value,
@@ -1421,6 +1482,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
             except Exception:  # noqa: BLE001 - keyframe é opcional; o roteiro já está salvo
                 continue
         db.commit()
+    job.cost_usd = add_usd(job.cost_usd, *keyframe_costs)
 
 
 # --------------------------------------------------------------------------- #
@@ -1492,7 +1554,12 @@ async def handle_video(db: Session, job: Job) -> None:
     db.add(Asset(project_id=project.id, kind=AssetKind.VIDEO.value, storage_key=stored,
                  meta={"source": source_url}))
     project.video_url = stored
-    job.cost_usd = 0.0 if settings.offline_fallback else getattr(task, "cost_usd", None)
+    if settings.offline_fallback:
+        job.cost_usd = 0.0
+    else:
+        billed = getattr(task, "cost_usd", None)
+        duration_s = int(payload.get("duration_s", settings.default_video_duration_s))
+        job.cost_usd = billed if billed is not None else video_cost(min(max(duration_s, 5), 10))
     _set_status(db, project, ProjectStatus.VIDEO_READY)
 
 
@@ -1507,4 +1574,5 @@ HANDLERS = {
     "EBOOK": handle_ebook,
     "STORYBOARD": handle_storyboard,
     "VIDEO": handle_video,
+    "EXTRA_CHARACTER": handle_extra_character,
 }
