@@ -32,6 +32,8 @@ services:
         generateValue: true
       - key: GEMINI_API_KEY
         sync: false
+      - key: FAL_KEY
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: KLING_ACCESS_KEY
@@ -47,6 +49,8 @@ services:
       - key: STORAGE_ACCESS_KEY
         sync: false
       - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: USAGE_DASHBOARD_PASSWORD
         sync: false
 
   # ---- Worker (processa os jobs: personagem, historia, ebook, video) ----
@@ -66,6 +70,8 @@ services:
           property: connectionString
       - key: GEMINI_API_KEY
         sync: false
+      - key: FAL_KEY
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: KLING_ACCESS_KEY
@@ -81,4 +87,6 @@ services:
       - key: STORAGE_ACCESS_KEY
         sync: false
       - key: STORAGE_SECRET_KEY
+        sync: false
+      - key: USAGE_DASHBOARD_PASSWORD
         sync: false

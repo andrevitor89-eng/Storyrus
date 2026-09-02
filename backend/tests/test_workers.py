@@ -62,11 +62,16 @@ def _job(db, project, jtype, cost=1, payload=None):
 # ---- fakes ----
 class FakeImage:
     name = "fake-img"
-    async def generate_character(self, **kw): return ImageResult(image_bytes=b"CHAR", mime_type="image/png")
-    async def generate_realistic(self, **kw): return ImageResult(image_bytes=b"REAL", mime_type="image/png")
-    async def generate_scene(self, **kw): return ImageResult(image_bytes=b"SCENE", mime_type="image/png")
-    async def refine_identity(self, **kw): return ImageResult(image_bytes=b"REFINED", mime_type="image/png")
-    async def refine_scene(self, **kw): return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png")
+    async def generate_character(self, **kw):
+        return ImageResult(image_bytes=b"CHAR", mime_type="image/png", cost_usd=0.04)
+    async def generate_realistic(self, **kw):
+        return ImageResult(image_bytes=b"REAL", mime_type="image/png", cost_usd=0.04)
+    async def generate_scene(self, **kw):
+        return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
+    async def refine_identity(self, **kw):
+        return ImageResult(image_bytes=b"REFINED", mime_type="image/png", cost_usd=0.03)
+    async def refine_scene(self, **kw):
+        return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png", cost_usd=0.03)
 
 
 class FakeText:
@@ -107,6 +112,8 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert p.character_ref and "storage_key" in p.character_ref
     # generate_character + refine_identity (ilustracao unificada + identidade)
     assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
+    # generate 0.04 + 2 passes de refine 0.03
+    assert float(j.cost_usd) == 0.10
 
 
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):

@@ -46,6 +46,7 @@ from app.ai_clients.face_detect import face_reference, identity_images
 from app.ai_clients.face_match import score_face_match
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
+from app.services.pricing import add_usd, video_cost
 from app.story_templates import (
     illustration_notes,
     page_layouts,
@@ -850,6 +851,7 @@ async def _refine_identity(
                     photo=photo_bytes, illustration=result.image_bytes, style=style
                 )
                 if refined and getattr(refined, "image_bytes", None):
+                    refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
                     result = refined
                 break
             except Exception:  # noqa: BLE001 - refinamento e opcional
@@ -881,6 +883,7 @@ async def _refine_scene(provider, character_ref, result, style, *, photo: bytes 
             photo=photo,
         )
         if refined and getattr(refined, "image_bytes", None):
+            refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
             return refined
     except TypeError:
         try:
@@ -888,6 +891,7 @@ async def _refine_scene(provider, character_ref, result, style, *, photo: bytes 
                 character_ref=character_ref, scene=result.image_bytes, style=style
             )
             if refined and getattr(refined, "image_bytes", None):
+                refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
                 return refined
         except Exception:  # noqa: BLE001
             pass
@@ -935,15 +939,14 @@ async def handle_extra_character(db: Session, job: Job) -> None:
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
         extras[idx]["character_storage_key"] = char_key
         extras[idx]["character_mime"] = result.mime_type
+        extras[idx]["cost_usd"] = float(result.cost_usd or 0.0)
         updated = True
 
     if updated:
         project.extra_characters = extras
         db.commit()
 
-    job.cost_usd = sum(
-        e.get("cost_usd", 0.0) for e in extras if not e.get("character_storage_key")
-    )
+    job.cost_usd = add_usd(*(e.get("cost_usd") for e in extras))
 
 
 # Prompt fixo para a imagem hibrida (usada como referencia do video).
@@ -1339,6 +1342,7 @@ async def _compose_storyboard(
     language: str,
     auto: bool = False,
     require_ai: bool = False,
+    job: Job | None = None,
 ) -> dict:
     """Carrega o storyboard se bater com as paginas; senao gera (Claude ou fallback)."""
     existing = _latest_storyboard(db, project)
@@ -1357,6 +1361,8 @@ async def _compose_storyboard(
                 language=language,
             )
             sb = _parse_storyboard_json(result.text)
+            if job is not None:
+                job.cost_usd = result.cost_usd
         except ProviderError as exc:
             if require_ai and exc.transient:
                 raise
@@ -1449,9 +1455,10 @@ async def _generate_character_bible(
     avatar: bytes,
     costume: str,
     style: str,
-) -> dict[str, bytes]:
+) -> tuple[dict[str, bytes], float]:
     """3 folhas (turnaround, expressoes, figurino). Best-effort: falha nao aborta o livro."""
     bible: dict[str, bytes] = {}
+    costs: list[float] = []
     refs = [img for img in (photo, avatar) if img]
 
     async def _one(kind: AssetKind, prompt: str, extra: list[bytes]) -> None:
@@ -1466,6 +1473,7 @@ async def _generate_character_bible(
             return
         if not result or not result.image_bytes:
             return
+        costs.append(float(result.cost_usd or 0.0))
         bible[kind.value] = await _store_bible_asset(db, project, kind, result)
 
     await _one(AssetKind.CHARACTER_SHEET, CHARACTER_SHEET_PROMPT, [])
@@ -1476,7 +1484,7 @@ async def _generate_character_bible(
         AssetKind.COSTUME_LOCK, costume_lock_prompt(costume), extra_sheet
     )
     db.commit()
-    return bible
+    return bible, add_usd(*costs)
 
 
 def _scene_extra_refs(
@@ -1540,6 +1548,7 @@ async def _illustrate_page(
         photo=photo_bytes,
         extra_refs=extra_refs or None,
     )
+    spent = float(scene.cost_usd or 0.0)
     threshold = settings.ebook_face_match_min
     best = scene
     best_score = await _score_page_face(photo_bytes, scene.image_bytes)
@@ -1565,6 +1574,7 @@ async def _illustrate_page(
             provider, char_bytes, best, BOOK_STYLE, photo=photo_bytes
         )
         if refined is not best:
+            spent = add_usd(refined.cost_usd)
             await _keep_if_better(refined)
         if best_score is not None and best_score < threshold:
             style_ref = None
@@ -1581,12 +1591,14 @@ async def _illustrate_page(
                 photo=photo_bytes,
                 extra_refs=retry_refs or None,
             )
+            spent = add_usd(spent, retried.cost_usd)
             await _keep_if_better(retried)
 
     if best_score is None or best_score >= threshold:
         async with style_lock:
             if best.image_bytes not in good_style:
                 good_style.append(best.image_bytes)
+    best.cost_usd = spent
     return best
 
 
@@ -1635,16 +1647,19 @@ async def handle_ebook(db: Session, job: Job) -> None:
         (layouts[i] if i < len(layouts) else "story") != "dedication" and len(p) > 260
         for i, p in enumerate(pages_text)
     )
+    summarize_cost = 0.0
     if not story_too_long:
         captions = list(pages_text)
     else:
         captions = _short_captions(pages_text)
         try:
-            ai_caps = await get_text_provider().summarize_pages(
+            text_provider = get_text_provider()
+            ai_caps = await text_provider.summarize_pages(
                 pages=pages_text, style=BOOK_STYLE, language=language
             )
             if len(ai_caps) == len(pages_text) and all(c.strip() for c in ai_caps):
                 captions = [c.strip() for c in ai_caps]
+                summarize_cost = float(getattr(text_provider, "last_cost_usd", 0.0) or 0.0)
         except Exception:  # noqa: BLE001 - se o resumo falhar, usa o fallback local
             pass
         for i, p in enumerate(pages_text):
@@ -1652,8 +1667,9 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 captions[i] = p
 
     bible: dict[str, bytes] = {}
+    bible_cost = 0.0
     if not settings.offline_fallback:
-        bible = await _generate_character_bible(
+        bible, bible_cost = await _generate_character_bible(
             db, project, image_provider,
             photo=photo_bytes,
             avatar=char_bytes,
@@ -1769,6 +1785,11 @@ async def handle_ebook(db: Session, job: Job) -> None:
     db.add(Asset(project_id=project.id, kind=AssetKind.EBOOK.value, storage_key=ebook_key,
                  meta={"mime": mime}))
     project.ebook_url = ebook_key
+    job.cost_usd = add_usd(
+        summarize_cost,
+        bible_cost,
+        *(scene.cost_usd for scene in generated.values()),
+    )
     _set_status(db, project, ProjectStatus.EBOOK_READY)
 
 
@@ -1896,6 +1917,7 @@ async def handle_storyboard(db: Session, job: Job) -> None:
         language=language,
         auto=bool(_payload(job).get("auto")),
         require_ai=True,
+        job=job,
     )
 
 
@@ -1970,7 +1992,14 @@ async def handle_video(db: Session, job: Job) -> None:
     db.add(Asset(project_id=project.id, kind=AssetKind.VIDEO.value, storage_key=stored,
                  meta={"source": source_url, "kind": "animation"}))
     project.video_url = stored
-    job.cost_usd = 0.0 if _use_video_offline() else getattr(task, "cost_usd", None)
+    if _use_video_offline():
+        job.cost_usd = 0.0
+    else:
+        billed = getattr(task, "cost_usd", None)
+        duration_s = _clamp_kling_duration(
+            int(payload.get("duration_s", settings.default_video_duration_s))
+        )
+        job.cost_usd = billed if billed is not None else video_cost(duration_s)
     _set_status(db, project, ProjectStatus.VIDEO_READY)
 
 

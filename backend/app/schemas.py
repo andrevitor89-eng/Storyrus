@@ -139,6 +139,7 @@ class JobOut(BaseModel):
     status: str
     provider: str | None
     cost_credits: int
+    cost_usd: float | None = None
     attempts: int
     error: str | None
     created_at: datetime
@@ -159,3 +160,45 @@ class CreditGrantIn(BaseModel):
 
 class CreditsOut(BaseModel):
     credits: int
+
+
+class UsageBucketOut(BaseModel):
+    key: str
+    usd: float
+    jobs: int
+
+
+class UsageBookOut(BaseModel):
+    project_id: uuid.UUID
+    child_name: str | None
+    status: str
+    usd: float | None
+    unmeasured_jobs: int
+    updated_at: datetime
+
+
+class UsageJobOut(BaseModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    child_name: str | None
+    type: str
+    status: str
+    provider: str | None
+    cost_usd: float | None
+    attempts: int
+    created_at: datetime
+
+
+class UsageOut(BaseModel):
+    timezone: str
+    from_at: datetime
+    to_at: datetime
+    today_usd: float
+    month_usd: float
+    range_usd: float
+    books_count: int
+    avg_book_usd: float | None
+    by_type: list[UsageBucketOut]
+    by_provider: list[UsageBucketOut]
+    books: list[UsageBookOut]
+    recent_jobs: list[UsageJobOut]
