@@ -107,6 +107,35 @@ export const handlers = [
   http.get("*/v1/voices", () =>
     HttpResponse.json({ items: [], custom_voice_available: false }),
   ),
+  http.get("*/v1/usage", ({ request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    if (password !== "segredo") {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    return HttpResponse.json({
+      timezone: "America/Sao_Paulo",
+      from_at: new Date().toISOString(),
+      to_at: new Date().toISOString(),
+      today_usd: 1.25,
+      month_usd: 3.5,
+      range_usd: 3.5,
+      books_count: 2,
+      avg_book_usd: 1.75,
+      by_type: [{ key: "EBOOK", usd: 2.5, jobs: 2 }],
+      by_provider: [{ key: "nano-banana", usd: 2.5, jobs: 2 }],
+      books: [
+        {
+          project_id: "p1",
+          child_name: "Matteo",
+          status: "EBOOK_READY",
+          usd: 1.75,
+          unmeasured_jobs: 0,
+          updated_at: new Date().toISOString(),
+        },
+      ],
+      recent_jobs: [],
+    });
+  }),
 
   http.post("*/v1/projects", async ({ request }) => {
     const body = (await request.json()) as { style?: string };

@@ -5,6 +5,7 @@ import type {
   StoryTemplate,
   Theme,
   UploadUrl,
+  UsageReport,
   UserVoice,
   VoiceList,
 } from "./types";
@@ -291,5 +292,26 @@ export const api = {
       throw new Error(`${resp.status}: ${detail}`);
     }
     return resp.json();
+  },
+  async usage(password: string, from?: string, to?: string) {
+    const q = new URLSearchParams();
+    if (from) q.set("from", from);
+    if (to) q.set("to", to);
+    const suffix = q.toString() ? `?${q}` : "";
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    const resp = await fetch(`${BASE}/v1/usage${suffix}`, { headers });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
+      err.status = resp.status;
+      throw err;
+    }
+    return (await resp.json()) as UsageReport;
   },
 };

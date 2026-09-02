@@ -52,6 +52,15 @@ class Settings(BaseSettings):
     cost_video_credits: int = 5
     cost_narrated_video_credits: int = 8
 
+    # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503).
+    usage_dashboard_password: str | None = None
+    price_gemini_image_usd: float = 0.039
+    price_gemini_input_per_mtok: float = 0.30
+    price_gemini_output_per_mtok: float = 30.0
+    price_claude_input_per_mtok: float = 15.0
+    price_claude_output_per_mtok: float = 75.0
+    price_kling_per_second_usd: float = 0.10
+
     # Webhooks
     webhook_signing_secret: str = "change-me-webhook"
 

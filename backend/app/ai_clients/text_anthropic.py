@@ -5,6 +5,7 @@ import httpx
 
 from app.ai_clients.base import ProviderError, TextResult
 from app.config import settings
+from app.services.pricing import text_cost
 
 _API_URL = "https://api.anthropic.com/v1/messages"
 _VERSION = "2023-06-01"
@@ -264,6 +265,7 @@ class AnthropicTextProvider:
     def __init__(self, api_key: str | None = None, timeout: float = 60.0):
         self._api_key = api_key or settings.anthropic_api_key
         self._timeout = timeout
+        self.last_cost_usd: float | None = None
 
     async def generate_story(
         self, *, brief: str, style: str, pages: int, language: str = "pt-BR",
@@ -349,7 +351,11 @@ class AnthropicTextProvider:
             block.get("text", "") for block in data.get("content", []) if block.get("type") == "text"
         )
         usage = data.get("usage", {})
-        return TextResult(text=text, meta={"usage": usage, "model": _MODEL})
+        return TextResult(
+            text=text,
+            cost_usd=text_cost(usage),
+            meta={"usage": usage, "model": _MODEL},
+        )
 
     async def generate_storyboard(
         self, *, story: str, theme: str, title: str = "", language: str = "pt-BR"
@@ -473,7 +479,12 @@ class AnthropicTextProvider:
         text = "".join(
             b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
         )
-        return TextResult(text=text, meta={"usage": data.get("usage", {}), "model": _MODEL})
+        usage = data.get("usage", {})
+        return TextResult(
+            text=text,
+            cost_usd=text_cost(usage),
+            meta={"usage": usage, "model": _MODEL},
+        )
 
     async def summarize_pages(
         self, *, pages: list[str], style: str = "", language: str = "pt-BR"
@@ -535,5 +546,7 @@ class AnthropicTextProvider:
         text = "".join(
             b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
         )
+        usage = data.get("usage", {})
+        self.last_cost_usd = text_cost(usage)
         lines = [ln.strip(" -•\t").strip() for ln in text.splitlines() if ln.strip()]
         return lines

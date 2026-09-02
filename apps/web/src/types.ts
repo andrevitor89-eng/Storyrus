@@ -82,6 +82,7 @@ export interface Job {
   status: "PENDING" | "RUNNING" | "DONE" | "FAILED";
   provider: string | null;
   cost_credits: number;
+  cost_usd?: number | null;
   attempts: number;
   error: string | null;
   created_at: string;
@@ -92,6 +93,48 @@ export interface JobAccepted {
   status: string;
   type: Job["type"];
   estimated_cost_credits: number;
+}
+
+export interface UsageBucket {
+  key: string;
+  usd: number;
+  jobs: number;
+}
+
+export interface UsageBook {
+  project_id: string;
+  child_name: string | null;
+  status: string;
+  usd: number | null;
+  unmeasured_jobs: number;
+  updated_at: string;
+}
+
+export interface UsageJob {
+  id: string;
+  project_id: string;
+  child_name: string | null;
+  type: string;
+  status: string;
+  provider: string | null;
+  cost_usd: number | null;
+  attempts: number;
+  created_at: string;
+}
+
+export interface UsageReport {
+  timezone: string;
+  from_at: string;
+  to_at: string;
+  today_usd: number;
+  month_usd: number;
+  range_usd: number;
+  books_count: number;
+  avg_book_usd: number | null;
+  by_type: UsageBucket[];
+  by_provider: UsageBucket[];
+  books: UsageBook[];
+  recent_jobs: UsageJob[];
 }
 
 export interface UploadUrl {

@@ -13,6 +13,7 @@ from jose import jwt
 
 from app.ai_clients.base import ProviderError, VideoJob
 from app.config import settings
+from app.services.pricing import video_cost
 
 _BASE = "https://api.klingai.com"
 _MODEL = "kling-v2"
@@ -89,10 +90,12 @@ class KlingVideoProvider:
             raise ProviderError(f"Falha de rede: {exc}", transient=True) from exc
 
         data = self._check(resp)
+        billed_s = min(max(duration_s, 5), 10)
         return VideoJob(
             provider_task_id=data.get("task_id", ""),
             status=_map_status(data.get("task_status", "submitted")),
-            meta={"model": _MODEL},
+            cost_usd=video_cost(billed_s),
+            meta={"model": _MODEL, "duration_s": billed_s},
         )
 
     async def poll_video(self, *, provider_task_id: str) -> VideoJob:
@@ -110,6 +113,11 @@ class KlingVideoProvider:
         videos = (data.get("task_result") or {}).get("videos") or []
         if videos:
             video_url = videos[0].get("url")
+        duration_s = data.get("duration") or (videos[0].get("duration") if videos else None)
         return VideoJob(
-            provider_task_id=provider_task_id, status=status, video_url=video_url
+            provider_task_id=provider_task_id,
+            status=status,
+            video_url=video_url,
+            cost_usd=video_cost(duration_s) if duration_s else None,
+            meta={"model": _MODEL, "duration_s": duration_s},
         )

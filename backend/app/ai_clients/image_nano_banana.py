@@ -27,6 +27,7 @@ from app.ai_clients.gemini_api import inline_part as _inline
 from app.ai_clients.gemini_api import ssl_verify as _ssl_verify
 from app.ai_clients.resilience import OutageError
 from app.config import settings
+from app.services.pricing import image_cost
 
 logger = logging.getLogger(__name__)
 
@@ -199,6 +200,8 @@ class NanoBananaImageProvider:
                     )
 
                 data = resp.json()
+                usage = data.get("usageMetadata") or data.get("usage_metadata") or {}
+                cost = image_cost(usage if usage else None)
                 for cand in data.get("candidates", []):
                     for part in cand.get("content", {}).get("parts", []):
                         inline = part.get("inline_data") or part.get("inlineData")
@@ -213,10 +216,12 @@ class NanoBananaImageProvider:
                             return ImageResult(
                                 image_bytes=base64.b64decode(inline["data"]),
                                 mime_type=mime,
+                                cost_usd=cost,
                                 meta={
                                     "model": model,
                                     "image_size": self._image_size or "default",
                                     "attempts": attempt,
+                                    "usage": usage,
                                 },
                             )
                 raise ProviderError(_no_image_reason(data), transient=False)
