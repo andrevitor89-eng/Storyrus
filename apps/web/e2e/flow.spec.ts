@@ -160,6 +160,8 @@ test("landing sem preço e EN atualiza lang", async ({ page }) => {
   await expect(page.locator("body")).not.toContainText("ECONOMIZE 33%");
   await page.getByRole("button", { name: /^EN$/ }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.getByRole("button", { name: /^ES$/ }).click();
+  await expect(page.locator("html")).toHaveAttribute("lang", "es");
 });
 
 test("menu mobile abre abaixo da logo", async ({ page }) => {
