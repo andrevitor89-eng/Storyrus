@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 
-type Lang = "pt" | "en";
+type Lang = "pt" | "en" | "es";
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -58,11 +58,11 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`).filter((f) => f !== "ebook-2.jpg");
 /* capas sem título queimado — título CSS em 2 linhas (rosto livre) */
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
-const CATALOG_TITLE_LINES: { pt: [string, string]; en: [string, string] }[] = [
-  { pt: ["Lia e o Fundo", "do Mar"], en: ["Lia and the", "Deep Sea"] },
-  { pt: ["Sofia e a Floresta", "Encantada"], en: ["Sofia and the", "Enchanted Forest"] },
-  { pt: ["Matteo e o Mundo", "dos Dinossauros"], en: ["Matteo and the", "Dinosaur World"] },
-  { pt: ["Noah e o Circo", "das Luzes"], en: ["Noah and the", "Circus of Lights"] },
+const CATALOG_TITLE_LINES: { pt: [string, string]; en: [string, string]; es: [string, string] }[] = [
+  { pt: ["Lia e o Fundo", "do Mar"], en: ["Lia and the", "Deep Sea"], es: ["Lia y el Fondo", "del Mar"] },
+  { pt: ["Sofia e a Floresta", "Encantada"], en: ["Sofia and the", "Enchanted Forest"], es: ["Sofia y el Bosque", "Encantado"] },
+  { pt: ["Matteo e o Mundo", "dos Dinossauros"], en: ["Matteo and the", "Dinosaur World"], es: ["Matteo y el Mundo", "de los Dinosaurios"] },
+  { pt: ["Noah e o Circo", "das Luzes"], en: ["Noah and the", "Circus of Lights"], es: ["Noah y el Circo", "de las Luces"] },
 ];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
 const SURPRISE_IMG = "capa-surpresa.jpg";
@@ -83,7 +83,7 @@ const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video
 // Slides do hero: capa limpa + título CSS em 2 linhas (sempre inteiro dentro do frame)
 const HERO_SLIDES: {
   photo: string; book: string; catalogI: number;
-  titleLines: { pt: [string, string]; en: [string, string] };
+  titleLines: { pt: [string, string]; en: [string, string]; es: [string, string] };
   bookPos?: string; photoPos?: string;
 }[] = [
   {
@@ -91,6 +91,7 @@ const HERO_SLIDES: {
     titleLines: {
       pt: ["Matteo e o Mundo", "dos Dinossauros"],
       en: ["Matteo and the", "Dinosaur World"],
+      es: ["Matteo y el Mundo", "de los Dinosaurios"],
     },
   },
   {
@@ -98,6 +99,7 @@ const HERO_SLIDES: {
     titleLines: {
       pt: ["Sofia e a Floresta", "Encantada"],
       en: ["Sofia and the", "Enchanted Forest"],
+      es: ["Sofia y el Bosque", "Encantado"],
     },
   },
   {
@@ -105,6 +107,7 @@ const HERO_SLIDES: {
     titleLines: {
       pt: ["Noah e o Circo", "das Luzes"],
       en: ["Noah and the", "Circus of Lights"],
+      es: ["Noah y el Circo", "de las Luces"],
     },
   },
 ];
@@ -547,6 +550,103 @@ const I18N = {
     tagline: "Made with love. Created to enchant.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
+  es: {
+    nav: ["Inicio", "Cómo funciona", "Libros", "Videos"],
+    explore: "Explorar ahora",
+    eyebrow: "Tu foto se convierte en una historia",
+    h_pre: "Convierte una foto en una ", w1: "historia", c1: " donde tu hijo es el ", w2: "héroe", h_suf: ".",
+    lead: "Envías la foto y creamos un personaje ilustrado, una historia personalizada, un libro en PDF e incluso un video narrado.",
+    cta_play: "Crear mi historia", cta_disc: "Ver cómo funciona",
+    trust: "Encantando a las familias de principio a fin",
+    ba_before: "ANTES", ba_after: "DESPUÉS", ba_caption: "Tú envías la foto. Nosotros creamos la magia.",
+    ba_preview: "VISTA PREVIA",
+    ba_title: "Antes y después de verdad",
+    ba_sub: "Fotos reales convertidas en personajes ilustrados.",
+    ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
+    banners: [
+      { t: "Vuela con la imaginación", p: "Cada página abre una aventura nueva donde tu hijo es el protagonista." },
+      { t: "Construye su propia historia", p: "Elige la aventura, personaliza los detalles y crea un libro único." },
+      { t: "Explora mundos increíbles", p: "Aventuras que despiertan la curiosidad y alimentan la imaginación." },
+    ],
+    hiw_title: "Cómo funciona", hiw_sub: "De tu foto al libro — con ejemplos reales.",
+    hiw: [
+      { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
+      { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
+      { t: "Tu familia se vuelve el libro", p: "Páginas ilustradas, para guardar para siempre." },
+    ],
+    shot_title: "Consejos para la foto perfecta",
+    shot_sub: "Envía una foto nítida del niño, con el rostro centrado. Los ejemplos con X muestran qué evitar.",
+    shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
+    vid_title: "Videos narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
+    vid_dur: "~2 min", vid_cta: "Crear mi video",
+    videos: [
+      { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
+      { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
+      { t: "Matteo y el Mundo de los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
+      { t: "Noah y el Circo de las Luces", p: "Una noche mágica llena de brillo y música." },
+    ],
+    vid_soon: "Pronto",
+    book_badge: "Ejemplo real",
+    story_title: "Hojea nuestros libros",
+    story_sub: "Libros creados por la plataforma a partir de una sola foto — elige un ejemplo.",
+    story_hint: "Haz clic en los laterales del libro (o usa las flechas) para pasar las páginas.",
+    chloe_title: "La Historia de Chloe",
+    fmt_title: "Elige el formato", fmt_sub: "Del mismo personaje, tres formas de guardar la historia.",
+    formats: [
+      { t: "Libro en PDF", p: "Portada y páginas ilustradas, listas en la plataforma. El impreso es bajo consulta.", feats: ["Portada + páginas ilustradas", "PDF al instante", "Personaje fiel a la foto"], cta: "Crear mi libro", badge: "Más querido" },
+      { t: "Video narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear mi video", badge: "" },
+      { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear animación", badge: "" },
+    ],
+    cat_title: "Nuestros libros", cat_sub: "Cada tema se vuelve una historia ilustrada con tu hijo como protagonista.",
+    personalize: "Personalizar",
+    a11y_theme: "Cambiar tema claro/oscuro",
+    a11y_menu: "Menú",
+    a11y_slide: "Diapositiva",
+    photo_real_alt: "Foto de ejemplo del niño",
+    fb_prev: "Página anterior",
+    fb_next: "Página siguiente",
+    fb_turn: "Pasar página",
+    fb_cover: "Portada",
+    privacy_link: "Privacidad",
+    terms_link: "Términos",
+    catalog: [
+      { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con amigos marinos.", age: "3-6 años", tag: "Coraje y amistad", quote: "Coraje que se sumerge hondo — y vuelve con amigos." },
+      { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces mágicas de luciérnaga.", age: "3-6 años", tag: "Gentileza y naturaleza", quote: "Donde la gentileza enciende luciérnagas." },
+      { t: "Matteo y el Mundo de los Dinosaurios", p: "Un valle lleno de dinosaurios dóciles.", age: "4-7 años", tag: "Descubrimiento y curiosidad", quote: "Un viaje divertido a la era de los dinosaurios." },
+      { t: "Noah y el Circo de las Luces", p: "Una noche mágica llena de brillo.", age: "3-6 años", tag: "Soñar y brillar", quote: "Una noche hecha para soñar y brillar." },
+    ],
+    surprise: { t: "Historia Sorpresa (IA)", p: "Deja que la IA invente una aventura única a partir de la foto.", age: "3-8 años", tag: "Aventura a medida", quote: "Cada foto guarda una aventura secreta." },
+    promise_title: "Cada detalle pensado para ser especial",
+    promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
+    promise: [
+      { t: "Privacidad de la foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
+      { t: "Impresión pensada como regalo", p: "Preparado para verse hermoso en las manos, en la lectura en familia y al momento de entregarlo." },
+      { t: "Vista previa antes de avanzar", p: "Ves la portada y las páginas y entiendes lo que estás creando antes de finalizar." },
+      { t: "Entrega sin complicaciones", p: "El PDF queda listo en la plataforma. El libro impreso es bajo consulta — en hasta 24h enviamos la cotización y el plazo." },
+    ],
+    faq_title: "Preguntas frecuentes", faq_sub: "Todo lo que necesitas saber.",
+    faq: [
+      { q: "¿Cómo creo un libro personalizado?", a: "Elige un tema, envía una foto del niño y agrega el nombre y una dedicatoria. La IA transforma la foto en ilustraciones y ves la vista previa antes de finalizar." },
+      { q: "¿Puedo ver el libro antes?", a: "¡Sí! Recibes una vista previa completa (portada y páginas) antes de descargar o pedir la impresión." },
+      { q: "¿La foto y los datos del niño están seguros?", a: "Sí. Usamos la foto que envías solo para crear el libro y no compartimos tus datos. Los ejemplos de la página inicial son demostraciones, separados de lo que tú envías." },
+      { q: "¿Recibo digital o impreso?", a: "El e-book digital queda listo en la plataforma. Si quieres el impreso, pide la cotización después de aprobar el libro." },
+      { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
+      { q: "¿Cómo funciona el video narrado?", a: "Después del ebook listo, en la pantalla de resultado puedes generar el video narrado (voz + escenas ilustradas) o una animación corta del personaje." },
+    ],
+    rev_title: "Lo que dicen las familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
+    reviews: [
+      { q: "Mi hijo pide leer su libro todas las noches. ¡Emocionante verlo como héroe!", name: "Ana C." },
+      { q: "Envié una foto y recibí un libro hermoso. Se volvió el regalo de cumpleaños de la abuela.", name: "Rafael M." },
+      { q: "La ilustración quedó idéntica a mi bebé. Lo vamos a guardar para siempre.", name: "Juliana P." },
+      { q: "El video narrado emocionó a toda la familia. Vale cada segundo.", name: "Marcos y Bia" },
+    ],
+    features: ["Historias personalizadas", "Conexión en familia", "Recuerdos que quedan para siempre", "Un regalo inolvidable"],
+    band_title: "¿Listo para ser el protagonista?",
+    band_sub: "Envía tu foto y recibe una historia única, creada solo para ti.",
+    band_cta: "Crear mi historia",
+    tagline: "Hecho con amor. Creado para encantar.",
+    foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
+  },
 } as const;
 
 export function Landing() {
@@ -555,7 +655,7 @@ export function Landing() {
   const [lang, setLang] = useState<Lang>(() => {
     try {
       const s = localStorage.getItem("lang");
-      if (s === "pt" || s === "en") return s;
+      if (s === "pt" || s === "en" || s === "es") return s;
     } catch { /* ignore */ }
     return "pt";
   });
@@ -598,7 +698,7 @@ export function Landing() {
   }, [theme]);
 
   useEffect(() => {
-    document.documentElement.lang = lang === "en" ? "en" : "pt-BR";
+    document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
     try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
   }, [lang]);
 
@@ -643,9 +743,10 @@ export function Landing() {
           <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
             {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
           </button>
-          <div className="lang" role="group" aria-label="Idioma / Language">
+          <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
             <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
             <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+            <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
           </div>
           <button
             className="khamb"
