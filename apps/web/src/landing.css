@@ -11,6 +11,8 @@
   --purple: #3a5fae;
   --ink: #1f3568;
   --cream: #fff7ec;
+  --page-max: 1180px;
+  --page-gutter: 22px;
   position: relative;
   min-height: 100vh;
   font-family: 'Quicksand', system-ui, sans-serif;
@@ -37,7 +39,7 @@
 .knav {
   position: sticky; top: 0; z-index: 20;
   display: flex; align-items: center; gap: 16px;
-  padding: 10px 22px; margin: 0 auto; max-width: 1180px;
+  padding: 10px var(--page-gutter); margin: 0 auto; max-width: var(--page-max);
   backdrop-filter: blur(8px);
 }
 .kbrand img {
@@ -81,9 +83,9 @@
 
 /* ---------- hero ---------- */
 .khero {
-  position: relative; z-index: 1; max-width: 1180px; margin: 0 auto;
+  position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto;
   display: grid; grid-template-columns: 1.05fr .95fr; gap: 30px; align-items: center;
-  padding: 30px 22px 20px;
+  padding: 30px var(--page-gutter) 20px;
 }
 .keyebrow {
   display: inline-flex; align-items: center; gap: 8px; background: #fff; color: var(--purple);
@@ -99,8 +101,8 @@
 
 /* ---------- HERO — livro grande (retrato), não banner full-bleed ---------- */
 .kbanner-hero {
-  position: relative; z-index: 1; max-width: 1180px; margin: 6px auto 0;
-  padding: 18px 22px 8px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+  position: relative; z-index: 1; max-width: var(--page-max); margin: 6px auto 0;
+  padding: 18px var(--page-gutter) 8px; display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
 .khero-intro {
   text-align: center; max-width: 42rem;
@@ -193,7 +195,7 @@
 .kbh-dots button { background: rgba(255,255,255,.55); }
 .kbh-dots button.on { background: var(--yellow); }
 @media (max-width: 760px) {
-  .kbanner-hero { padding: 12px 14px 4px; }
+  .kbanner-hero { padding: 12px var(--page-gutter) 4px; }
   .kbh-frame { width: min(420px, 94vw); }
   .kbh-cover-title { font-size: clamp(1.2rem, 5.6vw, 1.7rem); top: 6.5%; }
   .kbh-tag { top: 12px; left: 12px; padding: 6px 11px; }
@@ -222,7 +224,7 @@
 }
 
 /* ---------- Dicas de foto (enquadramento perfeito) ---------- */
-.shot-tips { max-width: 1180px; margin: 30px auto 0; padding: 26px 24px 28px; border-radius: 24px; background: #f2faf3; border: 1.5px solid #cfe9d6; box-shadow: 0 12px 30px rgba(31,53,104,.06); }
+.shot-tips { max-width: 100%; margin: 30px auto 0; padding: 26px var(--page-gutter) 28px; border-radius: 24px; background: #f2faf3; border: 1.5px solid #cfe9d6; box-shadow: 0 12px 30px rgba(31,53,104,.06); }
 .shot-tips h2.ktitle,
 .shot-tips h3 { margin: 0 0 6px; font-size: clamp(1.3rem, 3vw, 1.85rem); color: var(--ink); text-align: center; }
 .shot-tips .shot-sub { text-align: center; color: #6b6890; margin: 0 auto 24px; max-width: 46ch; font-size: 1.02rem; }
@@ -259,14 +261,14 @@
   .shot.ok .shot-ava-wrap { width: 148px; }
 }
 @media (max-width: 480px) {
-  .shot-tips { padding: 20px 14px 22px; }
+  .shot-tips { padding: 20px var(--page-gutter) 22px; }
   .shot-ava-wrap { width: 126px; }
   .shot.ok .shot-ava-wrap { width: 152px; }
   .shot p { font-size: .9rem; }
 }
 
 /* ---------- Seção de Vídeos narrados ---------- */
-.vid-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; max-width: 1180px; margin: 0 auto; align-items: stretch; }
+.vid-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .vid-card { display: flex; flex-direction: column; margin: 0; background: #172140; border: 2px solid #26315a; border-radius: 20px; overflow: hidden; box-shadow: 0 14px 32px rgba(0,0,0,.42); transition: transform .18s ease, border-color .2s; text-align: left; }
 .vid-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .vid-thumb { position: relative; aspect-ratio: 3 / 4; overflow: hidden; }
@@ -391,7 +393,7 @@
 .ba-caption .ci, .kfoot-tag .ci { width: 18px; height: 18px; color: var(--yellow); }
 
 /* ---------- seções ---------- */
-.ksection { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding: 50px 22px; text-align: center; }
+.ksection { position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto; padding: 50px var(--page-gutter); text-align: center; }
 .soft-wrap { background: rgba(255,255,255,.6); border-radius: 40px; margin: 16px auto; }
 .ktitle { font-size: clamp(2rem, 4.6vw, 3rem); margin: 0 0 8px; color: var(--ink); }
 .ksub { color: #6b6890; font-size: 1.25rem; margin: 0 0 34px; }
@@ -527,15 +529,18 @@
 .fb-hint { text-align: center; color: #6b6890; font-weight: 600; margin-top: 44px; }
 
 /* ---------- Como funciona com exemplos ---------- */
-.howex { display: flex; align-items: stretch; justify-content: center; gap: 8px; flex-wrap: wrap; max-width: 1180px; margin: 0 auto; }
-.howex-item { display: flex; align-items: stretch; gap: 8px; flex: 1 1 0; min-width: 240px; }
+.howex {
+  display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch;
+  gap: 8px; max-width: 100%; margin: 0 auto;
+}
 .howex-card {
-  position: relative; width: auto; flex: 1; min-width: 0; margin: 0; background: #172140; border-radius: 22px; overflow: hidden;
+  position: relative; min-width: 0; margin: 0; background: #172140; border-radius: 22px; overflow: hidden;
   border: 3px solid #172140; box-shadow: 0 14px 30px rgba(0,0,0,.45); transition: transform .18s ease, border-color .2s;
   display: flex; flex-direction: column;
 }
 .howex-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .howex-card img { display: block; width: 100%; aspect-ratio: 3 / 4; height: auto; object-fit: cover; object-position: center top; }
+.howex-card-face img { object-position: center center; }
 .howex-card-book .howex-book {
   flex: 1; min-height: 0; aspect-ratio: 3 / 4; display: grid; place-items: center;
   background: radial-gradient(120% 90% at 50% 20%, #24345f 0%, #121a33 70%);
@@ -555,13 +560,13 @@
 .howex-card figcaption { padding: 14px 16px; height: 133px; flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; }
 .howex-card h3 { margin: 0 0 4px; color: #e9eefb; font-size: 1.2rem; }
 .howex-card p { margin: 0; color: #9fabce; font-size: .98rem; line-height: 1.4; }
-.howex-arrow { color: var(--yellow); animation: nudge 1.5s ease-in-out infinite; }
+.howex-arrow { color: var(--yellow); align-self: center; animation: nudge 1.5s ease-in-out infinite; }
 .howex-arrow svg { width: 34px; height: 20px; }
 
 /* ---------- Flipbook em destaque ---------- */
 .featured-book {
   background: radial-gradient(120% 90% at 50% 0%, #1d2b54 0%, #131d3b 62%, transparent 100%);
-  border-radius: 40px; margin: 18px auto; max-width: 1136px; padding-top: 34px; padding-bottom: 46px;
+  border-radius: 40px; margin: 18px auto; padding-top: 34px; padding-bottom: 46px;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
 }
 .book-badge { display: inline-flex; align-items: center; gap: 7px; background: linear-gradient(135deg, var(--coral), var(--yellow));
@@ -618,7 +623,7 @@
   background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; font-family: 'Baloo 2', cursive; font-weight: 800; }
 
 /* ---------- Catálogo de livros ---------- */
-.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1180px; margin: 0 auto; align-items: stretch; }
+.cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .cat-card { display: flex; flex-direction: column; height: 100%; min-width: 0; background: #172140; border-radius: 22px; overflow: hidden; border: 2px solid #26315a; box-shadow: 0 16px 34px rgba(0,0,0,.45); transition: transform .18s ease, border-color .2s; }
 .cat-card:hover { transform: translateY(-8px); border-color: var(--yellow); }
 .cat-card.surprise { border-color: var(--coral); }
@@ -639,7 +644,7 @@
 [data-theme="light"] .kid .cat-tag { color: #6b6890; background: #f3f5fb; border-color: #e6ebf5; }
 
 /* ---------- Banners narrativos ---------- */
-.banners { position: relative; z-index: 1; max-width: 1136px; margin: 8px auto 0; padding: 12px 0 4px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.banners { position: relative; z-index: 1; max-width: var(--page-max); margin: 8px auto 0; padding: 12px var(--page-gutter) 4px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
 .banner-card { position: relative; margin: 0; border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 5; display: flex; align-items: flex-end; box-shadow: 0 16px 34px rgba(0,0,0,.4); border: 2px solid #26315a; }
 .banner-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center top; animation: bannerDrift 12s ease-in-out infinite alternate; will-change: transform; }
 .banner-card figcaption { position: relative; z-index: 1; padding: 22px 18px 16px; width: 100%; background: linear-gradient(to top, rgba(10,14,32,.96) 14%, rgba(10,14,32,.7) 44%, rgba(10,14,32,0)); }
@@ -652,7 +657,7 @@
 [data-theme="light"] .kid .banner-card { border-color: #e6ebf5; }
 
 /* ---------- Nossa promessa ---------- */
-.promise-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; max-width: 1180px; margin: 0 auto; align-items: stretch; }
+.promise-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .promise-card { display: flex; flex-direction: column; background: #172140; border: 2px solid #26315a; border-radius: 20px; padding: 24px 20px; text-align: left; box-shadow: 0 14px 30px rgba(0,0,0,.4); transition: transform .18s ease, border-color .2s; }
 .promise-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .promise-ic { display: grid; place-items: center; width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; margin-bottom: 12px; }
@@ -680,12 +685,12 @@
 [data-theme="light"] .kid .cat-price { color: var(--coral); }
 
 @media (max-width: 900px) {
-  .howex-item { flex-direction: column; }
-  .howex-arrow { transform: rotate(90deg); }
+  .howex { grid-template-columns: 1fr; justify-items: stretch; }
+  .howex-arrow { transform: rotate(90deg); justify-self: center; }
   .fmt-grid { grid-template-columns: 1fr; max-width: 430px; }
   .rev-grid { grid-template-columns: 1fr; max-width: 460px; }
   .featured-book .fb-stage { width: 76vw; max-width: 320px; }
-  .banners { grid-template-columns: 1fr; max-width: 460px; }
+  .banners { grid-template-columns: 1fr; }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }
   .cat-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; }
@@ -759,7 +764,7 @@
 
 /* faixa de atributos (barra marinho como nas artes) */
 .featurebar {
-  position: relative; z-index: 1; max-width: 1136px; margin: 26px auto; padding: 22px 26px;
+  position: relative; z-index: 1; max-width: var(--page-max); margin: 26px auto; padding: 22px var(--page-gutter);
   display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; align-items: center;
   background: linear-gradient(135deg, #1f3568, #2a4a8f); border-radius: 30px;
   box-shadow: 0 20px 44px rgba(31,53,104,.28);
@@ -775,7 +780,7 @@
 /* faixa CTA */
 .kband {
   position: relative; z-index: 1; text-align: center; color: #fff;
-  margin: 30px auto; max-width: 1136px; padding: 56px 22px; border-radius: 40px;
+  margin: 30px auto; max-width: var(--page-max); padding: 56px var(--page-gutter); border-radius: 40px;
   background: linear-gradient(135deg, var(--purple), var(--blue));
   box-shadow: 0 20px 50px rgba(58,95,174,.28); overflow: hidden;
 }
@@ -785,7 +790,7 @@
 .kband .b1 { left: 10%; top: 22%; color: #fff; } .kband .b2 { right: 12%; bottom: 20%; color: var(--yellow); }
 
 /* footer */
-.kfoot { position: relative; z-index: 1; text-align: center; padding: 40px 22px 60px; }
+.kfoot { position: relative; z-index: 1; text-align: center; max-width: var(--page-max); margin: 0 auto; padding: 40px var(--page-gutter) 60px; }
 .kfoot-nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
 .kfoot-nav a {
   display: inline-flex; align-items: center; gap: 7px; text-decoration: none; color: var(--ink);

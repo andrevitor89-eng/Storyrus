@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -45,7 +45,7 @@ const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["foto-matteo.png", "personagem-dino.jpg", "capa-dino2.jpg"];
+const HOW_IMGS = ["dica-boa.png", "personagem-dino.jpg", "capa-dino2.jpg"];
 /* passo 3: começa na capa e folheia páginas internas (sem a 2ª) */
 const HOW_OPEN_BOOK = ["capa-dino2.jpg", "dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
@@ -716,8 +716,8 @@ export function Landing() {
         <p className="ksub reveal">{t.hiw_sub}</p>
         <div className="howex">
           {t.hiw.map((h, i) => (
-            <div className="howex-item" key={h.t}>
-              <figure className={`howex-card reveal${i === 2 ? " howex-card-book" : ""}`}>
+            <Fragment key={h.t}>
+              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 2 ? " howex-card-book" : ""}`}>
                 {i === 2 ? (
                   <div className="howex-book">
                     <FlipBook
@@ -735,7 +735,7 @@ export function Landing() {
                 <figcaption><h3>{h.t}</h3><p>{h.p}</p></figcaption>
               </figure>
               {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
-            </div>
+            </Fragment>
           ))}
         </div>
       </section>
