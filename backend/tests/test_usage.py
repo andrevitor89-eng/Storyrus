@@ -3,7 +3,7 @@ from datetime import UTC, datetime
 
 from app.config import settings
 from app.database import get_db
-from app.models import Job, JobStatus, Project, User
+from app.models import Job, JobStatus, Project, UsageEvent, User
 
 
 def _session(client):
@@ -68,3 +68,47 @@ def test_usage_sums_seeded_jobs(auth_client, monkeypatch):
     assert "AVATAR" not in types
     unmeasured = [b for b in body["books"] if b["usd"] is None]
     assert len(unmeasured) == 1
+    # jobs com custo e sem usage_events viram linha "sem extrato"
+    labels = [e["label"] for e in body["events"]]
+    assert any("sem extrato" in lb for lb in labels)
+    assert body["events_count"] >= 2
+
+
+def test_usage_lists_named_image_events(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    project_id = _seed_job(auth_client, cost_usd=0.078, job_type="EBOOK")
+    db = _session(auth_client)
+    try:
+        job = db.query(Job).filter(Job.project_id == project_id).first()
+        db.add(
+            UsageEvent(
+                job_id=job.id,
+                project_id=project_id,
+                kind="image",
+                provider="gemini",
+                action="generate_scene",
+                label="Página 1 — geração",
+                cost_usd=0.039,
+            )
+        )
+        db.add(
+            UsageEvent(
+                job_id=job.id,
+                project_id=project_id,
+                kind="image",
+                provider="gemini",
+                action="refine_scene",
+                label="Página 1 — refine",
+                cost_usd=0.039,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    r = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert r.status_code == 200, r.text
+    labels = [e["label"] for e in r.json()["events"]]
+    assert "Página 1 — geração" in labels
+    assert "Página 1 — refine" in labels
+    assert not any("sem extrato" in lb for lb in labels)

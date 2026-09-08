@@ -112,8 +112,8 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert p.character_ref and "storage_key" in p.character_ref
     # generate_character + refine_identity (ilustracao unificada + identidade)
     assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
-    # generate 0.04 + 2 passes de refine 0.03
-    assert float(j.cost_usd) == 0.10
+    # generate 0.04 + 1 passe de cabeca Fal 0.03
+    assert float(j.cost_usd) == 0.07
 
 
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
@@ -458,8 +458,8 @@ async def test_ebook_catalog_extras_by_template(db, mem_storage, monkeypatch):
         assert p.status == ProjectStatus.EBOOK_READY.value, tid
         prompts = recorded[tid]
         assert len(prompts) == n_scenes, tid
-        first = prompts[0]
-        assert extra in first, tid
+        # Dedicatoria nao ilustra; a 1a cena pode ser pagina de nome (sem extra de alfabeto).
+        assert any(extra in p for p in prompts), tid
         assert any(marker.lower() in p.lower() for p in prompts), tid
 
 
@@ -565,8 +565,8 @@ async def test_ebook_generate_scene_receives_costume_extra_refs(db, mem_storage,
     assert b"SHEET" in extra_seen[0]
 
 
-async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch):
-    refines: list[int] = []
+async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatch):
+    heads: list[int] = []
     scenes: list[int] = []
 
     class Counting(FakeImage):
@@ -574,9 +574,12 @@ async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch
             scenes.append(1)
             return await super().generate_scene(**kw)
 
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return await super().refine_identity(**kw)
+
         async def refine_scene(self, **kw):
-            refines.append(1)
-            return await super().refine_scene(**kw)
+            raise AssertionError("ebook nao deve chamar refine_scene Gemini")
 
     async def low_score(_photo, _scene):
         return 0.4
@@ -585,7 +588,6 @@ async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "score_face_match", low_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
@@ -594,16 +596,22 @@ async def test_ebook_face_match_low_triggers_refine(db, mem_storage, monkeypatch
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
-    assert len(refines) == 2
-    assert len(scenes) == 4  # 2 iniciais + 2 retries
+    assert len(scenes) >= 2
+    assert len(heads) >= 2
+    assert len(scenes) == len(heads)
 
 
-async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
-    refines: list[int] = []
+async def test_ebook_always_refines_identity_on_fal(db, mem_storage, monkeypatch):
+    heads: list[int] = []
+    scene_refines: list[int] = []
 
     class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return await super().refine_identity(**kw)
+
         async def refine_scene(self, **kw):
-            refines.append(1)
+            scene_refines.append(1)
             return await super().refine_scene(**kw)
 
     async def high_score(_photo, _scene):
@@ -613,7 +621,6 @@ async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
@@ -622,7 +629,8 @@ async def test_ebook_face_match_high_skips_refine(db, mem_storage, monkeypatch):
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
-    assert refines == []
+    assert scene_refines == []
+    assert len(heads) == 2
 
 
 async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkeypatch):

@@ -2,12 +2,12 @@
 from __future__ import annotations
 
 from app.ai_clients.base import ImageProvider, TextProvider, VideoProvider
-from app.ai_clients.image_nano_banana import NanoBananaImageProvider
+from app.ai_clients.hybrid import HybridImageProvider
 from app.ai_clients.text_anthropic import AnthropicTextProvider
 from app.ai_clients.video_kling import KlingVideoProvider
 from app.config import settings
 
-_IMAGE = {"nano-banana": NanoBananaImageProvider}
+_IMAGE = {"nano-banana": HybridImageProvider}
 _TEXT = {"claude": AnthropicTextProvider}
 _VIDEO = {"kling": KlingVideoProvider}
 

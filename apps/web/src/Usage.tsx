@@ -1,7 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
-import type { UsageReport } from "./types";
+import type { UsageEvent, UsageReport } from "./types";
 import "./usage.css";
 
 const STORAGE_KEY = "storyrus.usage.password";
@@ -13,6 +13,16 @@ const STEP_LABEL: Record<string, string> = {
   STORYBOARD: "Roteiro",
   VIDEO: "Vídeo",
   EXTRA_CHARACTER: "Personagem extra",
+  NARRATED_VIDEO: "Vídeo narrado",
+};
+
+const PROVIDER_LABEL: Record<string, string> = {
+  gemini: "Gemini",
+  fal: "Fal",
+  claude: "Claude",
+  kling: "Kling",
+  elevenlabs: "ElevenLabs",
+  "nano-banana": "Gemini",
 };
 
 function money(value: number | null | undefined): string {
@@ -40,7 +50,7 @@ export function Usage() {
     setLoading(true);
     setError(null);
     try {
-      const report = await api.usage(secret);
+      const report = await api.usage(secret, "2026-09-01", "2026-09-30");
       setData(report);
       sessionStorage.setItem(STORAGE_KEY, secret);
       setPassword(secret);
@@ -110,7 +120,7 @@ export function Usage() {
         <img className="hdr-logo" src={logo} alt="Story R Us" />
         <div>
           <h1>Gastos da plataforma</h1>
-          <p className="muted">Atualiza a cada 20s · fuso de Brasília</p>
+          <p className="muted">Atualiza a cada 20s · fuso de Brasília · extrato de setembro/2026</p>
         </div>
         <button
           className="link"
@@ -158,6 +168,58 @@ export function Usage() {
         ) : (
           <p className="muted">Nenhum custo medido neste mês ainda.</p>
         )}
+      </section>
+
+      <section className="usage-panel">
+        <h2>Por provedor</h2>
+        {data?.by_provider.length ? (
+          <ul className="usage-bars">
+            {data.by_provider.map((b) => (
+              <li key={b.key}>
+                <span>{PROVIDER_LABEL[b.key] ?? b.key}</span>
+                <em>{money(b.usd)}</em>
+                <small>{b.jobs} job{b.jobs === 1 ? "" : "s"}</small>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="muted">Nenhum provedor medido neste mês ainda.</p>
+        )}
+      </section>
+
+      <section className="usage-panel">
+        <h2>Extrato — cada geração de imagem</h2>
+        <p className="muted">
+          Setembro/2026 · {data?.events_count ?? 0} linha{(data?.events_count ?? 0) === 1 ? "" : "s"}.
+          Jobs antigos aparecem como “sem extrato”.
+        </p>
+        <div className="usage-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Quando</th>
+                <th>Criança</th>
+                <th>Chamada</th>
+                <th>Provedor</th>
+                <th>USD</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(data?.events ?? []).map((ev: UsageEvent, idx) => (
+                <tr key={ev.id ?? `${ev.job_id}-${idx}`}>
+                  <td>{when(ev.created_at)}</td>
+                  <td>{ev.child_name || "Sem nome"}</td>
+                  <td>{ev.label}</td>
+                  <td>{PROVIDER_LABEL[ev.provider] ?? ev.provider}</td>
+                  <td>{money(ev.cost_usd)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {!data?.events?.length && (
+            <p className="muted">Nenhuma geração nomeada neste período ainda.</p>
+          )}
+        </div>
       </section>
 
       <section className="usage-panel">

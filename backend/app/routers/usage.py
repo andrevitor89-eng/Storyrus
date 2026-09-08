@@ -13,8 +13,8 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import Job, Project
-from app.schemas import UsageBookOut, UsageBucketOut, UsageJobOut, UsageOut
+from app.models import Job, Project, UsageEvent
+from app.schemas import UsageBookOut, UsageBucketOut, UsageEventOut, UsageJobOut, UsageOut
 
 router = APIRouter(prefix="/v1/usage", tags=["usage"])
 
@@ -54,6 +54,63 @@ def _parse_day(value: date | None, *, end: bool) -> datetime | None:
         return None
     local = datetime.combine(value, time.max if end else time.min, tzinfo=_TZ)
     return local.astimezone(UTC)
+
+
+def _event_rows(db: Session, range_start: datetime, range_end: datetime, job_rows) -> list[UsageEventOut]:
+    events = db.execute(
+        select(UsageEvent, Project)
+        .join(Project, Project.id == UsageEvent.project_id)
+        .order_by(UsageEvent.created_at.desc())
+        .limit(2000)
+    ).all()
+    out: list[UsageEventOut] = []
+    jobs_with_lines: set = set()
+    for event, project in events:
+        created = _aware(event.created_at)
+        if not (range_start <= created <= range_end):
+            continue
+        if event.job_id is not None:
+            jobs_with_lines.add(event.job_id)
+        out.append(
+            UsageEventOut(
+                id=event.id,
+                job_id=event.job_id,
+                project_id=event.project_id,
+                child_name=project.child_name,
+                kind=event.kind,
+                provider=event.provider,
+                action=event.action,
+                label=event.label,
+                cost_usd=_as_float(event.cost_usd),
+                created_at=created,
+            )
+        )
+        if len(out) >= 400:
+            break
+    for job, project in job_rows:
+        created = _aware(job.created_at)
+        if not (range_start <= created <= range_end):
+            continue
+        if job.id in jobs_with_lines:
+            continue
+        if job.cost_usd is None:
+            continue
+        out.append(
+            UsageEventOut(
+                id=None,
+                job_id=job.id,
+                project_id=job.project_id,
+                child_name=project.child_name,
+                kind="job",
+                provider=job.provider or "desconhecido",
+                action="job_total",
+                label="Job sem extrato (antes do ledger)",
+                cost_usd=_as_float(job.cost_usd),
+                created_at=created,
+            )
+        )
+    out.sort(key=lambda e: e.created_at, reverse=True)
+    return out[:400]
 
 
 @router.get("", response_model=UsageOut)
@@ -157,6 +214,8 @@ def get_usage(
         else None
     )
 
+    event_rows = _event_rows(db, range_start, range_end, rows)
+
     return UsageOut(
         timezone="America/Sao_Paulo",
         from_at=range_start,
@@ -176,4 +235,6 @@ def get_usage(
         ],
         books=book_rows,
         recent_jobs=recent,
+        events=event_rows,
+        events_count=len(event_rows),
     )

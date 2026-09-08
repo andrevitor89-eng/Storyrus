@@ -47,6 +47,14 @@ from app.ai_clients.face_match import score_face_match
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
 from app.services.pricing import add_usd, video_cost
+from app.services.usage_ledger import (
+    append_usage,
+    flush_usage,
+    image_provider_name,
+    lines_of,
+    merge_usage,
+    usage_line,
+)
 from app.story_templates import (
     illustration_notes,
     page_layouts,
@@ -776,6 +784,24 @@ async def _project_photo_bytes(db: Session, project: Project) -> bytes | None:
     return await face_reference(raw)
 
 
+def _tag_image(result, *, action: str, label: str, fallback_provider: str | None = None):
+    """Registra a chamada desta imagem em result.meta['usage_lines']."""
+    if result is None:
+        return result
+    provider = image_provider_name(result, fallback_provider)
+    append_usage(
+        result,
+        usage_line(
+            action=action,
+            label=label,
+            cost_usd=result.cost_usd,
+            provider=provider,
+            meta={"model": (result.meta or {}).get("model")},
+        ),
+    )
+    return result
+
+
 # --------------------------------------------------------------------------- #
 # Etapa 2-4: personagem
 # --------------------------------------------------------------------------- #
@@ -813,11 +839,13 @@ async def handle_avatar(db: Session, job: Job) -> None:
                 reference_images=gen_refs,
                 style=style,
             )
+            _tag_image(result, action="generate_character", label="Avatar — geração")
         except ProviderError:
             result = await provider.generate_realistic(
                 photo=face, prompt=AVATAR_PROMPT, style=style
             )
-        result = await _refine_identity(provider, face, result, style, passes=2)
+            _tag_image(result, action="generate_realistic", label="Avatar — geração (fallback)")
+        result = await _refine_identity(provider, face, result, style, passes=1)
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -827,6 +855,8 @@ async def handle_avatar(db: Session, job: Job) -> None:
     project.character_approved_at = None
     project.book_approved_at = None
     job.cost_usd = result.cost_usd
+    if not settings.offline_fallback:
+        flush_usage(db, job, lines_of(result))
     _set_status(db, project, ProjectStatus.AVATAR_READY)
 
 
@@ -836,14 +866,14 @@ async def _refine_identity(
     """Passe opcional: corrige o rosto para ficar mais fiel a foto, preservando o corpo desenhado.
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
-    `passes` = correcoes em sequencia (avatar usa 2).
+    `passes` = correcoes em sequencia (avatar usa 1 no Fal).
     `retries` = tentativas extras apos falha em cada passe.
     """
     refine = getattr(provider, "refine_identity", None)
     if refine is None or not photo_bytes:
         return result
     extra = max(0, retries)
-    for _ in range(max(1, passes)):
+    for pass_n in range(1, max(1, passes) + 1):
         attempt = 0
         while True:
             try:
@@ -851,7 +881,14 @@ async def _refine_identity(
                     photo=photo_bytes, illustration=result.image_bytes, style=style
                 )
                 if refined and getattr(refined, "image_bytes", None):
-                    refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
+                    own = refined.cost_usd
+                    _tag_image(
+                        refined,
+                        action="refine_identity",
+                        label=f"Avatar — refine {pass_n}",
+                    )
+                    merge_usage(result, refined)
+                    refined.cost_usd = add_usd(result.cost_usd, own)
                     result = refined
                 break
             except Exception:  # noqa: BLE001 - refinamento e opcional
@@ -883,7 +920,10 @@ async def _refine_scene(provider, character_ref, result, style, *, photo: bytes 
             photo=photo,
         )
         if refined and getattr(refined, "image_bytes", None):
-            refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
+            own = refined.cost_usd
+            _tag_image(refined, action="refine_scene", label="Página — refine")
+            merge_usage(result, refined)
+            refined.cost_usd = add_usd(result.cost_usd, own)
             return refined
     except TypeError:
         try:
@@ -891,7 +931,10 @@ async def _refine_scene(provider, character_ref, result, style, *, photo: bytes 
                 character_ref=character_ref, scene=result.image_bytes, style=style
             )
             if refined and getattr(refined, "image_bytes", None):
-                refined.cost_usd = add_usd(result.cost_usd, refined.cost_usd)
+                own = refined.cost_usd
+                _tag_image(refined, action="refine_scene", label="Página — refine")
+                merge_usage(result, refined)
+                refined.cost_usd = add_usd(result.cost_usd, own)
                 return refined
         except Exception:  # noqa: BLE001
             pass
@@ -933,13 +976,22 @@ async def handle_extra_character(db: Session, job: Job) -> None:
                 reference_images=refs,
                 style=BOOK_STYLE,
             )
+            _tag_image(
+                result,
+                action="generate_character",
+                label=f"Extra — {ec.get('name') or idx + 1} geração",
+            )
             result = await _refine_identity(provider, refs[0], result, BOOK_STYLE)
+            for line in lines_of(result):
+                if line.get("label", "").startswith("Avatar — refine"):
+                    line["label"] = f"Extra — {ec.get('name') or idx + 1} refine"
 
         char_key = storage.new_key(project.id, "extra_character", _ext(result.mime_type))
         storage.put_bytes(char_key, result.image_bytes, result.mime_type)
         extras[idx]["character_storage_key"] = char_key
         extras[idx]["character_mime"] = result.mime_type
         extras[idx]["cost_usd"] = float(result.cost_usd or 0.0)
+        extras[idx]["usage_lines"] = lines_of(result)
         updated = True
 
     if updated:
@@ -947,6 +999,11 @@ async def handle_extra_character(db: Session, job: Job) -> None:
         db.commit()
 
     job.cost_usd = add_usd(*(e.get("cost_usd") for e in extras))
+    extra_lines: list[dict] = []
+    for ec in extras:
+        extra_lines.extend(ec.get("usage_lines") or [])
+    if extra_lines:
+        flush_usage(db, job, extra_lines)
 
 
 # Prompt fixo para a imagem hibrida (usada como referencia do video).
@@ -997,7 +1054,11 @@ async def handle_realistic(db: Session, job: Job) -> None:
     result = await provider.generate_realistic(
         photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
     )
+    _tag_image(result, action="generate_realistic", label="Retrato — geração")
     result = await _refine_identity(provider, photo_bytes, result, "realistic")
+    for line in lines_of(result):
+        if line.get("label", "").startswith("Avatar — refine"):
+            line["label"] = "Retrato — refine"
 
     key = storage.new_key(project.id, AssetKind.REALISTIC.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -1010,6 +1071,7 @@ async def handle_realistic(db: Session, job: Job) -> None:
         )
     )
     job.cost_usd = result.cost_usd
+    flush_usage(db, job, lines_of(result))
     db.commit()
 
 
@@ -1455,6 +1517,7 @@ async def _generate_character_bible(
     avatar: bytes,
     costume: str,
     style: str,
+    lines: list | None = None,
 ) -> tuple[dict[str, bytes], float]:
     """3 folhas (turnaround, expressoes, figurino). Best-effort: falha nao aborta o livro."""
     bible: dict[str, bytes] = {}
@@ -1473,7 +1536,14 @@ async def _generate_character_bible(
             return
         if not result or not result.image_bytes:
             return
+        _tag_image(
+            result,
+            action="generate_character",
+            label=f"Ficha — {kind.value}",
+        )
         costs.append(float(result.cost_usd or 0.0))
+        if lines is not None:
+            lines.extend(lines_of(result))
         bible[kind.value] = await _store_bible_asset(db, project, kind, result)
 
     await _one(AssetKind.CHARACTER_SHEET, CHARACTER_SHEET_PROMPT, [])
@@ -1529,7 +1599,7 @@ async def _illustrate_page(
     style_lock: asyncio.Lock,
     good_style: list[bytes],
 ) -> ImageResult:
-    """Gera uma pagina; refine/retry so se o juiz disser que o rosto nao bate."""
+    """Cena Gemini + cabeca Fal; 1 retry se o juiz recusar o rosto."""
     prompt = build_scene_prompt(
         page=idx,
         text=caption,
@@ -1540,66 +1610,66 @@ async def _illustrate_page(
         shot=brief.get("shot") or "",
         text_band=brief.get("text_band") or "",
     )
-    extra_refs = _scene_extra_refs(bible, brief.get("expression") or "")
-    scene = await provider.generate_scene(
-        prompt=prompt,
-        character_ref=char_bytes,
-        style=BOOK_STYLE,
-        photo=photo_bytes,
-        extra_refs=extra_refs or None,
-    )
-    spent = float(scene.cost_usd or 0.0)
     threshold = settings.ebook_face_match_min
-    best = scene
-    best_score = await _score_page_face(photo_bytes, scene.image_bytes)
+    judge = bool(settings.ebook_face_match and photo_bytes)
+    attempts = 2 if judge else 1
+    last_score: float | None = None
+    spent = 0.0
+    spent_lines: list = []
 
-    async def _keep_if_better(candidate: ImageResult) -> None:
-        nonlocal best, best_score
-        score = await _score_page_face(photo_bytes, candidate.image_bytes)
-        if score is None:
-            if best_score is None or best_score < threshold:
-                best = candidate
-            return
-        if best_score is None or score >= best_score:
-            best = candidate
-            best_score = score
-
-    needs_fix = (
-        settings.ebook_refine_scene
-        and best_score is not None
-        and best_score < threshold
-    )
-    if needs_fix:
-        refined = await _refine_scene(
-            provider, char_bytes, best, BOOK_STYLE, photo=photo_bytes
-        )
-        if refined is not best:
-            spent = add_usd(refined.cost_usd)
-            await _keep_if_better(refined)
-        if best_score is not None and best_score < threshold:
-            style_ref = None
+    for attempt in range(attempts):
+        style_ref = None
+        if attempt > 0:
             async with style_lock:
                 if good_style:
                     style_ref = good_style[0]
-            retry_refs = _scene_extra_refs(
-                bible, brief.get("expression") or "", style_ref=style_ref
-            )
-            retried = await provider.generate_scene(
-                prompt=prompt,
-                character_ref=char_bytes,
-                style=BOOK_STYLE,
-                photo=photo_bytes,
-                extra_refs=retry_refs or None,
-            )
-            spent = add_usd(spent, retried.cost_usd)
-            await _keep_if_better(retried)
+        extra_refs = _scene_extra_refs(
+            bible, brief.get("expression") or "", style_ref=style_ref
+        )
+        scene = await provider.generate_scene(
+            prompt=prompt,
+            character_ref=char_bytes,
+            style=BOOK_STYLE,
+            photo=photo_bytes,
+            extra_refs=extra_refs or None,
+        )
+        _tag_image(
+            scene,
+            action="generate_scene",
+            label=f"Página {idx} — geração" if attempt == 0 else f"Página {idx} — retry",
+        )
+        headed = scene
+        if photo_bytes:
+            headed = await _refine_identity(provider, photo_bytes, scene, BOOK_STYLE)
+            for line in lines_of(headed):
+                if line.get("action") == "refine_identity":
+                    line["label"] = f"Página {idx} — cabeça Fal"
+        spent = add_usd(spent, headed.cost_usd)
+        spent_lines = spent_lines + lines_of(headed)
+        headed.cost_usd = spent
+        if not judge:
+            async with style_lock:
+                if headed.image_bytes not in good_style:
+                    good_style.append(headed.image_bytes)
+            meta = dict(headed.meta or {})
+            meta["usage_lines"] = spent_lines
+            headed.meta = meta
+            return headed
+        last_score = await _score_page_face(photo_bytes, headed.image_bytes)
+        if last_score is None or last_score >= threshold:
+            async with style_lock:
+                if headed.image_bytes not in good_style:
+                    good_style.append(headed.image_bytes)
+            meta = dict(headed.meta or {})
+            meta["usage_lines"] = spent_lines
+            headed.meta = meta
+            return headed
 
-    if best_score is None or best_score >= threshold:
-        async with style_lock:
-            if best.image_bytes not in good_style:
-                good_style.append(best.image_bytes)
-    best.cost_usd = spent
-    return best
+    meta = dict(headed.meta or {})
+    meta["usage_lines"] = spent_lines
+    meta["face_score"] = last_score
+    headed.meta = meta
+    return headed
 
 
 # --------------------------------------------------------------------------- #
@@ -1668,6 +1738,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
 
     bible: dict[str, bytes] = {}
     bible_cost = 0.0
+    bible_lines: list[dict] = []
     if not settings.offline_fallback:
         bible, bible_cost = await _generate_character_bible(
             db, project, image_provider,
@@ -1675,6 +1746,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
             avatar=char_bytes,
             costume=_book_costume_line(briefs, template_id, project.theme),
             style=BOOK_STYLE,
+            lines=bible_lines,
         )
 
     # 3) Uma pagina = ilustracao (brief visual) + texto. Dedicatoria = so texto.
@@ -1790,6 +1862,10 @@ async def handle_ebook(db: Session, job: Job) -> None:
         bible_cost,
         *(scene.cost_usd for scene in generated.values()),
     )
+    ebook_lines: list[dict] = list(bible_lines)
+    for scene in generated.values():
+        ebook_lines.extend(lines_of(scene))
+    flush_usage(db, job, ebook_lines)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
 
 

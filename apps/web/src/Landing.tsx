@@ -16,7 +16,6 @@ const IcBook =({ className }: IconProps) => (<Svg className={className}><path d=
 const IcStar = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 2.6l2.7 5.7 6.3.8-4.6 4.3 1.2 6.2L12 16.9 6.4 19.6l1.2-6.2L3 9.1l6.3-.8L12 2.6z" /></svg>);
 const IcGift = ({ className }: IconProps) => (<Svg className={className}><rect x="3.5" y="10" width="17" height="10.5" rx="1.6" /><path d="M3 10h18M12 10v10.5" /><path d="M12 10S9 5.5 7 6.5 8.5 10 12 10zM12 10s3-4.5 5-3.5S15.5 10 12 10z" /></Svg>);
 const IcHeart = ({ className }: IconProps) => (<Svg className={className}><path d="M12 20s-7-4.4-9-8.5C1.6 8.3 3.3 5.5 6.3 5.5c1.9 0 3 1.1 3.7 2.2.7-1.1 1.8-2.2 3.7-2.2 3 0 4.7 2.8 3.3 6C19 15.6 12 20 12 20z" /></Svg>);
-const IcHome = ({ className }: IconProps) => (<Svg className={className}><path d="M4 11l8-6 8 6M6 10v9h12v-9" /></Svg>);
 const IcSparkle = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M12 3l1.6 5L19 9.6l-5 1.6L12 17l-1.6-5.8L5 9.6 10.4 8 12 3z" /></svg>);
 const IcArrow = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 40 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12h28M24 4l9 8-9 8" /></svg>);
 const IcSun = ({ className }: IconProps) => (<Svg className={className}><circle cx="12" cy="12" r="4.2" /><path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" /></Svg>);
@@ -39,10 +38,134 @@ const IcInstagram = ({ className }: IconProps) => (
   </Svg>
 );
 
-const NAV_ICONS = [IcHome, IcSparkle, IcBook, IcPlay];
+const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "Storyrus@outlook.com";
 const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
+const HERO_FEAT_ICONS = [IcBook, IcSparkle, IcGift, IcPlay];
+
+type CoverFont = "fredoka" | "baloo" | "lilita";
+const COVER_FONTS: { id: CoverFont; label: string }[] = [
+  { id: "fredoka", label: "Fredoka" },
+  { id: "baloo", label: "Baloo 2" },
+  { id: "lilita", label: "Lilita One" },
+];
+
+type MegaSub = {
+  tema?: string;
+  href?: string;
+  labels: { pt: string; en: string; es: string };
+};
+type MegaFeat = {
+  catalogI?: number;
+  tema?: string;
+  href?: string;
+  labels?: { pt: string; en: string; es: string };
+};
+type MegaCat = {
+  id: string;
+  dot: string;
+  labels: { pt: string; en: string; es: string };
+  subs: MegaSub[];
+  feats: MegaFeat[];
+};
+
+const MEGA_CATS: MegaCat[] = [
+  {
+    id: "aventuras",
+    dot: "#5aa6e8",
+    labels: { pt: "Aventuras Favoritas", en: "Favorite Adventures", es: "Aventuras Favoritas" },
+    subs: [
+      { tema: "adventure", labels: { pt: "Aventura", en: "Adventure", es: "Aventura" } },
+      { tema: "fantasy", labels: { pt: "Fantasia", en: "Fantasy", es: "Fantasía" } },
+      { tema: "dinosaurs", labels: { pt: "Dinossauros", en: "Dinosaurs", es: "Dinosaurios" } },
+      { tema: "underwater", labels: { pt: "Fundo do mar", en: "Under the sea", es: "Fondo del mar" } },
+      { tema: "space", labels: { pt: "Espaço", en: "Space", es: "Espacio" } },
+      { tema: "princess", labels: { pt: "Princesas", en: "Princesses", es: "Princesas" } },
+      { tema: "superhero", labels: { pt: "Super-heróis", en: "Superheroes", es: "Superhéroes" } },
+    ],
+    feats: [{ catalogI: 0 }, { catalogI: 1 }, { catalogI: 2 }, { catalogI: 3 }],
+  },
+  {
+    id: "ocasioes",
+    dot: "#f0b429",
+    labels: { pt: "Ocasiões Especiais", en: "Special Occasions", es: "Ocasiones Especiales" },
+    subs: [
+      { tema: "christmas", labels: { pt: "Natal", en: "Christmas", es: "Navidad" } },
+      { tema: "birthday", labels: { pt: "Aniversário", en: "Birthday", es: "Cumpleaños" } },
+      { tema: "mothers_day", labels: { pt: "Dia das Mães", en: "Mother's Day", es: "Día de las Madres" } },
+      { tema: "fathers_day", labels: { pt: "Dia dos Pais", en: "Father's Day", es: "Día del Padre" } },
+      { tema: "easter", labels: { pt: "Páscoa", en: "Easter", es: "Pascua" } },
+      { tema: "childrens_day", labels: { pt: "Dia das Crianças", en: "Children's Day", es: "Día del Niño" } },
+      { tema: "new_year", labels: { pt: "Ano Novo", en: "New Year", es: "Año Nuevo" } },
+    ],
+    feats: [
+      { tema: "christmas", labels: { pt: "Natal", en: "Christmas", es: "Navidad" } },
+      { tema: "birthday", labels: { pt: "Aniversário", en: "Birthday", es: "Cumpleaños" } },
+      { tema: "mothers_day", labels: { pt: "Dia das Mães", en: "Mother's Day", es: "Día de las Madres" } },
+      { tema: "fathers_day", labels: { pt: "Dia dos Pais", en: "Father's Day", es: "Día del Padre" } },
+    ],
+  },
+  {
+    id: "voce-eu",
+    dot: "#b48ad4",
+    labels: { pt: "Você e Eu", en: "You and Me", es: "Tú y Yo" },
+    subs: [
+      { tema: "mothers_day", labels: { pt: "Mamãe e Eu", en: "Mom and Me", es: "Mamá y Yo" } },
+      { tema: "fathers_day", labels: { pt: "Papai e Eu", en: "Dad and Me", es: "Papá y Yo" } },
+      { href: "/app", labels: { pt: "Vovó e Vovô", en: "Grandma and Grandpa", es: "Abuela y Abuelo" } },
+      { href: "/app", labels: { pt: "Irmãos e primos", en: "Siblings and cousins", es: "Hermanos y primos" } },
+    ],
+    feats: [
+      { tema: "mothers_day", labels: { pt: "Mamãe e Eu", en: "Mom and Me", es: "Mamá y Yo" } },
+      { tema: "fathers_day", labels: { pt: "Papai e Eu", en: "Dad and Me", es: "Papá y Yo" } },
+      { href: "/app", labels: { pt: "Vovó e Vovô", en: "Grandma and Grandpa", es: "Abuela y Abuelo" } },
+      { href: "/app", labels: { pt: "Irmãos e primos", en: "Siblings and cousins", es: "Hermanos y primos" } },
+    ],
+  },
+  {
+    id: "sentimentos",
+    dot: "#f0a0c0",
+    labels: { pt: "Sentimentos", en: "Feelings", es: "Sentimientos" },
+    subs: [
+      { tema: "literacia_emocional", labels: { pt: "Sentimentos", en: "Feelings", es: "Sentimientos" } },
+      { tema: "rotina_dormir", labels: { pt: "Hora de Dormir", en: "Bedtime", es: "Hora de dormir" } },
+      { tema: "compartilhar_revezar", labels: { pt: "Compartilhar", en: "Sharing", es: "Compartir" } },
+      { tema: "consciencia_corporal", labels: { pt: "Corpo", en: "Body", es: "Cuerpo" } },
+    ],
+    feats: [
+      { tema: "literacia_emocional", labels: { pt: "Sentimentos", en: "Feelings", es: "Sentimientos" } },
+      { tema: "rotina_dormir", labels: { pt: "Hora de Dormir", en: "Bedtime", es: "Hora de dormir" } },
+      { tema: "compartilhar_revezar", labels: { pt: "Compartilhar", en: "Sharing", es: "Compartir" } },
+      { tema: "consciencia_corporal", labels: { pt: "Corpo", en: "Body", es: "Cuerpo" } },
+    ],
+  },
+  {
+    id: "atividades",
+    dot: "#5ec4a8",
+    labels: { pt: "Atividades", en: "Activities", es: "Actividades" },
+    subs: [
+      { tema: "alfabetizacao_inicial", labels: { pt: "Alfabetização", en: "Literacy", es: "Alfabetización" } },
+      { tema: "pensamento_matematico", labels: { pt: "Matemática", en: "Math", es: "Matemáticas" } },
+      { tema: "cores", labels: { pt: "Cores", en: "Colors", es: "Colores" } },
+      { tema: "higiene_desfralde", labels: { pt: "Higiene", en: "Hygiene", es: "Higiene" } },
+      { tema: "vestir_autonomia", labels: { pt: "Vestir-se", en: "Getting dressed", es: "Vestirse" } },
+      { tema: "animais_sons", labels: { pt: "Animais", en: "Animals", es: "Animales" } },
+      { tema: "transporte_ajudantes", labels: { pt: "Transporte", en: "Transport", es: "Transporte" } },
+    ],
+    feats: [
+      { tema: "alfabetizacao_inicial", labels: { pt: "Alfabetização", en: "Literacy", es: "Alfabetización" } },
+      { tema: "pensamento_matematico", labels: { pt: "Matemática", en: "Math", es: "Matemáticas" } },
+      { tema: "cores", labels: { pt: "Cores", en: "Colors", es: "Colores" } },
+      { tema: "animais_sons", labels: { pt: "Animais", en: "Animals", es: "Animales" } },
+    ],
+  },
+];
+
+function megaHref(item: { tema?: string; href?: string }) {
+  if (item.tema) return `/app?tema=${item.tema}`;
+  return item.href ?? "/app";
+}
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-dino.jpg", "capa-dino2.jpg"];
@@ -233,7 +356,7 @@ function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
 }
 
 function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
   return (
     <div className="faq">
       {items.map((it, i) => {
@@ -242,6 +365,7 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
         return (
         <div className={`faq-item${open === i ? " open" : ""}`} key={it.q}>
           <button
+            type="button"
             className="faq-q"
             id={qid}
             onClick={() => setOpen(open === i ? null : i)}
@@ -251,7 +375,9 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
             <span>{it.q}</span><IcChevron className="faq-chev" />
           </button>
           <div className="faq-a" id={aid} role="region" aria-labelledby={qid} aria-hidden={open !== i}>
-            <p>{it.a}</p>
+            <div className="faq-a-inner">
+              <p>{it.a}</p>
+            </div>
           </div>
         </div>
         );
@@ -357,11 +483,21 @@ function FlipBook({
 
 const I18N = {
   pt: {
-    nav: ["Início", "Como funciona", "Livros", "Vídeos"],
+    nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
+    reviews_link: "Avaliações",
+    my_books: "Meus Livros",
+    our_story: "Nossa História",
+    see_all_books: "Ver todos os livros",
+    view_all: "Ver todos",
+    cats_label: "Categorias",
+    font_label: "Fonte do título",
     explore: "Explorar agora",
-    eyebrow: "Sua foto vira uma história",
-    h_pre: "Transforme uma foto em uma ", w1: "história", c1: " onde seu filho é o ", w2: "herói", h_suf: ".",
-    lead: "Você envia a foto e a gente cria um personagem ilustrado, uma história personalizada, um livro em PDF e até um vídeo narrado.",
+    eyebrow: "Eternize momentos. Presenteie familiares com uma história única.",
+    h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: "!",
+    lead: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele.",
+    hero_feats: ["História personalizada", "Personagem inspirado na foto", "Livro digital em PDF", "Vídeo com a história narrada"],
+    hero_close: "Mais do que um presente, uma lembrança para guardar para sempre.",
+    hero_sign: "Uma foto. Uma história. Uma memória eterna.",
     cta_play: "Criar minha história", cta_disc: "Ver como funciona",
     trust: "Encantando famílias do início ao fim",
     ba_before: "ANTES", ba_after: "DEPOIS", ba_caption: "Você envia a foto. A gente cria o encanto.",
@@ -454,11 +590,21 @@ const I18N = {
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   en: {
-    nav: ["Home", "How it works", "Books", "Videos"],
+    nav: ["How it works", "Books", "Videos", "FAQ"],
+    reviews_link: "Reviews",
+    my_books: "My Books",
+    our_story: "Our Story",
+    see_all_books: "See all books",
+    view_all: "View all",
+    cats_label: "Categories",
+    font_label: "Cover font",
     explore: "Explore now",
-    eyebrow: "Your photo becomes a story",
-    h_pre: "Turn a photo into a ", w1: "story", c1: " where your child is the ", w2: "hero", h_suf: ".",
-    lead: "You send the photo and we create an illustrated character, a personalized story, a PDF book and even a narrated video.",
+    eyebrow: "Preserve moments. Gift your family a one-of-a-kind story.",
+    h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: "!",
+    lead: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them.",
+    hero_feats: ["Personalized story", "Character inspired by the photo", "Digital PDF book", "Narrated story video"],
+    hero_close: "More than a gift — a keepsake to hold forever.",
+    hero_sign: "One photo. One story. One lasting memory.",
     cta_play: "Create my story", cta_disc: "See how it works",
     trust: "Delighting families from start to finish",
     ba_before: "BEFORE", ba_after: "AFTER", ba_caption: "You send the photo. We create the magic.",
@@ -551,11 +697,21 @@ const I18N = {
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   es: {
-    nav: ["Inicio", "Cómo funciona", "Libros", "Videos"],
+    nav: ["Cómo funciona", "Libros", "Videos", "FAQ"],
+    reviews_link: "Reseñas",
+    my_books: "Mis Libros",
+    our_story: "Nuestra Historia",
+    see_all_books: "Ver todos los libros",
+    view_all: "Ver todos",
+    cats_label: "Categorías",
+    font_label: "Fuente del título",
     explore: "Explorar ahora",
-    eyebrow: "Tu foto se convierte en una historia",
-    h_pre: "Convierte una foto en una ", w1: "historia", c1: " donde tu hijo es el ", w2: "héroe", h_suf: ".",
-    lead: "Envías la foto y creamos un personaje ilustrado, una historia personalizada, un libro en PDF e incluso un video narrado.",
+    eyebrow: "Eterniza momentos. Regala a tu familia una historia única.",
+    h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: "!",
+    lead: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él.",
+    hero_feats: ["Historia personalizada", "Personaje inspirado en la foto", "Libro digital en PDF", "Video con la historia narrada"],
+    hero_close: "Más que un regalo, un recuerdo para guardar para siempre.",
+    hero_sign: "Una foto. Una historia. Una memoria eterna.",
     cta_play: "Crear mi historia", cta_disc: "Ver cómo funciona",
     trust: "Encantando a las familias de principio a fin",
     ba_before: "ANTES", ba_after: "DESPUÉS", ba_caption: "Tú envías la foto. Nosotros creamos la magia.",
@@ -665,9 +821,18 @@ export function Landing() {
   });
   const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
+  const [megaOpen, setMegaOpen] = useState<string | null>(null);
+  const [mobileAcc, setMobileAcc] = useState<string | null>(null);
+  const [coverFont, setCoverFont] = useState<CoverFont>(() => {
+    try {
+      const s = localStorage.getItem("coverFont");
+      if (s === "fredoka" || s === "baloo" || s === "lilita") return s;
+    } catch { /* ignore */ }
+    return "fredoka";
+  });
   const t = I18N[lang];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
-  const navHrefs = ["#top", "#como", "#catalogo", "#videos"];
+  const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const exampleBooks = [
     {
       title: t.catalog[0].t,
@@ -712,50 +877,160 @@ export function Landing() {
   }, []);
 
   useEffect(() => {
-    if (!navOpen) return;
+    try { localStorage.setItem("coverFont", coverFont); } catch { /* ignore */ }
+  }, [coverFont]);
+
+  useEffect(() => {
+    if (!navOpen && !megaOpen) return;
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setNavOpen(false);
+      if (e.key === "Escape") {
+        setNavOpen(false);
+        setMegaOpen(null);
+      }
+    };
+    const onDoc = (e: MouseEvent) => {
+      const t = e.target as HTMLElement | null;
+      if (t?.closest(".kcat, .khamb, .kmobile")) return;
+      setMegaOpen(null);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [navOpen]);
+    document.addEventListener("mousedown", onDoc);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      document.removeEventListener("mousedown", onDoc);
+    };
+  }, [navOpen, megaOpen]);
 
-  const closeNav = () => setNavOpen(false);
+  const closeNav = () => {
+    setNavOpen(false);
+    setMegaOpen(null);
+    setMobileAcc(null);
+  };
+
+  const featCard = (feat: MegaFeat, i: number) => {
+    const href = feat.catalogI != null
+      ? `/app?tema=${CATALOG_THEMES[feat.catalogI]}`
+      : megaHref(feat);
+    const title = feat.catalogI != null ? t.catalog[feat.catalogI].t : feat.labels?.[lang];
+    const img = feat.catalogI != null ? CATALOG_IMGS[feat.catalogI] : CATALOG_IMGS[i % CATALOG_IMGS.length];
+    const lines = feat.catalogI != null ? CATALOG_TITLE_LINES[feat.catalogI][lang] : null;
+    return { href, title: title ?? "", img, lines };
+  };
 
   return (
-    <div className="kid" ref={rootRef} id="top">
+    <div className={`kid cover-${coverFont}`} ref={rootRef} id="top">
       <div className="sky" aria-hidden>
         <IcStar className="dstar d1" /><IcStar className="dstar d2" /><IcSparkle className="dstar d3" /><IcStar className="dstar d4" />
         <svg className="dmoon m1" viewBox="0 0 24 24" aria-hidden><path d="M17 15A8 8 0 1 1 9 4a7 7 0 0 0 8 11z" fill="#f4b740" /></svg>
         <svg className="dmoon m2" viewBox="0 0 24 24" aria-hidden><path d="M17 15A8 8 0 1 1 9 4a7 7 0 0 0 8 11z" fill="#7fb2e3" /></svg>
       </div>
 
-      <header className="knav">
-        <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
-        <nav id="site-menu" className={`klinks${navOpen ? " open" : ""}`}>
-          {t.nav.map((label, i) => {
-            const Icon = NAV_ICONS[i];
-            return (<a key={label} href={navHrefs[i]} onClick={closeNav}><Icon className="ni" />{label}</a>);
-          })}
-          <Link to="/app" className="kbtn kbtn-go" onClick={closeNav}>{t.cta_play}</Link>
-        </nav>
-        <div className="kright">
-          <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
-            {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
-          </button>
-          <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
-            <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
-            <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-            <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
+      <header className="khead">
+        <div className="khead-top">
+          <div className="khead-top-inner">
+            <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
+            <div className="khead-utils">
+              <a href="#reviews" className="kutil" onClick={closeNav}><IcStar className="ni" />{t.reviews_link}</a>
+              <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
+                {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+              </button>
+              <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
+                <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
+                <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+                <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
+              </div>
+              <button
+                className="khamb"
+                aria-label={t.a11y_menu}
+                aria-expanded={navOpen}
+                aria-controls="site-menu"
+                onClick={() => setNavOpen((v) => !v)}
+              >☰</button>
+            </div>
           </div>
-          <button
-            className="khamb"
-            aria-label={t.a11y_menu}
-            aria-expanded={navOpen}
-            aria-controls="site-menu"
-            onClick={() => setNavOpen((v) => !v)}
-          >☰</button>
         </div>
+        <div className="khead-bar">
+          <div className="khead-bar-inner">
+            <nav className="kcats" aria-label={t.cats_label}>
+              {MEGA_CATS.map((cat) => (
+                <div
+                  key={cat.id}
+                  className={`kcat${megaOpen === cat.id ? " open" : ""}`}
+                >
+                  <button
+                    type="button"
+                    className="kcat-btn"
+                    aria-expanded={megaOpen === cat.id}
+                    aria-haspopup="true"
+                    onClick={() => setMegaOpen((id) => (id === cat.id ? null : cat.id))}
+                  >
+                    <span className="kcat-dot" style={{ background: cat.dot }} />
+                    {cat.labels[lang]}
+                  </button>
+                  <div className="kcat-panel">
+                    <ul className="kcat-subs">
+                      {cat.subs.map((sub) => (
+                        <li key={sub.labels.pt}>
+                          <Link to={megaHref(sub)} onClick={closeNav}>{sub.labels[lang]}</Link>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="kcat-feats">
+                      {cat.feats.map((feat, i) => {
+                        const card = featCard(feat, i);
+                        return (
+                          <Link to={card.href} className="kcat-feat" key={`${cat.id}-${i}`} onClick={closeNav}>
+                            <span className="kcat-feat-cover">
+                              <img src={exUrl(card.img)} alt="" />
+                              {card.lines && (
+                                <span className="kcat-feat-title" aria-hidden>
+                                  {card.lines.map((line) => <span key={line}>{line}</span>)}
+                                </span>
+                              )}
+                            </span>
+                            <span>{card.title}</span>
+                          </Link>
+                        );
+                      })}
+                      <Link to="/app" className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </nav>
+            <div className="khead-links">
+              <Link to="/app">{t.my_books}</Link>
+              <a href="#promessa">{t.our_story}</a>
+              <a href="#catalogo" className="kbtn kbtn-go">{t.see_all_books}</a>
+            </div>
+          </div>
+        </div>
+        <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`}>
+          {MEGA_CATS.map((cat) => (
+            <div key={cat.id} className={`kmobile-cat${mobileAcc === cat.id ? " open" : ""}`}>
+              <button
+                type="button"
+                className="kmobile-cat-btn"
+                aria-expanded={mobileAcc === cat.id}
+                onClick={() => setMobileAcc((id) => (id === cat.id ? null : cat.id))}
+              >
+                <span className="kcat-dot" style={{ background: cat.dot }} />
+                {cat.labels[lang]}
+                <IcChevron className="faq-chev" />
+              </button>
+              <div className="kmobile-subs">
+                <div className="kmobile-subs-inner">
+                  {cat.subs.map((sub) => (
+                    <Link key={sub.labels.pt} to={megaHref(sub)} onClick={closeNav}>{sub.labels[lang]}</Link>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ))}
+          <Link to="/app" onClick={closeNav}>{t.my_books}</Link>
+          <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
+          <a href="#catalogo" className="kbtn kbtn-go" onClick={closeNav}>{t.see_all_books}</a>
+        </nav>
       </header>
 
       {/* HERO — proposta de valor + livro grande */}
@@ -764,6 +1039,14 @@ export function Landing() {
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <p className="klead">{t.lead}</p>
+          <ul className="khero-feats">
+            {t.hero_feats.map((f, i) => {
+              const Icon = HERO_FEAT_ICONS[i];
+              return (<li key={f}><Icon className="ni" />{f}</li>);
+            })}
+          </ul>
+          <p className="khero-close">{t.hero_close}</p>
+          <p className="khero-sign">{t.hero_sign}</p>
           <div className="khero-cta">
             <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
             <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
@@ -833,7 +1116,25 @@ export function Landing() {
                   <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
                 )}
                 <span className="howex-num">{i + 1}</span>
-                <figcaption><h3>{h.t}</h3><p>{h.p}</p></figcaption>
+                <figcaption>
+                  <h3>{h.t}</h3>
+                  <p>{h.p}</p>
+                  {i === 2 && (
+                    <div className="font-pick" role="group" aria-label={t.font_label}>
+                      <span>{t.font_label}</span>
+                      {COVER_FONTS.map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          className={coverFont === f.id ? "on" : ""}
+                          onClick={() => setCoverFont(f.id)}
+                        >
+                          {f.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </figcaption>
               </figure>
               {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
             </Fragment>
@@ -1039,7 +1340,7 @@ export function Landing() {
       {/* FOOTER */}
       <footer className="kfoot">
         <div className="kfoot-nav">
-          {t.nav.map((label, i) => { const Icon = NAV_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
+          {t.nav.map((label, i) => { const Icon = FOOT_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
         </div>
         <div className="kfoot-contacts">
           <a href={`mailto:${CONTACT_EMAIL}`} className="kfoot-contact">

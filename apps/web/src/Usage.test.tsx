@@ -35,6 +35,8 @@ describe("Painel /gastos", () => {
 
     expect(await screen.findByText(/hoje/i)).toBeInTheDocument();
     expect(screen.getByText(/ticket médio/i)).toBeInTheDocument();
-    expect(screen.getByText(/matteo/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/matteo/i).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/página 3 — geração/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /extrato/i })).toBeInTheDocument();
   });
 });

@@ -61,6 +61,7 @@ def _fake_http(monkeypatch):
     monkeypatch.setattr(fm.settings, "gemini_api_key", "test-key")
     monkeypatch.setattr(fm.settings, "gemini_face_model", "gemini-3.1-flash-lite")
     monkeypatch.setattr(fm.settings, "gemini_face_retries", 3)
+    monkeypatch.setattr(fm.settings, "face_match_backend", "gemini")
 
     async def _no_sleep(_delay):
         return None
@@ -98,3 +99,37 @@ async def test_score_face_match_disabled_without_model(monkeypatch):
 async def test_score_face_match_network_error_returns_none():
     _Client.reply = httpx.ConnectError("boom")
     assert await fm.score_face_match(_png(), _png()) is None
+
+
+def test_identity_accepted_none_does_not_block():
+    assert fm.identity_accepted(None) is True
+    assert fm.identity_accepted(0.91, min_score=0.72) is True
+    assert fm.identity_accepted(0.4, min_score=0.72) is False
+
+
+def test_match_from_cosine_maps_arcface_range():
+    assert fm.match_from_cosine(0.18) == 0.0
+    assert fm.match_from_cosine(0.52) == 1.0
+    assert 0.4 < fm.match_from_cosine(0.35) < 0.6
+
+
+async def test_insightface_backend_uses_mapped_cosine(monkeypatch):
+    monkeypatch.setattr(fm.settings, "face_match_backend", "insightface")
+
+    def fake_score(_photo, _scene):
+        return fm.FaceScore(
+            match=0.88, eye_inflate=0.0, geometry=0.88, age=0.88, hair=0.88
+        )
+
+    monkeypatch.setattr(fm, "_score_insightface", fake_score)
+    score = await fm.score_face_match(_png(), _png())
+    assert score == 0.88
+    assert _Client.posts == 0
+
+
+async def test_insightface_falls_back_to_gemini(monkeypatch):
+    monkeypatch.setattr(fm.settings, "face_match_backend", "insightface")
+    monkeypatch.setattr(fm, "_score_insightface", lambda *_a: None)
+    _Client.reply = _Resp(200, _reply(0.73))
+    assert await fm.score_face_match(_png(), _png()) == 0.73
+    assert _Client.posts == 1

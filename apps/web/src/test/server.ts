@@ -134,6 +134,21 @@ export const handlers = [
         },
       ],
       recent_jobs: [],
+      events: [
+        {
+          id: "e1",
+          job_id: "j1",
+          project_id: "p1",
+          child_name: "Matteo",
+          kind: "image",
+          provider: "gemini",
+          action: "generate_scene",
+          label: "Página 3 — geração",
+          cost_usd: 0.039,
+          created_at: new Date().toISOString(),
+        },
+      ],
+      events_count: 1,
     });
   }),
 
