@@ -206,19 +206,19 @@
 
 /* ---------- HERO — livro grande (retrato), não banner full-bleed ---------- */
 .kbanner-hero {
-  position: relative; z-index: 1; max-width: var(--page-max); margin: 6px auto 0;
+  position: relative; z-index: 1; max-width: none; width: 100%; margin: 6px auto 0;
   padding: 18px var(--page-gutter) 8px; display: flex; flex-direction: column; align-items: center; gap: 18px;
 }
 .khero-intro {
-  text-align: center; max-width: 52rem;
+  text-align: center; width: 100%; max-width: none;
 }
-.khero-intro h1 { font-size: clamp(1.85rem, 4.4vw, 2.85rem); line-height: 1.12; margin: 14px 0 10px; }
-.khero-intro .klead { margin-inline: auto; max-width: 52ch; }
+.khero-intro h1 { font-size: clamp(1.7rem, 2.8vw, 2.7rem); line-height: 1.16; margin: 14px 0 10px; }
+.khero-intro .klead { margin-inline: auto; max-width: 72ch; }
 .khero-intro .khero-cta { justify-content: center; }
 .khero-feats {
   list-style: none; margin: 16px auto 0; padding: 0;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 18px;
-  max-width: 36rem; text-align: left;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px;
+  max-width: 48rem; text-align: left;
 }
 .khero-feats li {
   display: flex; align-items: center; gap: 8px;
