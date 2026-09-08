@@ -14,6 +14,7 @@ type Job = {
   attempts: number;
   error: string | null;
   created_at: string;
+  result?: { progress?: { stage?: string; done?: number; total?: number } } | null;
   _polls: number;
 };
 type Project = {

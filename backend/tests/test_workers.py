@@ -596,12 +596,12 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
-    assert len(scenes) >= 2
-    assert len(heads) >= 2
-    assert len(scenes) == len(heads)
+    # 2 paginas x (cena + Fal + retry cena + Fal) enquanto o score segue baixo
+    assert len(scenes) == 4
+    assert len(heads) == 4
 
 
-async def test_ebook_always_refines_identity_on_fal(db, mem_storage, monkeypatch):
+async def test_ebook_skips_fal_when_face_high(db, mem_storage, monkeypatch):
     heads: list[int] = []
     scene_refines: list[int] = []
 
@@ -630,7 +630,7 @@ async def test_ebook_always_refines_identity_on_fal(db, mem_storage, monkeypatch
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
     assert scene_refines == []
-    assert len(heads) == 2
+    assert heads == []
 
 
 async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkeypatch):
@@ -655,9 +655,92 @@ async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkey
     pages = db.scalars(
         sel(Asset)
         .where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
-        .order_by(Asset.created_at.asc())
     ).all()
+    pages = sorted(pages, key=lambda a: (a.meta or {}).get("page") or 0)
     assert [a.meta.get("page") for a in pages] == [1, 2]
     assert mem_storage[pages[0].storage_key] == b"P1"
     assert mem_storage[pages[1].storage_key] == b"P2"
+
+
+async def test_ebook_bible_expression_and_costume_overlap(db, mem_storage, monkeypatch):
+    import asyncio
+
+    active = 0
+    max_active = 0
+    gate = asyncio.Lock()
+
+    class SlowBible(FakeImage):
+        async def generate_character(self, **kw):
+            nonlocal active, max_active
+            async with gate:
+                active += 1
+                max_active = max(max_active, active)
+            await asyncio.sleep(0.05)
+            async with gate:
+                active -= 1
+            return await super().generate_character(**kw)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: SlowBible())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert max_active >= 2
+
+
+async def test_ebook_clears_old_pages_and_records_progress(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(
+        project_id=p.id,
+        kind=AssetKind.PAGE_IMAGE.value,
+        storage_key="old-page",
+        meta={"page": 99},
+    ))
+    db.commit()
+    job = _job(db, p, "EBOOK")
+
+    await runner.process_job(db, job)
+    db.refresh(job)
+    pages = db.scalars(
+        select(Asset).where(
+            Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value
+        )
+    ).all()
+    assert { (a.meta or {}).get("page") for a in pages } == {1, 2}
+    assert job.result and job.result.get("progress") == {
+        "stage": "pages",
+        "done": 2,
+        "total": 2,
+    }
+
+
+def test_job_out_includes_progress():
+    from datetime import datetime
+
+    from app.schemas import JobOut
+
+    class _Row:
+        id = uuid.uuid4()
+        project_id = uuid.uuid4()
+        type = "EBOOK"
+        status = "RUNNING"
+        provider = None
+        cost_credits = 1
+        cost_usd = None
+        attempts = 1
+        error = None
+        created_at = datetime.now(UTC)
+        result = {"progress": {"stage": "pages", "done": 4, "total": 11}}
+
+    out = JobOut.model_validate(_Row())
+    assert out.result == {"progress": {"stage": "pages", "done": 4, "total": 11}}
 

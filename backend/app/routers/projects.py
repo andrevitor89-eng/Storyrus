@@ -123,8 +123,8 @@ def project_assets(
     pages = db.scalars(
         select(Asset)
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
-        .order_by(Asset.created_at.asc())
     ).all()
+    pages = sorted(pages, key=lambda a: ((a.meta or {}).get("page") or 0, str(a.created_at)))
     page_images = [url_for(a.storage_key) for a in pages]
 
     ebook_url = url_for(project.ebook_url) if project.ebook_url else None

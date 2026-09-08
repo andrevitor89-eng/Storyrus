@@ -143,6 +143,7 @@ class JobOut(BaseModel):
     attempts: int
     error: str | None
     created_at: datetime
+    result: dict | None = None
 
 
 class JobAcceptedOut(BaseModel):

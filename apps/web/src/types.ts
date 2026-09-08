@@ -75,6 +75,12 @@ export interface Project {
   created_at: string;
 }
 
+export interface JobProgress {
+  stage?: string;
+  done?: number;
+  total?: number;
+}
+
 export interface Job {
   id: string;
   project_id: string;
@@ -86,6 +92,7 @@ export interface Job {
   attempts: number;
   error: string | null;
   created_at: string;
+  result?: { progress?: JobProgress } | null;
 }
 
 export interface JobAccepted {
