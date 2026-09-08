@@ -189,6 +189,19 @@ class UsageJobOut(BaseModel):
     created_at: datetime
 
 
+class UsageEventOut(BaseModel):
+    id: uuid.UUID | None = None
+    job_id: uuid.UUID | None = None
+    project_id: uuid.UUID
+    child_name: str | None
+    kind: str
+    provider: str
+    action: str
+    label: str
+    cost_usd: float | None
+    created_at: datetime
+
+
 class UsageOut(BaseModel):
     timezone: str
     from_at: datetime
@@ -202,3 +215,5 @@ class UsageOut(BaseModel):
     by_provider: list[UsageBucketOut]
     books: list[UsageBookOut]
     recent_jobs: list[UsageJobOut]
+    events: list[UsageEventOut] = []
+    events_count: int = 0

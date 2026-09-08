@@ -202,6 +202,9 @@ class Project(Base):
     assets: Mapped[list[Asset]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
     )
+    usage_events: Mapped[list["UsageEvent"]] = relationship(
+        back_populates="project", cascade="all, delete-orphan"
+    )
 
 
 class Job(Base):
@@ -229,6 +232,33 @@ class Job(Base):
     )
 
     project: Mapped[Project] = relationship(back_populates="jobs")
+    usage_events: Mapped[list["UsageEvent"]] = relationship(
+        back_populates="job", cascade="all, delete-orphan"
+    )
+
+
+class UsageEvent(Base):
+    """Uma chamada de IA (imagem, texto, vídeo…) — linha do extrato."""
+
+    __tablename__ = "usage_events"
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
+    job_id: Mapped[uuid.UUID | None] = mapped_column(
+        GUID, ForeignKey("jobs.id", ondelete="CASCADE"), nullable=True, index=True
+    )
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    kind: Mapped[str] = mapped_column(String(16), nullable=False, default="image")
+    provider: Mapped[str] = mapped_column(String(32), nullable=False, default="gemini")
+    action: Mapped[str] = mapped_column(String(32), nullable=False)
+    label: Mapped[str] = mapped_column(String(160), nullable=False)
+    cost_usd: Mapped[float | None] = mapped_column(Numeric(10, 6), nullable=True)
+    meta: Mapped[dict | None] = mapped_column(JSONType, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
+
+    job: Mapped[Job | None] = relationship(back_populates="usage_events")
+    project: Mapped[Project] = relationship(back_populates="usage_events")
 
 
 class Asset(Base):

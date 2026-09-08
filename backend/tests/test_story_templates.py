@@ -13,13 +13,14 @@ _CATALOG_JSON_IDS = {
     "numeros_1_15",
     "cores_basicas",
     "grande_pequeno",
+    "mergulho_mar",
 }
 
 
 def test_catalog_includes_amazonia():
     assert "alfabeto_amazonia" in STORY_TEMPLATES
     assert _CATALOG_JSON_IDS <= set(STORY_TEMPLATES)
-    assert len(STORY_TEMPLATES) == 11
+    assert len(STORY_TEMPLATES) == 12
     meta = list_templates()
     assert {m["id"] for m in meta} == set(STORY_TEMPLATES)
     amazonia = next(m for m in meta if m["id"] == "alfabeto_amazonia")
@@ -29,6 +30,7 @@ def test_catalog_includes_amazonia():
     assert next(m for m in meta if m["id"] == "numeros_1_15")["paginas"] == 18
     assert next(m for m in meta if m["id"] == "cores_basicas")["paginas"] == 15
     assert next(m for m in meta if m["id"] == "grande_pequeno")["paginas"] == 15
+    assert next(m for m in meta if m["id"] == "mergulho_mar")["paginas"] == 17
     for m in meta:
         assert m["titulo"] and m["tematica"] and m["paginas"] >= 13
 
@@ -122,7 +124,7 @@ def test_amazonia_notes_keep_child_and_letter():
 def test_list_endpoint(auth_client):
     r = auth_client.get("/v1/projects/story-templates")
     assert r.status_code == 200, r.text
-    assert len(r.json()) == 11
+    assert len(r.json()) == 12
     ids = {t["id"] for t in r.json()}
     assert "alfabeto_amazonia" in ids
     assert _CATALOG_JSON_IDS <= ids
@@ -229,6 +231,33 @@ def test_cores_render_and_parse():
     notes = illustration_notes("cores_basicas", "Matteo")
     assert "cor dominante VERMELHO" in notes[3]
     assert "pigmento vermelho e amarelo" in notes[12]
+
+
+def test_mergulho_render_and_parse():
+    text = render_template("mergulho_mar", "Nicolas")
+    assert "{NOME}" not in text
+    assert text.startswith("Título: Nicolas em um mergulho no fundo do mar")
+    assert "Para você, Nicolas, com carinho e muita imaginação" in text
+    assert "Nicolas mergulhou nas águas azuis" in text
+    assert "GOLFINHO alegre" in text
+    assert "Nicolas voltou feliz" in text
+    assert "cada animal deixou uma lembrança" in text
+    from app.workers.handlers import _parse_pages
+
+    pages = _parse_pages(text)
+    assert len(pages) == 17
+    assert pages[1].startswith("Nicolas mergulhou")
+    assert pages[-1].startswith("Nicolas voltou feliz")
+    notes = illustration_notes("mergulho_mar", "Nicolas")
+    assert len(notes) == 17
+    assert notes[0] == ""
+    assert "{NOME}" not in "".join(notes)
+    assert "Nicolas" in notes[1]
+    assert "golfinho" in notes[1].lower()
+    assert "distancia segura" in notes[8]
+    assert "distancia segura" in notes[10]
+    assert "distancia segura" in notes[15]
+    assert "varios animais" in notes[16]
 
 
 def test_grande_pequeno_render_and_parse():

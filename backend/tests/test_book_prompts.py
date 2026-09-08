@@ -227,6 +227,10 @@ def test_scene_extras_for_template():
     assert "Pagina de numeros" in scene_extras_for_template("numeros_1_15")
     assert "Pagina de cores" in scene_extras_for_template("cores_basicas")
     assert "Pagina de opostos" in scene_extras_for_template("grande_pequeno")
+    mergulho = scene_extras_for_template("mergulho_mar")
+    assert "oceano" in mergulho
+    assert "mergulhador" in mergulho
+    assert "NUNCA sereia" in mergulho
     assert scene_extras_for_template("nave_vermelha") == ""
     assert scene_extras_for_template(None) == ""
 
@@ -254,6 +258,8 @@ def test_name_page_prompt_reserves_left_side_without_generated_letters():
 def test_costume_extras_for_template_and_theme():
     assert "explorador" in costume_extras_for_template("alfabeto_amazonia")
     assert "aventureiro de pomar" in costume_extras_for_template("alfabeto_frutas")
+    assert "mergulhador infantil" in costume_extras_for_template("mergulho_mar")
+    assert "sereia" in costume_extras_for_template("mergulho_mar")
     assert costume_extras_for_template(None) == ""
     assert "explorador" in costume_extras_for_theme("adventure")
     assert "vestido" in costume_extras_for_theme("princess")

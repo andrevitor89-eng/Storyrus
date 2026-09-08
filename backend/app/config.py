@@ -60,6 +60,14 @@ class Settings(BaseSettings):
     price_claude_input_per_mtok: float = 15.0
     price_claude_output_per_mtok: float = 75.0
     price_kling_per_second_usd: float = 0.10
+    price_fal_image_usd: float = 0.03
+    fal_key: str | None = None
+    identity_head_provider: str = "gemini"
+    face_match_backend: str = "insightface"
+    fal_timeout_s: float = 120.0
+    fal_safety_checker: bool = True
+    fal_pulid_endpoint: str = "fal-ai/flux-pulid"
+    fal_refine_endpoint: str = "easel-ai/advanced-face-swap"
 
     # Webhooks
     webhook_signing_secret: str = "change-me-webhook"

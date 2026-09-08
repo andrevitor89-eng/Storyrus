@@ -122,6 +122,19 @@ export interface UsageJob {
   created_at: string;
 }
 
+export interface UsageEvent {
+  id: string | null;
+  job_id: string | null;
+  project_id: string;
+  child_name: string | null;
+  kind: string;
+  provider: string;
+  action: string;
+  label: string;
+  cost_usd: number | null;
+  created_at: string;
+}
+
 export interface UsageReport {
   timezone: string;
   from_at: string;
@@ -135,6 +148,8 @@ export interface UsageReport {
   by_provider: UsageBucket[];
   books: UsageBook[];
   recent_jobs: UsageJob[];
+  events?: UsageEvent[];
+  events_count?: number;
 }
 
 export interface UploadUrl {

@@ -515,6 +515,14 @@ OPPOSITES_SCENE_EXTRAS = (
     "legendas ou captions na arte."
 )
 
+UNDERWATER_SCENE_EXTRAS = (
+    "Cenario: oceano, recife de coral, areia, bolhas, luz filtrada pela superficie. "
+    "UM animal marinho em destaque por pagina (exceto a pagina final, que junta varios). "
+    "Animais amigaveis, sem sangue nem predacao. Tubarao, orca e agua-viva a distancia segura. "
+    "A crianca e um mergulhador humano, NUNCA sereia. "
+    "NUNCA texto legivel, palavras, legendas ou captions na arte."
+)
+
 
 COSTUME_EXPLORER = (
     "FIGURINO TMT OBRIGATORIO (uma fantasia por livro, igual em todas as paginas): "
@@ -533,6 +541,14 @@ COSTUME_STORYBOOK = (
     "FIGURINO TMT OBRIGATORIO (uma fantasia por livro, igual em todas as paginas): "
     "roupa ilustrada de livro infantil condizente com a cena. "
     "PROIBIDO copiar a roupa da foto ou do avatar-base."
+)
+
+COSTUME_DIVER = (
+    "FIGURINO TMT OBRIGATORIO (uma fantasia por livro, igual em todas as paginas): "
+    "mergulhador infantil — macaquinho ou roupa de mergulho ilustrada, mascara e "
+    "nadadeiras leves, o mesmo em todas as paginas. "
+    "PROIBIDO copiar a roupa da foto ou do avatar-base. "
+    "PROIBIDO transformar a crianca em sereia."
 )
 
 _THEME_COSTUMES: dict[str, str] = {
@@ -583,6 +599,8 @@ def costume_extras_for_template(template_id: str | None) -> str:
         return COSTUME_EXPLORER
     if template_id == "alfabeto_frutas":
         return COSTUME_ORCHARD
+    if template_id == "mergulho_mar":
+        return COSTUME_DIVER
     if template_id in {"numeros_1_15", "cores_basicas", "grande_pequeno"}:
         return COSTUME_STORYBOOK
     return ""
@@ -662,6 +680,8 @@ def scene_extras_for_template(template_id: str | None) -> str:
         extras = COLOR_SCENE_EXTRAS
     elif template_id in OPPOSITES_TEMPLATE_IDS:
         extras = OPPOSITES_SCENE_EXTRAS
+    elif template_id == "mergulho_mar":
+        extras = UNDERWATER_SCENE_EXTRAS
     costume = costume_extras_for_template(template_id)
     if extras and costume:
         return f"{extras} {costume}"
