@@ -62,6 +62,26 @@ const STEPS: { key: "ebook" | "video" | "narrated-video"; label: string; cost: s
 
 type StoryMode = "invent" | "write" | "file" | "catalog";
 
+type StudioAssets = {
+  character_url: string | null;
+  realistic_url: string | null;
+  extra_characters: { name: string; url: string }[];
+  page_images: string[];
+  ebook_url: string | null;
+  video_url: string | null;
+  narrated_video_url: string | null;
+};
+
+function mergeStudioAssets(prev: StudioAssets | null, next: StudioAssets): StudioAssets {
+  if (!prev) return next;
+  const prevPages = prev.page_images ?? [];
+  const nextPages = next.page_images ?? [];
+  return {
+    ...next,
+    page_images: nextPages.length === prevPages.length ? prevPages : nextPages,
+  };
+}
+
 const HOW = [
   "Envie uma foto de frente (um rosto, luz boa).",
   "Aprove o personagem (rosto realista).",
@@ -99,15 +119,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [dedication, setDedication] = useState("");
-  const [assets, setAssets] = useState<{
-    character_url: string | null;
-    realistic_url: string | null;
-    extra_characters: { name: string; url: string }[];
-    page_images: string[];
-    ebook_url: string | null;
-    video_url: string | null;
-    narrated_video_url: string | null;
-  } | null>(null);
+  const [assets, setAssets] = useState<StudioAssets | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
   const [mediaConsent, setMediaConsent] = useState(false);
@@ -151,6 +163,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   }, [isDemo]);
   const [busy, setBusy] = useState(false);
   const pollRef = useRef<number | null>(null);
+  const pollInFlightRef = useRef(false);
   const [voices, setVoices] = useState<UserVoice[]>([]);
   const [customVoiceAvailable, setCustomVoiceAvailable] = useState(false);
   const [selectedVoiceId, setSelectedVoiceId] = useState("");
@@ -188,34 +201,51 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     refreshVoices();
   }, [refreshVoices]);
 
+  const hasActiveJob = jobs.some((j) => j.status === "PENDING" || j.status === "RUNNING");
+
   // Polling do estado enquanto houver job ativo.
   useEffect(() => {
     if (!project || isDemo) return;
-    const active = jobs.some((j) => j.status === "PENDING" || j.status === "RUNNING");
-    if (!active) {
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      // carga final dos resultados quando não há mais job ativo
-      api.getAssets(project.id).then(setAssets).catch(() => {});
-      return;
-    }
-    pollRef.current = window.setInterval(async () => {
+    const projectId = project.id;
+
+    const tick = async () => {
+      if (pollInFlightRef.current) return;
+      pollInFlightRef.current = true;
       try {
-        // Busca os jobs primeiro (é o que avança o estado do projeto no backend)
-        // e só então o projeto, garantindo que leremos o estado já atualizado.
-        const js = await api.listJobs(project.id);
-        const p = await api.getProject(project.id);
+        const js = await api.listJobs(projectId);
+        const p = await api.getProject(projectId);
         setProject(p);
         setJobs(js);
-        api.getAssets(project.id).then(setAssets).catch(() => {});
+        const stillActive = js.some((j) => j.status === "PENDING" || j.status === "RUNNING");
+        api.getAssets(projectId)
+          .then((next) => {
+            setAssets((prev) => (stillActive ? mergeStudioAssets(prev, next) : next));
+          })
+          .catch(() => {});
         refreshCredits();
       } catch {
         /* ignore */
+      } finally {
+        pollInFlightRef.current = false;
       }
+    };
+
+    if (!hasActiveJob) {
+      if (pollRef.current) window.clearInterval(pollRef.current);
+      pollRef.current = null;
+      api.getAssets(projectId).then(setAssets).catch(() => {});
+      return;
+    }
+
+    void tick();
+    pollRef.current = window.setInterval(() => {
+      void tick();
     }, 2500);
     return () => {
       if (pollRef.current) window.clearInterval(pollRef.current);
+      pollRef.current = null;
     };
-  }, [project, jobs, refreshCredits, isDemo]);
+  }, [project?.id, hasActiveJob, refreshCredits, isDemo]);
 
   async function start() {
     if (isDemo) return;
@@ -457,6 +487,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const canMountEbook = photoUploaded && !!project?.story_text && characterApproved;
   const canMakeVideo = bookApproved;
   const locked = busy || isDemo;
+  const ebookRunning = jobs.some(
+    (j) => j.type === "EBOOK" && (j.status === "PENDING" || j.status === "RUNNING"),
+  );
 
   function exitDemo() {
     const url = new URL(window.location.href);
@@ -918,7 +951,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               </div>
             )}
 
-            {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0) && (
+            {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0 || ebookRunning) && (
               <div className="result-block">
                 <h3 className="field-label">E-book</h3>
                 {(assets?.page_images?.length ?? 0) > 0 && (
@@ -930,6 +963,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                         key={i}
                         src={u}
                         alt={`Página ${i + 1}`}
+                        loading="lazy"
                         style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
                       />
                     ))}
@@ -1032,19 +1066,32 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   );
 }
 
-function ProgressList({ jobs }: { jobs: Job[] }) {
+export function ProgressList({ jobs }: { jobs: Job[] }) {
   if (jobs.length === 0) return null;
   return (
     <ul className="jobs">
-      {jobs.map((j) => (
-        <li key={j.id} className={`job ${j.status.toLowerCase()}`}>
-          <span className="dot" />
-          <span className="jtype">{j.type}</span>
-          <span className="jstatus">{j.status}</span>
-          {j.attempts > 1 && <span className="muted">tent. {j.attempts}</span>}
-          {j.error && <span className="error">{j.error}</span>}
-        </li>
-      ))}
+      {jobs.map((j) => {
+        const progress = j.result?.progress;
+        const showPages =
+          j.type === "EBOOK" &&
+          (j.status === "RUNNING" || j.status === "PENDING") &&
+          typeof progress?.done === "number" &&
+          typeof progress?.total === "number";
+        return (
+          <li key={j.id} className={`job ${j.status.toLowerCase()}`}>
+            <span className="dot" />
+            <span className="jtype">{j.type}</span>
+            <span className="jstatus">{j.status}</span>
+            {showPages && (
+              <span className="muted">
+                Ilustrando {progress!.done}/{progress!.total}
+              </span>
+            )}
+            {j.attempts > 1 && <span className="muted">tent. {j.attempts}</span>}
+            {j.error && <span className="error">{j.error}</span>}
+          </li>
+        );
+      })}
     </ul>
   );
 }

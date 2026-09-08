@@ -1523,6 +1523,7 @@ async def _generate_character_bible(
     bible: dict[str, bytes] = {}
     costs: list[float] = []
     refs = [img for img in (photo, avatar) if img]
+    store_lock = asyncio.Lock()
 
     async def _one(kind: AssetKind, prompt: str, extra: list[bytes]) -> None:
         try:
@@ -1541,17 +1542,18 @@ async def _generate_character_bible(
             action="generate_character",
             label=f"Ficha — {kind.value}",
         )
-        costs.append(float(result.cost_usd or 0.0))
-        if lines is not None:
-            lines.extend(lines_of(result))
-        bible[kind.value] = await _store_bible_asset(db, project, kind, result)
+        async with store_lock:
+            costs.append(float(result.cost_usd or 0.0))
+            if lines is not None:
+                lines.extend(lines_of(result))
+            bible[kind.value] = await _store_bible_asset(db, project, kind, result)
 
     await _one(AssetKind.CHARACTER_SHEET, CHARACTER_SHEET_PROMPT, [])
     sheet = bible.get(AssetKind.CHARACTER_SHEET.value)
     extra_sheet = [sheet] if sheet else []
-    await _one(AssetKind.EXPRESSION_SHEET, EXPRESSION_SHEET_PROMPT, extra_sheet)
-    await _one(
-        AssetKind.COSTUME_LOCK, costume_lock_prompt(costume), extra_sheet
+    await asyncio.gather(
+        _one(AssetKind.EXPRESSION_SHEET, EXPRESSION_SHEET_PROMPT, extra_sheet),
+        _one(AssetKind.COSTUME_LOCK, costume_lock_prompt(costume), extra_sheet),
     )
     db.commit()
     return bible, add_usd(*costs)
@@ -1585,6 +1587,25 @@ async def _score_page_face(photo: bytes | None, scene: bytes) -> float | None:
         return None
 
 
+async def _accept_illustrated_page(
+    headed: ImageResult,
+    *,
+    spent_lines: list,
+    style_lock: asyncio.Lock,
+    good_style: list[bytes],
+    last_score: float | None = None,
+) -> ImageResult:
+    async with style_lock:
+        if headed.image_bytes not in good_style:
+            good_style.append(headed.image_bytes)
+    meta = dict(headed.meta or {})
+    meta["usage_lines"] = spent_lines
+    if last_score is not None:
+        meta["face_score"] = last_score
+    headed.meta = meta
+    return headed
+
+
 async def _illustrate_page(
     provider,
     *,
@@ -1599,7 +1620,7 @@ async def _illustrate_page(
     style_lock: asyncio.Lock,
     good_style: list[bytes],
 ) -> ImageResult:
-    """Cena Gemini + cabeca Fal; 1 retry se o juiz recusar o rosto."""
+    """Cena Gemini; Fal só se o juiz achar o rosto fraco. 1 retry se ainda falhar."""
     prompt = build_scene_prompt(
         page=idx,
         text=caption,
@@ -1616,6 +1637,7 @@ async def _illustrate_page(
     last_score: float | None = None
     spent = 0.0
     spent_lines: list = []
+    headed: ImageResult | None = None
 
     for attempt in range(attempts):
         style_ref = None
@@ -1639,37 +1661,86 @@ async def _illustrate_page(
             label=f"Página {idx} — geração" if attempt == 0 else f"Página {idx} — retry",
         )
         headed = scene
-        if photo_bytes:
-            headed = await _refine_identity(provider, photo_bytes, scene, BOOK_STYLE)
-            for line in lines_of(headed):
-                if line.get("action") == "refine_identity":
-                    line["label"] = f"Página {idx} — cabeça Fal"
+        if not judge:
+            spent = add_usd(spent, headed.cost_usd)
+            spent_lines = spent_lines + lines_of(headed)
+            headed.cost_usd = spent
+            return await _accept_illustrated_page(
+                headed,
+                spent_lines=spent_lines,
+                style_lock=style_lock,
+                good_style=good_style,
+            )
+
+        last_score = await _score_page_face(photo_bytes, headed.image_bytes)
+        if last_score is None or last_score >= threshold:
+            spent = add_usd(spent, headed.cost_usd)
+            spent_lines = spent_lines + lines_of(headed)
+            headed.cost_usd = spent
+            return await _accept_illustrated_page(
+                headed,
+                spent_lines=spent_lines,
+                style_lock=style_lock,
+                good_style=good_style,
+                last_score=last_score,
+            )
+
+        headed = await _refine_identity(provider, photo_bytes, headed, BOOK_STYLE)
+        for line in lines_of(headed):
+            if line.get("action") == "refine_identity":
+                line["label"] = f"Página {idx} — cabeça Fal"
         spent = add_usd(spent, headed.cost_usd)
         spent_lines = spent_lines + lines_of(headed)
         headed.cost_usd = spent
-        if not judge:
-            async with style_lock:
-                if headed.image_bytes not in good_style:
-                    good_style.append(headed.image_bytes)
-            meta = dict(headed.meta or {})
-            meta["usage_lines"] = spent_lines
-            headed.meta = meta
-            return headed
         last_score = await _score_page_face(photo_bytes, headed.image_bytes)
         if last_score is None or last_score >= threshold:
-            async with style_lock:
-                if headed.image_bytes not in good_style:
-                    good_style.append(headed.image_bytes)
-            meta = dict(headed.meta or {})
-            meta["usage_lines"] = spent_lines
-            headed.meta = meta
-            return headed
+            return await _accept_illustrated_page(
+                headed,
+                spent_lines=spent_lines,
+                style_lock=style_lock,
+                good_style=good_style,
+                last_score=last_score,
+            )
 
-    meta = dict(headed.meta or {})
-    meta["usage_lines"] = spent_lines
-    meta["face_score"] = last_score
-    headed.meta = meta
-    return headed
+    assert headed is not None
+    return await _accept_illustrated_page(
+        headed,
+        spent_lines=spent_lines,
+        style_lock=style_lock,
+        good_style=good_style,
+        last_score=last_score,
+    )
+
+
+def _clear_page_images(db: Session, project: Project) -> None:
+    old = db.scalars(
+        select(Asset).where(
+            Asset.project_id == project.id,
+            Asset.kind == AssetKind.PAGE_IMAGE.value,
+        )
+    ).all()
+    for asset in old:
+        db.delete(asset)
+
+
+def _set_job_progress(job: Job, *, stage: str, done: int, total: int) -> None:
+    job.result = {
+        **(job.result or {}),
+        "progress": {"stage": stage, "done": done, "total": total},
+    }
+
+
+def _persist_page_image(
+    db: Session, project: Project, idx: int, scene: ImageResult
+) -> None:
+    img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
+    storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
+    db.add(Asset(
+        project_id=project.id,
+        kind=AssetKind.PAGE_IMAGE.value,
+        storage_key=img_key,
+        meta={"page": idx},
+    ))
 
 
 # --------------------------------------------------------------------------- #
@@ -1758,9 +1829,21 @@ async def handle_ebook(db: Session, job: Job) -> None:
             work.append((idx, caption, brief, layout))
 
     generated: dict[int, ImageResult] = {}
+    persist_lock = asyncio.Lock()
+    _clear_page_images(db, project)
+    _set_job_progress(job, stage="pages", done=0, total=len(work))
+    db.commit()
+
+    async def _store_finished(idx: int, result: ImageResult) -> None:
+        async with persist_lock:
+            generated[idx] = result
+            _persist_page_image(db, project, idx, result)
+            _set_job_progress(job, stage="pages", done=len(generated), total=len(work))
+            db.commit()
+
     if settings.offline_fallback:
         for idx, caption, _brief, _layout in work:
-            generated[idx] = ImageResult(
+            result = ImageResult(
                 image_bytes=_offline_png(
                     f"Pagina {idx}: {caption[:28]}",
                     palette=((233, 242, 255), (255, 255, 255)),
@@ -1768,6 +1851,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
                 mime_type="image/png",
                 cost_usd=0.0,
             )
+            await _store_finished(idx, result)
     else:
         sem = asyncio.Semaphore(max(1, settings.ebook_page_concurrency))
         style_lock = asyncio.Lock()
@@ -1794,10 +1878,10 @@ async def handle_ebook(db: Session, job: Job) -> None:
                     style_lock=style_lock,
                     good_style=good_style,
                 )
+            await _store_finished(idx, result)
             return idx, result
 
-        done = await asyncio.gather(*[_one(item) for item in work])
-        generated = {idx: result for idx, result in done}
+        await asyncio.gather(*[_one(item) for item in work])
 
     pages: list[dict] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
@@ -1806,21 +1890,12 @@ async def handle_ebook(db: Session, job: Job) -> None:
             pages.append({"text": caption, "image": None, "layout": "dedication"})
             continue
         scene = generated[idx]
-        img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
-        storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
-        db.add(Asset(
-            project_id=project.id,
-            kind=AssetKind.PAGE_IMAGE.value,
-            storage_key=img_key,
-            meta={"page": idx},
-        ))
         pages.append({
             "text": caption,
             "image": scene.image_bytes,
             "mime": scene.mime_type,
             "layout": layout,
         })
-    db.commit()
 
     name = (project.child_name or "").strip()
     is_en = (language or "").lower().startswith("en")
