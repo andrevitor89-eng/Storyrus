@@ -25,7 +25,7 @@
 .kid h1, .kid h2, .kid h3, .kid .kbtn { font-family: 'Baloo 2', cursive; }
 
 /* ---------- céu decorativo (estrelas + luas SVG) ---------- */
-.sky { position: absolute; inset: 0; pointer-events: none; overflow: hidden; z-index: 0; }
+.sky { display: none; }
 .dstar { position: absolute; width: 26px; height: 26px; color: var(--yellow); animation: twinkle 3.2s ease-in-out infinite; }
 .d1 { top: 120px; left: 16%; } .d2 { top: 90px; right: 20%; color: var(--blue); animation-delay: .7s; }
 .d3 { top: 260px; right: 10%; color: var(--coral); width: 30px; height: 30px; animation-delay: 1.3s; }
@@ -1025,9 +1025,7 @@
 .kid {
   --ink: #e9eefb;
   color: #e9eefb;
-  background:
-    radial-gradient(1200px 540px at 50% -160px, #17264d 0%, transparent 72%),
-    linear-gradient(180deg, #0e1832 0%, #0b1226 55%, #0a1022 100%);
+  background: #0b1226;
 }
 .kid .ksub, .kid .klead, .kid .ktrust, .kid .flow-step p, .kid .kcard p,
 .kid .fb-hint, .kid .kfoot-tag { color: #9fabce; }
