@@ -206,29 +206,31 @@
 
 /* ---------- HERO — livro grande (retrato), não banner full-bleed ---------- */
 .kbanner-hero {
-  position: relative; z-index: 1; max-width: none; width: 100%; margin: 6px auto 0;
-  padding: 18px var(--page-gutter) 8px; display: flex; flex-direction: column; align-items: center; gap: 18px;
+  position: relative; z-index: 1; max-width: var(--page-max); width: 100%; margin: 4px auto 0;
+  padding: 8px var(--page-gutter) 6px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  box-sizing: border-box;
 }
 .khero-intro {
-  text-align: center; width: 100%; max-width: none;
+  text-align: center; width: 100%; max-width: 100%;
 }
-.khero-intro h1 { font-size: clamp(1.7rem, 2.8vw, 2.7rem); line-height: 1.16; margin: 14px 0 10px; }
-.khero-intro .klead { margin-inline: auto; max-width: 72ch; }
-.khero-intro .khero-cta { justify-content: center; }
+.khero-intro h1 { font-size: clamp(1.55rem, 2.4vw, 2.35rem); line-height: 1.18; margin: 8px 0 6px; }
+.khero-intro .klead { margin: 0 auto; max-width: 100%; }
+.khero-intro .khero-cta { justify-content: center; margin: 10px 0 0; }
 .khero-feats {
-  list-style: none; margin: 16px auto 0; padding: 0;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 8px 28px;
-  max-width: 48rem; text-align: left;
+  list-style: none; margin: 10px auto 0; padding: 0;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 22px;
+  width: 100%; max-width: 100%; text-align: left;
 }
 .khero-feats li {
   display: flex; align-items: center; gap: 8px;
   font-weight: 700; font-size: .98rem; color: #cfe2ff;
+  white-space: nowrap;
 }
 .khero-feats .ni { width: 18px; height: 18px; color: var(--yellow); flex: none; }
-.khero-close { margin: 16px 0 0; font-weight: 600; color: #b9c3e2; }
-.khero-sign { margin: 6px 0 0; font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; }
+.khero-close { margin: 8px 0 0; font-weight: 600; color: #b9c3e2; }
+.khero-sign { margin: 2px 0 0; font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; }
 .kbh-frame {
-  position: relative; width: min(520px, 92vw); border-radius: 14px 6px 6px 14px;
+  position: relative; width: min(400px, 70vw, calc(50dvh * 3 / 4)); border-radius: 14px 6px 6px 14px;
   overflow: hidden; aspect-ratio: 3 / 4; background: #12203f;
   box-shadow:
     0 28px 60px rgba(31,53,104,.32),
@@ -649,7 +651,7 @@
 /* ---------- Como funciona com exemplos ---------- */
 .howex {
   display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch;
-  gap: 8px; max-width: 100%; margin: 0 auto;
+  gap: 8px; width: 100%; max-width: 100%; margin: 0 auto; min-width: 0;
 }
 .howex-card {
   position: relative; min-width: 0; margin: 0; background: #172140; border-radius: 22px; overflow: hidden;
@@ -996,7 +998,8 @@
   .kmobile-subs-inner a {
     padding: 8px 6px; color: #3a4a78; text-decoration: none; font-weight: 700; font-size: .92rem;
   }
-  .khero-feats { grid-template-columns: 1fr; max-width: 22rem; }
+  .khero-feats { justify-content: center; gap: 8px 18px; }
+  .khero-feats li { white-space: normal; }
   .klinks {
     position: absolute; top: calc(100% + 8px); right: 14px; left: 14px; flex-direction: column; align-items: stretch;
     background: #172140; border-radius: 22px; padding: 14px; gap: 8px; box-shadow: 0 16px 40px rgba(0,0,0,.15);
