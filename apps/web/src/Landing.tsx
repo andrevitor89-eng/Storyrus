@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import logo from "./assets/logo.png";
+import logo from "./assets/logo.svg";
 import "./landing.css";
 
 type Lang = "pt" | "en" | "es";

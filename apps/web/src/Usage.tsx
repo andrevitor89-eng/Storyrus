@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import logo from "./assets/logo.png";
+import logo from "./assets/logo.svg";
 import { api } from "./api";
 import type { UsageEvent, UsageReport } from "./types";
 import "./usage.css";

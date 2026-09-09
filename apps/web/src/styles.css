@@ -67,7 +67,7 @@ body {
   box-shadow: var(--shadow-sm);
 }
 .hdr-logo {
-  height: 50px;
+  height: 58px;
   width: auto;
   background: #fff;
   border-radius: 12px;
@@ -198,9 +198,7 @@ input[type="file"] { background: #101a34; }
 .credits { background: #101a34; border-color: var(--line); color: var(--navy); }
 button.chip { background: #17213f; border-color: var(--line); color: var(--txt); }
 button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
-/* logo sem selo: fundo do site + contorno branco ao redor das imagens */
-.auth-logo, .hdr-logo { background: none; box-shadow: none; padding: 0;
-  filter: drop-shadow(0.7px 0 0 #fff) drop-shadow(-0.7px 0 0 #fff) drop-shadow(0 0.7px 0 #fff) drop-shadow(0 -0.7px 0 #fff); }
+.auth-logo, .hdr-logo { background: none; box-shadow: none; padding: 0; }
 
 /* ===== TEMA CLARO (studio) — o escuro é o padrão ===== */
 html[data-theme="light"] {
