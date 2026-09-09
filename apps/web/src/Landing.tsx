@@ -169,7 +169,7 @@ function megaHref(item: { tema?: string; href?: string }) {
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-dino.jpg", "capa-dino2.jpg"];
 /* passo 3: começa na capa e folheia páginas internas (sem a 2ª) */
-const HOW_OPEN_BOOK = ["capa-dino2.jpg", "dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"];
+const HOW_OPEN_BOOK = ["capa-dino2.jpg", "personagem-dino.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -390,18 +390,12 @@ function FlipBook({
   compact = false,
   coverTitle,
   coverTitleLines,
-  coverPhoto,
-  coverPhotoPos,
-  coverPhotoAlt,
   labels,
 }: {
   pages: string[];
   compact?: boolean;
   coverTitle?: string;
   coverTitleLines?: readonly string[];
-  coverPhoto?: string;
-  coverPhotoPos?: string;
-  coverPhotoAlt?: string;
   labels?: { prev: string; next: string; turn: string; cover: string };
 }) {
   const [i, setI] = useState(0);
@@ -444,7 +438,6 @@ function FlipBook({
     ? coverTitleLines
     : (coverTitle ? [coverTitle] : null);
   const showCoverTitle = Boolean(titleLines) && i === 0 && !anim;
-  const showCoverPhoto = Boolean(coverPhoto) && i === 0 && !anim;
   const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -479,16 +472,6 @@ function FlipBook({
               <span key={line}>{line}</span>
             ))}
           </span>
-        )}
-        {showCoverPhoto && coverPhoto && (
-          <figure className="fb-cover-photo">
-            <img
-              src={exUrl(coverPhoto)}
-              alt={coverPhotoAlt ?? ""}
-              loading="lazy"
-              style={coverPhotoPos ? { objectPosition: coverPhotoPos } : undefined}
-            />
-          </figure>
         )}
         <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
       </div>
@@ -1083,17 +1066,26 @@ export function Landing() {
               </figure>
             </div>
           ))}
-          <div className="ba-dots kbh-dots">
-            {HERO_SLIDES.map((_, i) => (
-              <button
-                key={i}
-                className={i === heroI ? "on" : ""}
-                onClick={() => setHeroI(i)}
-                aria-label={`${t.a11y_slide} ${i + 1}`}
-                aria-current={i === heroI}
-              />
-            ))}
-          </div>
+        </div>
+        <div className="kbh-thumbs" role="tablist" aria-label={t.cat_title}>
+          {HERO_SLIDES.map((s, i) => (
+            <button
+              key={s.book}
+              type="button"
+              role="tab"
+              className={`kbh-thumb${i === heroI ? " on" : ""}`}
+              onClick={() => setHeroI(i)}
+              aria-label={t.catalog[s.catalogI].t}
+              aria-selected={i === heroI}
+            >
+              <img src={exUrl(s.book)} alt="" />
+              <span className="kbh-thumb-title" aria-hidden>
+                {s.titleLines[lang].map((line) => (
+                  <span key={line}>{line}</span>
+                ))}
+              </span>
+            </button>
+          ))}
         </div>
         <p className="khero-sign">{t.hero_sign}</p>
         <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
@@ -1114,9 +1106,6 @@ export function Landing() {
                       compact
                       coverTitle={t.catalog[2].t}
                       coverTitleLines={CATALOG_TITLE_LINES[2][lang]}
-                      coverPhoto="personagem-dino.jpg"
-                      coverPhotoPos="center center"
-                      coverPhotoAlt={t.hiw[1].t}
                       labels={flipLabels}
                     />
                   </div>
