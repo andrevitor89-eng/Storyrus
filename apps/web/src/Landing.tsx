@@ -390,12 +390,18 @@ function FlipBook({
   compact = false,
   coverTitle,
   coverTitleLines,
+  coverPhoto,
+  coverPhotoPos,
+  coverPhotoAlt,
   labels,
 }: {
   pages: string[];
   compact?: boolean;
   coverTitle?: string;
   coverTitleLines?: readonly string[];
+  coverPhoto?: string;
+  coverPhotoPos?: string;
+  coverPhotoAlt?: string;
   labels?: { prev: string; next: string; turn: string; cover: string };
 }) {
   const [i, setI] = useState(0);
@@ -438,6 +444,7 @@ function FlipBook({
     ? coverTitleLines
     : (coverTitle ? [coverTitle] : null);
   const showCoverTitle = Boolean(titleLines) && i === 0 && !anim;
+  const showCoverPhoto = Boolean(coverPhoto) && i === 0 && !anim;
   const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -472,6 +479,16 @@ function FlipBook({
               <span key={line}>{line}</span>
             ))}
           </span>
+        )}
+        {showCoverPhoto && coverPhoto && (
+          <figure className="fb-cover-photo">
+            <img
+              src={exUrl(coverPhoto)}
+              alt={coverPhotoAlt ?? ""}
+              loading="lazy"
+              style={coverPhotoPos ? { objectPosition: coverPhotoPos } : undefined}
+            />
+          </figure>
         )}
         <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
       </div>
@@ -1089,7 +1106,7 @@ export function Landing() {
         <div className="howex">
           {t.hiw.map((h, i) => (
             <Fragment key={h.t}>
-              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 2 ? " howex-card-book" : ""}`}>
+              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-book" : ""}`}>
                 {i === 2 ? (
                   <div className="howex-book">
                     <FlipBook
@@ -1097,6 +1114,9 @@ export function Landing() {
                       compact
                       coverTitle={t.catalog[2].t}
                       coverTitleLines={CATALOG_TITLE_LINES[2][lang]}
+                      coverPhoto="personagem-dino.jpg"
+                      coverPhotoPos="center center"
+                      coverPhotoAlt={t.hiw[1].t}
                       labels={flipLabels}
                     />
                   </div>
