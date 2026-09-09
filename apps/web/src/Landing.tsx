@@ -842,12 +842,6 @@ export function Landing() {
     })),
   ];
 
-  // Auto-avanço do carrossel do hero
-  useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setInterval(() => setHeroI((v) => (v + 1) % HERO_SLIDES.length), 5200);
-    return () => clearInterval(id);
-  }, []);
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
   useEffect(() => {
@@ -1028,7 +1022,7 @@ export function Landing() {
         </nav>
       </header>
 
-      {/* HERO — proposta de valor + livro grande */}
+      {/* HERO — proposta de valor + 3 capas */}
       <section className="kbanner-hero" aria-label={t.eyebrow}>
         <div className="khero-intro">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
@@ -1037,35 +1031,6 @@ export function Landing() {
           <div className="khero-cta">
             <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
           </div>
-        </div>
-        <div className="kbh-frame">
-          {HERO_SLIDES.map((s, i) => (
-            <div className={`kbh-slide${i === heroI ? " on" : ""}`} key={s.book} aria-hidden={i !== heroI}>
-              <img
-                className="kbh-photo"
-                src={exUrl(s.book)}
-                alt={t.catalog[s.catalogI].t}
-                loading={i === 0 ? "eager" : "lazy"}
-                style={s.bookPos ? { objectPosition: s.bookPos } : undefined}
-              />
-              <span className="kbh-cover-title" aria-hidden>
-                {s.titleLines[lang].map((line) => (
-                  <span key={line}>{line}</span>
-                ))}
-              </span>
-              <span className="kbh-tag">
-                <span className="kbh-tag-top"><IcEye className="ei" /> {t.ba_preview}</span>
-              </span>
-              <figure className="kbh-book">
-                <img
-                  src={exUrl(s.photo)}
-                  alt={t.photo_real_alt}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  style={s.photoPos ? { objectPosition: s.photoPos } : undefined}
-                />
-              </figure>
-            </div>
-          ))}
         </div>
         <div className="kbh-thumbs" role="tablist" aria-label={t.cat_title}>
           {HERO_SLIDES.map((s, i) => (
@@ -1078,7 +1043,12 @@ export function Landing() {
               aria-label={t.catalog[s.catalogI].t}
               aria-selected={i === heroI}
             >
-              <img src={exUrl(s.book)} alt="" />
+              <img
+                src={exUrl(s.book)}
+                alt=""
+                loading="eager"
+                style={s.bookPos ? { objectPosition: s.bookPos } : undefined}
+              />
               <span className="kbh-thumb-title" aria-hidden>
                 {s.titleLines[lang].map((line) => (
                   <span key={line}>{line}</span>
