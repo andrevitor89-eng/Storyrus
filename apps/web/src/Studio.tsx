@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "./api";
 import type { ExtraCharacter, Job, Project, StoryTemplate, Theme, UserVoice } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
-import logo from "./assets/logo.svg";
+import logo from "./assets/logo.png";
 
 const ART_STYLE_LABEL: Record<string, string> = {
   cgi_3d: "Rosto realista",
