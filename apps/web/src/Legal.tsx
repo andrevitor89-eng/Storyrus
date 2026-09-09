@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "./assets/logo.png";
+import logo from "./assets/logo.svg";
 import "./landing.css";
 
 const CONTACT = "Storyrus@outlook.com";
