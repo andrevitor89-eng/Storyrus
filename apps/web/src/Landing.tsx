@@ -42,7 +42,6 @@ const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "Storyrus@outlook.com";
 const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
-const HERO_FEAT_ICONS = [IcBook, IcSparkle, IcGift, IcPlay];
 
 type CoverFont = "fredoka" | "baloo" | "lilita";
 const COVER_FONTS: { id: CoverFont; label: string }[] = [
@@ -495,8 +494,6 @@ const I18N = {
     eyebrow: "Eternize momentos. Presenteie familiares com uma história única.",
     h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: "!",
     lead: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele.",
-    hero_feats: ["História personalizada", "Personagem inspirado na foto", "Livro digital em PDF", "Vídeo com a história narrada"],
-    hero_close: "Mais do que um presente, uma lembrança para guardar para sempre.",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
     cta_play: "Criar minha história", cta_disc: "Ver como funciona",
     trust: "Encantando famílias do início ao fim",
@@ -602,8 +599,6 @@ const I18N = {
     eyebrow: "Preserve moments. Gift your family a one-of-a-kind story.",
     h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: "!",
     lead: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them.",
-    hero_feats: ["Personalized story", "Character inspired by the photo", "Digital PDF book", "Narrated story video"],
-    hero_close: "More than a gift — a keepsake to hold forever.",
     hero_sign: "One photo. One story. One lasting memory.",
     cta_play: "Create my story", cta_disc: "See how it works",
     trust: "Delighting families from start to finish",
@@ -709,8 +704,6 @@ const I18N = {
     eyebrow: "Eterniza momentos. Regala a tu familia una historia única.",
     h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: "!",
     lead: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él.",
-    hero_feats: ["Historia personalizada", "Personaje inspirado en la foto", "Libro digital en PDF", "Video con la historia narrada"],
-    hero_close: "Más que un regalo, un recuerdo para guardar para siempre.",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
     cta_play: "Crear mi historia", cta_disc: "Ver cómo funciona",
     trust: "Encantando a las familias de principio a fin",
@@ -1001,7 +994,8 @@ export function Landing() {
             <div className="khead-links">
               <Link to="/app">{t.my_books}</Link>
               <a href="#promessa">{t.our_story}</a>
-              <a href="#catalogo" className="kbtn kbtn-go">{t.see_all_books}</a>
+              <a href="#catalogo">{t.see_all_books}</a>
+              <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
             </div>
           </div>
         </div>
@@ -1029,7 +1023,8 @@ export function Landing() {
           ))}
           <Link to="/app" onClick={closeNav}>{t.my_books}</Link>
           <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
-          <a href="#catalogo" className="kbtn kbtn-go" onClick={closeNav}>{t.see_all_books}</a>
+          <a href="#catalogo" onClick={closeNav}>{t.see_all_books}</a>
+          <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
       </header>
 
@@ -1039,17 +1034,8 @@ export function Landing() {
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <p className="klead">{t.lead}</p>
-          <ul className="khero-feats">
-            {t.hero_feats.map((f, i) => {
-              const Icon = HERO_FEAT_ICONS[i];
-              return (<li key={f}><Icon className="ni" />{f}</li>);
-            })}
-          </ul>
-          <p className="khero-close">{t.hero_close}</p>
-          <p className="khero-sign">{t.hero_sign}</p>
           <div className="khero-cta">
             <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-            <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
           </div>
         </div>
         <div className="kbh-frame">
@@ -1092,6 +1078,8 @@ export function Landing() {
             ))}
           </div>
         </div>
+        <p className="khero-sign">{t.hero_sign}</p>
+        <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
       </section>
 
       {/* COMO FUNCIONA */}
