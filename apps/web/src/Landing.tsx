@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -42,6 +42,8 @@ const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "Storyrus@outlook.com";
 const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
+const FLIP_MS = 600;
+const FLIP_AUTO_MS = 2000;
 
 type CoverFont = "fredoka" | "baloo" | "lilita";
 
@@ -306,6 +308,84 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   );
 }
 
+function FlipBook({
+  pages,
+  compact = false,
+  labels,
+}: {
+  pages: string[];
+  compact?: boolean;
+  labels?: { prev: string; next: string; turn: string; cover: string };
+}) {
+  const [i, setI] = useState(0);
+  const [anim, setAnim] = useState<"next" | "prev" | null>(null);
+  const [target, setTarget] = useState(0);
+  const [hover, setHover] = useState(false);
+  const busy = useRef(false);
+  const flip = (dir: "next" | "prev", loop = false) => {
+    if (busy.current || pages.length < 2) return;
+    let t = dir === "next" ? i + 1 : i - 1;
+    if (t >= pages.length) { if (!loop) return; t = 0; }
+    if (t < 0) return;
+    busy.current = true;
+    setTarget(t);
+    setAnim(dir);
+    window.setTimeout(() => {
+      setI(t);
+      setAnim(null);
+      busy.current = false;
+    }, FLIP_MS);
+  };
+  useEffect(() => {
+    if (!hover) return;
+    const id = window.setTimeout(() => flip("next", true), FLIP_AUTO_MS);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i, pages.length, hover]);
+  useEffect(() => {
+    if (hover) return;
+    busy.current = false;
+    setAnim(null);
+    setI(0);
+    setTarget(0);
+  }, [hover]);
+  const underSrc = anim === "next" ? pages[target] : pages[i];
+  const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
+  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
+  const onStage = (e: RMouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
+  };
+  const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
+      e.preventDefault();
+      flip("next", true);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      flip("prev");
+    }
+  };
+  return (
+    <div
+      className={`flipbook${compact ? " flipbook-mini" : ""}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label={L.prev}>‹</button>}
+      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={L.turn}>
+        <span className="fb-spine" />
+        <img className="fb-page fb-under" src={exUrl(underSrc)} alt="" aria-hidden />
+        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
+          <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
+          <span className="fb-leaf-shade" aria-hidden />
+        </div>
+        <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
+      </div>
+      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
+    </div>
+  );
+}
+
 const I18N = {
   pt: {
     nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
@@ -383,7 +463,7 @@ const I18N = {
     book_badge: "Exemplo real",
     story_title: "Folheie nossos livros",
     story_sub: "Livros criados pela plataforma a partir de uma única foto — escolha um exemplo.",
-    story_hint: "A foto vira o protagonista da página.",
+    story_hint: "Clique nas laterais do livro (ou use as setas) para virar as páginas.",
     chloe_title: "A História de Chloe",
     fmt_title: "Escolha o formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
@@ -515,7 +595,7 @@ const I18N = {
     book_badge: "Real example",
     story_title: "Flip through our books",
     story_sub: "Books created by the platform from a single photo — pick an example.",
-    story_hint: "The photo becomes the hero of the page.",
+    story_hint: "Click the sides of the book (or use the arrows) to turn the pages.",
     chloe_title: "Chloe's Story",
     fmt_title: "Choose the format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
@@ -647,7 +727,7 @@ const I18N = {
     book_badge: "Ejemplo real",
     story_title: "Hojea nuestros libros",
     story_sub: "Libros creados por la plataforma a partir de una sola foto — elige un ejemplo.",
-    story_hint: "La foto se convierte en el protagonista de la página.",
+    story_hint: "Haz clic en los laterales del libro (o usa las flechas) para pasar las páginas.",
     chloe_title: "La Historia de Chloe",
     fmt_title: "Elige el formato", fmt_sub: "Del mismo personaje, tres formas de guardar la historia.",
     formats: [
@@ -735,8 +815,9 @@ export function Landing() {
   const exampleBooks = t.catalog.map((c, i) => ({
     title: c.t,
     cover: CATALOG_IMGS[i],
-    page: CATALOG_PAGES[i],
+    pages: [CATALOG_IMGS[i], CATALOG_PAGES[i]],
   }));
+  const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
     color: NAV_CAT_META[i].color,
@@ -1065,11 +1146,11 @@ export function Landing() {
             </button>
           ))}
         </div>
-        <div className="reveal ex-spread-wrap" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
-          <img
-            className="ex-spread"
-            src={exUrl(exampleBooks[exBook].page)}
-            alt={exampleBooks[exBook].title}
+        <div className="reveal" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
+          <FlipBook
+            key={exBook}
+            pages={exampleBooks[exBook].pages}
+            labels={flipLabels}
           />
         </div>
         <p className="fb-hint reveal">{t.story_hint}</p>
@@ -1078,8 +1159,10 @@ export function Landing() {
       {/* BANNERS NARRATIVOS — abaixo do folheie */}
       <section className="banners">
         {t.banners.map((b, i) => (
-          <figure className="banner-card studio-cover reveal" key={b.t}>
-            <img src={exUrl(BANNER_IMGS[i])} alt={b.t} loading="lazy" />
+          <figure className="banner-card reveal" key={b.t} style={{ background: BOOK3D[i].bg }}>
+            <span className="banner-book">
+              <img src={exUrl(BANNER_IMGS[i])} alt={b.t} loading="lazy" />
+            </span>
             <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
           </figure>
         ))}
