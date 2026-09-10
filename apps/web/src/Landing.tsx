@@ -46,7 +46,7 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 type CoverFont = "fredoka" | "baloo" | "lilita";
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "pagina-sofia-alfabeto.jpg"];
+const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -63,11 +63,11 @@ const BOOK3D = [
   { bg: "#d4e8f6" },
 ];
 const BANNER_IMGS = ["capa-sofia-alfabeto.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
-const VIDEO_IMGS = ["pagina-sofia-alfabeto.jpg", "pagina-bruno-animais.jpg", "pagina-cristobal-esporte.jpg"];
-const VIDEO_SRCS: (string | null)[] = [null, null, null];
+const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 const HERO_SLIDES: { book: string; catalogI: number }[] = [
-  { book: "capa-bruno-animais.jpg", catalogI: 1 },
   { book: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+  { book: "capa-bruno-animais.jpg", catalogI: 1 },
   { book: "capa-cristobal-esporte.jpg", catalogI: 2 },
 ];
 const NAV_CAT_META = [
@@ -375,9 +375,9 @@ const I18N = {
     vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
-      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas, com trilha suave." },
-      { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza com amigos do reino animal." },
-      { t: "Cristobal e seu Esporte Favorito", p: "Equilíbrio, coragem e o rio como pista de aventura." },
+      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
+      { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
+      { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
     ],
     vid_soon: "Em breve",
     book_badge: "Exemplo real",
@@ -507,9 +507,9 @@ const I18N = {
     vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
-      { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries, with a soft soundtrack." },
-      { t: "Bruno on an Animal Adventure", p: "A journey through nature with friends from the animal kingdom." },
-      { t: "Cristobal and His Favorite Sport", p: "Balance, courage and the river as a track for adventure." },
+      { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
+      { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
+      { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
     ],
     vid_soon: "Coming soon",
     book_badge: "Real example",
@@ -639,9 +639,9 @@ const I18N = {
     vid_title: "Videos narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear mi video",
     videos: [
-      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos, con una banda suave." },
-      { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza con amigos del reino animal." },
-      { t: "Cristobal y su deporte favorito", p: "Equilibrio, coraje y el río como pista de aventura." },
+      { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
+      { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
+      { t: "Matteo y el Mundo de los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
     ],
     vid_soon: "Pronto",
     book_badge: "Ejemplo real",
@@ -867,7 +867,6 @@ export function Landing() {
               </nav>
               <div className="khead-links">
                 <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
-                <a href="#catalogo" onClick={closeNav}>{t.see_all_books}</a>
                 <Link to="/app" className="kbtn kbtn-primary">{t.cta_story}</Link>
               </div>
             </div>
@@ -896,7 +895,6 @@ export function Landing() {
             </div>
           ))}
           <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
-          <a href="#catalogo" onClick={closeNav}>{t.see_all_books}</a>
           {t.nav.map((label, i) => (
             <a key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
           ))}
@@ -908,11 +906,8 @@ export function Landing() {
       {/* HERO — proposta de valor + 3 capas */}
       <section className="kbanner-hero" aria-label={t.eyebrow}>
         <div className="khero-intro">
-          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
-          <div className="khero-cta">
-            <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-          </div>
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
         </div>
         <div className="kbh-thumbs" role="tablist" aria-label={t.cat_title}>
           {HERO_SLIDES.map((s, i) => (
@@ -924,8 +919,9 @@ export function Landing() {
               onClick={() => setHeroI(i)}
               aria-label={t.catalog[s.catalogI].t}
               aria-selected={i === heroI}
+              style={{ background: BOOK3D[s.catalogI].bg }}
             >
-              <span className="studio-cover">
+              <span className="kbh-book-wrap">
                 <img
                   src={exUrl(s.book)}
                   alt=""
