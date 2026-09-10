@@ -405,7 +405,7 @@ async def test_no_image_without_reason_keeps_generic_message():
 
 
 @pytest.mark.asyncio
-async def test_scene_with_photo_sends_two_images():
+async def test_scene_ignores_photo_and_anchors_on_avatar():
     _FakeAsyncClient.script = [_FakeResponse(200, _ok_body(b"scene"))]
     provider = nb.NanoBananaImageProvider(api_key="test-key")
     result = await provider.generate_scene(
@@ -417,9 +417,9 @@ async def test_scene_with_photo_sends_two_images():
     assert result.image_bytes == b"scene"
     payload = _FakeAsyncClient.instances[0].posts[0]["json"]
     parts = payload["contents"][0]["parts"]
-    assert sum(1 for p in parts if "inline_data" in p) == 2
+    assert sum(1 for p in parts if "inline_data" in p) == 1
     text = parts[0]["text"]
-    assert "FOTO real" in text
+    assert "FOTO real" not in text
     assert "AVATAR" in text
 
 
@@ -437,6 +437,24 @@ async def test_scene_with_extra_refs_appends_images():
     assert result.image_bytes == b"scene"
     payload = _FakeAsyncClient.instances[0].posts[0]["json"]
     parts = payload["contents"][0]["parts"]
-    assert sum(1 for p in parts if "inline_data" in p) == 4
+    assert sum(1 for p in parts if "inline_data" in p) == 3
     text = parts[0]["text"]
     assert "FIGURINO LOCK" in text
+    assert "FOTO real" not in text
+
+
+@pytest.mark.asyncio
+async def test_generate_character_without_refs_is_prompt_only():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_body(b"body"))]
+    provider = nb.NanoBananaImageProvider(api_key="test-key")
+    result = await provider.generate_character(
+        prompt="corpo generico", reference_images=[], style="tmt"
+    )
+
+    assert result.image_bytes == b"body"
+    payload = _FakeAsyncClient.instances[0].posts[0]["json"]
+    parts = payload["contents"][0]["parts"]
+    assert len(parts) == 1
+    assert "inline_data" not in parts[0]
+    assert "RECORTE do rosto" not in parts[0]["text"]
+    assert "corpo generico" in parts[0]["text"]

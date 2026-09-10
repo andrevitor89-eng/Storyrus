@@ -73,6 +73,8 @@ def _fake_http(monkeypatch):
         return None
 
     monkeypatch.setattr(fd.asyncio, "sleep", _no_sleep)
+    # Suite nao baixa buffalo_l: tighten sem overlap = caixa Gemini intacta.
+    monkeypatch.setattr(fd, "face_boxes", lambda _p: [])
     _Client.reply = None
     _Client.script = []
     _Client.posts = 0
@@ -170,3 +172,44 @@ async def test_identity_images_uses_the_detected_crop():
     assert refs[1] == photo
     # Caixa de 200x240 px + folga de 12% (24 em x, 28 em y) em cada lado.
     assert Image.open(BytesIO(refs[0])).size == (248, 296)
+
+
+@pytest.mark.asyncio
+async def test_face_reference_composites_sam_mask(monkeypatch):
+    _Client.reply = _Resp(200, _reply([100, 250, 500, 750]))
+    photo = _png(400, 600)
+
+    async def fake_sam(_photo, box):
+        mask = Image.new("L", (400, 600), 0)
+        left, top, right, bottom = box
+        for x in range(left, right):
+            for y in range(top, bottom):
+                mask.putpixel((x, y), 255)
+        buf = BytesIO()
+        mask.save(buf, format="PNG")
+        return buf.getvalue()
+
+    monkeypatch.setattr(fd, "segment_head_mask", fake_sam)
+    crop = await fd.face_reference(photo)
+    assert Image.open(BytesIO(crop)).size == (248, 296)
+
+
+def test_box_iou_empty_and_full():
+    a = (0, 0, 100, 100)
+    assert fd.box_iou(a, a) == 1.0
+    assert fd.box_iou(a, (200, 200, 300, 300)) == 0.0
+    assert 0.1 < fd.box_iou(a, (50, 50, 150, 150)) < 0.2
+
+
+def test_tighten_box_uses_overlapping_face(monkeypatch):
+    monkeypatch.setattr(
+        fd, "face_boxes", lambda _p: [(50, 50, 90, 100), (200, 200, 380, 380)]
+    )
+    gemini = (40, 40, 100, 110)
+    assert fd.tighten_box(b"x", gemini) == (50, 50, 90, 100)
+
+
+def test_tighten_box_keeps_gemini_when_no_overlap(monkeypatch):
+    monkeypatch.setattr(fd, "face_boxes", lambda _p: [(300, 300, 380, 380)])
+    gemini = (10, 10, 80, 80)
+    assert fd.tighten_box(b"x", gemini) == gemini

@@ -16,6 +16,7 @@ import httpx
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.gemini_api import ssl_verify
 from app.config import settings
+from app.observability.opik_trace import track, update_span
 
 logger = logging.getLogger(__name__)
 
@@ -70,23 +71,50 @@ def _result_image_url(raw: Any) -> str | None:
     return None
 
 
+def _shrink_for_swap(data: bytes, *, max_side: int = 768) -> bytes:
+    """JPEG <= max_side para o face-swap nao mandar PNG 2K em data-URI."""
+    try:
+        from io import BytesIO
+
+        from PIL import Image
+
+        im = Image.open(BytesIO(data)).convert("RGB")
+        im.thumbnail((max_side, max_side))
+        buf = BytesIO()
+        im.save(buf, format="JPEG", quality=85)
+        return buf.getvalue()
+    except Exception:  # noqa: BLE001 - bytes invalidos nos testes / fallback
+        return data
+
+
 def _subscribe(endpoint: str, arguments: dict) -> dict:
     from fal_client.client import USER_AGENT, SyncClient
 
+    if endpoint == settings.fal_refine_endpoint:
+        timeout = settings.fal_swap_timeout_s
+    elif endpoint == settings.fal_sam_endpoint:
+        timeout = settings.fal_sam_timeout_s
+    else:
+        timeout = settings.fal_timeout_s
     os.environ["FAL_KEY"] = settings.fal_key or ""
-    client = SyncClient(key=settings.fal_key, default_timeout=settings.fal_timeout_s)
+    client = SyncClient(key=settings.fal_key, default_timeout=timeout)
     http = httpx.Client(
         headers={
             "Authorization": client._auth.header_value,
             "User-Agent": USER_AGENT,
         },
-        timeout=settings.fal_timeout_s,
+        timeout=timeout,
         follow_redirects=True,
         verify=ssl_verify(),
     )
     object.__setattr__(client, "_client", http)
     try:
-        result = client.subscribe(endpoint, arguments=arguments)
+        result = client.subscribe(
+            endpoint,
+            arguments=arguments,
+            client_timeout=timeout,
+            start_timeout=timeout,
+        )
     finally:
         http.close()
     if not isinstance(result, dict):
@@ -94,9 +122,14 @@ def _subscribe(endpoint: str, arguments: dict) -> dict:
     return result
 
 
+@track(name="fal_image", capture_input=False, capture_output=False)
 async def _fal_image(endpoint: str, arguments: dict) -> ImageResult:
     if not settings.fal_key:
         raise ProviderError("FAL_KEY ausente", transient=False)
+    update_span(
+        metadata={"provider": "fal", "action": "fal_image", "endpoint": endpoint},
+        input={"endpoint": endpoint, "argument_keys": list(arguments.keys())},
+    )
     try:
         raw = await asyncio.to_thread(_subscribe, endpoint, arguments)
     except ProviderError:
@@ -117,10 +150,20 @@ async def _fal_image(endpoint: str, arguments: dict) -> ImageResult:
     if not blob:
         raise ProviderError("Fal devolveu imagem vazia", transient=True)
     mime = "image/jpeg" if blob.startswith(b"\xff\xd8") else "image/png"
+    cost = round(float(settings.price_fal_image_usd), 6)
+    update_span(
+        output={"ok": True, "mime": mime},
+        metadata={
+            "provider": "fal",
+            "action": "fal_image",
+            "endpoint": endpoint,
+            "cost_usd": cost,
+        },
+    )
     return ImageResult(
         image_bytes=blob,
         mime_type=mime,
-        cost_usd=round(float(settings.price_fal_image_usd), 6),
+        cost_usd=cost,
         meta={"provider": "fal", "endpoint": endpoint},
     )
 
@@ -138,7 +181,7 @@ class PulidFalProvider:
             raise ProviderError("PuLID exige recorte/foto de referencia", transient=False)
         face = refs[0]
         arguments = {
-            "prompt": (prompt or "").strip() or PULID_AVATAR_PROMPT,
+            "prompt": PULID_AVATAR_PROMPT,
             "reference_image_url": _data_uri(face, _mime_of(face)),
             "image_size": "square_hd",
             "id_weight": 1.0,
@@ -156,10 +199,12 @@ class PulidFalProvider:
     ) -> ImageResult:
         if not photo or not illustration:
             raise ProviderError("refine_identity PuLID exige foto e ilustracao", transient=False)
+        face = _shrink_for_swap(photo)
+        target = _shrink_for_swap(illustration)
         arguments = {
-            "face_image_0": _data_uri(photo, _mime_of(photo)),
+            "face_image_0": _data_uri(face, _mime_of(face)),
             "gender_0": "non-binary",
-            "target_image": _data_uri(illustration, _mime_of(illustration)),
+            "target_image": _data_uri(target, _mime_of(target)),
             "workflow_type": "user_hair",
             "upscale": False,
             "detailer": False,

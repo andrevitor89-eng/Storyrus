@@ -10,9 +10,13 @@ from pathlib import Path
 from PIL import Image
 
 from app.ai_clients.face_ref import (
+    CREAM,
+    composite_on_cream,
     crop_to_box,
     face_crop_bytes,
     identity_images,
+    isolate_on_cream,
+    segment_prompt_box,
     try_face_crop,
 )
 
@@ -88,6 +92,44 @@ def test_try_face_crop_falls_back_on_garbage():
     garbage = b"not-an-image"
     assert try_face_crop(garbage) is garbage
     assert identity_images(garbage) == [garbage]
+
+
+def test_isolate_on_cream_keeps_face_and_paints_corners():
+    box = (40, 40, 120, 140)
+    photo = _marked(200, 200, box)
+    out = Image.open(BytesIO(isolate_on_cream(photo, box, pad=0.0)))
+    assert out.size == (80, 100)
+    cx, cy = out.size[0] // 2, out.size[1] // 2
+    center = out.getpixel((cx, cy))
+    assert center[0] > 200 and center[1] < 60
+    corner = out.getpixel((1, 1))
+    assert all(abs(corner[i] - CREAM[i]) < 30 for i in range(3))
+
+
+def test_composite_on_cream_uses_the_mask():
+    box = (40, 40, 120, 140)
+    photo = _marked(200, 200, box)
+    mask = Image.new("L", (200, 200), 0)
+    for x in range(55, 105):
+        for y in range(55, 125):
+            mask.putpixel((x, y), 255)
+    buf = BytesIO()
+    mask.save(buf, format="PNG")
+    out = Image.open(BytesIO(composite_on_cream(photo, box, buf.getvalue(), pad=0.0)))
+    assert out.size == (80, 100)
+    center = out.getpixel((out.size[0] // 2, out.size[1] // 2))
+    assert center[0] > 200 and center[1] < 60
+    corner = out.getpixel((1, 1))
+    assert all(abs(corner[i] - CREAM[i]) < 30 for i in range(3))
+
+
+def test_segment_prompt_box_pads_hair_upward():
+    box = (100, 100, 200, 200)
+    padded = segment_prompt_box((400, 400), box)
+    assert padded[1] < box[1]
+    assert padded[0] < box[0]
+    assert padded[2] > box[2]
+    assert padded[3] > box[3]
 
 
 def test_identity_images_is_crop_then_photo():

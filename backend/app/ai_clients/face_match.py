@@ -1,8 +1,10 @@
 """Compara o rosto da foto com o protagonista de uma cena do livro.
 
 Backend padrao: cosine InsightFace (local). Fallback: Gemini Face model.
-Qualquer falha devolve None. Sem rosto detectavel o caller NAO bloqueia
-(`identity_accepted(None)` e True). Nota abaixo do limiar e recusa.
+Na cena, o juiz pega o rosto mais proximo do recorte — nao o maior bbox
+(adulto, animal ou objeto grande nao podem sequestrar a nota).
+Qualquer falha devolve None. `identity_accepted(None)` ainda e True (legado);
+o portao fail-closed mora em `identity_lock.judge_identity`.
 """
 from __future__ import annotations
 
@@ -28,15 +30,32 @@ logger = logging.getLogger(__name__)
 # ArcFace foto x ilustracao: mesmo rosto costuma cair ~0.25–0.55, nao 0.85.
 _ARC_COSINE_LO = 0.18
 _ARC_COSINE_HI = 0.52
+# Avatar x cena (os dois ilustrados): o mesmo rosto sobe; o mapa da foto infla.
+_ARC_SAME_LO = 0.32
+_ARC_SAME_HI = 0.62
 
 _insightface_app = None
 
 _PROMPT = (
-    "Compare o ROSTO da crianca na PRIMEIRA imagem (recorte da foto real) com o "
-    "protagonista da SEGUNDA (ilustracao de livro). Ignore roupa, pose, cenario "
-    "e estilo; julgue so identidade (formato do rosto, olhos, nariz, boca, idade). "
-    'Responda SO com JSON: {"match": 0.0} a {"match": 1.0}. '
-    "1.0 = a mesma crianca, reconhecivel na hora; 0.0 = outra pessoa."
+    "Compare o ROSTO da crianca. A PRIMEIRA imagem e o recorte da FOTO "
+    "(verdade da geometria e da FRACAO dos olhos no rosto). "
+    "Se houver uma imagem do AVATAR aprovado, ela e a mesma crianca no estilo "
+    "ilustrado — use-a tambem para fracao dos olhos e estrutura ossea. "
+    "A ULTIMA imagem e a cena do livro. "
+    "Ignore roupa, pose, cenario e estilo. EXPRESSAO pode mudar (sorriso, "
+    "dentes a mostra, olhar). NAO podem mudar: fracao dos olhos no rosto, "
+    "espacamento, nariz, largura da boca (estrutura, nao o sorriso), "
+    "maxilar/queixo, idade aparente, linha do cabelo e risca. "
+    "Olhos que ocupam MAIS fracao do rosto que na foto/avatar = falha "
+    "(mesmo em close / plano detalhe — close NAO autoriza inflar o olho). "
+    "Boca, queixo ou idade que so 'parecem um menino loiro' = falha. "
+    "Responda SO com JSON: "
+    '{"match": 0.0, "eye_inflate": 0.0, "geometry": 0.0, "age": 0.0, "hair": 0.0}. '
+    "match = identidade geral (1.0 = a mesma crianca). "
+    "eye_inflate = 0.0 se a fracao dos olhos e igual ou menor; 1.0 se bem "
+    "maiores (inflacao de close). "
+    "geometry = espacamento, nariz, largura da boca, maxilar/queixo. "
+    "age = idade aparente. hair = linha do cabelo e risca (nao o vento)."
 )
 
 
@@ -88,7 +107,17 @@ async def _post_with_retry(url: str, payload: dict):
     return None
 
 
-def _parse_match(text: str) -> float | None:
+def _clamp01(raw) -> float | None:
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if value != value:  # NaN
+        return None
+    return max(0.0, min(1.0, value))
+
+
+def parse_face_score(text: str) -> FaceScore | None:
     if not text:
         return None
     t = text.strip()
@@ -99,14 +128,40 @@ def _parse_match(text: str) -> float | None:
         return None
     if not isinstance(data, dict):
         return None
-    raw = data.get("match")
-    try:
-        value = float(raw)
-    except (TypeError, ValueError):
+    match = _clamp01(data.get("match"))
+    if match is None:
         return None
-    if value != value:  # NaN
+    return FaceScore(
+        match=match,
+        eye_inflate=_clamp01(data.get("eye_inflate")),
+        geometry=_clamp01(data.get("geometry")),
+        age=_clamp01(data.get("age")),
+        hair=_clamp01(data.get("hair")),
+    )
+
+
+def coerce_face_score(raw) -> FaceScore | None:
+    """Aceita FaceScore, float (mocks) ou None. JSON so-match preenche geometria."""
+    if raw is None:
         return None
-    return max(0.0, min(1.0, value))
+    if isinstance(raw, FaceScore):
+        return FaceScore(
+            match=raw.match,
+            eye_inflate=0.0 if raw.eye_inflate is None else raw.eye_inflate,
+            geometry=raw.match if raw.geometry is None else raw.geometry,
+            age=raw.match if raw.age is None else raw.age,
+            hair=raw.match if raw.hair is None else raw.hair,
+        )
+    if isinstance(raw, (int, float)) and raw == raw:
+        value = max(0.0, min(1.0, float(raw)))
+        return FaceScore(match=value, eye_inflate=0.0, geometry=1.0, age=1.0, hair=1.0)
+    return None
+
+
+def _parse_match(text: str) -> float | None:
+    """Compat: so o campo match (testes antigos)."""
+    score = parse_face_score(text)
+    return None if score is None else score.match
 
 
 def identity_accepted(score: float | None, *, min_score: float | None = None) -> bool:
@@ -117,10 +172,19 @@ def identity_accepted(score: float | None, *, min_score: float | None = None) ->
     return score >= threshold
 
 
+def cosine_bounds(domain: str = "photo") -> tuple[float, float]:
+    """Limites ArcFace: foto x ilustracao, ou avatar x cena (mesmo estilo)."""
+    if (domain or "photo").strip().lower() == "same":
+        return _ARC_SAME_LO, _ARC_SAME_HI
+    return _ARC_COSINE_LO, _ARC_COSINE_HI
+
+
 def match_from_cosine(
-    sim: float, *, lo: float = _ARC_COSINE_LO, hi: float = _ARC_COSINE_HI
+    sim: float, *, lo: float | None = None, hi: float | None = None, domain: str = "photo"
 ) -> float:
-    """Mapeia cosine ArcFace (foto x ilustracao) para nota 0–1 do juiz."""
+    """Mapeia cosine ArcFace para nota 0–1 do juiz."""
+    if lo is None or hi is None:
+        lo, hi = cosine_bounds(domain)
     if hi <= lo:
         return 0.0
     return max(0.0, min(1.0, (float(sim) - lo) / (hi - lo)))
@@ -149,38 +213,82 @@ def _insightface_analyzer():
     return _insightface_app
 
 
-def _embedding_of(image_bytes: bytes):
+def _face_area(face) -> float:
+    box = getattr(face, "bbox", None)
+    if box is None or len(box) < 4:
+        return 0.0
+    return float((box[2] - box[0]) * (box[3] - box[1]))
+
+
+def _face_embedding(face):
+    emb = getattr(face, "normed_embedding", None)
+    if emb is None:
+        emb = getattr(face, "embedding", None)
+    return emb
+
+
+def _pick_embedding(faces, *, probe=None):
+    """Um embedding: maior bbox no recorte, ou o mais proximo do `probe` na cena.
+
+    Sem probe o recorte da crianca e um close — o maior rosto e o certo.
+    Com probe (embedding da foto) a cena pode ter adulto, bicho ou close de
+    objeto: pega o rosto mais parecido com a crianca, nao o maior do quadro.
+    """
+    scored: list[tuple[object, object]] = []
+    for face in faces or []:
+        emb = _face_embedding(face)
+        if emb is None:
+            continue
+        scored.append((face, emb))
+    if not scored:
+        return None
+    if probe is None:
+        return max(scored, key=lambda pair: _face_area(pair[0]))[1]
+    return max(scored, key=lambda pair: _cosine(probe, pair[1]))[1]
+
+
+def _faces_in(image_bytes: bytes) -> list:
     import numpy as np
     from PIL import Image
 
     img = Image.open(BytesIO(image_bytes)).convert("RGB")
     bgr = np.asarray(img)[:, :, ::-1].copy()
-    faces = _insightface_analyzer().get(bgr)
-    if not faces:
-        return None
-    face = max(
-        faces,
-        key=lambda f: float((f.bbox[2] - f.bbox[0]) * (f.bbox[3] - f.bbox[1])),
-    )
-    emb = getattr(face, "normed_embedding", None)
-    if emb is None:
-        emb = getattr(face, "embedding", None)
-    if emb is None:
-        return None
-    return emb
+    return list(_insightface_analyzer().get(bgr) or [])
 
 
-def _score_insightface(photo: bytes, scene: bytes) -> FaceScore | None:
+def face_boxes(image_bytes: bytes) -> list[tuple[int, int, int, int]]:
+    """Caixas InsightFace (left, top, right, bottom). Vazio se falhar."""
+    try:
+        faces = _faces_in(image_bytes)
+    except Exception:  # noqa: BLE001 - tighten e best-effort
+        return []
+    out: list[tuple[int, int, int, int]] = []
+    for face in faces:
+        box = getattr(face, "bbox", None)
+        if box is None or len(box) < 4:
+            continue
+        left, top, right, bottom = (int(box[0]), int(box[1]), int(box[2]), int(box[3]))
+        if right - left < 8 or bottom - top < 8:
+            continue
+        out.append((left, top, right, bottom))
+    return out
+
+
+def _embedding_of(image_bytes: bytes, *, probe=None):
+    return _pick_embedding(_faces_in(image_bytes), probe=probe)
+
+
+def _score_insightface(photo: bytes, scene: bytes, *, domain: str = "photo") -> FaceScore | None:
     try:
         a = _embedding_of(photo)
-        b = _embedding_of(scene)
+        b = _embedding_of(scene, probe=a) if a is not None else None
     except Exception as exc:  # noqa: BLE001
         logger.warning("InsightFace falhou: %s", exc)
         return None
     if a is None or b is None:
         logger.warning("InsightFace nao detectou rosto na foto ou na cena")
         return None
-    match = match_from_cosine(_cosine(a, b))
+    match = match_from_cosine(_cosine(a, b), domain=domain)
     return FaceScore(
         match=match,
         eye_inflate=0.0,
@@ -190,8 +298,10 @@ def _score_insightface(photo: bytes, scene: bytes) -> FaceScore | None:
     )
 
 
-async def _score_face_match_gemini(photo: bytes, scene: bytes) -> float | None:
-    """Identidade foto x cena via Gemini, ou None se nao der para confiar.
+async def _score_face_match_gemini(
+    photo: bytes, scene: bytes, *, avatar: bytes | None = None
+) -> FaceScore | None:
+    """Identidade foto(/avatar) x cena via Gemini, ou None se nao der para confiar.
 
     `GEMINI_FACE_MODEL` vazio desliga este backend (testes / corte de custo).
     """
@@ -200,15 +310,12 @@ async def _score_face_match_gemini(photo: bytes, scene: bytes) -> float | None:
     if not settings.gemini_api_key or not settings.gemini_face_model:
         return None
 
+    parts: list[dict] = [{"text": _PROMPT}, inline_part(photo)]
+    if avatar:
+        parts.append(inline_part(avatar))
+    parts.append(inline_part(scene))
     payload = {
-        "contents": [{
-            "role": "user",
-            "parts": [
-                {"text": _PROMPT},
-                inline_part(photo),
-                inline_part(scene),
-            ],
-        }],
+        "contents": [{"role": "user", "parts": parts}],
         "generationConfig": {"responseMimeType": "application/json", "temperature": 0},
     }
     url = f"{BASE}/models/{settings.gemini_face_model}:generateContent"
@@ -227,23 +334,46 @@ async def _score_face_match_gemini(photo: bytes, scene: bytes) -> float | None:
         logger.warning("Juiz de rosto devolveu resposta ilegivel: %s", exc)
         return None
 
-    score = _parse_match(text)
+    score = parse_face_score(text)
     if score is None:
         logger.warning("Juiz de rosto devolveu nota implausivel: %s", text[:120])
     return score
 
 
-async def score_face_match(photo: bytes, scene: bytes) -> float | None:
-    """Nota 0–1 de identidade foto x cena, ou None se nao der para confiar.
-
-    Backend `insightface` (padrao) com fallback Gemini. `gemini` so o Flash Lite.
-    """
+async def score_face_match_detail(
+    photo: bytes,
+    scene: bytes,
+    *,
+    domain: str = "photo",
+    avatar: bytes | None = None,
+) -> FaceScore | None:
+    """FaceScore de identidade probe x cena, ou None se nao der para confiar."""
     if not photo or not scene:
         return None
     backend = (settings.face_match_backend or "gemini").strip().lower()
     if backend == "insightface":
-        scored = await asyncio.to_thread(_score_insightface, photo, scene)
+        scored = await asyncio.to_thread(
+            _score_insightface, photo, scene, domain=domain
+        )
         if scored is not None:
-            return scored.match
+            return scored
         logger.warning("InsightFace sem nota; tenta Gemini se configurado")
-    return await _score_face_match_gemini(photo, scene)
+    return await _score_face_match_gemini(photo, scene, avatar=avatar)
+
+
+async def score_face_match(
+    photo: bytes,
+    scene: bytes,
+    *,
+    domain: str = "photo",
+    avatar: bytes | None = None,
+) -> float | None:
+    """Nota 0–1 de identidade probe x cena, ou None se nao der para confiar.
+
+    `domain=photo`: recorte real x ilustracao. `domain=same`: avatar x cena.
+    Backend `insightface` (padrao) com fallback Gemini. `gemini` so o Flash Lite.
+    """
+    scored = await score_face_match_detail(
+        photo, scene, domain=domain, avatar=avatar
+    )
+    return None if scored is None else scored.match
