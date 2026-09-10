@@ -5,7 +5,7 @@ Cada foto vira `avatar-<slug>.png` na mesma pasta. Artefatos de trabalho
 ficam em `scripts/out/avatar/aprovados/<slug>/`. O character.png do livro
 Matteo (`out/amazonia-matteo/`) nao e tocado.
 
-Mesmo caminho da producao: recorte do rosto + generate_character + 2 refinos.
+Mesmo caminho da producao: recorte do rosto + generate_character CGI + 1 refine Gemini.
 
 Uso (a partir de backend/):
 
@@ -134,7 +134,7 @@ def contact_sheet(child: Child) -> Path:
         _cell(child.photo, "1. FOTO"),
         _cell(out / "face-crop.jpg", "2. RECORTE"),
         _cell(out / "character-raw.png", "3. CRU"),
-        _cell(out / "character.png", "4. + 2 REFINOS"),
+        _cell(out / "character.png", "4. + FAL ROSTO"),
     ]
     sheet = Image.new("RGB", (CELL * len(cells), CELL + 22), (250, 248, 244))
     for col, cell in enumerate(cells):
@@ -157,13 +157,13 @@ async def generate_one(child: Child, *, force: bool, budget_s: float) -> str:
     os.chdir(BACKEND)
 
     from _amazonia_common import Budget, write_atomic
-    from app.ai_clients.book_prompts import AVATAR_PROMPT
-    from app.ai_clients.book_prompts import STYLE as BOOK_STYLE
+
+    from app.ai_clients.book_prompts import AVATAR_PROMPT, AVATAR_STYLE
     from app.ai_clients.face_detect import face_reference, identity_images
     from app.ai_clients.factory import get_image_provider
     from app.ai_clients.resilience import OutageError, retry_until
     from app.config import settings
-    from app.workers.handlers import _refine_identity
+    from app.workers.handlers import _lock_avatar_identity
 
     if not child.photo.exists():
         log(f"{child.slug}: foto ausente ({child.photo})")
@@ -176,6 +176,7 @@ async def generate_one(child: Child, *, force: bool, budget_s: float) -> str:
         return "skip"
 
     settings.gemini_image_model_fallback = ""
+    settings.offline_fallback = False
     budget = Budget(budget_s)
     photo = child.photo.read_bytes()
     log(f"{child.slug}: localizando o rosto ({child.photo.name})...")
@@ -183,15 +184,21 @@ async def generate_one(child: Child, *, force: bool, budget_s: float) -> str:
     write_atomic(child.out_dir / "face-crop.jpg", crop)
 
     provider = get_image_provider()
+    log(f"{child.slug}: provider={type(provider).__name__} style=cgi-3d")
 
     async def gen():
-        result = await provider.generate_character(
-            prompt=AVATAR_PROMPT,
-            reference_images=await identity_images(photo),
-            style=BOOK_STYLE,
-        )
+        try:
+            result = await provider.generate_character(
+                prompt=AVATAR_PROMPT,
+                reference_images=await identity_images(photo),
+                style=AVATAR_STYLE,
+            )
+        except Exception:
+            result = await provider.generate_realistic(
+                photo=crop, prompt=AVATAR_PROMPT, style=AVATAR_STYLE
+            )
         write_atomic(child.out_dir / "character-raw.png", result.image_bytes)
-        return await _refine_identity(provider, crop, result, BOOK_STYLE, retries=2, passes=2)
+        return await _lock_avatar_identity(provider, crop, result, AVATAR_STYLE)
 
     try:
         result = await retry_until(
@@ -216,6 +223,7 @@ async def main(only: list[str] | None, force: bool, budget_min: float) -> int:
     sys.path.insert(0, str(BACKEND))
     os.chdir(BACKEND)
     os.environ.setdefault("GEMINI_SSL_VERIFY", "system")
+    os.environ.setdefault("OFFLINE_FALLBACK", "false")
 
     from app.config import settings
 
@@ -235,7 +243,7 @@ async def main(only: list[str] | None, force: bool, budget_min: float) -> int:
     log(
         f"{len(batch)} criancas em {PHOTOS_DIR} | modelo={settings.gemini_image_model} "
         f"size={settings.gemini_image_size or 'default'} | "
-        f"~{1 + 2} chamadas/crianca"
+        f"~{1 + 1} chamadas/crianca | offline={settings.offline_fallback}"
     )
     for child in batch:
         log(f"  - {child.slug}: {child.photo.name}")
@@ -254,7 +262,7 @@ async def main(only: list[str] | None, force: bool, budget_min: float) -> int:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Avatares TMT das criancas aprovadas")
+    parser = argparse.ArgumentParser(description="Avatares CGI 3D das criancas aprovadas")
     parser.add_argument(
         "--only",
         nargs="+",

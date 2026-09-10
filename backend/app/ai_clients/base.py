@@ -68,7 +68,11 @@ class ImageProvider(Protocol):
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
     ) -> ImageResult:
-        """Gera uma ilustracao de pagina reutilizando a referencia do personagem."""
+        """Gera uma ilustracao de pagina reutilizando o avatar (`character_ref`).
+
+        `photo` e aceito por compatibilidade e ignorado: a foto real so entra
+        no lock do avatar / face-swap, nao na geracao da cena.
+        """
 
     async def generate_realistic(
         self, *, photo: bytes, prompt: str, negative: str = "", style: str = "realistic"

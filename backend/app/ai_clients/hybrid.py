@@ -1,4 +1,4 @@
-"""Compositor: Gemini na cena, PuLID no avatar/cabeca."""
+"""Compositor: Gemini no avatar e na cena; PuLID so no passe de cabeca das paginas."""
 from __future__ import annotations
 
 from app.ai_clients.base import ImageResult
@@ -7,10 +7,10 @@ from app.ai_clients.image_pulid_fal import PulidFalProvider, pulid_head_enabled
 
 
 class HybridImageProvider:
-    """Gemini gera a cena; PuLID (Fal) gera avatar e passe de cabeca.
+    """Gemini gera avatar e cena; Fal cola a cabeca nas paginas do ebook.
 
-    Sem `FAL_KEY` ou com `identity_head_provider=gemini`, avatar/cabeca
-    tambem caem no Nano Banana (testes / fallback).
+    Sem `FAL_KEY` ou com `identity_head_provider=gemini`, o passe de cabeca
+    das paginas tambem cai no Nano Banana.
     """
 
     name = "nano-banana"
@@ -26,12 +26,26 @@ class HybridImageProvider:
         result.meta["head_provider"] = "pulid" if pulid_head_enabled() else "gemini"
         return result
 
+    def _tag_gemini(self, result: ImageResult) -> ImageResult:
+        result.meta["head_provider"] = "gemini"
+        return result
+
     async def generate_character(
         self, *, prompt: str, reference_images: list[bytes], style: str
     ) -> ImageResult:
-        return self._tag(
-            await self._head_provider().generate_character(
+        return self._tag_gemini(
+            await self._scene.generate_character(
                 prompt=prompt, reference_images=reference_images, style=style
+            )
+        )
+
+    async def refine_character(
+        self, *, photo: bytes, illustration: bytes, style: str = "realistic"
+    ) -> ImageResult:
+        """Refine do avatar: sempre Gemini (mantem o CGI; nao cola foto)."""
+        return self._tag_gemini(
+            await self._scene.refine_identity(
+                photo=photo, illustration=illustration, style=style
             )
         )
 
@@ -53,11 +67,12 @@ class HybridImageProvider:
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
     ) -> ImageResult:
+        """Pagina = avatar + extras. Foto nao entra na cena."""
+        _ = photo
         return await self._scene.generate_scene(
             prompt=prompt,
             character_ref=character_ref,
             style=style,
-            photo=photo,
             extra_refs=extra_refs,
         )
 
@@ -76,15 +91,12 @@ class HybridImageProvider:
         style: str = "realistic",
         photo: bytes | None = None,
     ) -> ImageResult:
-        if photo and pulid_head_enabled():
-            return self._tag(
-                await self._head.refine_identity(
-                    photo=photo, illustration=scene, style=style
-                )
+        """Passe Gemini: cabeca = avatar. Fal fica so em refine_identity."""
+        return self._tag_gemini(
+            await self._scene.refine_scene(
+                character_ref=character_ref,
+                scene=scene,
+                style=style,
+                photo=photo,
             )
-        return await self._scene.refine_scene(
-            character_ref=character_ref,
-            scene=scene,
-            style=style,
-            photo=photo,
         )

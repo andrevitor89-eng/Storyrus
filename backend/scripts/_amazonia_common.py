@@ -25,9 +25,12 @@ from pathlib import Path
 
 from PIL import Image
 
+from app.ai_clients.base import ImageResult
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
+    BODY_CHARACTER_PROMPT,
     build_scene_prompt,
+    identity_shot,
     infer_expression,
     name_scene_extras_for_template,
     scene_extras_for_template,
@@ -36,8 +39,8 @@ from app.ai_clients.book_prompts import STYLE as BOOK_STYLE
 from app.ai_clients.face_detect import face_reference, identity_images
 from app.ai_clients.resilience import OutageError, retry_until
 from app.story_templates import illustration_notes, page_layouts, render_template
-from app.workers.ebook import build_pdf
-from app.workers.handlers import _parse_pages, _parse_title, _refine_identity
+from app.workers.ebook import build_pdf, cover_palette_for
+from app.workers.handlers import _parse_pages, _parse_title, _refine_identity, lock_page_identity
 
 EXIT_OK = 0
 EXIT_FAIL = 1
@@ -56,8 +59,8 @@ class BookSpec:
     template_id: str
     child_name: str
     out_dir: Path
-    photo: Path
-    pdf_name: str
+    photo: Path | None = None
+    pdf_name: str = "livro.pdf"
     gender: str = "boy"
     style: str = BOOK_STYLE
     scene_extras: str = ""
@@ -68,6 +71,10 @@ class BookSpec:
     log_prefix: str = "livro"
     landing_dir: Path | None = None
     landing_map: dict[str, str] = field(default_factory=dict)
+    lock_to_avatar: bool = False
+    skip_identity: bool = False
+    fit_faces: bool = False
+    plates_dir: Path | None = None
 
     def log(self, msg: str) -> None:
         print(f"[{self.log_prefix}] {msg}", flush=True)
@@ -110,6 +117,12 @@ def page_path(spec: BookSpec, idx: int) -> Path:
     return spec.out_dir / f"page-{idx:02d}.png"
 
 
+def plate_path(spec: BookSpec, idx: int) -> Path:
+    if spec.plates_dir is None:
+        raise FileNotFoundError("plates_dir ausente")
+    return spec.plates_dir / f"page-{idx:02d}.png"
+
+
 def refine_marker(spec: BookSpec, idx: int) -> Path:
     return spec.out_dir / f"page-{idx:02d}.needs-refine"
 
@@ -129,15 +142,45 @@ def write_atomic(path: Path, data: bytes) -> None:
 # --------------------------------------------------------------------------- #
 # Avatar e paginas
 # --------------------------------------------------------------------------- #
+async def _ensure_body_character(
+    provider, spec: BookSpec, budget: Budget, dest: Path, *, regen: bool
+) -> tuple[bytes, bytes]:
+    """Placa de corpo sem foto: o upload do cliente depois so cola o rosto."""
+    if is_ready(dest) and not regen:
+        spec.log("corpo-base reusado")
+        return dest.read_bytes(), b""
+
+    spec.log("gerando corpo-base (sem foto, rosto placeholder)...")
+
+    async def gen():
+        return await provider.generate_character(
+            prompt=BODY_CHARACTER_PROMPT,
+            reference_images=[],
+            style=spec.style,
+        )
+
+    result = await retry_until(
+        "corpo-base", gen, budget_s=budget.remaining(), log=spec.log
+    )
+    write_atomic(dest, result.image_bytes)
+    spec.log(f"corpo-base salvo em {dest} ({dest.stat().st_size} bytes)")
+    return dest.read_bytes(), b""
+
+
 async def ensure_character(
     provider, spec: BookSpec, budget: Budget, *, regen: bool = False
 ) -> tuple[bytes, bytes]:
     """Devolve (avatar, recorte do rosto). Reusa o avatar aprovado por default."""
+    dest = char_path(spec)
+    if spec.skip_identity:
+        return await _ensure_body_character(provider, spec, budget, dest, regen=regen)
+
+    if spec.photo is None:
+        raise FileNotFoundError("foto obrigatoria quando skip_identity=False")
     photo = spec.photo.read_bytes()
     crop = await face_reference(photo)
     write_atomic(spec.out_dir / "face-crop.jpg", crop)
 
-    dest = char_path(spec)
     if is_ready(dest) and not regen:
         spec.log("avatar aprovado reusado")
         return dest.read_bytes(), crop
@@ -158,6 +201,47 @@ async def ensure_character(
     write_atomic(dest, result.image_bytes)
     spec.log(f"avatar salvo em {dest} ({dest.stat().st_size} bytes)")
     return dest.read_bytes(), crop
+
+
+async def _face_crop(spec: BookSpec) -> bytes:
+    """Recorte unico da foto: a mesma cara em todas as chapas."""
+    if spec.photo is None:
+        raise FileNotFoundError("foto obrigatoria para colar o rosto")
+    photo = spec.photo.read_bytes()
+    crop = await face_reference(photo)
+    write_atomic(spec.out_dir / "face-crop.jpg", crop)
+    return crop
+
+
+async def ensure_fitted_page(
+    provider,
+    spec: BookSpec,
+    budget: Budget,
+    *,
+    idx: int,
+    crop: bytes,
+    regen: bool = False,
+) -> None:
+    """Cola o recorte na chapa pronta. Nao redesenha a cena."""
+    dest = page_path(spec, idx)
+    if is_ready(dest) and not regen:
+        spec.log(f"pagina {idx:02d} pronta - pulando")
+        return
+    src = plate_path(spec, idx)
+    if not is_ready(src):
+        raise FileNotFoundError(f"chapa ausente: {src}")
+    spec.log(f"colando rosto na pagina {idx:02d}...")
+
+    async def call():
+        return await provider.refine_identity(
+            photo=crop, illustration=src.read_bytes(), style=spec.style
+        )
+
+    result = await retry_until(
+        f"pagina {idx:02d} rosto", call, budget_s=budget.remaining(), log=spec.log
+    )
+    write_atomic(dest, result.image_bytes)
+    spec.log(f"pagina {idx:02d} ok ({dest.stat().st_size} bytes)")
 
 
 async def _refine_scene_honest(
@@ -205,6 +289,62 @@ def _mark_refine(spec: BookSpec, idx: int, refined: bool) -> None:
     marker.write_text("refino pendente\n", encoding="utf-8")
 
 
+def _last_good_page_bytes(spec: BookSpec, idx: int) -> bytes | None:
+    """Ultima pagina ilustrada pronta antes de `idx` (trava estilo/figurino)."""
+    for i in range(idx - 1, 0, -1):
+        path = page_path(spec, i)
+        if is_ready(path) and not refine_marker(spec, i).exists():
+            return path.read_bytes()
+    return None
+
+
+def _scene_extra_refs(spec: BookSpec, char: bytes, idx: int) -> list[bytes] | None:
+    """Avatar + pagina boa anterior, como a bible do worker.
+
+    Com `lock_to_avatar` nao manda extras: o avatar ja vai em character_ref.
+    """
+    if spec.lock_to_avatar:
+        return None
+    refs: list[bytes] = []
+    if char:
+        refs.append(char)
+    good = _last_good_page_bytes(spec, idx)
+    if good:
+        refs.append(good)
+    return refs or None
+
+
+def _scene_photo(spec: BookSpec, photo: bytes | None) -> bytes | None:
+    """Foto so entra quando o lock nao e so o avatar."""
+    if spec.skip_identity or spec.lock_to_avatar:
+        return None
+    return photo
+
+
+async def _lock_or_keep_page(
+    provider,
+    spec: BookSpec,
+    *,
+    headed: ImageResult,
+    char: bytes,
+    photo: bytes | None,
+    idx: int,
+) -> ImageResult:
+    """Cola o rosto do cliente; na placa de corpo a cena ja e a arte final."""
+    if spec.skip_identity:
+        return headed
+    headed, _score = await lock_page_identity(
+        provider,
+        headed=headed,
+        avatar=char,
+        photo=photo,
+        style=spec.style,
+        refine_first=False,
+        page_idx=idx,
+    )
+    return headed
+
+
 async def ensure_page(
     provider,
     spec: BookSpec,
@@ -233,10 +373,14 @@ async def ensure_page(
                 label=f"pagina {idx:02d}",
                 char=char,
                 scene_bytes=dest.read_bytes(),
-                photo=photo,
+                photo=_scene_photo(spec, photo),
             )
             if refined:
-                write_atomic(dest, data)
+                headed = ImageResult(image_bytes=data, mime_type="image/png")
+                headed = await _lock_or_keep_page(
+                    provider, spec, headed=headed, char=char, photo=photo, idx=idx
+                )
+                write_atomic(dest, headed.image_bytes)
                 spec.log(f"pagina {idx:02d} refinada")
             _mark_refine(spec, idx, refined)
             return
@@ -259,12 +403,13 @@ async def ensure_page(
                 expression=expr,
                 extras=extras,
                 child_name=spec.child_name,
-                shot="wide" if layout == "name" else "",
-                text_band="left" if layout == "name" else "",
+                shot=identity_shot(None, layout=layout),
+                text_band="left" if layout == "name" else "bottom",
             ),
             character_ref=char,
             style=spec.style,
-            photo=photo,
+            photo=_scene_photo(spec, photo),
+            extra_refs=_scene_extra_refs(spec, char, idx),
         )
 
     scene = await retry_until(
@@ -277,9 +422,13 @@ async def ensure_page(
         label=f"pagina {idx:02d}",
         char=char,
         scene_bytes=scene.image_bytes,
-        photo=photo,
+        photo=_scene_photo(spec, photo),
     )
-    write_atomic(dest, data)
+    headed = ImageResult(image_bytes=data, mime_type=getattr(scene, "mime_type", None) or "image/png")
+    headed = await _lock_or_keep_page(
+        provider, spec, headed=headed, char=char, photo=photo, idx=idx
+    )
+    write_atomic(dest, headed.image_bytes)
     _mark_refine(spec, idx, refined)
     suffix = "" if refined else " - refino pendente"
     spec.log(f"pagina {idx:02d} ok ({dest.stat().st_size} bytes){suffix}")
@@ -323,6 +472,7 @@ def build_book_pdf(
         child_name=spec.child_name,
         language="pt-BR",
         preview_pages=None,
+        cover_palette=cover_palette_for(spec.template_id),
     )
     pdf_path = spec.out_dir / spec.pdf_name
     write_atomic(pdf_path, blob)
@@ -345,6 +495,93 @@ def copy_landing(spec: BookSpec) -> None:
         spec.log(f"landing: {dest_name}")
 
 
+async def _generate_fitted_book(
+    provider,
+    spec: BookSpec,
+    *,
+    only: list[int] | None,
+    regen: list[int] | None,
+    regen_avatar: bool,
+    budget_s: float,
+) -> RunResult:
+    """Livro-base + um recorte: so cola o rosto. Nao gera cena."""
+    spec.out_dir.mkdir(parents=True, exist_ok=True)
+    budget = Budget(budget_s)
+    title, pages_text, notes, layouts = _story_parts(spec)
+    forced = set(regen or []) | set(only or [])
+    scope = [i for i in range(1, len(pages_text) + 1) if not only or i in set(only)]
+    scope = [i for i in scope if i not in spec.keep]
+
+    outage: str | None = None
+    failed: list[int] = []
+    try:
+        crop = await _face_crop(spec)
+        char, _unused = await ensure_character(
+            provider, spec, budget, regen=regen_avatar
+        )
+    except OutageError as exc:
+        spec.log(f"GERADOR FORA: {exc}")
+        return RunResult(
+            missing=_missing(spec, layouts, pages_text),
+            pending_refine=[],
+            outage=str(exc),
+        )
+
+    async def one(idx: int) -> None:
+        nonlocal outage
+        try:
+            await ensure_fitted_page(
+                provider, spec, budget, idx=idx, crop=crop, regen=idx in forced
+            )
+        except OutageError as exc:
+            outage = outage or str(exc)
+            spec.log(f"pagina {idx:02d} interrompida: {exc}")
+        except Exception as exc:  # noqa: BLE001
+            failed.append(idx)
+            spec.log(f"pagina {idx:02d} falhou ({exc})")
+
+    pending = [
+        i
+        for i in scope
+        if _layout_of(layouts, i) != "dedication"
+        and (i in forced or not is_ready(page_path(spec, i)))
+    ]
+    spec.log(f"{len(pending)} rostos a colar, {spec.concurrency} em paralelo")
+
+    if spec.concurrency > 1:
+        sem = asyncio.Semaphore(spec.concurrency)
+
+        async def guarded(idx: int) -> None:
+            async with sem:
+                if outage:
+                    return
+                await one(idx)
+
+        await asyncio.gather(*[guarded(i) for i in pending])
+    else:
+        for i in pending:
+            if outage:
+                spec.log("gerador fora - parando por aqui")
+                break
+            await one(i)
+
+    if outage:
+        spec.log(f"GERADOR FORA: {outage}")
+
+    missing = _missing(spec, layouts, pages_text)
+    build_book_pdf(spec, title, pages_text, layouts, char)
+    result = RunResult(
+        missing=missing, pending_refine=[], failed=sorted(failed), outage=outage
+    )
+    if missing:
+        spec.log(f"paginas faltando: {missing}")
+    if result.failed:
+        spec.log(f"paginas que nao receberam o rosto: {result.failed}")
+    if result.exit_code == EXIT_OK:
+        spec.log("pronto")
+    return result
+
+
 async def generate_book(
     provider,
     spec: BookSpec,
@@ -354,6 +591,15 @@ async def generate_book(
     regen_avatar: bool = False,
     budget_s: float = DEFAULT_BUDGET_MIN * 60,
 ) -> RunResult:
+    if spec.fit_faces:
+        return await _generate_fitted_book(
+            provider,
+            spec,
+            only=only,
+            regen=regen,
+            regen_avatar=regen_avatar,
+            budget_s=budget_s,
+        )
     spec.out_dir.mkdir(parents=True, exist_ok=True)
     budget = Budget(budget_s)
     title, pages_text, notes, layouts = _story_parts(spec)
@@ -492,12 +738,23 @@ def run(spec: BookSpec, args: argparse.Namespace, provider_factory: Callable[[],
     """Valida pre-requisitos, roda o livro e devolve o exit code do script."""
     from app.config import settings
 
-    if not settings.gemini_api_key:
-        spec.log("GEMINI_API_KEY ausente")
-        return EXIT_FAIL
-    if not spec.photo.exists():
-        spec.log(f"foto nao encontrada: {spec.photo}")
-        return EXIT_FAIL
+    if spec.fit_faces:
+        if spec.photo is None or not spec.photo.exists():
+            spec.log(f"foto nao encontrada: {spec.photo}")
+            return EXIT_FAIL
+        if spec.plates_dir is None or not spec.plates_dir.is_dir():
+            spec.log(f"chapas nao encontradas: {spec.plates_dir}")
+            return EXIT_FAIL
+        if not settings.fal_key and not settings.gemini_api_key:
+            spec.log("FAL_KEY e GEMINI_API_KEY ausentes")
+            return EXIT_FAIL
+    else:
+        if not settings.gemini_api_key:
+            spec.log("GEMINI_API_KEY ausente")
+            return EXIT_FAIL
+        if not spec.skip_identity and (spec.photo is None or not spec.photo.exists()):
+            spec.log(f"foto nao encontrada: {spec.photo}")
+            return EXIT_FAIL
 
     result = asyncio.run(
         generate_book(

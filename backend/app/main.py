@@ -1,11 +1,13 @@
 """Entrypoint da API."""
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app import queue
 from app.config import settings
+from app.observability.opik_trace import configure as configure_opik
 from app.routers import auth, credits, jobs, projects, usage, voices, webhooks
 from app.services import jobs as jobs_svc
 
@@ -14,10 +16,18 @@ logging.basicConfig(level=settings.log_level)
 # Ao enfileirar um job, notifica o worker via Redis (best-effort; degrada p/ polling).
 jobs_svc.enqueue_fn = queue.notify
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    configure_opik()
+    yield
+
+
 app = FastAPI(
     title="Plataforma de Historias - API",
     version="0.1.0",
     description="Foto -> personagem -> ebook -> video. Pipeline assincrono com creditos.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

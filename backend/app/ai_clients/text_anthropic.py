@@ -5,6 +5,7 @@ import httpx
 
 from app.ai_clients.base import ProviderError, TextResult
 from app.config import settings
+from app.observability.opik_trace import track, update_span
 from app.services.pricing import text_cost
 
 _API_URL = "https://api.anthropic.com/v1/messages"
@@ -267,6 +268,7 @@ class AnthropicTextProvider:
         self._timeout = timeout
         self.last_cost_usd: float | None = None
 
+    @track(name="claude_generate_story", type="llm")
     async def generate_story(
         self, *, brief: str, style: str, pages: int, language: str = "pt-BR",
         age: int | None = None,
@@ -351,12 +353,23 @@ class AnthropicTextProvider:
             block.get("text", "") for block in data.get("content", []) if block.get("type") == "text"
         )
         usage = data.get("usage", {})
+        cost = text_cost(usage)
+        update_span(
+            metadata={
+                "provider": "claude",
+                "model": _MODEL,
+                "action": "generate_story",
+                "usage": usage,
+                "cost_usd": cost,
+            },
+        )
         return TextResult(
             text=text,
-            cost_usd=text_cost(usage),
+            cost_usd=cost,
             meta={"usage": usage, "model": _MODEL},
         )
 
+    @track(name="claude_generate_storyboard", type="llm")
     async def generate_storyboard(
         self, *, story: str, theme: str, title: str = "", language: str = "pt-BR"
     ) -> TextResult:
@@ -480,12 +493,23 @@ class AnthropicTextProvider:
             b.get("text", "") for b in data.get("content", []) if b.get("type") == "text"
         )
         usage = data.get("usage", {})
+        cost = text_cost(usage)
+        update_span(
+            metadata={
+                "provider": "claude",
+                "model": _MODEL,
+                "action": "generate_storyboard",
+                "usage": usage,
+                "cost_usd": cost,
+            },
+        )
         return TextResult(
             text=text,
-            cost_usd=text_cost(usage),
+            cost_usd=cost,
             meta={"usage": usage, "model": _MODEL},
         )
 
+    @track(name="claude_summarize_pages", type="llm")
     async def summarize_pages(
         self, *, pages: list[str], style: str = "", language: str = "pt-BR"
     ) -> list[str]:
@@ -548,5 +572,15 @@ class AnthropicTextProvider:
         )
         usage = data.get("usage", {})
         self.last_cost_usd = text_cost(usage)
+        update_span(
+            metadata={
+                "provider": "claude",
+                "model": _MODEL,
+                "action": "summarize_pages",
+                "usage": usage,
+                "cost_usd": self.last_cost_usd,
+                "page_count": len(pages),
+            },
+        )
         lines = [ln.strip(" -•\t").strip() for ln in text.splitlines() if ln.strip()]
         return lines

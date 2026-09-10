@@ -36,6 +36,8 @@ class FakeProvider:
         self.refine = refine if refine is not None else _blob(b"refinada")
         self.calls: list[str] = []
         self.prompts: list[str] = []
+        self.extra_refs: list = []
+        self.photos: list = []
 
     async def _answer(self, kind: str, value):
         self.calls.append(kind)
@@ -48,12 +50,15 @@ class FakeProvider:
 
     async def generate_scene(self, *, prompt, character_ref, style, photo=None, extra_refs=None):
         self.prompts.append(prompt)
+        self.extra_refs.append(extra_refs)
+        self.photos.append(photo)
         return await self._answer("scene", self.scene)
 
     async def refine_identity(self, *, photo, illustration, style="realistic"):
-        return await self._answer("refine_identity", illustration)
+        return await self._answer("refine_identity", self.refine)
 
     async def refine_scene(self, *, character_ref, scene, style="realistic", photo=None):
+        self.photos.append(photo)
         return await self._answer("refine_scene", self.refine)
 
 
@@ -63,6 +68,11 @@ def _no_sleep(monkeypatch):
         return None
 
     monkeypatch.setattr("app.ai_clients.resilience.asyncio.sleep", fake_sleep)
+
+    async def no_score(*_a, **_k):
+        return None
+
+    monkeypatch.setattr("app.workers.handlers.score_face_match", no_score)
 
 
 @pytest.fixture()
@@ -156,6 +166,79 @@ async def test_name_page_uses_wide_shot_and_clean_left_text_area(spec):
     assert "lado esquerdo" in prompt
     assert "PROIBIDO desenhar letras" in prompt
     assert "destaque UM animal" not in prompt
+
+
+@pytest.mark.asyncio
+async def test_story_page_uses_medium_shot(spec):
+    provider = FakeProvider()
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=3,
+        caption="Matteo olha a arara.",
+        note="Matteo e a arara na floresta.",
+        layout="story",
+        char=_blob(b"char"),
+        photo=None,
+    )
+
+    assert provider.prompts
+    assert "'medium'" in provider.prompts[0]
+    assert "'wide'" not in provider.prompts[0]
+
+
+@pytest.mark.asyncio
+async def test_scene_passes_avatar_and_previous_good_page_as_extra_refs(spec):
+    spec.out_dir.mkdir(parents=True)
+    char = _blob(b"char")
+    page2 = _blob(b"pagina-2-boa")
+    common.page_path(spec, 2).write_bytes(page2)
+    provider = FakeProvider()
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=3,
+        caption="texto",
+        note="nota",
+        layout="story",
+        char=char,
+        photo=None,
+    )
+
+    assert provider.extra_refs
+    refs = provider.extra_refs[0]
+    assert refs is not None
+    assert refs[0] == char
+    assert refs[1] == page2
+
+
+@pytest.mark.asyncio
+async def test_lock_to_avatar_skips_photo_and_extra_refs(spec):
+    spec.lock_to_avatar = True
+    spec.out_dir.mkdir(parents=True)
+    char = _blob(b"char")
+    common.page_path(spec, 2).write_bytes(_blob(b"pagina-2-boa"))
+    provider = FakeProvider()
+    photo = _blob(b"foto")
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=3,
+        caption="texto",
+        note="nota",
+        layout="story",
+        char=char,
+        photo=photo,
+    )
+
+    assert provider.extra_refs == [None]
+    assert provider.photos == [None, None]
 
 
 @pytest.mark.asyncio
@@ -269,7 +352,7 @@ async def test_only_regenerates_the_requested_page(spec):
     assert result.exit_code == common.EXIT_OK
     assert common.page_path(spec, 2).read_bytes() == page2
     assert common.page_path(spec, 3).read_bytes() == provider.refine
-    assert provider.calls == ["scene", "refine_scene"]
+    assert provider.calls == ["scene", "refine_scene", "refine_identity"]
 
 
 @pytest.mark.asyncio
@@ -285,3 +368,137 @@ async def test_kept_pages_are_never_touched(spec):
 
     assert common.page_path(spec, 3).read_bytes() == keeper
     assert provider.calls == []
+
+
+@pytest.mark.asyncio
+async def test_ensure_page_fals_when_avatar_score_low(spec, monkeypatch):
+    async def low(*_a, **_k):
+        return 0.4
+
+    monkeypatch.setattr("app.workers.handlers.score_face_match", low)
+    spec.out_dir.mkdir(parents=True)
+    provider = FakeProvider()
+    char = _blob(b"char")
+    photo = _blob(b"foto")
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=3,
+        caption="texto",
+        note="nota",
+        layout="story",
+        char=char,
+        photo=photo,
+    )
+
+    assert provider.calls == ["scene", "refine_scene", "refine_identity"]
+    assert common.page_path(spec, 3).read_bytes() == provider.refine
+
+
+@pytest.mark.asyncio
+async def test_ensure_page_skips_fal_when_avatar_score_high(spec, monkeypatch):
+    async def high(*_a, **_k):
+        return 0.91
+
+    monkeypatch.setattr("app.workers.handlers.score_face_match", high)
+    spec.out_dir.mkdir(parents=True)
+    provider = FakeProvider()
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=3,
+        caption="texto",
+        note="nota",
+        layout="story",
+        char=_blob(b"char"),
+        photo=_blob(b"foto"),
+    )
+
+    assert provider.calls == ["scene", "refine_scene"]
+
+
+@pytest.mark.asyncio
+async def test_skip_identity_generates_body_without_photo(spec):
+    spec.skip_identity = True
+    spec.photo = None
+    spec.out_dir.mkdir(parents=True)
+    provider = FakeProvider()
+
+    char, crop = await common.ensure_character(provider, spec, common.Budget(60))
+
+    assert crop == b""
+    assert char == provider.character
+    assert provider.calls == ["character"]
+    assert common.char_path(spec).read_bytes() == provider.character
+
+
+@pytest.mark.asyncio
+async def test_skip_identity_skips_face_lock(spec):
+    spec.skip_identity = True
+    spec.out_dir.mkdir(parents=True)
+    provider = FakeProvider()
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=3,
+        caption="texto",
+        note="nota",
+        layout="story",
+        char=_blob(b"corpo"),
+        photo=_blob(b"foto"),
+    )
+
+    assert provider.calls == ["scene", "refine_scene"]
+    assert "refine_identity" not in provider.calls
+    assert common.page_path(spec, 3).read_bytes() == provider.refine
+
+
+@pytest.mark.asyncio
+async def test_fit_faces_swaps_plate_without_generating_scene(spec, tmp_path):
+    plates = tmp_path / "plates"
+    plates.mkdir()
+    (plates / "page-02.png").write_bytes(_blob(b"chapa-02"))
+    (plates / "page-03.png").write_bytes(_blob(b"chapa-03"))
+    spec.fit_faces = True
+    spec.plates_dir = plates
+    spec.max_page = 3
+    spec.out_dir.mkdir(parents=True)
+    common.char_path(spec).write_bytes(_blob(b"char-aprovado"))
+    provider = FakeProvider()
+
+    result = await common.generate_book(provider, spec, budget_s=60)
+
+    assert result.exit_code == common.EXIT_OK
+    assert "scene" not in provider.calls
+    assert provider.calls.count("refine_identity") == 2
+    assert common.page_path(spec, 3).read_bytes() == provider.refine
+    assert (spec.out_dir / "livro.pdf").exists()
+
+
+@pytest.mark.asyncio
+async def test_fit_faces_skips_ready_page(spec, tmp_path):
+    plates = tmp_path / "plates"
+    plates.mkdir()
+    (plates / "page-02.png").write_bytes(_blob(b"chapa-02"))
+    (plates / "page-03.png").write_bytes(_blob(b"chapa-03"))
+    spec.fit_faces = True
+    spec.plates_dir = plates
+    spec.max_page = 3
+    spec.out_dir.mkdir(parents=True)
+    common.char_path(spec).write_bytes(_blob(b"char-aprovado"))
+    done = _blob(b"rosto-ja-colado")
+    common.page_path(spec, 2).write_bytes(_blob(b"rosto-p2"))
+    common.page_path(spec, 3).write_bytes(done)
+    provider = FakeProvider()
+
+    result = await common.generate_book(provider, spec, budget_s=60)
+
+    assert result.exit_code == common.EXIT_OK
+    assert "refine_identity" not in provider.calls
+    assert common.page_path(spec, 3).read_bytes() == done

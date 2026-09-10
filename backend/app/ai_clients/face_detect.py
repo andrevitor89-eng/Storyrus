@@ -17,7 +17,9 @@ from io import BytesIO
 import httpx
 from PIL import Image
 
-from app.ai_clients.face_ref import crop_to_box, try_face_crop
+from app.ai_clients.face_match import face_boxes
+from app.ai_clients.face_ref import composite_on_cream, isolate_on_cream, try_face_crop
+from app.ai_clients.face_segment import segment_head_mask
 from app.ai_clients.gemini_api import (
     BASE,
     TRANSIENT_STATUS,
@@ -56,6 +58,46 @@ def _pixels(box: list[int], size: tuple[int, int]) -> tuple[int, int, int, int] 
     if (right - left) * (bottom - top) > 0.92 * w * h:
         return None
     return left, top, right, bottom
+
+
+_MIN_TIGHTEN_IOU = 0.25
+
+
+def box_iou(
+    a: tuple[int, int, int, int], b: tuple[int, int, int, int]
+) -> float:
+    """Intersecao sobre uniao de duas caixas (left, top, right, bottom)."""
+    ax1, ay1, ax2, ay2 = a
+    bx1, by1, bx2, by2 = b
+    ix1, iy1 = max(ax1, bx1), max(ay1, by1)
+    ix2, iy2 = min(ax2, bx2), min(ay2, by2)
+    inter = max(0, ix2 - ix1) * max(0, iy2 - iy1)
+    if inter <= 0:
+        return 0.0
+    area_a = max(0, ax2 - ax1) * max(0, ay2 - ay1)
+    area_b = max(0, bx2 - bx1) * max(0, by2 - by1)
+    union = area_a + area_b - inter
+    return inter / union if union else 0.0
+
+
+def tighten_box(
+    photo: bytes, gemini_box: tuple[int, int, int, int]
+) -> tuple[int, int, int, int]:
+    """Se o InsightFace achar um rosto DENTRO da caixa Gemini, usa a mais justa.
+
+    Gemini desambigua crianca vs adulto; o detector local so afia o recorte.
+    Sem overlap confiavel, a caixa Gemini permanece.
+    """
+    try:
+        boxes = face_boxes(photo)
+    except Exception:  # noqa: BLE001 - pre-processamento nunca derruba o avatar
+        return gemini_box
+    if not boxes:
+        return gemini_box
+    best = max(boxes, key=lambda b: box_iou(gemini_box, b))
+    if box_iou(gemini_box, best) < _MIN_TIGHTEN_IOU:
+        return gemini_box
+    return best
 
 
 async def _post_with_retry(url: str, payload: dict):
@@ -144,7 +186,11 @@ async def face_reference(photo: bytes) -> bytes:
         logger.info("Sem caixa de rosto; usando o recorte geometrico de fallback")
         return try_face_crop(photo)
     try:
-        return crop_to_box(photo, box)
+        box = tighten_box(photo, box)
+        mask = await segment_head_mask(photo, box)
+        if mask:
+            return composite_on_cream(photo, box, mask)
+        return isolate_on_cream(photo, box)
     except Exception as exc:  # noqa: BLE001 - recorte nunca deve derrubar o avatar
         logger.warning("Recorte pela caixa falhou (%s); caindo no heuristico", exc)
         return try_face_crop(photo)

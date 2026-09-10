@@ -25,6 +25,7 @@ from app.ai_clients import get_image_provider, get_text_provider, get_video_prov
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
+    AVATAR_STYLE,
     CHARACTER_SHEET_PROMPT,
     EXPRESSION_SHEET_KEYS,
     EXPRESSION_SHEET_PROMPT,
@@ -32,6 +33,7 @@ from app.ai_clients.book_prompts import (
     costume_extras_for_template,
     costume_extras_for_theme,
     costume_lock_prompt,
+    identity_shot,
     infer_expression,
     name_scene_extras_for_template,
     normalize_expression,
@@ -44,8 +46,17 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.face_detect import face_reference, identity_images
 from app.ai_clients.face_match import score_face_match
+from app.ai_clients.image_pulid_fal import pulid_head_enabled
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
+from app.observability.opik_trace import (
+    job_metadata,
+    log_feedback,
+    track,
+    update_span,
+    update_trace,
+)
+from app.observability.story_judge import score_and_log_story
 from app.services.pricing import add_usd, video_cost
 from app.services.usage_ledger import (
     append_usage,
@@ -805,8 +816,13 @@ def _tag_image(result, *, action: str, label: str, fallback_provider: str | None
 # --------------------------------------------------------------------------- #
 # Etapa 2-4: personagem
 # --------------------------------------------------------------------------- #
+@track(name="handle_avatar", capture_input=False, capture_output=False)
 async def handle_avatar(db: Session, job: Job) -> None:
     project = _project(db, job)
+    update_trace(
+        metadata={**job_metadata(job), "theme": project.theme, "language": project.language},
+        tags=["AVATAR"],
+    )
     _set_status(db, project, ProjectStatus.AVATAR_RUNNING)
 
     photos = db.scalars(
@@ -828,9 +844,9 @@ async def handle_avatar(db: Session, job: Job) -> None:
             cost_usd=0.0,
         )
     else:
-        # Personagem hibrido: generate_character + refine de identidade.
+        # Gemini gera o corpo CGI; Fal cola o rosto (sem chave: refine Gemini).
         provider = get_image_provider(job.provider)
-        style = BOOK_STYLE
+        style = AVATAR_STYLE
         gen_refs = (await identity_images(refs[0])) + refs[1:]
         face = gen_refs[0]
         try:
@@ -845,7 +861,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
                 photo=face, prompt=AVATAR_PROMPT, style=style
             )
             _tag_image(result, action="generate_realistic", label="Avatar — geração (fallback)")
-        result = await _refine_identity(provider, face, result, style, passes=1)
+        result = await _lock_avatar_identity(provider, face, result, style)
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
@@ -861,15 +877,23 @@ async def handle_avatar(db: Session, job: Job) -> None:
 
 
 async def _refine_identity(
-    provider, photo_bytes, result, style, *, retries: int = 0, passes: int = 1
+    provider,
+    photo_bytes,
+    result,
+    style,
+    *,
+    retries: int = 0,
+    passes: int = 1,
+    method: str = "refine_identity",
 ):
     """Passe opcional: corrige o rosto para ficar mais fiel a foto, preservando o corpo desenhado.
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
-    `passes` = correcoes em sequencia (avatar usa 1 no Fal).
+    `passes` = correcoes em sequencia (avatar Fal = 1 + retry do juiz).
     `retries` = tentativas extras apos falha em cada passe.
+    `method` = refine_identity (Fal no avatar/paginas); refine_character sem FAL_KEY.
     """
-    refine = getattr(provider, "refine_identity", None)
+    refine = getattr(provider, method, None) or getattr(provider, "refine_identity", None)
     if refine is None or not photo_bytes:
         return result
     extra = max(0, retries)
@@ -899,8 +923,49 @@ async def _refine_identity(
     return result
 
 
+async def _score_avatar_face(photo: bytes | None, scene: bytes) -> float | None:
+    if not photo or not scene:
+        return None
+    try:
+        return await score_face_match(photo, scene)
+    except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o avatar
+        logger.warning("Juiz de rosto do avatar falhou; segue sem retry")
+        return None
+
+
+async def _lock_avatar_identity(provider, face: bytes, result, style):
+    """Gemini gera o corpo; Fal cola o rosto sempre (1x). Sem FAL_KEY: refine Gemini.
+
+    Nota alta nao pula o Fal — o retrato e a ancora das 12 paginas. Segundo
+    passe so se a nota ficar abaixo de `avatar_face_match_min`.
+    """
+    method = "refine_identity" if pulid_head_enabled() else "refine_character"
+    first = await _refine_identity(provider, face, result, style, passes=1, method=method)
+    if not pulid_head_enabled():
+        return first
+    threshold = settings.avatar_face_match_min
+    score = await _score_avatar_face(face, first.image_bytes)
+    if score is None or score >= threshold:
+        if score is not None:
+            log_feedback("face_score", score, reason="avatar identity")
+        return first
+    second = await _refine_identity(
+        provider, face, first, style, passes=1, method="refine_identity"
+    )
+    score2 = await _score_avatar_face(face, second.image_bytes)
+    if score2 is None:
+        if score is not None:
+            log_feedback("face_score", score, reason="avatar identity")
+        return second
+    if score is not None and score2 < score:
+        log_feedback("face_score", score, reason="avatar identity (kept first)")
+        return first
+    log_feedback("face_score", score2, reason="avatar identity")
+    return second
+
+
 async def _refine_scene(provider, character_ref, result, style, *, photo: bytes | None = None):
-    """Passe opcional de cena: corrige o protagonista (foto = rosto, se houver).
+    """Passe opcional de cena: corrige o protagonista pelo avatar (nao pela foto).
 
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
     `EBOOK_REFINE_SCENE=false` corta o segundo passe (nunca refina).
@@ -1112,6 +1177,7 @@ def _video_reference_key(db: Session, project: Project, *, scene_n: int = 1) -> 
 # --------------------------------------------------------------------------- #
 # Etapa 5-8: historia
 # --------------------------------------------------------------------------- #
+@track(name="handle_story", capture_input=False, capture_output=False)
 async def handle_story(db: Session, job: Job) -> None:
     project = _project(db, job)
     _set_status(db, project, ProjectStatus.STORY_RUNNING)
@@ -1266,6 +1332,16 @@ async def handle_story(db: Session, job: Job) -> None:
                    f"ou a sorte resolverem por ele. " if interest else "")
             )
 
+    update_trace(
+        metadata={
+            **job_metadata(job),
+            "theme": theme,
+            "language": language,
+            "age": project.child_age,
+        },
+        input={"brief": brief[:2000], "theme": theme, "language": language},
+        tags=["STORY"],
+    )
     provider = get_text_provider(job.provider)
     result = await provider.generate_story(
         brief=brief, style=BOOK_STYLE, pages=settings.ebook_pages,
@@ -1273,6 +1349,14 @@ async def handle_story(db: Session, job: Job) -> None:
     )
     project.story_text = result.text
     job.cost_usd = result.cost_usd
+    update_span(output={"story_chars": len(result.text or "")})
+    await score_and_log_story(
+        brief=brief,
+        story=result.text,
+        age=project.child_age,
+        language=language,
+        theme=theme,
+    )
     _set_status(db, project, ProjectStatus.STORY_READY)
 
     # Em background: agenda o roteiro completo (storyboard) para o vídeo futuro.
@@ -1330,7 +1414,9 @@ def _book_costume_line(
     return costume_extras_for_template(template_id) or costume_extras_for_theme(theme)
 
 
-def _scene_to_brief(sc: dict, page_text: str, *, page_index: int = 0) -> dict:
+def _scene_to_brief(
+    sc: dict, page_text: str, *, page_index: int = 0, layout: str = "story"
+) -> dict:
     """Normaliza uma cena de storyboard num brief de pagina do ebook."""
     scene = (
         str(sc.get("scene") or "").strip()
@@ -1347,7 +1433,7 @@ def _scene_to_brief(sc: dict, page_text: str, *, page_index: int = 0) -> dict:
         "n": int(sc.get("n") or page_index + 1),
         "scene": scene,
         "expression": expression,
-        "shot": normalize_shot(sc.get("shot")),
+        "shot": identity_shot(sc.get("shot"), layout=layout),
         "costume": str(sc.get("costume") or "").strip(),
         "text_band": normalize_text_band(band),
     }
@@ -1369,7 +1455,7 @@ def _fallback_page_briefs(
             "n": i + 1,
             "scene": scene,
             "expression": infer_expression(page, note),
-            "shot": "wide" if layout == "name" else "medium",
+            "shot": identity_shot(None, layout=layout),
             "costume": costume,
             "text_band": "left" if layout == "name" else (
                 "top" if i % 2 == 0 else "bottom"
@@ -1487,7 +1573,8 @@ async def ensure_page_briefs(
     briefs = []
     for i, page in enumerate(pages):
         sc = scenes[i] if i < len(scenes) else {}
-        brief = _scene_to_brief(sc, page, page_index=i)
+        layout = layouts[i] if layouts and i < len(layouts) else "story"
+        brief = _scene_to_brief(sc, page, page_index=i, layout=layout)
         if not brief.get("costume"):
             brief["costume"] = costume
         briefs.append(brief)
@@ -1519,10 +1606,14 @@ async def _generate_character_bible(
     style: str,
     lines: list | None = None,
 ) -> tuple[dict[str, bytes], float]:
-    """3 folhas (turnaround, expressoes, figurino). Best-effort: falha nao aborta o livro."""
+    """3 folhas (turnaround, expressoes, figurino) a partir do avatar.
+
+    `photo` so entra se nao houver avatar: a foto ja foi absorvida no retrato.
+    Best-effort: falha nao aborta o livro.
+    """
     bible: dict[str, bytes] = {}
     costs: list[float] = []
-    refs = [img for img in (photo, avatar) if img]
+    refs = [avatar] if avatar else [img for img in (photo,) if img]
     store_lock = asyncio.Lock()
 
     async def _one(kind: AssetKind, prompt: str, extra: list[bytes]) -> None:
@@ -1577,14 +1668,68 @@ def _scene_extra_refs(
     return extras
 
 
-async def _score_page_face(photo: bytes | None, scene: bytes) -> float | None:
-    if not settings.ebook_face_match or not photo or not scene:
+async def _score_page_face(
+    probe: bytes | None, scene: bytes, *, domain: str = "photo"
+) -> float | None:
+    if not settings.ebook_face_match or not probe or not scene:
         return None
     try:
-        return await score_face_match(photo, scene)
+        return await score_face_match(probe, scene, domain=domain)
     except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o livro
         logger.warning("Juiz de rosto falhou; pagina segue sem refine")
         return None
+
+
+async def lock_page_identity(
+    provider,
+    *,
+    headed: ImageResult,
+    avatar: bytes | None,
+    photo: bytes | None,
+    style: str,
+    refine_first: bool = True,
+    page_idx: int | None = None,
+) -> tuple[ImageResult, float | None]:
+    """Trava a cara da pagina: refine_scene se a nota cair; Fal por ultimo.
+
+    A nota compara o AVATAR com a cena (mesmo estilo). Sem avatar, cai no
+    recorte da foto. O Fal sempre cola a foto real (`photo`).
+    `refine_first=False` quando o caller ja rodou refine_scene (script).
+    """
+    probe = avatar or photo
+    domain = "same" if avatar else "photo"
+    threshold = (
+        settings.ebook_avatar_match_min if avatar else settings.ebook_face_match_min
+    )
+    judge = bool(settings.ebook_face_match and probe)
+    last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
+    if not judge:
+        return headed, last_score
+
+    def _below(score: float | None) -> bool:
+        return score is not None and score < threshold
+
+    if refine_first and _below(last_score):
+        headed = await _refine_scene(provider, avatar or photo or b"", headed, style)
+        if page_idx is not None:
+            for line in lines_of(headed):
+                if line.get("action") == "refine_scene":
+                    line["label"] = f"Página {page_idx} — refine avatar"
+        last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
+
+    # None/0: juiz nao achou a cara (wide) ou falhou. Fal cola mesmo assim.
+    needs_fal = photo and (_below(last_score) or last_score is None or last_score == 0.0)
+    if not needs_fal:
+        return headed, last_score
+
+    headed = await _refine_identity(provider, photo, headed, style)
+    if page_idx is not None:
+        for line in lines_of(headed):
+            if line.get("action") == "refine_identity":
+                line["label"] = f"Página {page_idx} — cabeça Fal"
+    last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
+    # ArcFace em cara pequena mente; nao desfaz o Fal.
+    return headed, last_score
 
 
 async def _accept_illustrated_page(
@@ -1602,10 +1747,12 @@ async def _accept_illustrated_page(
     meta["usage_lines"] = spent_lines
     if last_score is not None:
         meta["face_score"] = last_score
+        log_feedback("face_score", last_score, reason="page identity")
     headed.meta = meta
     return headed
 
 
+@track(name="illustrate_page", capture_input=False, capture_output=False)
 async def _illustrate_page(
     provider,
     *,
@@ -1620,7 +1767,7 @@ async def _illustrate_page(
     style_lock: asyncio.Lock,
     good_style: list[bytes],
 ) -> ImageResult:
-    """Cena Gemini; Fal só se o juiz achar o rosto fraco. 1 retry se ainda falhar."""
+    """Cena no avatar; refine_scene se o juiz achar o rosto fraco; Fal por ultimo."""
     prompt = build_scene_prompt(
         page=idx,
         text=caption,
@@ -1631,13 +1778,27 @@ async def _illustrate_page(
         shot=brief.get("shot") or "",
         text_band=brief.get("text_band") or "",
     )
-    threshold = settings.ebook_face_match_min
-    judge = bool(settings.ebook_face_match and photo_bytes)
+    update_span(
+        metadata={"action": "illustrate_page", "page": idx},
+        input={"page": idx, "prompt": prompt, "caption": caption[:400]},
+    )
+    probe = char_bytes or photo_bytes
+    threshold = (
+        settings.ebook_avatar_match_min if char_bytes else settings.ebook_face_match_min
+    )
+    judge = bool(settings.ebook_face_match and probe)
     attempts = 2 if judge else 1
     last_score: float | None = None
     spent = 0.0
     spent_lines: list = []
     headed: ImageResult | None = None
+
+    def _take(result: ImageResult) -> ImageResult:
+        nonlocal spent, spent_lines
+        spent = add_usd(spent, result.cost_usd)
+        spent_lines = spent_lines + lines_of(result)
+        result.cost_usd = spent
+        return result
 
     for attempt in range(attempts):
         style_ref = None
@@ -1652,7 +1813,6 @@ async def _illustrate_page(
             prompt=prompt,
             character_ref=char_bytes,
             style=BOOK_STYLE,
-            photo=photo_bytes,
             extra_refs=extra_refs or None,
         )
         _tag_image(
@@ -1662,45 +1822,31 @@ async def _illustrate_page(
         )
         headed = scene
         if not judge:
-            spent = add_usd(spent, headed.cost_usd)
-            spent_lines = spent_lines + lines_of(headed)
-            headed.cost_usd = spent
             return await _accept_illustrated_page(
-                headed,
+                _take(headed),
                 spent_lines=spent_lines,
                 style_lock=style_lock,
                 good_style=good_style,
             )
 
-        last_score = await _score_page_face(photo_bytes, headed.image_bytes)
-        if last_score is None or last_score >= threshold:
-            spent = add_usd(spent, headed.cost_usd)
-            spent_lines = spent_lines + lines_of(headed)
-            headed.cost_usd = spent
+        headed, last_score = await lock_page_identity(
+            provider,
+            headed=headed,
+            avatar=char_bytes,
+            photo=photo_bytes,
+            style=BOOK_STYLE,
+            refine_first=True,
+            page_idx=idx,
+        )
+        if last_score is None or last_score == 0 or last_score >= threshold:
             return await _accept_illustrated_page(
-                headed,
+                _take(headed),
                 spent_lines=spent_lines,
                 style_lock=style_lock,
                 good_style=good_style,
                 last_score=last_score,
             )
-
-        headed = await _refine_identity(provider, photo_bytes, headed, BOOK_STYLE)
-        for line in lines_of(headed):
-            if line.get("action") == "refine_identity":
-                line["label"] = f"Página {idx} — cabeça Fal"
-        spent = add_usd(spent, headed.cost_usd)
-        spent_lines = spent_lines + lines_of(headed)
-        headed.cost_usd = spent
-        last_score = await _score_page_face(photo_bytes, headed.image_bytes)
-        if last_score is None or last_score >= threshold:
-            return await _accept_illustrated_page(
-                headed,
-                spent_lines=spent_lines,
-                style_lock=style_lock,
-                good_style=good_style,
-                last_score=last_score,
-            )
+        headed = _take(headed)
 
     assert headed is not None
     return await _accept_illustrated_page(
@@ -1746,8 +1892,10 @@ def _persist_page_image(
 # --------------------------------------------------------------------------- #
 # Etapa 9-10: ebook (ilustracoes por pagina + montagem)
 # --------------------------------------------------------------------------- #
+@track(name="handle_ebook", capture_input=False, capture_output=False)
 async def handle_ebook(db: Session, job: Job) -> None:
     project = _project(db, job)
+    update_trace(metadata=job_metadata(job), tags=["EBOOK"])
     if not project.story_text:
         raise ProviderError("Historia ausente: rode STORY antes", transient=False)
     if not project.character_ref:
@@ -1824,7 +1972,12 @@ async def handle_ebook(db: Session, job: Job) -> None:
     work: list[tuple[int, str, dict, str]] = []
     for idx, (full_text, caption) in enumerate(zip(pages_text, captions), 1):
         layout = layouts[idx - 1] if idx - 1 < len(layouts) else "story"
-        brief = briefs[idx - 1] if idx - 1 < len(briefs) else _scene_to_brief({}, full_text, page_index=idx - 1)
+        brief = (
+            briefs[idx - 1]
+            if idx - 1 < len(briefs)
+            else _scene_to_brief({}, full_text, page_index=idx - 1, layout=layout)
+        )
+        brief["shot"] = identity_shot(brief.get("shot"), layout=layout)
         if layout != "dedication":
             work.append((idx, caption, brief, layout))
 
@@ -1925,6 +2078,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         language=language,
         extra_characters=extra_chars or None,
         preview_pages=3,
+        cover_palette=ebook_builder.cover_palette_for(template_id, project.theme),
     )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")

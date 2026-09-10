@@ -22,6 +22,7 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import SessionLocal
 from app.models import Job, JobStatus
+from app.observability.opik_trace import flush, job_metadata, track, update_trace
 from app.services import jobs as jobs_svc
 
 logger = logging.getLogger("worker")
@@ -55,12 +56,27 @@ def claim_next(db: Session) -> Job | None:
 
 async def process_job(db: Session, job: Job) -> None:
     """Executa um job com retry/backoff. Importa handlers tardiamente (evita ciclo)."""
+    try:
+        await _process_job(db, job)
+    finally:
+        flush()
+
+
+@track(name="process_job", capture_input=False, capture_output=False)
+async def _process_job(db: Session, job: Job) -> None:
     from app.ai_clients.base import ProviderError
     from app.workers.handlers import HANDLERS
+
+    update_trace(
+        metadata=job_metadata(job),
+        tags=[str(job.type)],
+        input={"job_id": str(job.id), "job_type": job.type},
+    )
 
     handler = HANDLERS.get(job.type)
     if handler is None:
         jobs_svc.mark_failed_and_refund(db, job, f"Sem handler para tipo {job.type}")
+        update_trace(output={"status": "FAILED", "error": f"Sem handler para tipo {job.type}"})
         return
 
     while True:
@@ -71,6 +87,7 @@ async def process_job(db: Session, job: Job) -> None:
             job.status = JobStatus.DONE.value
             db.commit()
             logger.info("job %s (%s) DONE", job.id, job.type)
+            update_trace(output={"status": "DONE"}, metadata=job_metadata(job))
             return
         except ProviderError as exc:
             retriable = exc.transient and job.attempts < settings.job_max_attempts
@@ -80,11 +97,19 @@ async def process_job(db: Session, job: Job) -> None:
             )
             if not retriable:
                 jobs_svc.mark_failed_and_refund(db, job, str(exc))
+                update_trace(
+                    output={"status": "FAILED", "error": str(exc)},
+                    metadata={**job_metadata(job), "error": str(exc)},
+                )
                 return
             await asyncio.sleep(backoff_delay(job.attempts))
         except Exception as exc:
             logger.exception("job %s erro inesperado", job.id)
             jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
+            update_trace(
+                output={"status": "FAILED", "error": f"{type(exc).__name__}: {exc}"},
+                metadata={**job_metadata(job), "error": str(exc)},
+            )
             return
 
 
@@ -118,7 +143,10 @@ async def run_forever() -> None:
 
 
 def main() -> None:
+    from app.observability.opik_trace import configure as configure_opik
+
     logging.basicConfig(level=settings.log_level)
+    configure_opik()
     asyncio.run(run_forever())
 
 
