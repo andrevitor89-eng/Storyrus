@@ -167,9 +167,7 @@ function megaHref(item: { tema?: string; href?: string }) {
 }
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["dica-boa.png", "personagem-dino.jpg", "capa-dino2.jpg"];
-/* passo 3: começa na capa e folheia páginas internas (sem a 2ª) */
-const HOW_OPEN_BOOK = ["capa-dino2.jpg", "personagem-dino.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"];
+const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -187,7 +185,6 @@ const CATALOG_TITLE_LINES: { pt: [string, string]; en: [string, string]; es: [st
   { pt: ["Noah e o Circo", "das Luzes"], en: ["Noah and the", "Circus of Lights"], es: ["Noah y el Circo", "de las Luces"] },
 ];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
-const SURPRISE_IMG = "capa-surpresa.jpg";
 /* livro 3D do catálogo: páginas internas (sem a 2ª página, p/ flip mais limpo) */
 const BOOK3D = [
   { bg: "#cfe3f0", pages: ["mar-1.jpg", "mar-3.jpg", "mar-4.jpg", "mar-5.jpg", "mar-6.jpg"] },
@@ -195,13 +192,10 @@ const BOOK3D = [
   { bg: "#ecd8b2", pages: ["dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"] },
   { bg: "#f4d6da", pages: ["circo-1.jpg", "circo-3.jpg", "circo-4.jpg", "circo-5.jpg", "circo-6.jpg"] },
 ];
-const BOOK3D_SURPRISE = { bg: "#f3e2b4", pages: ["ebook-6.jpg", "ebook-8.jpg", "ebook-10.jpg", "ebook-7.jpg", "ebook-4.jpg"] };
-const BANNER_IMGS = ["capa-circo.jpg", "capa-oceano.jpg", "capa-dino2.jpg"];
-/* índice em t.catalog — título na capa do banner (circo, oceano, dino) */
-const BANNER_CATALOG_I = [3, 0, 2];
+const BANNER_IMGS = ["amazonia-1.jpg", "capa-oceano.jpg", "dino-4.jpg"];
 /* um card por tema do catálogo — src null = ainda sem exemplo de vídeo */
-const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg", "circo-2.jpg"];
-const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4", "video-circo.mp4"];
+const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 // Slides do hero: capa limpa + título CSS em 2 linhas (sempre inteiro dentro do frame)
 const HERO_SLIDES: {
   photo: string; book: string; catalogI: number;
@@ -485,14 +479,14 @@ const I18N = {
     nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
     reviews_link: "Avaliações",
     my_books: "Meus Livros",
-    our_story: "Nossa História",
+    our_story: "Personalização",
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
     cats_label: "Categorias",
     font_label: "Fonte do título",
     explore: "Explorar agora",
     eyebrow: "Eternize momentos. Presenteie familiares com uma história única.",
-    h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: "!",
+    h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: " !",
     lead: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele.",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
     cta_play: "Criar minha história", cta_disc: "Ver como funciona",
@@ -507,7 +501,7 @@ const I18N = {
       { t: "Construa a própria história", p: "Escolha a aventura, personalize os detalhes e crie um livro único." },
       { t: "Explore mundos incríveis", p: "Aventuras que despertam a curiosidade e alimentam a imaginação." },
     ],
-    hiw_title: "Como funciona", hiw_sub: "Da sua foto ao livro — com exemplos reais.",
+    hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele.",
     hiw: [
       { t: "Você envia a foto", p: "Uma foto da criança já basta para começar." },
       { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
@@ -522,7 +516,6 @@ const I18N = {
       { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
-      { t: "Noah e o Circo das Luzes", p: "Uma noite mágica cheia de brilho e música." },
     ],
     vid_soon: "Em breve",
     book_badge: "Exemplo real",
@@ -590,14 +583,14 @@ const I18N = {
     nav: ["How it works", "Books", "Videos", "FAQ"],
     reviews_link: "Reviews",
     my_books: "My Books",
-    our_story: "Our Story",
+    our_story: "Personalization",
     see_all_books: "See all books",
     view_all: "View all",
     cats_label: "Categories",
     font_label: "Cover font",
     explore: "Explore now",
     eyebrow: "Preserve moments. Gift your family a one-of-a-kind story.",
-    h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: "!",
+    h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: " !",
     lead: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them.",
     hero_sign: "One photo. One story. One lasting memory.",
     cta_play: "Create my story", cta_disc: "See how it works",
@@ -612,7 +605,7 @@ const I18N = {
       { t: "Build their own story", p: "Choose the adventure, personalize the details and create a unique book." },
       { t: "Explore amazing worlds", p: "Adventures that spark curiosity and feed the imagination." },
     ],
-    hiw_title: "How it works", hiw_sub: "From your photo to the book — with real examples.",
+    hiw_title: "How it works", hiw_sub: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them.",
     hiw: [
       { t: "You send the photo", p: "One photo of your child is all it takes to begin." },
       { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
@@ -627,7 +620,6 @@ const I18N = {
       { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
-      { t: "Noah and the Circus of Lights", p: "A magical night full of sparkle and music." },
     ],
     vid_soon: "Coming soon",
     book_badge: "Real example",
@@ -695,14 +687,14 @@ const I18N = {
     nav: ["Cómo funciona", "Libros", "Videos", "FAQ"],
     reviews_link: "Reseñas",
     my_books: "Mis Libros",
-    our_story: "Nuestra Historia",
+    our_story: "Personalización",
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
     cats_label: "Categorías",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
     eyebrow: "Eterniza momentos. Regala a tu familia una historia única.",
-    h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: "!",
+    h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: " !",
     lead: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él.",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
     cta_play: "Crear mi historia", cta_disc: "Ver cómo funciona",
@@ -717,7 +709,7 @@ const I18N = {
       { t: "Construye su propia historia", p: "Elige la aventura, personaliza los detalles y crea un libro único." },
       { t: "Explora mundos increíbles", p: "Aventuras que despiertan la curiosidad y alimentan la imaginación." },
     ],
-    hiw_title: "Cómo funciona", hiw_sub: "De tu foto al libro — con ejemplos reales.",
+    hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él.",
     hiw: [
       { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
       { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
@@ -732,7 +724,6 @@ const I18N = {
       { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
       { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
       { t: "Matteo y el Mundo de los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
-      { t: "Noah y el Circo de las Luces", p: "Una noche mágica llena de brillo y música." },
     ],
     vid_soon: "Pronto",
     book_badge: "Ejemplo real",
@@ -827,14 +818,8 @@ export function Landing() {
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const exampleBooks = [
-    {
-      title: t.catalog[0].t,
-      titleLines: CATALOG_TITLE_LINES[0][lang],
-      cover: CATALOG_IMGS[0],
-      pages: [CATALOG_IMGS[0], ...BOOK3D[0].pages],
-    },
     { title: t.chloe_title, titleLines: undefined as [string, string] | undefined, cover: "ebook-1.jpg", pages: BOOK },
-    ...t.catalog.slice(1).map((c, i) => ({
+    ...t.catalog.slice(1, 3).map((c, i) => ({
       title: c.t,
       titleLines: CATALOG_TITLE_LINES[i + 1][lang],
       cover: CATALOG_IMGS[i + 1],
@@ -913,83 +898,84 @@ export function Landing() {
       </div>
 
       <header className="khead">
-        <div className="khead-top">
-          <div className="khead-top-inner">
-            <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
-            <div className="khead-utils">
-              <a href="#reviews" className="kutil" onClick={closeNav}><IcStar className="ni" />{t.reviews_link}</a>
-              <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
-                {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
-              </button>
-              <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
-                <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
-                <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-                <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
+        <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
+        <div className="khead-main">
+          <div className="khead-top">
+            <div className="khead-top-inner">
+              <div className="khead-utils">
+                <a href="#reviews" className="kutil" onClick={closeNav}><IcStar className="ni" />{t.reviews_link}</a>
+                <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
+                  {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+                </button>
+                <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
+                  <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
+                  <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+                  <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
+                </div>
+                <button
+                  className="khamb"
+                  aria-label={t.a11y_menu}
+                  aria-expanded={navOpen}
+                  aria-controls="site-menu"
+                  onClick={() => setNavOpen((v) => !v)}
+                >☰</button>
               </div>
-              <button
-                className="khamb"
-                aria-label={t.a11y_menu}
-                aria-expanded={navOpen}
-                aria-controls="site-menu"
-                onClick={() => setNavOpen((v) => !v)}
-              >☰</button>
             </div>
           </div>
-        </div>
-        <div className="khead-bar">
-          <div className="khead-bar-inner">
-            <nav className="kcats" aria-label={t.cats_label}>
-              {MEGA_CATS.map((cat) => (
-                <div
-                  key={cat.id}
-                  className={`kcat${megaOpen === cat.id ? " open" : ""}`}
-                >
-                  <button
-                    type="button"
-                    className="kcat-btn"
-                    aria-expanded={megaOpen === cat.id}
-                    aria-haspopup="true"
-                    onClick={() => setMegaOpen((id) => (id === cat.id ? null : cat.id))}
+          <div className="khead-bar">
+            <div className="khead-bar-inner">
+              <nav className="kcats" aria-label={t.cats_label}>
+                {MEGA_CATS.map((cat) => (
+                  <div
+                    key={cat.id}
+                    className={`kcat${megaOpen === cat.id ? " open" : ""}`}
                   >
-                    <span className="kcat-dot" style={{ background: cat.dot }} />
-                    {cat.labels[lang]}
-                  </button>
-                  <div className="kcat-panel">
-                    <ul className="kcat-subs">
-                      {cat.subs.map((sub) => (
-                        <li key={sub.labels.pt}>
-                          <Link to={megaHref(sub)} onClick={closeNav}>{sub.labels[lang]}</Link>
-                        </li>
-                      ))}
-                    </ul>
-                    <div className="kcat-feats">
-                      {cat.feats.map((feat, i) => {
-                        const card = featCard(feat, i);
-                        return (
-                          <Link to={card.href} className="kcat-feat" key={`${cat.id}-${i}`} onClick={closeNav}>
-                            <span className="kcat-feat-cover">
-                              <img src={exUrl(card.img)} alt="" />
-                              {card.lines && (
-                                <span className="kcat-feat-title" aria-hidden>
-                                  {card.lines.map((line) => <span key={line}>{line}</span>)}
-                                </span>
-                              )}
-                            </span>
-                            <span>{card.title}</span>
-                          </Link>
-                        );
-                      })}
-                      <Link to="/app" className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                    <button
+                      type="button"
+                      className="kcat-btn"
+                      aria-expanded={megaOpen === cat.id}
+                      aria-haspopup="true"
+                      onClick={() => setMegaOpen((id) => (id === cat.id ? null : cat.id))}
+                    >
+                      <span className="kcat-dot" style={{ background: cat.dot }} />
+                      {cat.labels[lang]}
+                    </button>
+                    <div className="kcat-panel">
+                      <ul className="kcat-subs">
+                        {cat.subs.map((sub) => (
+                          <li key={sub.labels.pt}>
+                            <Link to={megaHref(sub)} onClick={closeNav}>{sub.labels[lang]}</Link>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="kcat-feats">
+                        {cat.feats.map((feat, i) => {
+                          const card = featCard(feat, i);
+                          return (
+                            <Link to={card.href} className="kcat-feat" key={`${cat.id}-${i}`} onClick={closeNav}>
+                              <span className="kcat-feat-cover">
+                                <img src={exUrl(card.img)} alt="" />
+                                {card.lines && (
+                                  <span className="kcat-feat-title" aria-hidden>
+                                    {card.lines.map((line) => <span key={line}>{line}</span>)}
+                                  </span>
+                                )}
+                              </span>
+                              <span>{card.title}</span>
+                            </Link>
+                          );
+                        })}
+                        <Link to="/app" className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </nav>
-            <div className="khead-links">
-              <Link to="/app">{t.my_books}</Link>
-              <a href="#promessa">{t.our_story}</a>
-              <a href="#catalogo">{t.see_all_books}</a>
-              <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                ))}
+              </nav>
+              <div className="khead-links">
+                <a href="#promessa">{t.our_story}</a>
+                <a href="#catalogo">{t.see_all_books}</a>
+                <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+              </div>
             </div>
           </div>
         </div>
@@ -1015,7 +1001,6 @@ export function Landing() {
               </div>
             </div>
           ))}
-          <Link to="/app" onClick={closeNav}>{t.my_books}</Link>
           <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
           <a href="#catalogo" onClick={closeNav}>{t.see_all_books}</a>
           <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_play}</Link>
@@ -1027,7 +1012,6 @@ export function Landing() {
         <div className="khero-intro">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
-          <p className="klead">{t.lead}</p>
           <div className="khero-cta">
             <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
           </div>
@@ -1068,39 +1052,12 @@ export function Landing() {
         <div className="howex">
           {t.hiw.map((h, i) => (
             <Fragment key={h.t}>
-              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-book" : ""}`}>
-                {i === 2 ? (
-                  <div className="howex-book">
-                    <FlipBook
-                      pages={HOW_OPEN_BOOK}
-                      compact
-                      coverTitle={t.catalog[2].t}
-                      coverTitleLines={CATALOG_TITLE_LINES[2][lang]}
-                      labels={flipLabels}
-                    />
-                  </div>
-                ) : (
-                  <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
-                )}
+              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}`}>
+                <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
                 <span className="howex-num">{i + 1}</span>
                 <figcaption>
                   <h3>{h.t}</h3>
                   <p>{h.p}</p>
-                  {i === 2 && (
-                    <div className="font-pick" role="group" aria-label={t.font_label}>
-                      <span>{t.font_label}</span>
-                      {COVER_FONTS.map((f) => (
-                        <button
-                          key={f.id}
-                          type="button"
-                          className={coverFont === f.id ? "on" : ""}
-                          onClick={() => setCoverFont(f.id)}
-                        >
-                          {f.label}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                 </figcaption>
               </figure>
               {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
@@ -1139,7 +1096,7 @@ export function Landing() {
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
-          {t.catalog.map((c, i) => (
+          {t.catalog.slice(0, 3).map((c, i) => (
             <div className="cat-card reveal" key={c.t}>
               <div className="cat-flip" style={{ background: BOOK3D[i].bg }}>
                 <FlipBook
@@ -1158,17 +1115,6 @@ export function Landing() {
               </div>
             </div>
           ))}
-          <div className="cat-card surprise reveal">
-            <div className="cat-flip" style={{ background: BOOK3D_SURPRISE.bg }}>
-              <FlipBook pages={[SURPRISE_IMG, ...BOOK3D_SURPRISE.pages]} compact labels={flipLabels} />
-            </div>
-            <div className="cat-body">
-              <div className="cat-badges"><span className="cat-age">{t.surprise.age}</span><span className="cat-tag">{t.surprise.tag}</span></div>
-              <h3>{t.surprise.t}</h3>
-              <p>{t.surprise.p}</p>
-              <Link to="/app" className="kbtn kbtn-soft">{t.personalize}</Link>
-            </div>
-          </div>
         </div>
       </section>
 
@@ -1243,7 +1189,7 @@ export function Landing() {
       <section className="banners">
         {t.banners.map((b, i) => (
           <figure className="banner-card reveal" key={b.t}>
-            <img src={exUrl(BANNER_IMGS[i])} alt={t.catalog[BANNER_CATALOG_I[i]].t} loading="lazy" />
+            <img src={exUrl(BANNER_IMGS[i])} alt={b.t} loading="lazy" />
             <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
           </figure>
         ))}
