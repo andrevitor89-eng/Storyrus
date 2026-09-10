@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -45,124 +45,8 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 type CoverFont = "fredoka" | "baloo" | "lilita";
 
-type MegaSub = {
-  tema?: string;
-  href?: string;
-  labels: { pt: string; en: string; es: string };
-};
-type MegaFeat = {
-  catalogI?: number;
-  tema?: string;
-  href?: string;
-  labels?: { pt: string; en: string; es: string };
-};
-type MegaCat = {
-  id: string;
-  dot: string;
-  labels: { pt: string; en: string; es: string };
-  subs: MegaSub[];
-  feats: MegaFeat[];
-};
-
-const MEGA_CATS: MegaCat[] = [
-  {
-    id: "aventuras",
-    dot: "#5aa6e8",
-    labels: { pt: "Aventuras Favoritas", en: "Favorite Adventures", es: "Aventuras Favoritas" },
-    subs: [
-      { tema: "adventure", labels: { pt: "Aventura", en: "Adventure", es: "Aventura" } },
-      { tema: "fantasy", labels: { pt: "Fantasia", en: "Fantasy", es: "Fantasía" } },
-      { tema: "dinosaurs", labels: { pt: "Dinossauros", en: "Dinosaurs", es: "Dinosaurios" } },
-      { tema: "underwater", labels: { pt: "Fundo do mar", en: "Under the sea", es: "Fondo del mar" } },
-      { tema: "space", labels: { pt: "Espaço", en: "Space", es: "Espacio" } },
-      { tema: "princess", labels: { pt: "Princesas", en: "Princesses", es: "Princesas" } },
-      { tema: "superhero", labels: { pt: "Super-heróis", en: "Superheroes", es: "Superhéroes" } },
-    ],
-    feats: [{ catalogI: 0 }, { catalogI: 1 }, { catalogI: 2 }, { catalogI: 3 }],
-  },
-  {
-    id: "ocasioes",
-    dot: "#f0b429",
-    labels: { pt: "Ocasiões Especiais", en: "Special Occasions", es: "Ocasiones Especiales" },
-    subs: [
-      { tema: "christmas", labels: { pt: "Natal", en: "Christmas", es: "Navidad" } },
-      { tema: "birthday", labels: { pt: "Aniversário", en: "Birthday", es: "Cumpleaños" } },
-      { tema: "mothers_day", labels: { pt: "Dia das Mães", en: "Mother's Day", es: "Día de las Madres" } },
-      { tema: "fathers_day", labels: { pt: "Dia dos Pais", en: "Father's Day", es: "Día del Padre" } },
-      { tema: "easter", labels: { pt: "Páscoa", en: "Easter", es: "Pascua" } },
-      { tema: "childrens_day", labels: { pt: "Dia das Crianças", en: "Children's Day", es: "Día del Niño" } },
-      { tema: "new_year", labels: { pt: "Ano Novo", en: "New Year", es: "Año Nuevo" } },
-    ],
-    feats: [
-      { tema: "christmas", labels: { pt: "Natal", en: "Christmas", es: "Navidad" } },
-      { tema: "birthday", labels: { pt: "Aniversário", en: "Birthday", es: "Cumpleaños" } },
-      { tema: "mothers_day", labels: { pt: "Dia das Mães", en: "Mother's Day", es: "Día de las Madres" } },
-      { tema: "fathers_day", labels: { pt: "Dia dos Pais", en: "Father's Day", es: "Día del Padre" } },
-    ],
-  },
-  {
-    id: "voce-eu",
-    dot: "#b48ad4",
-    labels: { pt: "Você e Eu", en: "You and Me", es: "Tú y Yo" },
-    subs: [
-      { tema: "mothers_day", labels: { pt: "Mamãe e Eu", en: "Mom and Me", es: "Mamá y Yo" } },
-      { tema: "fathers_day", labels: { pt: "Papai e Eu", en: "Dad and Me", es: "Papá y Yo" } },
-      { href: "/app", labels: { pt: "Vovó e Vovô", en: "Grandma and Grandpa", es: "Abuela y Abuelo" } },
-      { href: "/app", labels: { pt: "Irmãos e primos", en: "Siblings and cousins", es: "Hermanos y primos" } },
-    ],
-    feats: [
-      { tema: "mothers_day", labels: { pt: "Mamãe e Eu", en: "Mom and Me", es: "Mamá y Yo" } },
-      { tema: "fathers_day", labels: { pt: "Papai e Eu", en: "Dad and Me", es: "Papá y Yo" } },
-      { href: "/app", labels: { pt: "Vovó e Vovô", en: "Grandma and Grandpa", es: "Abuela y Abuelo" } },
-      { href: "/app", labels: { pt: "Irmãos e primos", en: "Siblings and cousins", es: "Hermanos y primos" } },
-    ],
-  },
-  {
-    id: "sentimentos",
-    dot: "#f0a0c0",
-    labels: { pt: "Sentimentos", en: "Feelings", es: "Sentimientos" },
-    subs: [
-      { tema: "literacia_emocional", labels: { pt: "Sentimentos", en: "Feelings", es: "Sentimientos" } },
-      { tema: "rotina_dormir", labels: { pt: "Hora de Dormir", en: "Bedtime", es: "Hora de dormir" } },
-      { tema: "compartilhar_revezar", labels: { pt: "Compartilhar", en: "Sharing", es: "Compartir" } },
-      { tema: "consciencia_corporal", labels: { pt: "Corpo", en: "Body", es: "Cuerpo" } },
-    ],
-    feats: [
-      { tema: "literacia_emocional", labels: { pt: "Sentimentos", en: "Feelings", es: "Sentimientos" } },
-      { tema: "rotina_dormir", labels: { pt: "Hora de Dormir", en: "Bedtime", es: "Hora de dormir" } },
-      { tema: "compartilhar_revezar", labels: { pt: "Compartilhar", en: "Sharing", es: "Compartir" } },
-      { tema: "consciencia_corporal", labels: { pt: "Corpo", en: "Body", es: "Cuerpo" } },
-    ],
-  },
-  {
-    id: "atividades",
-    dot: "#5ec4a8",
-    labels: { pt: "Atividades", en: "Activities", es: "Actividades" },
-    subs: [
-      { tema: "alfabetizacao_inicial", labels: { pt: "Alfabetização", en: "Literacy", es: "Alfabetización" } },
-      { tema: "pensamento_matematico", labels: { pt: "Matemática", en: "Math", es: "Matemáticas" } },
-      { tema: "cores", labels: { pt: "Cores", en: "Colors", es: "Colores" } },
-      { tema: "higiene_desfralde", labels: { pt: "Higiene", en: "Hygiene", es: "Higiene" } },
-      { tema: "vestir_autonomia", labels: { pt: "Vestir-se", en: "Getting dressed", es: "Vestirse" } },
-      { tema: "animais_sons", labels: { pt: "Animais", en: "Animals", es: "Animales" } },
-      { tema: "transporte_ajudantes", labels: { pt: "Transporte", en: "Transport", es: "Transporte" } },
-    ],
-    feats: [
-      { tema: "alfabetizacao_inicial", labels: { pt: "Alfabetização", en: "Literacy", es: "Alfabetización" } },
-      { tema: "pensamento_matematico", labels: { pt: "Matemática", en: "Math", es: "Matemáticas" } },
-      { tema: "cores", labels: { pt: "Cores", en: "Colors", es: "Colores" } },
-      { tema: "animais_sons", labels: { pt: "Animais", en: "Animals", es: "Animales" } },
-    ],
-  },
-];
-
-function megaHref(item: { tema?: string; href?: string }) {
-  if (item.tema) return `/app?tema=${item.tema}`;
-  return item.href ?? "/app";
-}
-
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
+const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "pagina-sofia-alfabeto.jpg"];
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
@@ -170,74 +54,108 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
   { img: "dica-multi.png", ok: false, focus: "center center" },
   { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
-const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`).filter((f) => f !== "ebook-2.jpg");
-/* capas sem título queimado — nome serifado no topo, aventura 3D na base */
-const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
-type CoverPalette = { name: string; fill: string; stroke: string };
-const COVER_PALETTES = {
-  ocean: { name: "#16324f", fill: "#fffaf2", stroke: "#2b7eb5" },
-  forest: { name: "#f4ead4", fill: "#fffaf2", stroke: "#4a6b3a" },
-  dino: { name: "#f4ead4", fill: "#fffaf2", stroke: "#c47a2a" },
-  circus: { name: "#f4ead4", fill: "#fffaf2", stroke: "#c45a6a" },
-  default: { name: "#1a2748", fill: "#fffaf2", stroke: "#2a3d6b" },
-} as const satisfies Record<string, CoverPalette>;
-const CATALOG_COVERS: { name: string; story: Record<Lang, string>; palette: CoverPalette }[] = [
-  { name: "Lia", story: { pt: "O Fundo do Mar", en: "The Deep Sea", es: "El Fondo del Mar" }, palette: COVER_PALETTES.ocean },
-  { name: "Sofia", story: { pt: "A Floresta Encantada", en: "The Enchanted Forest", es: "El Bosque Encantado" }, palette: COVER_PALETTES.forest },
-  { name: "Matteo", story: { pt: "O Mundo dos Dinossauros", en: "The Dinosaur World", es: "El Mundo de los Dinosaurios" }, palette: COVER_PALETTES.dino },
-  { name: "Noah", story: { pt: "O Circo das Luzes", en: "The Circus of Lights", es: "El Circo de las Luces" }, palette: COVER_PALETTES.circus },
-];
-const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
-
-function coverStyle(palette: CoverPalette): CSSProperties {
-  return {
-    "--cover-name": palette.name,
-    "--cover-fill": palette.fill,
-    "--cover-stroke": palette.stroke,
-  } as CSSProperties;
-}
-
-function CoverTitleOverlay({
-  name,
-  story,
-  palette,
-  className = "",
-}: {
-  name?: string;
-  story?: string;
-  palette?: CoverPalette;
-  className?: string;
-}) {
-  if (!name && !story) return null;
-  return (
-    <span className={`cover-title${className ? ` ${className}` : ""}`} style={palette ? coverStyle(palette) : undefined}>
-      {name ? <span className="cover-name">{name}</span> : null}
-      {story ? <span className="cover-story">{story}</span> : null}
-    </span>
-  );
-}
-/* livro 3D do catálogo: páginas internas (sem a 2ª página, p/ flip mais limpo) */
+const CATALOG_IMGS = ["capa-sofia-alfabeto.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
+const CATALOG_PAGES = ["pagina-sofia-alfabeto.jpg", "pagina-bruno-animais.jpg", "pagina-cristobal-esporte.jpg"];
+const CATALOG_THEMES = ["alfabetizacao_inicial", "animais_sons", "adventure"];
 const BOOK3D = [
-  { bg: "#cfe3f0", pages: ["mar-1.jpg", "mar-3.jpg", "mar-4.jpg", "mar-5.jpg", "mar-6.jpg"] },
-  { bg: "#e2e6d1", pages: ["flor-1.jpg", "flor-3.jpg", "flor-4.jpg", "flor-5.jpg", "flor-6.jpg"] },
-  { bg: "#ecd8b2", pages: ["dino-1.jpg", "dino-3.jpg", "dino-4.jpg", "dino-5.jpg", "dino-6.jpg"] },
-  { bg: "#f4d6da", pages: ["circo-1.jpg", "circo-3.jpg", "circo-4.jpg", "circo-5.jpg", "circo-6.jpg"] },
+  { bg: "#efe4c4" },
+  { bg: "#e4eed4" },
+  { bg: "#d4e8f6" },
 ];
-const BANNER_IMGS = ["amazonia-1.jpg", "capa-oceano.jpg", "dino-4.jpg"];
-/* um card por tema do catálogo — src null = ainda sem exemplo de vídeo */
-const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
-const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
-// Slides do hero: capa limpa + título CSS em 2 linhas (sempre inteiro dentro do frame)
-const HERO_SLIDES: {
-  photo: string; book: string; catalogI: number;
-  bookPos?: string; photoPos?: string;
-}[] = [
-  { photo: "foto-matteo.png", book: "capa-dino2.jpg", catalogI: 2, bookPos: "center 32%", photoPos: "center center" },
-  { photo: "foto-sofia.png", book: "capa-floresta2.jpg", catalogI: 1, bookPos: "center 26%", photoPos: "center 22%" },
-  { photo: "foto-bebe.jpg", book: "capa-circo.jpg", catalogI: 3, bookPos: "center 34%", photoPos: "center center" },
+const BANNER_IMGS = ["capa-sofia-alfabeto.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
+const VIDEO_IMGS = ["pagina-sofia-alfabeto.jpg", "pagina-bruno-animais.jpg", "pagina-cristobal-esporte.jpg"];
+const VIDEO_SRCS: (string | null)[] = [null, null, null];
+const HERO_SLIDES: { book: string; catalogI: number }[] = [
+  { book: "capa-bruno-animais.jpg", catalogI: 1 },
+  { book: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+  { book: "capa-cristobal-esporte.jpg", catalogI: 2 },
 ];
-const FLIP_MS = 600;
-const FLIP_AUTO_MS = 2000;
+const NAV_CAT_META = [
+  {
+    color: "#5aa6e8",
+    subs: [
+      { href: "/app?tema=adventure" },
+      { href: "/app?tema=fantasy" },
+      { href: "/app?tema=dinosaurs" },
+      { href: "/app?tema=underwater" },
+      { href: "/app?tema=space" },
+      { href: "/app?tema=princess" },
+      { href: "/app?tema=superhero" },
+    ],
+    feats: [
+      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=adventure", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
+      { href: "/app?tema=fantasy", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+    ],
+  },
+  {
+    color: "#f0b429",
+    subs: [
+      { href: "/app?tema=christmas" },
+      { href: "/app?tema=birthday" },
+      { href: "/app?tema=mothers_day" },
+      { href: "/app?tema=fathers_day" },
+      { href: "/app?tema=easter" },
+      { href: "/app?tema=childrens_day" },
+      { href: "/app?tema=new_year" },
+    ],
+    feats: [
+      { href: "/app?tema=christmas", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=birthday", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=mothers_day", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
+      { href: "/app?tema=fathers_day", img: "capa-bruno-animais.jpg", catalogI: 1 },
+    ],
+  },
+  {
+    color: "#b48ad4",
+    subs: [
+      { href: "/app?tema=mothers_day" },
+      { href: "/app?tema=fathers_day" },
+      { href: "/app" },
+      { href: "/app" },
+    ],
+    feats: [
+      { href: "/app?tema=mothers_day", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=fathers_day", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
+      { href: "/app", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+    ],
+  },
+  {
+    color: "#f0a0c0",
+    subs: [
+      { href: "/app?tema=literacia_emocional" },
+      { href: "/app?tema=rotina_dormir" },
+      { href: "/app?tema=compartilhar_revezar" },
+      { href: "/app?tema=consciencia_corporal" },
+    ],
+    feats: [
+      { href: "/app?tema=literacia_emocional", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=rotina_dormir", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=compartilhar_revezar", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
+      { href: "/app?tema=consciencia_corporal", img: "capa-bruno-animais.jpg", catalogI: 1 },
+    ],
+  },
+  {
+    color: "#5ec4a8",
+    subs: [
+      { href: "/app?tema=alfabetizacao_inicial" },
+      { href: "/app?tema=pensamento_matematico" },
+      { href: "/app?tema=cores" },
+      { href: "/app?tema=higiene_desfralde" },
+      { href: "/app?tema=vestir_autonomia" },
+      { href: "/app?tema=animais_sons" },
+      { href: "/app?tema=transporte_ajudantes" },
+    ],
+    feats: [
+      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=pensamento_matematico", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=cores", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
+      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 1 },
+    ],
+  },
+] as const;
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
 /* Ilustrações das dicas de enquadramento (SVG inline, sem depender de fotos) */
@@ -388,104 +306,6 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   );
 }
 
-function FlipBook({
-  pages,
-  compact = false,
-  coverTitle,
-  coverName,
-  coverStory,
-  coverPalette,
-  labels,
-}: {
-  pages: string[];
-  compact?: boolean;
-  coverTitle?: string;
-  coverName?: string;
-  coverStory?: string;
-  coverPalette?: CoverPalette;
-  labels?: { prev: string; next: string; turn: string; cover: string };
-}) {
-  const [i, setI] = useState(0);
-  const [anim, setAnim] = useState<"next" | "prev" | null>(null);
-  const [target, setTarget] = useState(0);
-  const [hover, setHover] = useState(false);
-  const busy = useRef(false);
-  const flip = (dir: "next" | "prev", loop = false) => {
-    if (busy.current || pages.length < 2) return;
-    let t = dir === "next" ? i + 1 : i - 1;
-    if (t >= pages.length) { if (!loop) return; t = 0; }
-    if (t < 0) return;
-    busy.current = true;
-    setTarget(t);
-    setAnim(dir);
-    window.setTimeout(() => {
-      setI(t);
-      setAnim(null);
-      busy.current = false;
-    }, FLIP_MS);
-  };
-  // só folheia com o mouse em cima
-  useEffect(() => {
-    if (!hover) return;
-    const id = window.setTimeout(() => flip("next", true), FLIP_AUTO_MS);
-    return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i, pages.length, hover]);
-  // ao sair, fecha na capa
-  useEffect(() => {
-    if (hover) return;
-    busy.current = false;
-    setAnim(null);
-    setI(0);
-    setTarget(0);
-  }, [hover]);
-  const underSrc = anim === "next" ? pages[target] : pages[i];
-  const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
-  const story = coverStory || coverTitle;
-  const showCoverTitle = Boolean(coverName || story) && i === 0 && !anim;
-  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
-  const onStage = (e: RMouseEvent<HTMLDivElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
-  };
-  const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
-      e.preventDefault();
-      flip("next", true);
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      flip("prev");
-    }
-  };
-  return (
-    <div
-      className={`flipbook${compact ? " flipbook-mini" : ""}`}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label={L.prev}>‹</button>}
-      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={L.turn}>
-        <span className="fb-spine" />
-        <img className="fb-page fb-under" src={exUrl(underSrc)} alt="" aria-hidden />
-        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
-          <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
-          <span className="fb-leaf-shade" aria-hidden />
-        </div>
-        {showCoverTitle && (
-          <CoverTitleOverlay
-            className="fb-cover-title"
-            name={coverName}
-            story={story}
-            palette={coverPalette ?? COVER_PALETTES.default}
-          />
-        )}
-        <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
-      </div>
-      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
-    </div>
-  );
-}
-
 const I18N = {
   pt: {
     nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
@@ -497,11 +317,41 @@ const I18N = {
     cats_label: "Categorias",
     font_label: "Fonte do título",
     explore: "Explorar agora",
-    eyebrow: "Eternize momentos. Presenteie familiares com uma história única.",
+    eyebrow: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
     h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: " !",
-    lead: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele.",
+    lead: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele — um livro para presentear a família e guardar para sempre.",
+    cta_play: "Criar minha conta",
+    cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
-    cta_play: "Criar minha história", cta_disc: "Ver como funciona",
+    cats: [
+      {
+        name: "Aventuras Favoritas",
+        subs: ["Aventura", "Fantasia", "Dinossauros", "Fundo do mar", "Espaço", "Princesas", "Super-heróis"],
+        feats: ["Aprendendo o Alfabeto com a Sofia", "Bruno em uma aventura animal", "Cristobal e seu Esporte Favorito", "Aprendendo o Alfabeto com a Sofia"],
+      },
+      {
+        name: "Ocasiões Especiais",
+        subs: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais", "Páscoa", "Dia das Crianças", "Ano Novo"],
+        feats: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais"],
+      },
+      {
+        name: "Você e Eu",
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Irmãos e primos"],
+        feats: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Irmãos e primos"],
+      },
+      {
+        name: "Sentimentos",
+        subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
+        feats: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
+      },
+      {
+        name: "Atividades",
+        subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Transporte"],
+        feats: ["Alfabetização", "Matemática", "Cores", "Animais"],
+      },
+    ],
+    cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
+    cat_below_lead: "Transforme uma foto em um livro personalizado, onde seu filho é o protagonista.",
     trust: "Encantando famílias do início ao fim",
     ba_before: "ANTES", ba_after: "DEPOIS", ba_caption: "Você envia a foto. A gente cria o encanto.",
     ba_preview: "PRÉ-VISUALIZAÇÃO",
@@ -525,15 +375,15 @@ const I18N = {
     vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
-      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
-      { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
-      { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
+      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas, com trilha suave." },
+      { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza com amigos do reino animal." },
+      { t: "Cristobal e seu Esporte Favorito", p: "Equilíbrio, coragem e o rio como pista de aventura." },
     ],
     vid_soon: "Em breve",
     book_badge: "Exemplo real",
     story_title: "Folheie nossos livros",
     story_sub: "Livros criados pela plataforma a partir de uma única foto — escolha um exemplo.",
-    story_hint: "Clique nas laterais do livro (ou use as setas) para virar as páginas.",
+    story_hint: "A foto vira o protagonista da página.",
     chloe_title: "A História de Chloe",
     fmt_title: "Escolha o formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
@@ -554,12 +404,10 @@ const I18N = {
     privacy_link: "Privacidade",
     terms_link: "Termos",
     catalog: [
-      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com amigos marinhos.", age: "3-6 anos", tag: "Coragem e amizade", quote: "Coragem que mergulha fundo — e volta com amigos." },
-      { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes mágicas de vaga-lume.", age: "3-6 anos", tag: "Gentileza e natureza", quote: "Onde a gentileza acende vaga-lumes." },
-      { t: "Matteo e o Mundo dos Dinossauros", p: "Um vale cheio de dinossauros dóceis.", age: "4-7 anos", tag: "Descoberta e curiosidade", quote: "Uma viagem divertida à era dos dinossauros." },
-      { t: "Noah e o Circo das Luzes", p: "Uma noite mágica cheia de brilho.", age: "3-6 anos", tag: "Sonhar e brilhar", quote: "Uma noite feita para sonhar e brilhar." },
+      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas com Sofia como protagonista.", age: "3-6 anos", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
+      { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza para conhecer e cuidar dos animais.", age: "3-7 anos", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
+      { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pela natureza.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
     ],
-    surprise: { t: "História Surpresa (IA)", p: "Deixe a IA inventar uma aventura única a partir da foto.", age: "3-8 anos", tag: "Aventura sob medida", quote: "Cada foto guarda uma aventura secreta." },
     promise_title: "Cada detalhe pensado para ser especial",
     promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
     promise: [
@@ -587,7 +435,7 @@ const I18N = {
     features: ["Histórias personalizadas", "Conexão em família", "Memórias que ficam para sempre", "Um presente inesquecível"],
     band_title: "Pronto para virar protagonista?",
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
-    band_cta: "Criar minha história",
+    band_cta: "Criar minha conta",
     tagline: "Feito com amor. Criado para encantar.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
@@ -601,11 +449,41 @@ const I18N = {
     cats_label: "Categories",
     font_label: "Cover font",
     explore: "Explore now",
-    eyebrow: "Preserve moments. Gift your family a one-of-a-kind story.",
+    eyebrow: "Preserve moments. Gift your family an unforgettable story.",
     h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: " !",
-    lead: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them.",
+    lead: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them — a book to gift the family and keep forever.",
+    cta_play: "Create my account",
+    cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
-    cta_play: "Create my story", cta_disc: "See how it works",
+    cats: [
+      {
+        name: "Favorite Adventures",
+        subs: ["Adventure", "Fantasy", "Dinosaurs", "Under the sea", "Space", "Princesses", "Superheroes"],
+        feats: ["Learning the Alphabet with Sofia", "Bruno on an Animal Adventure", "Cristobal and His Favorite Sport", "Learning the Alphabet with Sofia"],
+      },
+      {
+        name: "Special Occasions",
+        subs: ["Christmas", "Birthday", "Mother's Day", "Father's Day", "Easter", "Children's Day", "New Year"],
+        feats: ["Christmas", "Birthday", "Mother's Day", "Father's Day"],
+      },
+      {
+        name: "You and Me",
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Siblings and cousins"],
+        feats: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Siblings and cousins"],
+      },
+      {
+        name: "Feelings",
+        subs: ["Feelings", "Bedtime", "Sharing", "Body"],
+        feats: ["Feelings", "Bedtime", "Sharing", "Body"],
+      },
+      {
+        name: "Activities",
+        subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Transport"],
+        feats: ["Literacy", "Math", "Colors", "Animals"],
+      },
+    ],
+    cat_below: "Preserve moments. Gift your family an unforgettable story.",
+    cat_below_lead: "Turn a photo into a personalized book, where your child is the hero.",
     trust: "Delighting families from start to finish",
     ba_before: "BEFORE", ba_after: "AFTER", ba_caption: "You send the photo. We create the magic.",
     ba_preview: "PREVIEW",
@@ -629,15 +507,15 @@ const I18N = {
     vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
-      { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
-      { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
-      { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
+      { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries, with a soft soundtrack." },
+      { t: "Bruno on an Animal Adventure", p: "A journey through nature with friends from the animal kingdom." },
+      { t: "Cristobal and His Favorite Sport", p: "Balance, courage and the river as a track for adventure." },
     ],
     vid_soon: "Coming soon",
     book_badge: "Real example",
     story_title: "Flip through our books",
     story_sub: "Books created by the platform from a single photo — pick an example.",
-    story_hint: "Click the sides of the book (or use the arrows) to turn the pages.",
+    story_hint: "The photo becomes the hero of the page.",
     chloe_title: "Chloe's Story",
     fmt_title: "Choose the format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
@@ -658,12 +536,10 @@ const I18N = {
     privacy_link: "Privacy",
     terms_link: "Terms",
     catalog: [
-      { t: "Lia and the Deep Sea", p: "An ocean adventure with sea friends.", age: "ages 3-6", tag: "Courage & friendship", quote: "Courage that dives deep — and comes back with friends." },
-      { t: "Sofia and the Enchanted Forest", p: "Gentle creatures and magical firefly lights.", age: "ages 3-6", tag: "Kindness & nature", quote: "Where kindness lights up the fireflies." },
-      { t: "Matteo and the Dinosaur World", p: "A valley full of gentle dinosaurs.", age: "ages 4-7", tag: "Discovery & curiosity", quote: "A fun journey back to the dinosaur age." },
-      { t: "Noah and the Circus of Lights", p: "A magical night full of sparkle.", age: "ages 3-6", tag: "Dream & shine", quote: "A night made to dream and shine." },
+      { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries with Sofia as the hero.", age: "ages 3-6", tag: "Literacy through play", quote: "Every letter opens a new world." },
+      { t: "Bruno on an Animal Adventure", p: "A journey through nature to meet and care for the animals.", age: "ages 3-7", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
+      { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for nature.", age: "ages 4-8", tag: "Sport and courage", quote: "Small paddles, big victories." },
     ],
-    surprise: { t: "Surprise Story (AI)", p: "Let the AI invent a unique adventure from the photo.", age: "ages 3-8", tag: "Made-to-fit adventure", quote: "Every photo hides a secret adventure." },
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
     promise: [
@@ -691,7 +567,7 @@ const I18N = {
     features: ["Personalized stories", "Family connection", "Memories that last forever", "An unforgettable gift"],
     band_title: "Ready to become the hero?",
     band_sub: "Send your photo and get a unique story, made just for you.",
-    band_cta: "Create my story",
+    band_cta: "Create my account",
     tagline: "Made with love. Created to enchant.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
@@ -705,11 +581,41 @@ const I18N = {
     cats_label: "Categorías",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
-    eyebrow: "Eterniza momentos. Regala a tu familia una historia única.",
+    eyebrow: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
     h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: " !",
-    lead: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él.",
+    lead: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él — un libro para regalar a la familia y guardar para siempre.",
+    cta_play: "Crear mi cuenta",
+    cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
-    cta_play: "Crear mi historia", cta_disc: "Ver cómo funciona",
+    cats: [
+      {
+        name: "Aventuras Favoritas",
+        subs: ["Aventura", "Fantasía", "Dinosaurios", "Fondo del mar", "Espacio", "Princesas", "Superhéroes"],
+        feats: ["Aprendiendo el alfabeto con Sofia", "Bruno en una aventura animal", "Cristobal y su deporte favorito", "Aprendiendo el alfabeto con Sofia"],
+      },
+      {
+        name: "Ocasiones Especiales",
+        subs: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre", "Pascua", "Día del Niño", "Año Nuevo"],
+        feats: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre"],
+      },
+      {
+        name: "Tú y Yo",
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Hermanos y primos"],
+        feats: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Hermanos y primos"],
+      },
+      {
+        name: "Sentimientos",
+        subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
+        feats: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
+      },
+      {
+        name: "Actividades",
+        subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Transporte"],
+        feats: ["Alfabetización", "Matemáticas", "Colores", "Animales"],
+      },
+    ],
+    cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
+    cat_below_lead: "Convierte una foto en un libro personalizado, donde tu hijo es el protagonista.",
     trust: "Encantando a las familias de principio a fin",
     ba_before: "ANTES", ba_after: "DESPUÉS", ba_caption: "Tú envías la foto. Nosotros creamos la magia.",
     ba_preview: "VISTA PREVIA",
@@ -733,15 +639,15 @@ const I18N = {
     vid_title: "Videos narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear mi video",
     videos: [
-      { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
-      { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
-      { t: "Matteo y el Mundo de los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
+      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos, con una banda suave." },
+      { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza con amigos del reino animal." },
+      { t: "Cristobal y su deporte favorito", p: "Equilibrio, coraje y el río como pista de aventura." },
     ],
     vid_soon: "Pronto",
     book_badge: "Ejemplo real",
     story_title: "Hojea nuestros libros",
     story_sub: "Libros creados por la plataforma a partir de una sola foto — elige un ejemplo.",
-    story_hint: "Haz clic en los laterales del libro (o usa las flechas) para pasar las páginas.",
+    story_hint: "La foto se convierte en el protagonista de la página.",
     chloe_title: "La Historia de Chloe",
     fmt_title: "Elige el formato", fmt_sub: "Del mismo personaje, tres formas de guardar la historia.",
     formats: [
@@ -762,12 +668,10 @@ const I18N = {
     privacy_link: "Privacidad",
     terms_link: "Términos",
     catalog: [
-      { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con amigos marinos.", age: "3-6 años", tag: "Coraje y amistad", quote: "Coraje que se sumerge hondo — y vuelve con amigos." },
-      { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces mágicas de luciérnaga.", age: "3-6 años", tag: "Gentileza y naturaleza", quote: "Donde la gentileza enciende luciérnagas." },
-      { t: "Matteo y el Mundo de los Dinosaurios", p: "Un valle lleno de dinosaurios dóciles.", age: "4-7 años", tag: "Descubrimiento y curiosidad", quote: "Un viaje divertido a la era de los dinosaurios." },
-      { t: "Noah y el Circo de las Luces", p: "Una noche mágica llena de brillo.", age: "3-6 años", tag: "Soñar y brillar", quote: "Una noche hecha para soñar y brillar." },
+      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos con Sofia como protagonista.", age: "3-6 años", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
+      { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza para conocer y cuidar a los animales.", age: "3-7 años", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
+      { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por la naturaleza.", age: "4-8 años", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
     ],
-    surprise: { t: "Historia Sorpresa (IA)", p: "Deja que la IA invente una aventura única a partir de la foto.", age: "3-8 años", tag: "Aventura a medida", quote: "Cada foto guarda una aventura secreta." },
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
     promise: [
@@ -795,7 +699,7 @@ const I18N = {
     features: ["Historias personalizadas", "Conexión en familia", "Recuerdos que quedan para siempre", "Un regalo inolvidable"],
     band_title: "¿Listo para ser el protagonista?",
     band_sub: "Envía tu foto y recibe una historia única, creada solo para ti.",
-    band_cta: "Crear mi historia",
+    band_cta: "Crear mi cuenta",
     tagline: "Hecho con amor. Creado para encantar.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
@@ -804,6 +708,8 @@ const I18N = {
 export function Landing() {
   const rootRef = useRef<HTMLDivElement>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [openCat, setOpenCat] = useState<number | null>(null);
+  const [mobileCat, setMobileCat] = useState<number | null>(null);
   const [lang, setLang] = useState<Lang>(() => {
     try {
       const s = localStorage.getItem("lang");
@@ -817,8 +723,6 @@ export function Landing() {
   });
   const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
-  const [megaOpen, setMegaOpen] = useState<string | null>(null);
-  const [mobileAcc, setMobileAcc] = useState<string | null>(null);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -827,19 +731,22 @@ export function Landing() {
     return "fredoka";
   });
   const t = I18N[lang];
-  const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const exampleBooks = [
-    { title: t.chloe_title, name: "", story: t.chloe_title, palette: COVER_PALETTES.default, cover: "ebook-1.jpg", pages: BOOK },
-    ...t.catalog.slice(1, 3).map((c, i) => ({
-      title: c.t,
-      name: CATALOG_COVERS[i + 1].name,
-      story: CATALOG_COVERS[i + 1].story[lang],
-      palette: CATALOG_COVERS[i + 1].palette,
-      cover: CATALOG_IMGS[i + 1],
-      pages: [CATALOG_IMGS[i + 1], ...BOOK3D[i + 1].pages],
+  const exampleBooks = t.catalog.map((c, i) => ({
+    title: c.t,
+    cover: CATALOG_IMGS[i],
+    page: CATALOG_PAGES[i],
+  }));
+  const navCats = t.cats.map((cat, i) => ({
+    ...cat,
+    color: NAV_CAT_META[i].color,
+    subs: cat.subs.map((label, j) => ({ label, href: NAV_CAT_META[i].subs[j].href })),
+    feats: cat.feats.map((label, j) => ({
+      label,
+      href: NAV_CAT_META[i].feats[j].href,
+      img: NAV_CAT_META[i].feats[j].img,
     })),
-  ];
+  }));
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
@@ -867,40 +774,21 @@ export function Landing() {
   }, [coverFont]);
 
   useEffect(() => {
-    if (!navOpen && !megaOpen) return;
+    if (!navOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNavOpen(false);
-        setMegaOpen(null);
+        setMobileCat(null);
       }
     };
-    const onDoc = (e: MouseEvent) => {
-      const t = e.target as HTMLElement | null;
-      if (t?.closest(".kcat, .khamb, .kmobile")) return;
-      setMegaOpen(null);
-    };
     window.addEventListener("keydown", onKey);
-    document.addEventListener("mousedown", onDoc);
-    return () => {
-      window.removeEventListener("keydown", onKey);
-      document.removeEventListener("mousedown", onDoc);
-    };
-  }, [navOpen, megaOpen]);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [navOpen]);
 
   const closeNav = () => {
     setNavOpen(false);
-    setMegaOpen(null);
-    setMobileAcc(null);
-  };
-
-  const featCard = (feat: MegaFeat, i: number) => {
-    const href = feat.catalogI != null
-      ? `/app?tema=${CATALOG_THEMES[feat.catalogI]}`
-      : megaHref(feat);
-    const title = feat.catalogI != null ? t.catalog[feat.catalogI].t : feat.labels?.[lang];
-    const img = feat.catalogI != null ? CATALOG_IMGS[feat.catalogI] : CATALOG_IMGS[i % CATALOG_IMGS.length];
-    const cover = feat.catalogI != null ? CATALOG_COVERS[feat.catalogI] : null;
-    return { href, title: title ?? "", img, cover };
+    setMobileCat(null);
+    setOpenCat(null);
   };
 
   return (
@@ -939,49 +827,38 @@ export function Landing() {
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
-                {MEGA_CATS.map((cat) => (
+                {navCats.map((cat, i) => (
                   <div
-                    key={cat.id}
-                    className={`kcat${megaOpen === cat.id ? " open" : ""}`}
+                    key={cat.name}
+                    className={`kcat${openCat === i ? " open" : ""}`}
+                    onMouseEnter={() => setOpenCat(i)}
+                    onMouseLeave={() => setOpenCat(null)}
                   >
                     <button
                       type="button"
                       className="kcat-btn"
-                      aria-expanded={megaOpen === cat.id}
+                      aria-expanded={openCat === i}
                       aria-haspopup="true"
-                      onClick={() => setMegaOpen((id) => (id === cat.id ? null : cat.id))}
+                      onClick={() => setOpenCat(openCat === i ? null : i)}
                     >
-                      <span className="kcat-dot" style={{ background: cat.dot }} />
-                      {cat.labels[lang]}
+                      <span className="kcat-dot" style={{ background: cat.color }} />
+                      {cat.name}
                     </button>
                     <div className="kcat-panel">
                       <ul className="kcat-subs">
                         {cat.subs.map((sub) => (
-                          <li key={sub.labels.pt}>
-                            <Link to={megaHref(sub)} onClick={closeNav}>{sub.labels[lang]}</Link>
-                          </li>
+                          <li key={sub.label}><Link to={sub.href} onClick={closeNav}>{sub.label}</Link></li>
                         ))}
                       </ul>
                       <div className="kcat-feats">
-                        {cat.feats.map((feat, i) => {
-                          const card = featCard(feat, i);
-                          return (
-                            <Link to={card.href} className="kcat-feat" key={`${cat.id}-${i}`} onClick={closeNav}>
-                              <span className="kcat-feat-cover">
-                                <img src={exUrl(card.img)} alt="" />
-                                {card.cover && (
-                                  <CoverTitleOverlay
-                                    className="kcat-feat-title"
-                                    name={card.cover.name}
-                                    story={card.cover.story[lang]}
-                                    palette={card.cover.palette}
-                                  />
-                                )}
-                              </span>
-                              <span>{card.title}</span>
-                            </Link>
-                          );
-                        })}
+                        {cat.feats.map((feat) => (
+                          <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                            <span className="kcat-feat-cover">
+                              <img src={exUrl(feat.img)} alt="" />
+                            </span>
+                            <span>{feat.label}</span>
+                          </Link>
+                        ))}
                         <Link to="/app" className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
                       </div>
                     </div>
@@ -989,30 +866,30 @@ export function Landing() {
                 ))}
               </nav>
               <div className="khead-links">
-                <a href="#promessa">{t.our_story}</a>
-                <a href="#catalogo">{t.see_all_books}</a>
-                <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
+                <a href="#catalogo" onClick={closeNav}>{t.see_all_books}</a>
+                <Link to="/app" className="kbtn kbtn-primary">{t.cta_story}</Link>
               </div>
             </div>
           </div>
         </div>
         <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`}>
-          {MEGA_CATS.map((cat) => (
-            <div key={cat.id} className={`kmobile-cat${mobileAcc === cat.id ? " open" : ""}`}>
+          {navCats.map((cat, i) => (
+            <div key={cat.name} className={`kmobile-cat${mobileCat === i ? " open" : ""}`}>
               <button
                 type="button"
                 className="kmobile-cat-btn"
-                aria-expanded={mobileAcc === cat.id}
-                onClick={() => setMobileAcc((id) => (id === cat.id ? null : cat.id))}
+                aria-expanded={mobileCat === i}
+                onClick={() => setMobileCat(mobileCat === i ? null : i)}
               >
-                <span className="kcat-dot" style={{ background: cat.dot }} />
-                {cat.labels[lang]}
+                <span className="kcat-dot" style={{ background: cat.color }} />
+                {cat.name}
                 <IcChevron className="faq-chev" />
               </button>
               <div className="kmobile-subs">
                 <div className="kmobile-subs-inner">
                   {cat.subs.map((sub) => (
-                    <Link key={sub.labels.pt} to={megaHref(sub)} onClick={closeNav}>{sub.labels[lang]}</Link>
+                    <Link key={sub.label} to={sub.href} onClick={closeNav}>{sub.label}</Link>
                   ))}
                 </div>
               </div>
@@ -1020,7 +897,11 @@ export function Landing() {
           ))}
           <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
           <a href="#catalogo" onClick={closeNav}>{t.see_all_books}</a>
-          <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_play}</Link>
+          {t.nav.map((label, i) => (
+            <a key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
+          ))}
+          <a href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
+          <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_story}</Link>
         </nav>
       </header>
 
@@ -1044,33 +925,28 @@ export function Landing() {
               aria-label={t.catalog[s.catalogI].t}
               aria-selected={i === heroI}
             >
-              <img
-                src={exUrl(s.book)}
-                alt=""
-                loading="eager"
-                style={s.bookPos ? { objectPosition: s.bookPos } : undefined}
-              />
-              <CoverTitleOverlay
-                className="kbh-thumb-title"
-                name={CATALOG_COVERS[s.catalogI].name}
-                story={CATALOG_COVERS[s.catalogI].story[lang]}
-                palette={CATALOG_COVERS[s.catalogI].palette}
-              />
+              <span className="studio-cover">
+                <img
+                  src={exUrl(s.book)}
+                  alt=""
+                  loading="eager"
+                />
+              </span>
             </button>
           ))}
         </div>
         <p className="khero-sign">{t.hero_sign}</p>
-        <a href="#como" className="kbtn kbtn-soft">{t.cta_disc}</a>
       </section>
 
       {/* COMO FUNCIONA */}
       <section className="ksection" id="como">
+        <p className="keyebrow ksection-pill reveal"><IcStar className="ei" /> {t.cat_below}</p>
         <h2 className="ktitle reveal">{t.hiw_title}</h2>
         <p className="ksub reveal">{t.hiw_sub}</p>
         <div className="howex">
           {t.hiw.map((h, i) => (
             <Fragment key={h.t}>
-              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}`}>
+              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
                 <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
                 <span className="howex-num">{i + 1}</span>
                 <figcaption>
@@ -1114,18 +990,12 @@ export function Landing() {
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
-          {t.catalog.slice(0, 3).map((c, i) => (
+          {t.catalog.map((c, i) => (
             <div className="cat-card reveal" key={c.t}>
-              <div className="cat-flip" style={{ background: BOOK3D[i].bg }}>
-                <FlipBook
-                  pages={[CATALOG_IMGS[i], ...BOOK3D[i].pages]}
-                  compact
-                  coverTitle={c.t}
-                  coverName={CATALOG_COVERS[i].name}
-                  coverStory={CATALOG_COVERS[i].story[lang]}
-                  coverPalette={CATALOG_COVERS[i].palette}
-                  labels={flipLabels}
-                />
+              <div className="cat-display" style={{ background: BOOK3D[i].bg }}>
+                <div className="cat-book">
+                  <img src={exUrl(CATALOG_IMGS[i])} alt={c.t} />
+                </div>
               </div>
               <div className="cat-body">
                 <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
@@ -1135,6 +1005,10 @@ export function Landing() {
               </div>
             </div>
           ))}
+        </div>
+        <div className="cat-below reveal">
+          <p className="keyebrow"><IcStar className="ei" /> {t.cat_below}</p>
+          <p className="cat-below-lead">{t.cat_below_lead}</p>
         </div>
       </section>
 
@@ -1188,20 +1062,18 @@ export function Landing() {
               aria-selected={i === exBook}
               aria-controls="ex-book-panel"
             >
-              <img src={exUrl(b.cover)} alt="" />
+              <span className="studio-cover ex-tab-cover">
+                <img src={exUrl(b.cover)} alt="" />
+              </span>
               <span>{b.title}</span>
             </button>
           ))}
         </div>
-        <div className="reveal" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
-          <FlipBook
-            key={exBook}
-            pages={exampleBooks[exBook].pages}
-            coverTitle={exampleBooks[exBook].title}
-            coverName={exampleBooks[exBook].name}
-            coverStory={exampleBooks[exBook].story}
-            coverPalette={exampleBooks[exBook].palette}
-            labels={flipLabels}
+        <div className="reveal ex-spread-wrap" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
+          <img
+            className="ex-spread"
+            src={exUrl(exampleBooks[exBook].page)}
+            alt={exampleBooks[exBook].title}
           />
         </div>
         <p className="fb-hint reveal">{t.story_hint}</p>
@@ -1210,7 +1082,7 @@ export function Landing() {
       {/* BANNERS NARRATIVOS — abaixo do folheie */}
       <section className="banners">
         {t.banners.map((b, i) => (
-          <figure className="banner-card reveal" key={b.t}>
+          <figure className="banner-card studio-cover reveal" key={b.t}>
             <img src={exUrl(BANNER_IMGS[i])} alt={b.t} loading="lazy" />
             <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
           </figure>
