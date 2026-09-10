@@ -17,18 +17,53 @@ import unicodedata
 # Expressoes faciais permitidas
 # --------------------------------------------------------------------------- #
 EXPRESSIONS: dict[str, str] = {
-    "alegria": "sorriso aberto, olhar atento, bochechas levemente erguidas",
-    "curiosidade": "sobrancelhas levemente erguidas, boca entreaberta, olhar atento",
-    "medo_gentil": "palpebras um pouco mais abertas (sem aumentar o globo), boca fechada tensa, sem terror",
-    "determinacao": "olhar firme, queixo um pouco erguido, boca fechada decidida",
-    "surpresa": "palpebras um pouco mais abertas (sem aumentar o globo), boca em 'o' suave, sobrancelhas erguidas",
-    "calma": "sorriso fechado suave, olhar sereno e aconchegante",
-    "tristeza_leve": "cantos da boca baixos, olhar um pouco baixo, sem choro exagerado",
-    "concentracao": "sobrancelhas levemente franzidas, olhar focado, boca fechada",
-    "carinho": "sorriso terno, olhar suave, cabeca levemente inclinada",
-    "orgulho": "peito erguido, sorriso confiante, olhar firme",
-    "vergonha": "olhar baixo, sorriso timido, bochechas levemente rosadas",
-    "animacao": "sorriso largo, energia no olhar, sem aumentar os olhos",
+    "alegria": (
+        "sorriso ABERTO visivel, bochechas bem erguidas, ombros soltos — "
+        "PROIBIDO sorriso fechado de retrato"
+    ),
+    "curiosidade": (
+        "sobrancelhas bem erguidas, boca entreaberta, corpo inclinado para a "
+        "descoberta, olhar preso no objeto"
+    ),
+    "medo_gentil": (
+        "boca fechada tensa, ombros recolhidos, corpo um pouco para tras, "
+        "palpebras abertas no MESMO tamanho de olho — sem terror, sem chibi"
+    ),
+    "determinacao": (
+        "queixo firme, boca fechada decidida, corpo inclinado para a acao, "
+        "olhar direto no objetivo"
+    ),
+    "surpresa": (
+        "boca em O bem marcada, sobrancelhas BEM erguidas, palpebras abertas "
+        "no MESMO tamanho de olho, corpo recuado um instante"
+    ),
+    "calma": (
+        "sorriso fechado aconchegante, ombros baixos e soltos, olhar sereno — "
+        "ainda assim uma emocao, nao cara vazia"
+    ),
+    "tristeza_leve": (
+        "cantos da boca caidos, ombros caidos, olhar baixo — sem choro de teatro"
+    ),
+    "concentracao": (
+        "sobrancelhas franzidas, boca fechada, corpo quieto e inclinado no "
+        "trabalho, olhar cravado"
+    ),
+    "carinho": (
+        "sorriso terno amplo, cabeca inclinada, corpo perto do outro, bracos "
+        "em gesto de abraco ou cuidado"
+    ),
+    "orgulho": (
+        "peito estufado, sorriso confiante aberto, queixo um pouco alto, "
+        "postura ereta"
+    ),
+    "vergonha": (
+        "olhar baixo, sorriso timido de lado, ombros para dentro, mao perto "
+        "do rosto ou da barriga"
+    ),
+    "animacao": (
+        "sorriso LARGO, corpo em movimento (pulo ou bracos abertos), energia "
+        "no tronco — sem inchar o olho"
+    ),
 }
 
 _DEFAULT_EXPRESSION = "alegria"
@@ -94,8 +129,10 @@ def expression_directive(expression: str | None) -> str:
     detail = EXPRESSIONS[key]
     return (
         f"EXPRESSAO FACIAL OBRIGATORIA desta pagina: '{key}' ({detail}). "
-        "MUDE so a emocao: sobrancelhas, cantos da boca, tensao dos labios e "
-        "olhar — o necessario para a emocao aparecer. "
+        "A emocao tem de ser LEGIVEL num thumbnail: rosto E pose. "
+        "MUDE sobrancelhas, cantos da boca, tensao dos labios, olhar e postura "
+        "do corpo ate a emocao ficar obvia. "
+        "PROIBIDO retrato parado com a cara neutra do avatar. "
         "NAO mude o TAMANHO dos olhos: emocao NAO autoriza olhos maiores; a "
         "fracao do rosto permanece a da foto/avatar. "
         "NAO mude identidade: mesmo formato de rosto/bochechas, mesmos olhos "
@@ -111,7 +148,11 @@ def expression_directive(expression: str | None) -> str:
 # --------------------------------------------------------------------------- #
 SHOTS: dict[str, str] = {
     "close": "close do rosto ou da acao — aproxime a camera; o objeto/rosto ocupa boa parte do quadro",
-    "medium": "plano medio — tronco e cabeca visiveis, cenario ainda le",
+    "medium": (
+        "plano medio — peito, ombros e cabeca; o rosto ocupa pelo menos um "
+        "quinto da altura do quadro, perto da camera. PROIBIDO corpo inteiro "
+        "no fundo ou figura minuscula ao lado de um animal"
+    ),
     "wide": "plano geral — corpo inteiro e cenario amplo",
     "detail": "plano detalhe — objeto, mao ou acao em close; o rosto pode sair do quadro",
 }
@@ -141,6 +182,16 @@ def normalize_shot(value: str | None) -> str:
     key = _strip_accents(value.strip().lower()).replace(" ", "_").replace("-", "_")
     key = _SHOT_ALIASES.get(key, key)
     return key if key in SHOTS else _DEFAULT_SHOT
+
+
+def identity_shot(value: str | None, *, layout: str = "story") -> str:
+    """Wide some a cara. Nome/alfabeto pode ser geral; historia fica medio."""
+    if layout == "name":
+        return "wide"
+    if layout == "dedication":
+        return normalize_shot(value)
+    key = normalize_shot(value)
+    return "medium" if key == "wide" else key
 
 
 def normalize_text_band(value: str | None) -> str:
@@ -243,6 +294,20 @@ _FACE_FIDELITY = (
     "estejam claramente na foto."
 )
 
+_CGI_AVATAR_STYLE = (
+    "ESTILO HIBRIDO OBRIGATORIO: ROSTO fotorrealista + CORPO CGI 3D. "
+    "ROSTO: pintura digital fotorrealista, qualidade de camera, identidade 1:1 "
+    "da foto — mais REAL que desenho. Junta continua no pescoco. "
+    "CORPO: CGI 3D de filme infantil (pescoco, ombros, tronco, roupa); "
+    "volume, luz suave, tecido ilustrado. Corpo mais DESENHO/CGI que o rosto. "
+    "LUZ: suave, quente, frontal/lateral, sem sombra dura. "
+    "FUNDO: bokeh creme/dourado, sem cenario narrativo. "
+    "PROIBIDO: colagem, recorte fotografico, chibi, cabeca gigante, olhos anime, "
+    "crianca generica, texto, marca d'agua. "
+    "NAO copie figurino de referencia de estilo (macacao listrado etc.) — "
+    "roupa ilustrada simples."
+)
+
 _HYBRID_STYLE = (
     "ESTILO TMT OBRIGATORIO (Tell My Tale). "
     "ROSTO: pintura digital fotorrealista desta crianca, identidade 1:1 da foto "
@@ -278,7 +343,7 @@ AVATAR_PROMPT = (
     "reconhecivel — mesmos tracos da foto (formato do rosto e bochechas; olhos "
     "na MESMA fracao do rosto; sobrancelhas; nariz; boca; cabelo; tom de pele; "
     "idade). O rosto deve parecer uma foto desta crianca, qualidade de camera, "
-    "com tracos leves de desenho; corpo claramente DESENHADO. NAO cole a "
+    "com tracos leves de desenho; corpo CGI 3D. NAO cole a "
     "foto como recorte. "
     "NAO embelezar, NAO inventar caracteristicas, NAO mudar etnia, idade ou "
     "proporcoes. Colocada ao lado da foto, a pessoa deve ser 100% reconhecivel.\n\n"
@@ -287,7 +352,7 @@ AVATAR_PROMPT = (
     f"{_FACE_FIDELITY}\n\n"
     f"{_HEAD_PROPORTION}\n\n"
     f"{_HAIR_LOCK}\n\n"
-    f"{_HYBRID_STYLE}\n\n"
+    f"{_CGI_AVATAR_STYLE}\n\n"
     f"{_WATERMARK_LOCK}\n\n"
     "COMPOSICAO: UMA so crianca, meio corpo (peito + ombros visiveis e largos o bastante), de frente, "
     "camera na altura dos olhos (NAO plongee / NAO close de rosto). A cabeca deve "
@@ -301,9 +366,14 @@ AVATAR_PROMPT = (
     "ROUPA: peca ilustrada simples (nao copiar o macacao/trator nem a roupa da "
     "foto peca por peca). Este retrato e so identidade; o figurino do livro "
     "entra nas paginas.\n\n"
-    "SAIDA: uma unica imagem limpa do personagem TMT (rosto pintura fotorrealista "
-    "com tracos leves; corpo desenhado). "
+    "SAIDA: uma unica imagem limpa (rosto pintura fotorrealista, qualidade de "
+    "camera; corpo CGI 3D de filme infantil). "
     "Este arquivo sera o character_ref imutavel de identidade de todas as paginas."
+)
+
+AVATAR_STYLE = (
+    "estilo hibrido: rosto deve parecer uma foto, qualidade de camera; "
+    "corpo CGI 3D de filme infantil, bokeh creme, peito e ombros; sem foto colada"
 )
 
 STYLE = (
@@ -350,10 +420,24 @@ SCENE_GEN_PREFIX = (
     "cenario e figurino tematico. "
     f"{_FACE_FIDELITY} "
     f"{_HEAD_PROPORTION} {_HAIR_LOCK} "
-    "EXPRESSAO: o avatar-base tem expressao NEUTRA — NAO a copie. Aplique a "
-    "emocao pedida nesta pagina (sorriso, tristeza, surpresa, etc.) mudando so "
-    "sobrancelhas, boca e olhar — NAO o tamanho dos olhos; a estrutura do rosto permanece a do avatar. "
+    "ESCALA DA CABECA NA CENA: a cabeca tem de ser MENOR que o tronco — "
+    "ombros e peito dominam o corpo. Se hesitar, DIMINUA a cabeca; NUNCA "
+    "aumente. PROIBIDO bobblehead, cabeca de chibi ou close de rosto que "
+    "faca a cabeca ocupar o quadro. Os olhos ficam na mesma fracao do "
+    "ROSTO do avatar — nao infle o olho para compensar a cabeca menor. "
+    "EXPRESSAO: o avatar-base tem expressao NEUTRA — NAO a copie. A emocao "
+    "desta pagina VENCE o avatar: rosto e pose dinamicos alinhados ao "
+    "sentimento (alegria, surpresa, determinacao, etc.). Mude sobrancelhas, "
+    "boca, olhar e postura. NAO o tamanho dos olhos; a estrutura do rosto "
+    "permanece a do avatar. "
     f"{_HYBRID_STYLE} "
+    "FONTE DO ROSTO: o AVATAR anexado — nao uma crianca loira de explorador, "
+    "nem um menino safari de banco de imagens. "
+    "IDADE: a MESMA idade aparente do avatar (bebe/toddler). PROIBIDO "
+    "envelhecer para 5-6 anos ou 'menino de filme'. "
+    "PROIBIDO safari-kid stock, Pixar/Disney generico, olho maior que o do "
+    "avatar, cabelo de salao; se o cabelo do avatar for fino e a testa "
+    "visivel, MANTENHA. "
     "PROIBIDO: inventar outra crianca parecida; mudar cabelo, idade, "
     "etnia ou tom de pele; 'embelezar' ou estilizar o rosto de forma diferente "
     "da referencia; copiar a roupa da foto ou do avatar; copiar a "
@@ -377,31 +461,47 @@ SCENE_GEN_PREFIX = (
 )
 
 REFINE_SCENE_PROMPT = (
-    "Voce recebe DUAS imagens: (1) o AVATAR-BASE de referencia e (2) uma "
-    "ILUSTRACAO de cena de um livro infantil. Sua unica tarefa e corrigir a "
-    "IDENTIDADE DO ROSTO: redesenhe a cabeca do protagonista para ficar IDENTICA ao "
-    "avatar de referencia, copiando traco a traco: formato do rosto e "
-    "bochechas; olhos (cor, formato, MESMA fracao do rosto da referencia/foto — "
-    "se maiores, REDUZA; PROIBIDO olhos grandes anime/chibi/cartoon, espacamento, "
-    "palpebras); sobrancelhas (espessura); nariz (largura/ponta); boca (labios); "
-    "cabelo (cor exata, textura, comprimento, franja, risca - NAO troque o "
-    "penteado/corte); tom de pele; idade aparente. "
-    "PRESERVE o FIGURINO ja presente na cena (roupa, chapeu, botas, acessorios "
-    "de historia). NAO substitua o figurino pela roupa do avatar nem pela roupa "
-    "da foto. Se qualquer item de IDENTIDADE (rosto/cabelo/idade) estiver "
-    "diferente na cena, substitua-o pelo da referencia - a referencia SEMPRE "
-    "vence no rosto. NAO mude o cenario, a composicao, o enquadramento, a iluminacao, "
-    "a pose, a acao nem a ROUPA da cena. PRESERVE a EXPRESSAO FACIAL ja presente na "
-    "cena (ajuste so a estrutura do rosto para bater com o avatar; NAO resetar "
-    "para a expressao neutra do avatar; nao apague a emocao da pagina). "
-    "Mantenha o estilo TMT: o rosto deve parecer uma foto, qualidade de "
-    "camera, com tracos leves de desenho; corpo DESENHADO; figurino da historia; "
-    "cenario pintado, nao fotografia. "
-    "Se a primeira imagem extra for a FOTO real, ela e a verdade do ROSTO "
-    "(geometria, realismo e nitidez; REDUZA olhos se maiores que na foto); o avatar "
-    "vale para identidade e estilo desenhado, NAO para o guarda-roupa. "
-    f"{_HYBRID_STYLE} {_HEAD_PROPORTION} {_HAIR_LOCK} "
-    "Devolva apenas a cena corrigida."
+    "[TASK] Modify the character's head in Image 2 (Scene) to achieve a "
+    "1:1 facial identity match with Image 1 (Avatar). "
+    "Image order: (1) Avatar — MANDATORY identity reference for face, "
+    "hair, age and proportions; (2) Scene — last. "
+    "Do not use a raw photo as the face source of truth. "
+    "The ONLY exception is clothes: copy the Scene costume, never the "
+    "Avatar outfit. "
+    "[FACIAL IDENTITY & STRUCTURE - MANDATORY] "
+    "Redraw the face using exact anatomy, geometry, and features from the "
+    "Avatar: face shape, cheeks, exact natural eye size and spacing "
+    "(REDUCE if oversized), brow thickness, nose width, lips, skin tone, "
+    "and apparent age. "
+    "Hair (Immutable): Copy exact hair color, texture, length, parting, "
+    "density, and volume. If forehead is visible or hair is thin in "
+    "reference, maintain it. Do not add bangs or alter the haircut. "
+    "Head Proportion: Match the Avatar head-to-body scale. If the Scene "
+    "head is larger than the Avatar's relative to the torso, REDUCE it. "
+    "Shoulders and chest must dominate. Do not reset pose or expression. "
+    "[STYLE: TMT (Tell My Tale)] "
+    "Face: Photorealistic digital painting, sharp camera-quality clarity "
+    "with subtle artistic brushstrokes. More real than drawing. No raw "
+    "photo collages, no porcelain/plastic skin. "
+    "Body: 3D children's book illustration style (neck, shoulders, limbs). "
+    "Smooth, continuous blend at the neckline. Body looks more like a "
+    "stylized drawing than the face. "
+    "Costume & Outfit: Preserve the exact costume, outfit, hat, boots, or "
+    "historical/story accessories already present in the Scene. Do not "
+    "replace it with the Avatar's clothes. "
+    "Background & Lighting: Rich, saturated painted concept art with "
+    "depth. Cinematic warm lighting, soft glow, rim light, magical "
+    "atmosphere. "
+    "[PRESERVATION & RESTRICTIONS] "
+    "Preserve: Keep the exact scene composition, framing, camera angle, "
+    "character pose, action, and emotional facial expression from the "
+    "Scene. Do not reset to a neutral face. "
+    "Age: keep the Avatar's apparent age (baby/toddler). Do not age the "
+    "child up to 5-6 years. "
+    "Prohibited: No cartoon, no anime, no chibi, no massive doll eyes, "
+    "no bobbleheads, no Pixar/CGI look, no stock safari kid, no generic "
+    "Disney/Pixar explorer boy, no salon hair if the Avatar hair is thin, "
+    "no flat cel-shading, no text, no watermarks."
 )
 
 REFINE_IDENTITY_PROMPT = (
@@ -420,6 +520,26 @@ REFINE_IDENTITY_PROMPT = (
     "PROIBIDO colar o rosto fotografico como recorte. "
     "NAO invente franja. NAO 'corrija' tracos atipicos. "
     f"{_HEAD_PROPORTION} "
+    "Devolva apenas o personagem corrigido."
+)
+
+REFINE_IDENTITY_AVATAR_PROMPT = (
+    "TAREFA CIRURGICA: voce recebe DUAS imagens em ordem. "
+    "(1) o RECORTE do rosto da FOTO — unica fonte de verdade dos olhos, nariz, "
+    "bochechas, queixo e do REALISMO do rosto (nao cole o close como colagem). "
+    "(2) o PERSONAGEM a corrigir. "
+    "Ajuste SO A CABECA: copie a GEOMETRIA e a qualidade de camera do recorte "
+    "para o rosto (deve parecer uma foto, com tracos leves de desenho). "
+    "Preserve CORPO CGI 3D de filme infantil, roupa ilustrada, pose, "
+    "enquadramento (meio corpo) e fundo. "
+    f"{_SUBJECT_LOCK} {_GENERIC_FACE_LOCK} {_FACE_FIDELITY} {_HAIR_LOCK} {_WATERMARK_LOCK} "
+    "Os olhos costumam estar maiores que na foto; REDUZA ate a "
+    "mesma fracao do rosto. Se hesitar, diminua. NUNCA aumente. "
+    "Se o rosto estiver mais gordo/cheio que a foto, REDUZA o volume das "
+    "bochechas e a largura da cara ate a geometria do recorte. "
+    "PROIBIDO colar o rosto fotografico como recorte. "
+    "NAO invente franja. NAO 'corrija' tracos atipicos. "
+    f"{_HEAD_PROPORTION} {_CGI_AVATAR_STYLE} "
     "Devolva apenas o personagem corrigido."
 )
 
@@ -523,12 +643,59 @@ UNDERWATER_SCENE_EXTRAS = (
     "NUNCA texto legivel, palavras, legendas ou captions na arte."
 )
 
+KINGDOM_SCENE_EXTRAS = (
+    "Cenario: reino fantastico de animais (floresta, rio, savana ou clareira "
+    "conforme a pagina). "
+    "UM animal em destaque por pagina (exceto a pagina do crocodilo e jacare, "
+    "com os dois, e a pagina final, que junta varios). "
+    "Animais amigaveis, sem sangue nem predacao. "
+    "Leao, tigre, lobo, onca, crocodilo, jacare, hipopotamo e dinossauro "
+    "a distancia segura. "
+    "Rosto e cabelo do avatar visiveis, sem virar close de cabeca: a "
+    "cabeca em proporcao com o tronco (menor que ombros e peito). "
+    "Se houver chapeu, deixe-o na mao ou atras da cabeca, sem cobrir a franja. "
+    "Olhos na mesma fracao do avatar, sem chibi. "
+    "UM unico protagonista, mesma idade do avatar (bebe/toddler). "
+    "PROIBIDO segundo rosto, cabeca flutuante, colagem do avatar na cena, "
+    "brinco ou joia. "
+    "NUNCA texto legivel, palavras, legendas ou captions na arte."
+)
+
 
 COSTUME_EXPLORER = (
     "FIGURINO TMT OBRIGATORIO (uma fantasia por livro, igual em todas as paginas): "
     "explorador infantil — camisa ou colete caqui, shorts ou calca safari, botas. "
     "Chapeu de explorador e binoculos ok. "
     "PROIBIDO copiar a roupa da foto (macacao, trator, jeans da foto) e a roupa do avatar-base."
+)
+
+# Placa de corpo: cenas prontas sem o rosto do cliente. O upload depois so cola a cara.
+BODY_CHARACTER_PROMPT = (
+    "TAREFA: gere UM retrato-base de CORPO (placa de figurino) para um livro "
+    "infantil. NAO e uma crianca real. NAO copie foto. NAO invente celebridade.\n\n"
+    "SUJEITO: uma unica crianca GENERICA de 3-5 anos, meio corpo (peito e ombros "
+    "largos), de FRENTE, camera na altura dos olhos. Figurino de explorador "
+    "infantil — camisa ou colete caqui, shorts ou calca safari, botas. "
+    "Chapeu na MAO ou atras da cabeca — NUNCA cobrindo testa ou rosto.\n\n"
+    "ROSTO PLACEHOLDER: simples, frontal, bem iluminado, simetrico, sem oculos, "
+    "sem sombra dura. Sem tracos marcantes de pessoa famosa nem de banco de "
+    "imagens. Esta cara SERA TROCADA depois por face-swap com a foto do cliente "
+    "— precisa ser uma zona clara para colar o rosto.\n\n"
+    "CORPO: ilustracao 3D de livro infantil TMT; cabeca MENOR que o tronco; "
+    "proporcao natural; sem chibi, sem bobblehead. "
+    "FUNDO: creme limpo, sem cenario narrativo, sem objetos a mais.\n\n"
+    "PROIBIDO: texto, marca d'agua, segunda pessoa, close so de rosto, "
+    "copiar roupa de foto, identidade de cliente."
+)
+
+BODY_PLATE_EXTRAS = (
+    "PLACA DE CORPO (sem identidade de cliente): o protagonista e uma unica "
+    "crianca GENERICA de 3-5 anos no figurino da historia. "
+    "O rosto e um PLACEHOLDER frontal, claro, simetrico, sem tracos de "
+    "celebridade — depois um face-swap cola o rosto do cliente nesta cara. "
+    "Chapeu na mao ou atras da cabeca, sem cobrir testa. "
+    "Cabeca menor que o tronco. UM so protagonista. "
+    "PROIBIDO copiar foto, segundo rosto, cabeca flutuante, texto, marca d'agua."
 )
 
 COSTUME_ORCHARD = (
@@ -595,7 +762,7 @@ _THEME_COSTUMES: dict[str, str] = {
 
 def costume_extras_for_template(template_id: str | None) -> str:
     """Figurino TMT do livro de catalogo. Vazio se o template nao tiver fantasia propria."""
-    if template_id == "alfabeto_amazonia":
+    if template_id in {"alfabeto_amazonia", "reino_animais"}:
         return COSTUME_EXPLORER
     if template_id == "alfabeto_frutas":
         return COSTUME_ORCHARD
@@ -633,7 +800,9 @@ EXPRESSION_SHEET_PROMPT = (
     "MESMA crianca, mesma identidade, mesma roupa simples do avatar, fundo creme. "
     "Ordem: canto superior esquerdo ALEGRIA; superior direito SURPRESA; "
     "inferior esquerdo DETERMINACAO; inferior direito CALMA. "
-    "Mude so sobrancelhas, boca e olhar — NAO o tamanho dos olhos nem o "
+    "As QUATRO caras tem de ser BEM DISTINTAS e LEGIVEIS (sorriso aberto / "
+    "boca em O / queixo firme / calma aconchegante). Mude sobrancelhas, boca, "
+    "olhar e um pouco a pose da cabeca. NAO o tamanho dos olhos nem o "
     "penteado. Sem texto, sem legendas, sem moldura. "
     f"{_SUBJECT_LOCK} {_GENERIC_FACE_LOCK} {_FACE_FIDELITY} {_HEAD_PROPORTION} "
     f"{_HAIR_LOCK} {_HYBRID_STYLE} {_WATERMARK_LOCK} "
@@ -682,6 +851,8 @@ def scene_extras_for_template(template_id: str | None) -> str:
         extras = OPPOSITES_SCENE_EXTRAS
     elif template_id == "mergulho_mar":
         extras = UNDERWATER_SCENE_EXTRAS
+    elif template_id == "reino_animais":
+        extras = KINGDOM_SCENE_EXTRAS
     costume = costume_extras_for_template(template_id)
     if extras and costume:
         return f"{extras} {costume}"
@@ -697,3 +868,11 @@ def name_scene_extras_for_template(template_id: str | None) -> str:
     if costume:
         extras.append(costume)
     return " ".join(extras)
+
+
+def scene_extras_for_body_plate(template_id: str | None) -> str:
+    """Extras de cena para chapa sem o rosto do cliente (corpo + placeholder)."""
+    extras = scene_extras_for_template(template_id)
+    if extras:
+        return f"{extras} {BODY_PLATE_EXTRAS}"
+    return BODY_PLATE_EXTRAS

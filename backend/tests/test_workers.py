@@ -70,6 +70,8 @@ class FakeImage:
         return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
     async def refine_identity(self, **kw):
         return ImageResult(image_bytes=b"REFINED", mime_type="image/png", cost_usd=0.03)
+    async def refine_character(self, **kw):
+        return ImageResult(image_bytes=b"REFINED", mime_type="image/png", cost_usd=0.04)
     async def refine_scene(self, **kw):
         return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png", cost_usd=0.03)
 
@@ -98,8 +100,14 @@ def test_backoff_is_exponential_and_capped():
 
 
 async def test_avatar_advances_state(db, mem_storage, monkeypatch):
+    async def high_score(_photo, _scene, **_k):
+        return 0.91
+
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1")); db.commit()
     j = _job(db, p, "AVATAR")
@@ -110,10 +118,105 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.AVATAR_READY.value
     assert p.character_ref and "storage_key" in p.character_ref
-    # generate_character + refine_identity (ilustracao unificada + identidade)
+    # generate_character + refine_identity (Fal cola o rosto)
     assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
-    # generate 0.04 + 1 passe de cabeca Fal 0.03
+    # generate 0.04 + 1 Fal 0.03
     assert float(j.cost_usd) == 0.07
+
+
+async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch):
+    """Nota alta nao pula o Fal: o retrato e a ancora das paginas."""
+    heads: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return await super().refine_identity(**kw)
+
+    async def high_score(_photo, _scene, **_k):
+        return 0.91
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "score_face_match", high_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+    assert heads == [1]
+
+
+async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypatch):
+    realistic_calls: list[int] = []
+
+    class BoomThenGemini(FakeImage):
+        async def generate_character(self, **kw):
+            raise ProviderError("Gemini fora", transient=False)
+
+        async def generate_realistic(self, **kw):
+            realistic_calls.append(1)
+            return await super().generate_realistic(**kw)
+
+    async def high_score(_photo, _scene, **_k):
+        return 0.91
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: BoomThenGemini())
+    monkeypatch.setattr(handlers, "score_face_match", high_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR")
+
+    await runner.process_job(db, j)
+
+    db.refresh(p)
+    db.refresh(j)
+    assert realistic_calls == [1]
+    assert j.status == JobStatus.DONE.value
+    assert p.status == ProjectStatus.AVATAR_READY.value
+    assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
+
+
+async def test_avatar_low_face_retries_fal_swap(db, mem_storage, monkeypatch):
+    heads: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return ImageResult(
+                image_bytes=f"SWAP{len(heads)}".encode(),
+                mime_type="image/png",
+                cost_usd=0.03,
+            )
+
+        async def refine_character(self, **kw):
+            raise AssertionError("com Fal o avatar nao usa refine_character")
+
+    async def low_score(_photo, _scene, **_k):
+        return 0.4
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "score_face_match", low_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
+    monkeypatch.setattr(handlers.settings, "avatar_face_match_min", 0.80)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR")
+
+    await runner.process_job(db, j)
+
+    db.refresh(p)
+    assert heads == [1, 1]
+    assert mem_storage[p.character_ref["storage_key"]] == b"SWAP2"
 
 
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
@@ -402,6 +505,7 @@ async def test_ebook_catalog_uses_illustration_notes(db, mem_storage, monkeypatc
     assert "PROIBIDO desenhar letras" in name_page
     assert "destaque UM animal" not in name_page
     arara = prompts[1]
+    assert "'medium'" in arara
     assert "letra grande abstrata A" in arara
     assert "arara" in arara.lower()
     assert "Pagina de alfabeto" in arara
@@ -568,6 +672,7 @@ async def test_ebook_generate_scene_receives_costume_extra_refs(db, mem_storage,
 async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatch):
     heads: list[int] = []
     scenes: list[int] = []
+    scene_refines: list[int] = []
 
     class Counting(FakeImage):
         async def generate_scene(self, **kw):
@@ -579,9 +684,10 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
             return await super().refine_identity(**kw)
 
         async def refine_scene(self, **kw):
-            raise AssertionError("ebook nao deve chamar refine_scene Gemini")
+            scene_refines.append(1)
+            return await super().refine_scene(**kw)
 
-    async def low_score(_photo, _scene):
+    async def low_score(_photo, _scene, **_k):
         return 0.4
 
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
@@ -596,8 +702,9 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
     db.commit()
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
-    # 2 paginas x (cena + Fal + retry cena + Fal) enquanto o score segue baixo
+    # 2 paginas x (cena + refine_scene + Fal + retry) enquanto o score segue baixo
     assert len(scenes) == 4
+    assert len(scene_refines) == 4
     assert len(heads) == 4
 
 
@@ -614,7 +721,7 @@ async def test_ebook_skips_fal_when_face_high(db, mem_storage, monkeypatch):
             scene_refines.append(1)
             return await super().refine_scene(**kw)
 
-    async def high_score(_photo, _scene):
+    async def high_score(_photo, _scene, **_k):
         return 0.91
 
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
@@ -631,6 +738,151 @@ async def test_ebook_skips_fal_when_face_high(db, mem_storage, monkeypatch):
     await runner.process_job(db, _job(db, p, "EBOOK"))
     assert scene_refines == []
     assert heads == []
+
+
+async def test_ebook_generate_scene_does_not_receive_photo(db, mem_storage, monkeypatch):
+    photos: list[bytes | None] = []
+
+    class Recording(FakeImage):
+        async def generate_scene(self, **kw):
+            photos.append(kw.get("photo"))
+            return await super().generate_scene(**kw)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Recording())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert photos
+    assert all(photo is None for photo in photos)
+
+
+async def test_ebook_bible_uses_avatar_not_photo(db, mem_storage, monkeypatch):
+    refs_seen: list[list[bytes]] = []
+
+    class Recording(FakeImage):
+        async def generate_character(self, **kw):
+            refs_seen.append(list(kw.get("reference_images") or []))
+            return await super().generate_character(**kw)
+
+    async def high_score(_photo, _scene, **_k):
+        return 0.91
+
+    mem_storage["char1"] = b"AVATAR-BYTES"
+    mem_storage["photo1"] = b"PHOTO-BYTES"
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Recording())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", high_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert refs_seen
+    assert all(refs and refs[0] == b"AVATAR-BYTES" for refs in refs_seen)
+    assert all(b"PHOTO-BYTES" not in refs for refs in refs_seen)
+
+
+async def test_ebook_face_match_refine_scene_skips_fal(db, mem_storage, monkeypatch):
+    heads: list[int] = []
+    scene_refines: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return await super().refine_identity(**kw)
+
+        async def refine_scene(self, **kw):
+            scene_refines.append(1)
+            return await super().refine_scene(**kw)
+
+    async def score(_photo, scene, **_k):
+        if scene == b"SCENE_R":
+            return 0.91
+        return 0.4
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert scene_refines == [1, 1]
+    assert heads == []
+
+
+async def test_ebook_face_match_none_runs_fal(db, mem_storage, monkeypatch):
+    heads: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return await super().refine_identity(**kw)
+
+    async def no_score(_photo, _scene, **_k):
+        return None
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", no_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    assert heads == [1, 1]
+
+
+async def test_ebook_keeps_fal_even_when_score_worse(db, mem_storage, monkeypatch):
+    class Tagged(FakeImage):
+        async def generate_scene(self, **kw):
+            return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
+
+        async def refine_scene(self, **kw):
+            return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png", cost_usd=0.03)
+
+        async def refine_identity(self, **kw):
+            return ImageResult(image_bytes=b"FAL_WORSE", mime_type="image/png", cost_usd=0.03)
+
+    async def score(_photo, scene, **_k):
+        return {"SCENE": 0.40, "SCENE_R": 0.55, "FAL_WORSE": 0.20}.get(scene.decode(), 0.0)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Tagged())
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(handlers, "score_face_match", score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    _, p = _seed(db)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Pagina 1: ola.\nPagina 2: fim."
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "EBOOK"))
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    pages = sorted(pages, key=lambda a: (a.meta or {}).get("page") or 0)
+    assert [mem_storage[a.storage_key] for a in pages] == [b"FAL_WORSE", b"FAL_WORSE"]
 
 
 async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkeypatch):

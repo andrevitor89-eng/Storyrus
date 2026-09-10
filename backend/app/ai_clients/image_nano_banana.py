@@ -16,6 +16,7 @@ import httpx
 
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
+    REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
     REFINE_SCENE_PROMPT,
     SCENE_GEN_PREFIX,
@@ -27,6 +28,7 @@ from app.ai_clients.gemini_api import inline_part as _inline
 from app.ai_clients.gemini_api import ssl_verify as _ssl_verify
 from app.ai_clients.resilience import OutageError
 from app.config import settings
+from app.observability.opik_trace import prompt_text_from_parts, track, update_span
 from app.services.pricing import image_cost
 
 logger = logging.getLogger(__name__)
@@ -110,11 +112,20 @@ class NanoBananaImageProvider:
             result.meta["fallback_from"] = self._model
             return result
 
+    @track(name="gemini_generate", type="llm", capture_input=False, capture_output=False)
     async def _generate_with(
         self, model: str, parts: list[dict], *, aspect_ratio: str = "3:4"
     ) -> ImageResult:
         if not self._api_key:
             raise ProviderError("GEMINI_API_KEY ausente", transient=False)
+        update_span(
+            metadata={"provider": "gemini", "model": model, "action": "generate_image"},
+            input={
+                "prompt": prompt_text_from_parts(parts),
+                "aspect_ratio": aspect_ratio,
+                "image_size": self._image_size or "default",
+            },
+        )
 
         url = f"{_BASE}/models/{model}:generateContent"
         headers = {"x-goog-api-key": self._api_key, "content-type": "application/json"}
@@ -213,6 +224,17 @@ class NanoBananaImageProvider:
                                     attempt,
                                     model,
                                 )
+                            update_span(
+                                output={"ok": True, "mime": mime, "attempts": attempt},
+                                metadata={
+                                    "provider": "gemini",
+                                    "model": model,
+                                    "action": "generate_image",
+                                    "usage": usage,
+                                    "cost_usd": cost,
+                                    "attempts": attempt,
+                                },
+                            )
                             return ImageResult(
                                 image_bytes=base64.b64decode(inline["data"]),
                                 mime_type=mime,
@@ -224,7 +246,9 @@ class NanoBananaImageProvider:
                                     "usage": usage,
                                 },
                             )
-                raise ProviderError(_no_image_reason(data), transient=False)
+                reason = _no_image_reason(data)
+                update_span(output={"ok": False, "error": reason})
+                raise ProviderError(reason, transient=False)
 
         assert last_error is not None
         raise last_error
@@ -232,15 +256,26 @@ class NanoBananaImageProvider:
     async def generate_character(
         self, *, prompt: str, reference_images: list[bytes], style: str
     ) -> ImageResult:
-        # Texto curto de identidade, depois recorte + foto (sem duplicar CHARACTER_GEN_PREFIX).
-        parts: list[dict] = [
+        # Sem foto: placa de corpo (prompt puro). Com foto: recorte + retrato.
+        refs = [img for img in (reference_images or []) if img]
+        if not refs:
+            parts: list[dict] = [
+                {
+                    "text": (
+                        "Gere a partir do texto. Nao ha foto anexa. "
+                        f"Estilo pedido: '{style}'. {prompt}"
+                    )
+                }
+            ]
+            return await self._generate(parts, aspect_ratio="3:4")
+        parts = [
             {
                 "text": (
                     "A primeira imagem e o RECORTE do rosto (verdade dos olhos, "
                     "bochechas, queixo, nitidez e microtextura). A segunda e a foto inteira "
                     "(cabelo, corpo — ignore a roupa da foto). O ROSTO deve parecer uma foto, "
-                    "qualidade de camera, pintura TMT com tracos leves de desenho "
-                    "(mais real que desenho), copiando geometria do recorte; corpo em DESENHO. "
+                    "qualidade de camera, pintura fotorrealista com tracos leves; "
+                    "CORPO em CGI 3D de filme infantil. "
                     "Nao cole o close fotografico. Olhos na MESMA fracao do rosto; se "
                     "hesitar, diminua; NUNCA aumente. "
                     f"Estilo pedido: '{style}'. "
@@ -248,7 +283,7 @@ class NanoBananaImageProvider:
                 )
             }
         ]
-        for img in reference_images:
+        for img in refs:
             parts.append(_inline(img))
         return await self._generate(parts, aspect_ratio="3:4")
 
@@ -260,16 +295,17 @@ class NanoBananaImageProvider:
         style: str = "realistic",
         photo: bytes | None = None,
     ) -> ImageResult:
-        """Segundo passe de cena: corrige o protagonista.
+        """Segundo passe de cena: cabeca = avatar; figurino fica o da cena.
 
-        Com foto: (1) foto = rosto/olhos/realismo, (2) avatar = identidade (nao figurino), (3) cena.
-        Sem foto: (1) avatar, (2) cena.
+        Ordem: (1) avatar, (2) cena. `photo` e ignorado neste passe — a foto
+        real vale no lock do avatar (`refine_identity`), nao na pagina.
         """
-        parts: list[dict] = [{"text": REFINE_SCENE_PROMPT}]
-        if photo:
-            parts.append(_inline(photo))
-        parts.append(_inline(character_ref))
-        parts.append(_inline(scene))
+        _ = photo
+        parts: list[dict] = [
+            {"text": REFINE_SCENE_PROMPT},
+            _inline(character_ref),
+            _inline(scene),
+        ]
         return await self._generate(parts, aspect_ratio="1:1")
 
     async def refine_identity(
@@ -279,8 +315,13 @@ class NanoBananaImageProvider:
 
         Ordem das imagens: (1) foto = verdade do rosto (geometria e realismo); (2) personagem a corrigir.
         """
+        refine_prompt = (
+            REFINE_IDENTITY_AVATAR_PROMPT
+            if "CGI" in (style or "")
+            else REFINE_IDENTITY_PROMPT
+        )
         parts: list[dict] = [
-            {"text": REFINE_IDENTITY_PROMPT},
+            {"text": refine_prompt},
             _inline(photo),
             _inline(illustration),
         ]
@@ -304,14 +345,16 @@ class NanoBananaImageProvider:
         photo: bytes | None = None,
         extra_refs: list[bytes] | None = None,
     ) -> ImageResult:
+        """Cena ancorada no avatar. `photo` e ignorado de proposito: a foto
+        real vale no lock do avatar, nao aqui — duas caras na mesma chamada
+        diluem a identidade.
+        """
+        _ = photo
         extras = [img for img in (extra_refs or []) if img]
-        identity = ""
-        if photo:
-            identity = (
-                "A primeira imagem e a FOTO real (o rosto deve parecer uma foto, qualidade de "
-                "camera, estilo TMT com tracos leves de desenho — mesma fracao do rosto; se hesitar, diminua). "
-                "A segunda e o AVATAR (identidade e estilo DESENHADO; NAO copie a roupa dele). "
-            )
+        identity = (
+            "A primeira imagem e o AVATAR (unica fonte de verdade do rosto, "
+            "cabelo, idade e proporcoes). NAO copie a roupa dele. "
+        )
         if extras:
             identity += (
                 "As imagens seguintes (nessa ordem, as que existirem) sao: "
@@ -329,8 +372,6 @@ class NanoBananaImageProvider:
                 )
             },
         ]
-        if photo:
-            parts.append(_inline(photo))
         parts.append(_inline(character_ref))
         for img in extras:
             parts.append(_inline(img))

@@ -73,7 +73,7 @@ async def test_generate_character_calls_flux_pulid(monkeypatch):
     assert captured["endpoint"] == "fal-ai/flux-pulid"
     assert captured["arguments"]["id_weight"] == 1.0
     assert captured["arguments"]["image_size"] == "square_hd"
-    assert captured["arguments"]["prompt"] == "TMT child"
+    assert captured["arguments"]["prompt"] == pulid.PULID_AVATAR_PROMPT
     assert str(captured["arguments"]["reference_image_url"]).startswith("data:image/png;base64,")
 
 
@@ -83,6 +83,16 @@ async def test_generate_character_requires_reference(monkeypatch):
         await pulid.PulidFalProvider().generate_character(
             prompt="x", reference_images=[], style="s"
         )
+
+
+def _png(size: int = 64) -> bytes:
+    from io import BytesIO
+
+    from PIL import Image
+
+    buf = BytesIO()
+    Image.new("RGB", (size, size), "red").save(buf, format="PNG")
+    return buf.getvalue()
 
 
 async def test_refine_identity_calls_face_swap(monkeypatch):
@@ -99,14 +109,24 @@ async def test_refine_identity_calls_face_swap(monkeypatch):
     monkeypatch.setattr(pulid, "_download_image", lambda _url: b"SWAP")
 
     result = await pulid.PulidFalProvider().refine_identity(
-        photo=b"photo", illustration=b"scene"
+        photo=_png(80), illustration=_png(2048)
     )
     assert result.image_bytes == b"SWAP"
     assert captured["endpoint"] == "easel-ai/advanced-face-swap"
     assert captured["arguments"]["workflow_type"] == "user_hair"
     assert captured["arguments"]["upscale"] is False
-    assert str(captured["arguments"]["face_image_0"]).startswith("data:")
-    assert str(captured["arguments"]["target_image"]).startswith("data:")
+    assert str(captured["arguments"]["face_image_0"]).startswith("data:image/jpeg")
+    assert str(captured["arguments"]["target_image"]).startswith("data:image/jpeg")
+    import base64
+
+    raw = captured["arguments"]["target_image"].split(",", 1)[1]
+    blob = base64.b64decode(raw)
+    from io import BytesIO
+
+    from PIL import Image
+
+    im = Image.open(BytesIO(blob))
+    assert max(im.size) <= 768
 
 
 async def test_hybrid_routes_head_to_pulid_and_scene_to_gemini(monkeypatch):
@@ -119,19 +139,22 @@ async def test_hybrid_routes_head_to_pulid_and_scene_to_gemini(monkeypatch):
         prompt="p", reference_images=[b"f"], style="s"
     )
     refined = await hybrid.refine_identity(photo=b"p", illustration=b"i")
+    painted = await hybrid.refine_character(photo=b"p", illustration=b"i")
     page = await hybrid.generate_scene(
         prompt="pomar", character_ref=b"c", style="s"
     )
 
-    assert char.image_bytes == b"PCHAR"
+    assert char.image_bytes == b"GCHAR"
     assert refined.image_bytes == b"PREF"
+    assert painted.image_bytes == b"GREF"
     assert page.image_bytes == b"GSCENE"
-    assert head.calls == ["pulid-character", "pulid-refine"]
-    assert scene.calls == ["gemini-scene"]
-    assert char.meta["head_provider"] == "pulid"
+    assert head.calls == ["pulid-refine"]
+    assert scene.calls == ["gemini-character", "gemini-refine", "gemini-scene"]
+    assert char.meta["head_provider"] == "gemini"
+    assert painted.meta["head_provider"] == "gemini"
 
 
-async def test_hybrid_refine_scene_with_photo_uses_fal(monkeypatch):
+async def test_hybrid_refine_scene_with_photo_uses_gemini(monkeypatch):
     monkeypatch.setattr(pulid.settings, "identity_head_provider", "pulid")
     monkeypatch.setattr(pulid.settings, "fal_key", "fal-test")
     scene, head = _Scene(), _Head()
@@ -140,9 +163,10 @@ async def test_hybrid_refine_scene_with_photo_uses_fal(monkeypatch):
     refined = await hybrid.refine_scene(
         character_ref=b"c", scene=b"s", style="s", photo=b"photo"
     )
-    assert refined.image_bytes == b"PREF"
-    assert head.calls == ["pulid-refine"]
-    assert scene.calls == []
+    assert refined.image_bytes == b"GRSCENE"
+    assert refined.meta["head_provider"] == "gemini"
+    assert head.calls == []
+    assert scene.calls == ["gemini-refine-scene"]
 
 
 async def test_hybrid_falls_back_to_gemini_without_fal_key(monkeypatch):
