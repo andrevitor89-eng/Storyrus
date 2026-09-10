@@ -1,0 +1,112 @@
+{
+  "id": "reino_animais",
+  "titulo": "{NOME} no Fantástico Reino dos Animais",
+  "genero": "unissex",
+  "idade": "3-6",
+  "tematica": "Reino fantástico de animais",
+  "emoji": "🦁",
+  "pages": [
+    {
+      "page": 1,
+      "layout": "dedication",
+      "text": "Para {NOME}, com todo amor e carinho,\nque seu coração cresça feliz em cada caminho.",
+      "illustration_note": ""
+    },
+    {
+      "page": 2,
+      "layout": "story",
+      "text": "{NOME} acordou bem cedo, contente para passear.\nLogo viu a ARARA colorida voando sobre ar.",
+      "illustration_note": "{NOME} entrou no reino da floresta feliz, com brilho no olhar; arara colorida voando sobre as arvores; um animal so; sem texto legivel."
+    },
+    {
+      "page": 3,
+      "layout": "story",
+      "text": "A BORBOLETA voava leve, cheia de cor e beleza.\nSuas asas delicadas enfeitavam toda a natureza.\n\nAprendendo mais: A borboleta tem asas coloridas e gosta de flores.",
+      "illustration_note": "Borboleta grande e colorida voando entre flores, {NOME} observando; um animal so; sem texto legivel."
+    },
+    {
+      "page": 4,
+      "layout": "story",
+      "text": "Na água brilhante, CROCODILO e JACARÉ foram nadar.\nCom olhos atentos e corpo comprido, seguiam devagar.",
+      "illustration_note": "Um crocodilo e um jacare em um lago ou rio calmo, {NOME} vendo tudo da margem a distancia segura; dois animais; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 5,
+      "layout": "story",
+      "text": "De repente, um DINOSSAURO surgiu no caminho a passar.\nTão grande e impressionante, fez {NOME} se encantar.",
+      "illustration_note": "Um dinossauro amigavel em cenario fantastico, {NOME} olhando admirado a distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 6,
+      "layout": "story",
+      "text": "O ELEFANTE caminhou com passo forte e gentil.\nSua tromba balançava num jeito calmo e sutil.",
+      "illustration_note": "Elefante grande e sereno caminhando perto de {NOME}; um animal so; sem texto legivel."
+    },
+    {
+      "page": 7,
+      "layout": "story",
+      "text": "A GIRAFA surgiu alta, elegante ao caminhar.\nCom seu pescoço comprido, conseguia longe enxergar.\n\nAprendendo mais: A girafa é um dos animais mais altos do mundo.",
+      "illustration_note": "Girafa ao lado de arvores altas, {NOME} olhando para cima; um animal so; sem texto legivel."
+    },
+    {
+      "page": 8,
+      "layout": "story",
+      "text": "Na lagoa brilhante, o HIPOPÓTAMO foi mergulhar.\nSeu corpo grande fazia a água espirrar.\n\nAprendendo mais: O hipopótamo gosta de ficar na água para se refrescar.",
+      "illustration_note": "Hipopotamo dentro da lagoa com agua espirrando, {NOME} observando da margem a distancia segura; um animal so; sem texto legivel."
+    },
+    {
+      "page": 9,
+      "layout": "story",
+      "text": "No galho descansava o KOALA, tão fofo a cochilar.\nAbraçado ao tronco macio, gostava de repousar.",
+      "illustration_note": "Koala abracado em uma arvore, em pose calma e carinhosa, {NOME} observando; um animal so; sem texto legivel."
+    },
+    {
+      "page": 10,
+      "layout": "story",
+      "text": "O LEÃO apareceu com sua juba a brilhar.\nForte e majestoso, parecia o rei do lugar.",
+      "illustration_note": "Leao imponente em pe, {NOME} admirando de longe a distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 11,
+      "layout": "story",
+      "text": "O LOBO correu ligeiro pelo campo ao luar.\nSeu passo era leve, bonito de acompanhar.",
+      "illustration_note": "Lobo cinza correndo por uma clareira, ceu suave ao fundo, {NOME} observando a distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 12,
+      "layout": "story",
+      "text": "O MACACO saltou contente de galho em galho no ar.\nÁgil e brincalhão, adorava se balançar.",
+      "illustration_note": "Macaco pulando entre arvores, com folhas ao redor, {NOME} sorrindo; um animal so; sem texto legivel."
+    },
+    {
+      "page": 13,
+      "layout": "story",
+      "text": "A ONÇA surgiu na mata com passo leve e olhar brilhante.\nSuas pintas tão bonitas faziam seu charme fascinante.",
+      "illustration_note": "Onca pintada caminhando pela floresta verde, expressao serena e elegante, {NOME} observa com admiracao a distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 14,
+      "layout": "story",
+      "text": "O PICA-PAU bateu no tronco com seu bico sem parar.\nToc Toc na árvore fez soar a floresta despertar.",
+      "illustration_note": "Pica-pau bicando o tronco de uma arvore, com lasquinhas voando, {NOME} olhando curioso para o som na floresta; um animal so; sem texto legivel."
+    },
+    {
+      "page": 15,
+      "layout": "story",
+      "text": "O SAPO saltou ligeiro perto da água a brilhar.\nCom suas pernas bem fortes, foi de folha em folha pular.",
+      "illustration_note": "Sapo verde pulando entre folhas com gotinhas brilhantes de agua ao redor, {NOME} sorrindo; um animal so; sem texto legivel."
+    },
+    {
+      "page": 16,
+      "layout": "story",
+      "text": "O TIGRE passou vistoso com listras de emoção.\nSeu andar era bonito, cheio de força e atenção.",
+      "illustration_note": "Tigre listrado andando em meio a natureza, {NOME} admirado a distancia segura; um animal so; sem predacao; sem texto legivel."
+    },
+    {
+      "page": 17,
+      "layout": "story",
+      "text": "Por fim, o URSO caminhou calmo, e protetor.\n{NOME} voltou feliz, cheio de amor e saber.\nNo reino dos animais, sempre há algo para aprender.",
+      "illustration_note": "{NOME} cercado pelos animais que conheceu durante a aventura, expressao feliz encerrando a aventura; varios animais; sem predacao; sem texto legivel."
+    }
+  ]
+}

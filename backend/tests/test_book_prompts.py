@@ -2,9 +2,13 @@
 from app.ai_clients.book_prompts import (
     ALPHABET_SCENE_EXTRAS,
     AVATAR_PROMPT,
+    AVATAR_STYLE,
+    BODY_CHARACTER_PROMPT,
+    BODY_PLATE_EXTRAS,
     COLOR_SCENE_EXTRAS,
     NUMBER_SCENE_EXTRAS,
     OPPOSITES_SCENE_EXTRAS,
+    REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
     REFINE_SCENE_PROMPT,
     SCENE_GEN_PREFIX,
@@ -15,6 +19,7 @@ from app.ai_clients.book_prompts import (
     infer_expression,
     name_scene_extras_for_template,
     normalize_expression,
+    scene_extras_for_body_plate,
     scene_extras_for_template,
 )
 
@@ -48,6 +53,7 @@ def test_build_scene_prompt_includes_expression_and_identity_hooks():
     assert "Matteo" in prompt
     assert "alegria" in prompt
     assert "EXPRESSAO FACIAL OBRIGATORIA" in prompt
+    assert "LEGIVEL" in prompt
     assert "NAO escrever na imagem" in prompt
     assert "NAO mude identidade" in prompt
 
@@ -68,27 +74,15 @@ def test_avatar_prompt_face_fidelity_and_head():
     assert "ROSTO REALISTA" in AVATAR_PROMPT
     assert "parecer uma foto" in AVATAR_PROMPT
     assert "qualidade de camera" in AVATAR_PROMPT
-    assert "airbrush" in AVATAR_PROMPT
-    assert "tracos leves" in AVATAR_PROMPT
-    assert "mais DESENHO" in AVATAR_PROMPT
-    assert "CORPO:" in AVATAR_PROMPT
-    assert "ESTILO TMT" in AVATAR_PROMPT
-    assert "ESTILO HIBRIDO" not in AVATAR_PROMPT
-    assert "MESMO idioma ilustrado" not in AVATAR_PROMPT
+    assert "CGI 3D" in AVATAR_PROMPT
+    assert "filme infantil" in AVATAR_PROMPT
+    assert "CORPO" in AVATAR_PROMPT
+    assert "ESTILO TMT" not in AVATAR_PROMPT
     assert "PROPORCAO DA CABECA" in AVATAR_PROMPT or "proporcao NATURAL" in AVATAR_PROMPT
     assert "sem aumentar" in AVATAR_PROMPT.lower() or "identica a da foto" in AVATAR_PROMPT.lower()
     assert "chibi" in AVATAR_PROMPT.lower() or "PROIBIDO" in AVATAR_PROMPT
     assert "NEUTRA-ALEGRE" in AVATAR_PROMPT or "neutra" in AVATAR_PROMPT.lower()
-    assert "ESTILO CGI 3D DE FILME INFANTIL OBRIGATORIO" not in AVATAR_PROMPT
-    assert "pele CGI" not in AVATAR_PROMPT
-    assert "filme infantil" not in AVATAR_PROMPT
-    assert "CGI 3D" not in AVATAR_PROMPT
-    assert "PINTURA REALISTA" not in AVATAR_PROMPT
-    assert "2D nitida" not in AVATAR_PROMPT
-    assert "PROIBIDO Pixar" not in AVATAR_PROMPT
-    assert "ESTILO PINTURA REALISTA OBRIGATORIO" not in AVATAR_PROMPT
-    assert "trate o rosto como uma FOTO" not in AVATAR_PROMPT
-    assert "NAO copie a foto original" in AVATAR_PROMPT or "NAO cole o rosto" in AVATAR_PROMPT
+    assert "NAO copie a foto original" in AVATAR_PROMPT or "NAO cole" in AVATAR_PROMPT
     assert "PROIBIDO inventar franja" in AVATAR_PROMPT or "NAO invente" in AVATAR_PROMPT
     assert "tracos atipicos" in AVATAR_PROMPT
     assert "marca d'agua" in AVATAR_PROMPT.lower() or "marca d'agua" in AVATAR_PROMPT
@@ -96,7 +90,6 @@ def test_avatar_prompt_face_fidelity_and_head():
     assert "IDENTITY LOCK" in AVATAR_PROMPT
     assert "Ignore adultos" in AVATAR_PROMPT
     assert "sorriso largo de banco de imagens" in AVATAR_PROMPT
-    assert "pele plastica" in AVATAR_PROMPT.lower()
     assert "fracao do rosto" in AVATAR_PROMPT
     assert "ACIMA do estilo" in AVATAR_PROMPT or "ACIMA DO ESTILO" in AVATAR_PROMPT
     assert "DIMINUA" in AVATAR_PROMPT or "NUNCA aumente" in AVATAR_PROMPT
@@ -104,6 +97,20 @@ def test_avatar_prompt_face_fidelity_and_head():
     assert "engordando" in AVATAR_PROMPT
     assert "mais gorda" in AVATAR_PROMPT or "mais gordo" in AVATAR_PROMPT
     assert "REDUZA o volume das bochechas" in AVATAR_PROMPT
+    assert "parecer uma foto" in AVATAR_STYLE
+    assert "CGI" in AVATAR_STYLE
+
+
+def test_refine_identity_avatar_keeps_cgi():
+    assert "CORPO CGI 3D" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "parecer uma foto" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "qualidade de camera" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "ROSTO REALISTA" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "SO A CABECA" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "RECORTE" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "nao cole o close" in REFINE_IDENTITY_AVATAR_PROMPT.lower()
+    assert "REDUZA o volume das bochechas" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "NAO fotorealize" not in REFINE_IDENTITY_AVATAR_PROMPT
 
 
 def test_refine_identity_orders_photo_first():
@@ -158,10 +165,25 @@ def test_scene_and_style_are_hybrid_illustration():
     assert "PROIBIDO Pixar" not in SCENE_GEN_PREFIX
     assert "fracao do rosto" in SCENE_GEN_PREFIX
     assert "ACIMA DO ESTILO" in SCENE_GEN_PREFIX or "ACIMA do estilo" in SCENE_GEN_PREFIX
-    assert "REDUZA" in REFINE_SCENE_PROMPT
-    assert "cenario pintado" in REFINE_SCENE_PROMPT
-    assert "estilo desenhado" in REFINE_SCENE_PROMPT
-    assert "PRESERVE o FIGURINO" in REFINE_SCENE_PROMPT
+    assert "MENOR que o tronco" in SCENE_GEN_PREFIX
+    assert "DIMINUA a cabeca" in SCENE_GEN_PREFIX
+    assert "REDUCE" in REFINE_SCENE_PROMPT
+    assert "head-to-body" in REFINE_SCENE_PROMPT
+    assert "If the Scene head is larger" in REFINE_SCENE_PROMPT
+    assert "1:1 facial identity" in REFINE_SCENE_PROMPT
+    assert "painted concept art" in REFINE_SCENE_PROMPT
+    assert "stylized drawing" in REFINE_SCENE_PROMPT
+    assert "Preserve the exact costume" in REFINE_SCENE_PROMPT
+    assert "Do not replace it with the Avatar's clothes" in REFINE_SCENE_PROMPT
+    assert "MANDATORY identity" in REFINE_SCENE_PROMPT
+    assert "Image 1 (Avatar)" in REFINE_SCENE_PROMPT
+    assert "Do not use a raw photo as the face source of truth" in REFINE_SCENE_PROMPT
+    assert "FONTE DO ROSTO" in SCENE_GEN_PREFIX
+    assert "safari-kid" in SCENE_GEN_PREFIX or "safari" in SCENE_GEN_PREFIX
+    assert "bebe/toddler" in SCENE_GEN_PREFIX
+    assert "stock safari kid" in REFINE_SCENE_PROMPT
+    assert "apparent age" in REFINE_SCENE_PROMPT
+    assert "When a real photo is attached first" not in REFINE_SCENE_PROMPT
     scene = build_scene_prompt(page=1, text="Matteo olha a floresta.")
     assert "cena TMT de livro infantil" in scene
     assert "luz cinematografica" in scene
@@ -177,8 +199,10 @@ def test_scene_and_style_are_hybrid_illustration():
 
 def test_scene_keeps_emotion_separate_from_identity():
     assert "expressao NEUTRA" in SCENE_GEN_PREFIX or "NAO a copie" in SCENE_GEN_PREFIX
-    assert "PRESERVE a EXPRESSAO FACIAL" in REFINE_SCENE_PROMPT
-    assert "neutra do avatar" in REFINE_SCENE_PROMPT.lower() or "emocao da pagina" in REFINE_SCENE_PROMPT.lower()
+    assert "VENCE o avatar" in SCENE_GEN_PREFIX
+    assert "pose dinamicos" in SCENE_GEN_PREFIX
+    assert "emotional facial expression" in REFINE_SCENE_PROMPT
+    assert "Do not reset to a neutral face" in REFINE_SCENE_PROMPT
 
 
 def test_alphabet_extras_forbid_readable_text():
@@ -231,8 +255,42 @@ def test_scene_extras_for_template():
     assert "oceano" in mergulho
     assert "mergulhador" in mergulho
     assert "NUNCA sereia" in mergulho
+    reino = scene_extras_for_template("reino_animais")
+    assert "reino fantastico de animais" in reino
+    assert "crocodilo e jacare" in reino
+    assert "distancia segura" in reino
+    assert "cabelo do avatar visiveis" in reino
+    assert "sem virar close" in reino
+    assert "proporcao com o tronco" in reino
+    assert "sem cobrir a franja" in reino
+    assert "sem chibi" in reino
+    assert "bebe/toddler" in reino
+    assert "cabeca flutuante" in reino
+    assert "brinco" in reino
+    assert "explorador" in reino
+    assert "letra grande abstrata" not in reino
+    assert "floresta amazonica umida" not in reino
+    assert "PROIBIDO neve" not in reino
     assert scene_extras_for_template("nave_vermelha") == ""
     assert scene_extras_for_template(None) == ""
+
+
+def test_body_character_prompt_is_a_placeholder_face():
+    assert "PLACEHOLDER" in BODY_CHARACTER_PROMPT
+    assert "face-swap" in BODY_CHARACTER_PROMPT
+    assert "explorador" in BODY_CHARACTER_PROMPT
+    assert "NAO copie foto" in BODY_CHARACTER_PROMPT
+    assert "3-5 anos" in BODY_CHARACTER_PROMPT
+    assert "Chapeu na MAO" in BODY_CHARACTER_PROMPT
+
+
+def test_scene_extras_for_body_plate_keeps_kingdom_and_marks_placeholder():
+    extras = scene_extras_for_body_plate("reino_animais")
+    assert "reino fantastico de animais" in extras
+    assert "PLACEHOLDER" in extras
+    assert "explorador" in extras
+    assert BODY_PLATE_EXTRAS in extras
+    assert scene_extras_for_body_plate(None) == BODY_PLATE_EXTRAS
 
 
 def test_name_page_prompt_reserves_left_side_without_generated_letters():
@@ -257,6 +315,7 @@ def test_name_page_prompt_reserves_left_side_without_generated_letters():
 
 def test_costume_extras_for_template_and_theme():
     assert "explorador" in costume_extras_for_template("alfabeto_amazonia")
+    assert "explorador" in costume_extras_for_template("reino_animais")
     assert "aventureiro de pomar" in costume_extras_for_template("alfabeto_frutas")
     assert "mergulhador infantil" in costume_extras_for_template("mergulho_mar")
     assert "sereia" in costume_extras_for_template("mergulho_mar")
@@ -273,11 +332,15 @@ def test_expression_directive():
     assert "sobrancelhas" in d
     assert "NAO mude identidade" in d
     assert "PROIBIDO copiar a expressao neutra" in d
+    assert "LEGIVEL" in d
+    assert "pose" in d.lower()
     assert "NAO mude o TAMANHO dos olhos" in d
     assert "fracao do rosto" in d
     happy = expression_directive("alegria")
+    assert "sorriso ABERTO" in happy
     assert "olhos vivos e brilhantes" not in happy
     assert "olhos bem abertos" not in expression_directive("animacao")
+    assert "corpo em movimento" in expression_directive("animacao")
 
 
 def test_build_scene_prompt_uses_shot_and_text_band():
@@ -299,11 +362,21 @@ def test_build_scene_prompt_uses_shot_and_text_band():
 
 
 def test_normalize_shot_and_text_band():
-    from app.ai_clients.book_prompts import normalize_shot, normalize_text_band
+    from app.ai_clients.book_prompts import (
+        identity_shot,
+        normalize_shot,
+        normalize_text_band,
+        shot_directive,
+    )
 
     assert normalize_shot("closeup") == "close"
     assert normalize_shot("plano detalhe") == "detail"
     assert normalize_shot("xyz") == "medium"
+    assert "quinto" in shot_directive("medium")
+    assert "corpo inteiro no fundo" in shot_directive("medium")
+    assert identity_shot("wide") == "medium"
+    assert identity_shot("wide", layout="name") == "wide"
+    assert identity_shot("close") == "close"
     assert normalize_text_band("TOP") == "top"
     assert normalize_text_band("LEFT") == "left"
     assert normalize_text_band("right") == "right"
@@ -320,6 +393,8 @@ def test_character_bible_prompts():
     assert "FICHA DE PERSONAGEM" in CHARACTER_SHEET_PROMPT
     assert "TRES-QUARTOS" in CHARACTER_SHEET_PROMPT
     assert "GRADE DE EXPRESSOES" in EXPRESSION_SHEET_PROMPT
+    assert "BEM DISTINTAS" in EXPRESSION_SHEET_PROMPT
+    assert "LEGIVEIS" in EXPRESSION_SHEET_PROMPT
     lock = costume_lock_prompt("capa vermelha")
     assert "FIGURINO LOCK" in lock
     assert "capa vermelha" in lock

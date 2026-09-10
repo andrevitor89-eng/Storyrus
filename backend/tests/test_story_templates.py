@@ -14,13 +14,14 @@ _CATALOG_JSON_IDS = {
     "cores_basicas",
     "grande_pequeno",
     "mergulho_mar",
+    "reino_animais",
 }
 
 
 def test_catalog_includes_amazonia():
     assert "alfabeto_amazonia" in STORY_TEMPLATES
     assert _CATALOG_JSON_IDS <= set(STORY_TEMPLATES)
-    assert len(STORY_TEMPLATES) == 12
+    assert len(STORY_TEMPLATES) == 13
     meta = list_templates()
     assert {m["id"] for m in meta} == set(STORY_TEMPLATES)
     amazonia = next(m for m in meta if m["id"] == "alfabeto_amazonia")
@@ -31,6 +32,7 @@ def test_catalog_includes_amazonia():
     assert next(m for m in meta if m["id"] == "cores_basicas")["paginas"] == 15
     assert next(m for m in meta if m["id"] == "grande_pequeno")["paginas"] == 15
     assert next(m for m in meta if m["id"] == "mergulho_mar")["paginas"] == 17
+    assert next(m for m in meta if m["id"] == "reino_animais")["paginas"] == 17
     for m in meta:
         assert m["titulo"] and m["tematica"] and m["paginas"] >= 13
 
@@ -124,7 +126,7 @@ def test_amazonia_notes_keep_child_and_letter():
 def test_list_endpoint(auth_client):
     r = auth_client.get("/v1/projects/story-templates")
     assert r.status_code == 200, r.text
-    assert len(r.json()) == 12
+    assert len(r.json()) == 13
     ids = {t["id"] for t in r.json()}
     assert "alfabeto_amazonia" in ids
     assert _CATALOG_JSON_IDS <= ids
@@ -256,6 +258,35 @@ def test_mergulho_render_and_parse():
     assert "golfinho" in notes[1].lower()
     assert "distancia segura" in notes[8]
     assert "distancia segura" in notes[10]
+    assert "distancia segura" in notes[15]
+    assert "varios animais" in notes[16]
+
+
+def test_reino_animais_render_and_parse():
+    text = render_template("reino_animais", "Matteo")
+    assert "{NOME}" not in text
+    assert text.startswith("Título: Matteo no Fantástico Reino dos Animais")
+    assert "Para Matteo, com todo amor e carinho" in text
+    assert "ARARA colorida" in text
+    assert "Aprendendo mais: A borboleta tem asas coloridas" in text
+    assert "CROCODILO e JACARÉ" in text
+    assert "Matteo voltou feliz" in text
+    assert "sempre há algo para aprender" in text
+    from app.workers.handlers import _parse_pages
+
+    pages = _parse_pages(text)
+    assert len(pages) == 17
+    assert pages[1].startswith("Matteo acordou bem cedo")
+    assert pages[-1].startswith("Por fim, o URSO")
+    notes = illustration_notes("reino_animais", "Matteo")
+    assert len(notes) == 17
+    assert notes[0] == ""
+    assert "{NOME}" not in "".join(notes)
+    assert "Matteo" in notes[1]
+    assert "arara" in notes[1].lower()
+    assert "dois animais" in notes[3]
+    assert "distancia segura" in notes[3]
+    assert "distancia segura" in notes[9]
     assert "distancia segura" in notes[15]
     assert "varios animais" in notes[16]
 
