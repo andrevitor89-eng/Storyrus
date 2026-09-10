@@ -1019,7 +1019,6 @@ export function Landing() {
             </button>
           ))}
         </div>
-        </div>
       </section>
 
       {/* COMO FUNCIONA + DICAS */}
