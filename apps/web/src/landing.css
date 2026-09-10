@@ -783,16 +783,15 @@
   color: #1f3568; font-family: 'Baloo 2', cursive; font-weight: 800; padding: 6px 16px; border-radius: 999px; font-size: .95rem;
   margin-bottom: 10px; box-shadow: 0 8px 18px rgba(244,183,64,.3); }
 .book-badge .bi { width: 16px; height: 16px; color: #1f3568; }
-.featured-book .fb-stage { width: 340px; }
-.ex-spread-wrap {
-  position: relative; width: min(720px, 90vw); aspect-ratio: 4 / 3; margin: 0 auto;
-  overflow: hidden; border-radius: 14px; background: #12203f;
-  box-shadow: 0 22px 48px rgba(0,0,0,.38);
+.featured-book .fb-stage {
+  width: min(400px, 86vw);
+  aspect-ratio: 1 / 1;
+  background: #1a2748;
 }
-.ex-spread {
-  position: absolute; left: 50%; top: 50%; width: 110%; height: 110%; max-width: none;
-  transform: translate(-50%, -50%); object-fit: cover; object-position: center 52%;
-  display: block; border-radius: 0; box-shadow: none;
+.featured-book .fb-page {
+  object-fit: contain;
+  object-position: center;
+  background: #1a2748;
 }
 .howex-card-page img { object-position: center 46%; }
 
@@ -868,14 +867,18 @@
 
 /* ---------- Banners narrativos ---------- */
 .banners { position: relative; z-index: 1; max-width: var(--page-max); margin: 8px auto 0; padding: 12px var(--page-gutter) 4px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.banner-card { position: relative; margin: 0; border-radius: 22px; overflow: hidden; aspect-ratio: var(--photo-ratio); display: flex; align-items: flex-end; box-shadow: 0 16px 34px rgba(0,0,0,.4); border: 2px solid #26315a; }
+.banner-card { position: relative; margin: 0; border-radius: 22px; overflow: hidden; aspect-ratio: 1 / 1; display: flex; align-items: flex-end; box-shadow: 0 16px 34px rgba(0,0,0,.4); border: 2px solid #26315a; }
+.banner-book {
+  position: absolute; inset: 0; display: grid; place-items: center; padding: 14px;
+  box-sizing: border-box;
+}
+.banner-book img {
+  display: block; width: 100%; height: 100%;
+  object-fit: contain; object-position: center;
+}
 .banner-card figcaption { position: relative; z-index: 1; padding: 22px 18px 16px; width: 100%; background: linear-gradient(to top, rgba(10,14,32,.96) 14%, rgba(10,14,32,.7) 44%, rgba(10,14,32,0)); }
 .banner-card h3 { margin: 0 0 4px; color: #fff; font-size: 1.28rem; }
 .banner-card p { margin: 0; color: #dfe6fb; font-size: .95rem; line-height: 1.4; }
-@keyframes bannerDrift {
-  0% { transform: scale(1.05) translate3d(0, 0, 0); }
-  100% { transform: scale(1.12) translate3d(0, -2.5%, 0); }
-}
 [data-theme="light"] .kid .banner-card { border-color: #e6ebf5; }
 
 /* ---------- Nossa promessa ---------- */
@@ -913,7 +916,7 @@
   .howex-arrow { transform: rotate(90deg); justify-self: center; }
   .fmt-grid { grid-template-columns: 1fr; max-width: 430px; }
   .rev-grid { grid-template-columns: 1fr; max-width: 460px; }
-  .featured-book .fb-stage { width: 76vw; max-width: 320px; }
+  .featured-book .fb-stage { width: min(320px, 86vw); }
   .banners { grid-template-columns: 1fr; }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }
@@ -1228,11 +1231,6 @@
 @keyframes kenburnsSoft { from { transform: scale(1); } to { transform: scale(1.06); } }
 @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-
-/* banners narrativos: Ken Burns suave sobre o recorte 3:4 */
-.banner-card.studio-cover > img { animation: kenburnsStudio 16s ease-in-out infinite alternate; will-change: transform; }
-.banner-card:nth-child(2) img { animation-duration: 19s; }
-.banner-card:nth-child(3) img { animation-duration: 22s; }
 
 /* capas do catálogo: Ken Burns + zoom no hover */
 .cat-cover img { animation: kenburns 20s ease-in-out infinite alternate; transition: transform .5s ease; will-change: transform; }
