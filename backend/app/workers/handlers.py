@@ -46,6 +46,13 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.face_detect import face_reference, identity_images
 from app.ai_clients.face_match import score_face_match
+from app.ai_clients.identity_lock import (
+    IDENTITY_MISMATCH_ERROR,
+    IdentityLock,
+    build_identity_lock,
+    judge_identity,
+    require_character_ref,
+)
 from app.ai_clients.image_pulid_fal import pulid_head_enabled
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, UserVoice
@@ -1675,9 +1682,21 @@ async def _score_page_face(
         return None
     try:
         return await score_face_match(probe, scene, domain=domain)
-    except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o livro
+    except Exception:  # noqa: BLE001 - refine segue; o portao fail-closed julga depois
         logger.warning("Juiz de rosto falhou; pagina segue sem refine")
         return None
+
+
+async def _judge_page(
+    lock: IdentityLock, scene: bytes, *, avatar: bytes | None
+):
+    async def scorer(truth, scene_bytes, avatar=None, **_k):
+        domain = "same" if avatar else "photo"
+        return await score_face_match(
+            truth, scene_bytes, domain=domain, avatar=avatar
+        )
+
+    return await judge_identity(lock, scene, scorer=scorer)
 
 
 async def lock_page_identity(
@@ -1786,9 +1805,15 @@ async def _illustrate_page(
     threshold = (
         settings.ebook_avatar_match_min if char_bytes else settings.ebook_face_match_min
     )
+    lock = build_identity_lock(
+        character_ref=char_bytes,
+        face_crop=photo_bytes,
+        photo=photo_bytes,
+    )
     judge = bool(settings.ebook_face_match and probe)
     attempts = 2 if judge else 1
     last_score: float | None = None
+    last_verdict = None
     spent = 0.0
     spent_lines: list = []
     headed: ImageResult | None = None
@@ -1838,23 +1863,29 @@ async def _illustrate_page(
             refine_first=True,
             page_idx=idx,
         )
-        if last_score is None or last_score == 0 or last_score >= threshold:
+        last_verdict = await _judge_page(
+            lock, headed.image_bytes, avatar=char_bytes
+        )
+        if last_verdict.accepted(threshold):
             return await _accept_illustrated_page(
                 _take(headed),
                 spent_lines=spent_lines,
                 style_lock=style_lock,
                 good_style=good_style,
-                last_score=last_score,
+                last_score=last_verdict.score if last_verdict.score is not None else last_score,
             )
         headed = _take(headed)
 
     assert headed is not None
-    return await _accept_illustrated_page(
-        headed,
-        spent_lines=spent_lines,
-        style_lock=style_lock,
-        good_style=good_style,
-        last_score=last_score,
+    note = (
+        f"{last_verdict.score:.2f}"
+        if last_verdict is not None and last_verdict.score is not None
+        else "sem nota"
+    )
+    why = (last_verdict.reason if last_verdict is not None else "") or "sem nota"
+    raise ProviderError(
+        f"Pagina {idx}: {IDENTITY_MISMATCH_ERROR} (nota={note}; {why})",
+        transient=False,
     )
 
 
@@ -1905,7 +1936,9 @@ async def handle_ebook(db: Session, job: Job) -> None:
     project.print_status = None
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
-    char_bytes = storage.get_bytes(project.character_ref["storage_key"])
+    char_bytes = require_character_ref(
+        storage.get_bytes(project.character_ref["storage_key"])
+    )
     photo_bytes = await _project_photo_bytes(db, project)
     image_provider = get_image_provider()
 

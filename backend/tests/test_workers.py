@@ -701,11 +701,15 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 
-    await runner.process_job(db, _job(db, p, "EBOOK"))
-    # 2 paginas x (cena + refine_scene + Fal + retry) enquanto o score segue baixo
-    assert len(scenes) == 4
-    assert len(scene_refines) == 4
-    assert len(heads) == 4
+    j = _job(db, p, "EBOOK")
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    assert "identidade" in (j.error or "")
+    # Cada pagina tenta 2 vezes (cena + refine + Fal) antes de recusar o job
+    assert len(scenes) >= 2
+    assert len(scene_refines) >= 2
+    assert len(heads) >= 2
 
 
 async def test_ebook_skips_fal_when_face_high(db, mem_storage, monkeypatch):
@@ -842,14 +846,19 @@ async def test_ebook_face_match_none_runs_fal(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "score_face_match", no_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers.settings, "face_match_backend", "insightface")
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 
-    await runner.process_job(db, _job(db, p, "EBOOK"))
-    assert heads == [1, 1]
+    j = _job(db, p, "EBOOK")
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    assert "identidade" in (j.error or "")
+    assert len(heads) >= 2
 
 
 async def test_ebook_keeps_fal_even_when_score_worse(db, mem_storage, monkeypatch):
@@ -877,12 +886,11 @@ async def test_ebook_keeps_fal_even_when_score_worse(db, mem_storage, monkeypatc
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 
-    await runner.process_job(db, _job(db, p, "EBOOK"))
-    pages = db.scalars(
-        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
-    ).all()
-    pages = sorted(pages, key=lambda a: (a.meta or {}).get("page") or 0)
-    assert [mem_storage[a.storage_key] for a in pages] == [b"FAL_WORSE", b"FAL_WORSE"]
+    j = _job(db, p, "EBOOK")
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    assert "identidade" in (j.error or "")
 
 
 async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkeypatch):

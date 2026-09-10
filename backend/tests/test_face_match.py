@@ -82,6 +82,21 @@ def test_parse_match_clamps_and_rejects_garbage():
     assert fm._parse_match('{"match": "x"}') is None
 
 
+def test_parse_and_coerce_face_score():
+    scored = fm.parse_face_score(
+        '{"match": 0.88, "eye_inflate": 0.42, "geometry": 0.9, "age": 0.8, "hair": 0.7}'
+    )
+    assert scored is not None
+    assert scored.match == 0.88
+    assert scored.eye_inflate == 0.42
+    filled = fm.coerce_face_score(fm.parse_face_score('{"match": 0.8}'))
+    assert filled is not None
+    assert filled.eye_inflate == 0.0
+    assert filled.geometry == 0.8
+    assert fm.coerce_face_score(0.91).match == 0.91
+    assert fm.coerce_face_score(None) is None
+
+
 async def test_score_face_match_reads_json():
     _Client.reply = _Resp(200, _reply(0.73))
     score = await fm.score_face_match(_png(), _png())

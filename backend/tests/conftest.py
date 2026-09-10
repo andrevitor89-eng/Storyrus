@@ -25,6 +25,8 @@ def _no_face_detection_network(monkeypatch):
     """
     monkeypatch.setattr(settings, "gemini_face_model", "")
     monkeypatch.setattr(settings, "face_segment", False)
+    # Sem modelo Gemini o juiz some; evita InsightFace em PNG fake da suite.
+    monkeypatch.setattr(settings, "face_match_backend", "gemini")
 
 
 @pytest.fixture(autouse=True)

@@ -126,14 +126,16 @@ class Settings(BaseSettings):
     ebook_refine_scene: bool = True
     # Paginas ilustradas em paralelo (writes no banco ficam em serie, depois).
     ebook_page_concurrency: int = 3
-    # Gemini Flash compara recorte da foto x cena; abaixo do limiar roda 1 refine
-    # (e 1 retry se ainda falhar). Nota None/0 = fraco (Fal roda).
+    # Gemini/InsightFace comparam recorte/avatar x cena; abaixo do limiar roda
+    # refine + Fal. Depois de 2 tentativas, score baixo/None recusa o job.
     ebook_face_match: bool = True
     ebook_face_match_min: float = 0.72
     # Avatar x cena (mesmo estilo). Acima do limiar foto x ilustracao, senao
     # um loiro generico passa. Abaixo disto: refine_scene e Fal.
     ebook_avatar_match_min: float = 0.75
     avatar_face_match_min: float = 0.80
+    # Close que infla o olho (fracao do rosto) acima disto recusa a pagina.
+    ebook_eye_inflate_max: float = 0.15
     video_poll_interval_s: float = 10.0
     video_poll_timeout_s: float = 600.0
 
