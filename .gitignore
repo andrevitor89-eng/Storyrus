@@ -22,6 +22,8 @@ coverage/
 
 # Fontes do ebook (geradas no build por backend/scripts/fetch_fonts.py)
 backend/app/assets/fonts/*.ttf
+!backend/app/assets/fonts/PlayfairDisplay-Regular.ttf
+!backend/app/assets/fonts/Fredoka-Bold.ttf
 backend/app/assets/fonts/OFL.txt
 
 # Arquivo local (rascunhos, entregas, scripts avulsos — nao versionar)

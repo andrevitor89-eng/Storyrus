@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -171,15 +171,51 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
   { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
 const BOOK = Array.from({ length: 11 }, (_, i) => `ebook-${i + 1}.jpg`).filter((f) => f !== "ebook-2.jpg");
-/* capas sem título queimado — título CSS em 2 linhas (rosto livre) */
+/* capas sem título queimado — nome serifado no topo, aventura 3D na base */
 const CATALOG_IMGS = ["capa-oceano.jpg", "capa-floresta2.jpg", "capa-dino2.jpg", "capa-circo.jpg"];
-const CATALOG_TITLE_LINES: { pt: [string, string]; en: [string, string]; es: [string, string] }[] = [
-  { pt: ["Lia e o Fundo", "do Mar"], en: ["Lia and the", "Deep Sea"], es: ["Lia y el Fondo", "del Mar"] },
-  { pt: ["Sofia e a Floresta", "Encantada"], en: ["Sofia and the", "Enchanted Forest"], es: ["Sofia y el Bosque", "Encantado"] },
-  { pt: ["Matteo e o Mundo", "dos Dinossauros"], en: ["Matteo and the", "Dinosaur World"], es: ["Matteo y el Mundo", "de los Dinosaurios"] },
-  { pt: ["Noah e o Circo", "das Luzes"], en: ["Noah and the", "Circus of Lights"], es: ["Noah y el Circo", "de las Luces"] },
+type CoverPalette = { name: string; fill: string; stroke: string };
+const COVER_PALETTES = {
+  ocean: { name: "#16324f", fill: "#fffaf2", stroke: "#2b7eb5" },
+  forest: { name: "#f4ead4", fill: "#fffaf2", stroke: "#4a6b3a" },
+  dino: { name: "#f4ead4", fill: "#fffaf2", stroke: "#c47a2a" },
+  circus: { name: "#f4ead4", fill: "#fffaf2", stroke: "#c45a6a" },
+  default: { name: "#1a2748", fill: "#fffaf2", stroke: "#2a3d6b" },
+} as const satisfies Record<string, CoverPalette>;
+const CATALOG_COVERS: { name: string; story: Record<Lang, string>; palette: CoverPalette }[] = [
+  { name: "Lia", story: { pt: "O Fundo do Mar", en: "The Deep Sea", es: "El Fondo del Mar" }, palette: COVER_PALETTES.ocean },
+  { name: "Sofia", story: { pt: "A Floresta Encantada", en: "The Enchanted Forest", es: "El Bosque Encantado" }, palette: COVER_PALETTES.forest },
+  { name: "Matteo", story: { pt: "O Mundo dos Dinossauros", en: "The Dinosaur World", es: "El Mundo de los Dinosaurios" }, palette: COVER_PALETTES.dino },
+  { name: "Noah", story: { pt: "O Circo das Luzes", en: "The Circus of Lights", es: "El Circo de las Luces" }, palette: COVER_PALETTES.circus },
 ];
 const CATALOG_THEMES = ["underwater", "fantasy", "dinosaurs", "adventure"];
+
+function coverStyle(palette: CoverPalette): CSSProperties {
+  return {
+    "--cover-name": palette.name,
+    "--cover-fill": palette.fill,
+    "--cover-stroke": palette.stroke,
+  } as CSSProperties;
+}
+
+function CoverTitleOverlay({
+  name,
+  story,
+  palette,
+  className = "",
+}: {
+  name?: string;
+  story?: string;
+  palette?: CoverPalette;
+  className?: string;
+}) {
+  if (!name && !story) return null;
+  return (
+    <span className={`cover-title${className ? ` ${className}` : ""}`} style={palette ? coverStyle(palette) : undefined}>
+      {name ? <span className="cover-name">{name}</span> : null}
+      {story ? <span className="cover-story">{story}</span> : null}
+    </span>
+  );
+}
 /* livro 3D do catálogo: páginas internas (sem a 2ª página, p/ flip mais limpo) */
 const BOOK3D = [
   { bg: "#cfe3f0", pages: ["mar-1.jpg", "mar-3.jpg", "mar-4.jpg", "mar-5.jpg", "mar-6.jpg"] },
@@ -194,33 +230,11 @@ const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video
 // Slides do hero: capa limpa + título CSS em 2 linhas (sempre inteiro dentro do frame)
 const HERO_SLIDES: {
   photo: string; book: string; catalogI: number;
-  titleLines: { pt: [string, string]; en: [string, string]; es: [string, string] };
   bookPos?: string; photoPos?: string;
 }[] = [
-  {
-    photo: "foto-matteo.png", book: "capa-dino2.jpg", catalogI: 2, bookPos: "center 32%", photoPos: "center center",
-    titleLines: {
-      pt: ["Matteo e o Mundo", "dos Dinossauros"],
-      en: ["Matteo and the", "Dinosaur World"],
-      es: ["Matteo y el Mundo", "de los Dinosaurios"],
-    },
-  },
-  {
-    photo: "foto-sofia.png", book: "capa-floresta2.jpg", catalogI: 1, bookPos: "center 26%", photoPos: "center 22%",
-    titleLines: {
-      pt: ["Sofia e a Floresta", "Encantada"],
-      en: ["Sofia and the", "Enchanted Forest"],
-      es: ["Sofia y el Bosque", "Encantado"],
-    },
-  },
-  {
-    photo: "foto-bebe.jpg", book: "capa-circo.jpg", catalogI: 3, bookPos: "center 34%", photoPos: "center center",
-    titleLines: {
-      pt: ["Noah e o Circo", "das Luzes"],
-      en: ["Noah and the", "Circus of Lights"],
-      es: ["Noah y el Circo", "de las Luces"],
-    },
-  },
+  { photo: "foto-matteo.png", book: "capa-dino2.jpg", catalogI: 2, bookPos: "center 32%", photoPos: "center center" },
+  { photo: "foto-sofia.png", book: "capa-floresta2.jpg", catalogI: 1, bookPos: "center 26%", photoPos: "center 22%" },
+  { photo: "foto-bebe.jpg", book: "capa-circo.jpg", catalogI: 3, bookPos: "center 34%", photoPos: "center center" },
 ];
 const FLIP_MS = 600;
 const FLIP_AUTO_MS = 2000;
@@ -378,13 +392,17 @@ function FlipBook({
   pages,
   compact = false,
   coverTitle,
-  coverTitleLines,
+  coverName,
+  coverStory,
+  coverPalette,
   labels,
 }: {
   pages: string[];
   compact?: boolean;
   coverTitle?: string;
-  coverTitleLines?: readonly string[];
+  coverName?: string;
+  coverStory?: string;
+  coverPalette?: CoverPalette;
   labels?: { prev: string; next: string; turn: string; cover: string };
 }) {
   const [i, setI] = useState(0);
@@ -423,10 +441,8 @@ function FlipBook({
   }, [hover]);
   const underSrc = anim === "next" ? pages[target] : pages[i];
   const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
-  const titleLines = coverTitleLines?.length
-    ? coverTitleLines
-    : (coverTitle ? [coverTitle] : null);
-  const showCoverTitle = Boolean(titleLines) && i === 0 && !anim;
+  const story = coverStory || coverTitle;
+  const showCoverTitle = Boolean(coverName || story) && i === 0 && !anim;
   const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -455,12 +471,13 @@ function FlipBook({
           <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
           <span className="fb-leaf-shade" aria-hidden />
         </div>
-        {showCoverTitle && titleLines && (
-          <span className="fb-cover-title">
-            {titleLines.map((line) => (
-              <span key={line}>{line}</span>
-            ))}
-          </span>
+        {showCoverTitle && (
+          <CoverTitleOverlay
+            className="fb-cover-title"
+            name={coverName}
+            story={story}
+            palette={coverPalette ?? COVER_PALETTES.default}
+          />
         )}
         <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
       </div>
@@ -813,10 +830,12 @@ export function Landing() {
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const exampleBooks = [
-    { title: t.chloe_title, titleLines: undefined as [string, string] | undefined, cover: "ebook-1.jpg", pages: BOOK },
+    { title: t.chloe_title, name: "", story: t.chloe_title, palette: COVER_PALETTES.default, cover: "ebook-1.jpg", pages: BOOK },
     ...t.catalog.slice(1, 3).map((c, i) => ({
       title: c.t,
-      titleLines: CATALOG_TITLE_LINES[i + 1][lang],
+      name: CATALOG_COVERS[i + 1].name,
+      story: CATALOG_COVERS[i + 1].story[lang],
+      palette: CATALOG_COVERS[i + 1].palette,
       cover: CATALOG_IMGS[i + 1],
       pages: [CATALOG_IMGS[i + 1], ...BOOK3D[i + 1].pages],
     })),
@@ -880,8 +899,8 @@ export function Landing() {
       : megaHref(feat);
     const title = feat.catalogI != null ? t.catalog[feat.catalogI].t : feat.labels?.[lang];
     const img = feat.catalogI != null ? CATALOG_IMGS[feat.catalogI] : CATALOG_IMGS[i % CATALOG_IMGS.length];
-    const lines = feat.catalogI != null ? CATALOG_TITLE_LINES[feat.catalogI][lang] : null;
-    return { href, title: title ?? "", img, lines };
+    const cover = feat.catalogI != null ? CATALOG_COVERS[feat.catalogI] : null;
+    return { href, title: title ?? "", img, cover };
   };
 
   return (
@@ -950,10 +969,13 @@ export function Landing() {
                             <Link to={card.href} className="kcat-feat" key={`${cat.id}-${i}`} onClick={closeNav}>
                               <span className="kcat-feat-cover">
                                 <img src={exUrl(card.img)} alt="" />
-                                {card.lines && (
-                                  <span className="kcat-feat-title" aria-hidden>
-                                    {card.lines.map((line) => <span key={line}>{line}</span>)}
-                                  </span>
+                                {card.cover && (
+                                  <CoverTitleOverlay
+                                    className="kcat-feat-title"
+                                    name={card.cover.name}
+                                    story={card.cover.story[lang]}
+                                    palette={card.cover.palette}
+                                  />
                                 )}
                               </span>
                               <span>{card.title}</span>
@@ -1028,11 +1050,12 @@ export function Landing() {
                 loading="eager"
                 style={s.bookPos ? { objectPosition: s.bookPos } : undefined}
               />
-              <span className="kbh-thumb-title" aria-hidden>
-                {s.titleLines[lang].map((line) => (
-                  <span key={line}>{line}</span>
-                ))}
-              </span>
+              <CoverTitleOverlay
+                className="kbh-thumb-title"
+                name={CATALOG_COVERS[s.catalogI].name}
+                story={CATALOG_COVERS[s.catalogI].story[lang]}
+                palette={CATALOG_COVERS[s.catalogI].palette}
+              />
             </button>
           ))}
         </div>
@@ -1098,7 +1121,9 @@ export function Landing() {
                   pages={[CATALOG_IMGS[i], ...BOOK3D[i].pages]}
                   compact
                   coverTitle={c.t}
-                  coverTitleLines={CATALOG_TITLE_LINES[i][lang]}
+                  coverName={CATALOG_COVERS[i].name}
+                  coverStory={CATALOG_COVERS[i].story[lang]}
+                  coverPalette={CATALOG_COVERS[i].palette}
                   labels={flipLabels}
                 />
               </div>
@@ -1173,7 +1198,9 @@ export function Landing() {
             key={exBook}
             pages={exampleBooks[exBook].pages}
             coverTitle={exampleBooks[exBook].title}
-            coverTitleLines={exampleBooks[exBook].titleLines}
+            coverName={exampleBooks[exBook].name}
+            coverStory={exampleBooks[exBook].story}
+            coverPalette={exampleBooks[exBook].palette}
             labels={flipLabels}
           />
         </div>

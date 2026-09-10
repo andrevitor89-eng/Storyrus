@@ -27,7 +27,13 @@ logger = logging.getLogger("ebook")
 # ------------------------------------------------------------------- fontes
 # Fonte oficial do ebook: Megifera Indica (Risma Type).
 # Os TTFs sao gerados no build por backend/scripts/fetch_fonts.py.
-_FALLBACK_FONTS = {"body": "Times-Bold", "italic": "Times-Italic", "brand": "Helvetica-Bold"}
+_FALLBACK_FONTS = {
+    "body": "Times-Bold",
+    "italic": "Times-Italic",
+    "brand": "Helvetica-Bold",
+    "cover_name": "Times-Bold",
+    "cover_story": "Helvetica-Bold",
+}
 _fonts_cache: dict | None = None
 
 
@@ -79,8 +85,16 @@ def _fonts() -> dict:
         else:
             logger.warning("Andika-Regular.ttf nao encontrada em %s; usando fontes fallback.",
                            base)
+        playfair = base / "PlayfairDisplay-Regular.ttf" if base else None
+        fredoka = base / "Fredoka-Bold.ttf" if base else None
+        if playfair and playfair.exists():
+            pdfmetrics.registerFont(TTFont("PlayfairDisplay", str(playfair)))
+            fonts["cover_name"] = "PlayfairDisplay"
+        if fredoka and fredoka.exists():
+            pdfmetrics.registerFont(TTFont("Fredoka-Bold", str(fredoka)))
+            fonts["cover_story"] = "Fredoka-Bold"
     except Exception as exc:  # noqa: BLE001
-        logger.warning("Falha ao registrar Andika (%s); usando fontes fallback", exc)
+        logger.warning("Falha ao registrar fontes do ebook (%s); usando fontes fallback", exc)
     _fonts_cache = fonts
     return fonts
 
@@ -91,6 +105,99 @@ GOLD = (0.956, 0.718, 0.251)
 CORAL = (0.937, 0.561, 0.294)
 LEAF = (0.494, 0.633, 0.420)
 INK = (0.20, 0.23, 0.28)
+
+_COVER_FILL = "#fffaf2"
+_COVER_CREAM = "#f4ead4"
+COVER_PALETTES: dict[str, dict[str, str]] = {
+    "ocean": {"name": "#16324f", "fill": _COVER_FILL, "stroke": "#2b7eb5"},
+    "forest": {"name": _COVER_CREAM, "fill": _COVER_FILL, "stroke": "#4a6b3a"},
+    "dino": {"name": _COVER_CREAM, "fill": _COVER_FILL, "stroke": "#c47a2a"},
+    "circus": {"name": _COVER_CREAM, "fill": _COVER_FILL, "stroke": "#c45a6a"},
+    "orchard": {"name": _COVER_CREAM, "fill": _COVER_FILL, "stroke": "#c45a3a"},
+    "default": {"name": "#1a2748", "fill": _COVER_FILL, "stroke": "#2a3d6b"},
+}
+_TEMPLATE_PALETTE = {
+    "mergulho_mar": "ocean",
+    "reino_animais": "forest",
+    "alfabeto_amazonia": "forest",
+    "alfabeto_frutas": "orchard",
+}
+_THEME_PALETTE = {
+    "underwater": "ocean",
+    "fantasy": "forest",
+    "dinosaurs": "dino",
+    "adventure": "circus",
+}
+_NAME_GLUE = {"e", "and", "y", "de"}
+
+
+def cover_palette_for(
+    template_id: str | None = None, theme: str | None = None
+) -> dict[str, str]:
+    """Paleta da capa (nome / fill / stroke) a partir do template ou tema."""
+    key = _TEMPLATE_PALETTE.get((template_id or "").strip())
+    if not key:
+        key = _THEME_PALETTE.get((theme or "").strip().lower(), "default")
+    return dict(COVER_PALETTES[key])
+
+
+def _hex_rgb(value: str) -> tuple[float, float, float]:
+    raw = (value or "").lstrip("#")
+    if len(raw) != 6:
+        return NAVY
+    return tuple(int(raw[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+
+
+def _luma(rgb: tuple[float, float, float]) -> float:
+    r, g, b = rgb
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+
+def _cap_first(text: str) -> str:
+    text = (text or "").strip()
+    if not text:
+        return text
+    return text[0].upper() + text[1:]
+
+
+def _strip_name_glue(words: list[str], *, leading: bool) -> list[str]:
+    out = list(words)
+    if leading:
+        while out and out[0].lower().rstrip(".,;:") in _NAME_GLUE:
+            out.pop(0)
+    else:
+        while out and out[-1].lower().rstrip(".,;:") in _NAME_GLUE:
+            out.pop()
+    return out
+
+
+def split_cover_title(title: str, child_name: str | None) -> tuple[str, str]:
+    """Separa o nome da criança do título da aventura para a capa."""
+    raw_title = (title or "").strip()
+    name = (child_name or "").strip()
+    if not raw_title:
+        return name, ""
+    if not name:
+        return "", _cap_first(raw_title)
+    idx = raw_title.upper().find(name.upper())
+    if idx < 0:
+        return name, _cap_first(raw_title)
+    before = raw_title[:idx].strip(" ,-—–")
+    after = raw_title[idx + len(name):].strip(" ,-—–")
+    before_words = before.split()
+    after_words = after.split()
+    if not before_words:
+        story = " ".join(_strip_name_glue(after_words, leading=True))
+    elif not after_words:
+        story = " ".join(_strip_name_glue(before_words, leading=False))
+    else:
+        story = " ".join(
+            part for part in (
+                " ".join(_strip_name_glue(before_words, leading=False)),
+                after,
+            ) if part
+        )
+    return name, _cap_first(story or raw_title)
 
 # Textos fixos por idioma (padrão dos livros de referência).
 STRINGS = {
@@ -189,6 +296,26 @@ def _win(s: str) -> str:
     return "".join(out)
 
 
+_FACT_MARKERS = ("Aprendendo mais:", "Learning more:")
+
+
+def _split_story_caption(text: str) -> tuple[str, str]:
+    """Separa o verso do bloco educacional ('Aprendendo mais')."""
+    raw = (text or "").replace("\r\n", "\n").strip()
+    if not raw:
+        return "", ""
+    verse, sep, fact = raw.partition("\n\n")
+    if sep:
+        return verse.strip(), fact.strip()
+    for marker in _FACT_MARKERS:
+        idx = raw.find(marker)
+        if idx > 0:
+            return raw[:idx].strip(), raw[idx:].strip()
+        if idx == 0:
+            return "", raw.strip()
+    return raw, ""
+
+
 def _name_page_parts(text: str) -> tuple[str, str, str, list[str]]:
     """Separa o acróstico da P2 sem alterar suas palavras."""
     lines = [line.strip() for line in (text or "").splitlines() if line.strip()]
@@ -252,6 +379,7 @@ def build_pdf(
     language: str | None = "pt-BR",
     extra_characters: list[dict] | None = None,
     preview_pages: int | None = 3,
+    cover_palette: dict[str, str] | None = None,
 ) -> bytes:
     from reportlab.lib.utils import ImageReader, simpleSplit
     from reportlab.pdfgen import canvas
@@ -410,6 +538,60 @@ def build_pdf(
             y -= leading
         return y0, ph
 
+    def draw_ink_lines(lines, font, size, leading, y):
+        """Verso em tinta, centralizado, sem caixa e sem contorno."""
+        c.setFillColorRGB(*INK)
+        c.setFont(font, size)
+        for ln in lines:
+            c.drawCentredString(W / 2, y, ln)
+            y -= leading
+        return y
+
+    def story_caption(text, band="bottom"):
+        """Estrofe em tinta na arte: terço inferior, fato educacional menor."""
+        verse, fact = _split_story_caption(text)
+        if not verse and not fact:
+            return 0
+        max_h = H * 0.28
+        side, gap = 48.0, 10.0
+        verse_font, fact_font = F["brand"], F["italic"]
+        verse_size, verse_leading = 16.5, 22.0
+        fact_size, fact_leading = 11.5, 15.0
+        content_w = W - 2 * side
+        floor = H * 0.16
+
+        def measure(v_size, v_lead, f_size, f_lead):
+            v_lines = split_lines(verse, verse_font, v_size, content_w) if verse else []
+            f_lines = split_lines(fact, fact_font, f_size, content_w) if fact else []
+            h = 0.0
+            if v_lines:
+                h += len(v_lines) * v_lead
+            if v_lines and f_lines:
+                h += gap
+            if f_lines:
+                h += len(f_lines) * f_lead
+            return v_lines, f_lines, h
+
+        v_lines, f_lines, h = measure(verse_size, verse_leading, fact_size, fact_leading)
+        while h > max_h and (verse_size > 12 or fact_size > 9):
+            if verse_size > 12:
+                verse_size -= 0.5
+                verse_leading = max(16.0, verse_leading - 0.6)
+            if fact_size > 9:
+                fact_size -= 0.4
+                fact_leading = max(12.0, fact_leading - 0.4)
+            v_lines, f_lines, h = measure(verse_size, verse_leading, fact_size, fact_leading)
+
+        first_lead = verse_leading if v_lines else fact_leading
+        y = (H - 42 - verse_size) if band == "top" else (floor + h - first_lead)
+        if v_lines:
+            y = draw_ink_lines(v_lines, verse_font, verse_size, verse_leading, y)
+        if v_lines and f_lines:
+            y -= gap * 0.35
+        if f_lines:
+            draw_ink_lines(f_lines, fact_font, fact_size, fact_leading, y)
+        return h
+
     def name_panel(text):
         """Painel botânico lateral da página do nome, fora do protagonista."""
         heading, spelled, role, qualities = _name_page_parts(text)
@@ -525,22 +707,37 @@ def build_pdf(
                 )
 
     # ------------------------------------------------------------- 1) CAPA ESTILIZADA
+    palette = cover_palette or cover_palette_for()
+    stroke_rgb = _hex_rgb(palette.get("stroke") or "#2a3d6b")
+    fill_rgb = _hex_rgb(palette.get("fill") or _COVER_FILL)
+    name_rgb = _hex_rgb(palette.get("name") or "#1a2748")
+    if _luma(name_rgb) > 0.72:
+        name_rgb = stroke_rgb
+    wash = tuple(0.62 * 1.0 + 0.38 * ch for ch in stroke_rgb)
+    sky_top = tuple(0.78 * 1.0 + 0.22 * ch for ch in stroke_rgb)
+
     pr_cov = reader(cover) or reader(portrait)
-    bg(SKY)
-    # gradiente ceu (topo mais claro)
-    c.setFillColorRGB(0.72, 0.86, 1.0)
+    bg(sky_top)
+    c.setFillColorRGB(*sky_top)
     c.rect(0, H * 0.45, W, H * 0.55, fill=1, stroke=0)
-    c.setFillColorRGB(0.55, 0.78, 0.96)
+    c.setFillColorRGB(*wash)
     c.rect(0, 0, W, H * 0.45, fill=1, stroke=0)
-    # estrelas espalhadas
     for sx, sy, sr in (
         (52, H - 58, 9), (W - 58, H - 72, 7), (W * 0.22, H - 120, 5),
         (W * 0.78, H - 108, 6), (90, H - 180, 4), (W - 96, H - 190, 5),
     ):
         star(sx, sy, sr, GOLD, 0.85)
-    # retrato do protagonista (nao usa cena da historia)
+
+    cover_name, cover_story = split_cover_title(title, name)
+    cover_name = _win(cover_name)
+    cover_story = _win(cover_story)
+    if cover_name:
+        c.setFillColorRGB(*name_rgb)
+        c.setFont(F["cover_name"], 30)
+        c.drawCentredString(W / 2, H - 54, cover_name)
+
     if pr_cov:
-        cx, cy, R = W / 2, H * 0.42, 148.0
+        cx, cy, R = W / 2, H * 0.50, 148.0
         c.saveState()
         p = c.beginPath()
         p.circle(cx, cy, R)
@@ -551,64 +748,39 @@ def build_pdf(
         c.drawImage(pr_cov, cx - dw / 2, cy - dh / 2, dw, dh,
                     preserveAspectRatio=False, mask="auto")
         c.restoreState()
-        c.setStrokeColorRGB(*GOLD)
+        c.setStrokeColorRGB(*stroke_rgb)
         c.setLineWidth(5)
         c.circle(cx, cy, R, fill=0, stroke=1)
         c.setStrokeColorRGB(1, 1, 1)
         c.setLineWidth(2)
         c.circle(cx, cy, R - 6, fill=0, stroke=1)
-    # faixa inferior para titulo — texto branco limpo (sem overlay das paginas,
-    # que desenha banda escura e sujava a capa)
-    def cover_lines(text, font, size, leading, y_top, max_w=W - 100):
-        """Titulo da capa: branco centrado, sem faixa extra atras."""
-        lines = split_lines(text, font, size, max_w)
-        if not lines:
-            return 0
-        c.setFillColorRGB(1, 1, 1)
-        c.setFont(font, size)
-        y = y_top
-        for ln in lines:
-            c.drawCentredString(W / 2, y, ln)
+
+    if cover_story:
+        story_font = F["cover_story"]
+        max_w = W - 72
+        story_size = 40.0
+        story_lines = split_lines(cover_story, story_font, story_size, max_w)
+        while story_size > 22 and len(story_lines) > 2:
+            story_size -= 1.5
+            story_lines = split_lines(cover_story, story_font, story_size, max_w)
+        leading = story_size * 0.94
+        y = 86 + (len(story_lines) - 1) * leading
+        c.setFont(story_font, story_size)
+        c.setLineJoin(1)
+        for ln in story_lines:
+            x = (W - c.stringWidth(ln, story_font, story_size)) / 2
+            c.setFillColorRGB(*stroke_rgb)
+            for ox, oy in ((3.6, -3.6), (2.4, -2.4), (1.2, -1.2)):
+                c.drawString(x + ox, y + oy, ln)
+            texto = c.beginText(x, y)
+            texto.setFont(story_font, story_size)
+            texto.setTextRenderMode(2)
+            c.setFillColorRGB(*fill_rgb)
+            c.setStrokeColorRGB(*stroke_rgb)
+            c.setLineWidth(max(2.0, story_size * 0.055))
+            texto.textOut(ln)
+            c.drawText(texto)
             y -= leading
-        return len(lines) * leading
-
-    panel_h = 128.0
-    panel_y = 52.0
-    c.setFillColorRGB(*NAVY)
-    c.setFillAlpha(0.90)
-    c.roundRect(28, panel_y, W - 56, panel_h, 18, fill=1, stroke=0)
-    c.setFillAlpha(1)
-    c.setStrokeColorRGB(*GOLD)
-    c.setLineWidth(2)
-    c.roundRect(36, panel_y + 8, W - 72, panel_h - 16, 14, fill=0, stroke=1)
-
-    t = _win(title or "")
-    upper_name = _win(name).upper()
-    # empilha before / NOME / after de cima para baixo dentro do painel
-    blocks: list[tuple[str, str, float, float]] = []  # text, font, size, leading
-    if name and upper_name and upper_name in t.upper():
-        i = t.upper().index(upper_name)
-        before, after = t[:i].strip(" ,-"), t[i + len(name):].strip(" ,-")
-        if before:
-            blocks.append((before, F["italic"], 15, 19))
-        blocks.append((name if name.isupper() else name, F["brand"], 36, 40))
-        if after:
-            blocks.append((after, F["brand"], 17, 22))
-    else:
-        blocks.append((t, F["brand"], 24, 30))
-
-    # altura total do bloco (baseline da 1a linha ate base da ultima)
-    stack_h = 0.0
-    for idx, (_txt, _font, size, leading) in enumerate(blocks):
-        stack_h += size if idx == 0 else leading
-        # linhas extras alem da primeira de cada bloco
-        extra = max(0, len(split_lines(_txt, _font, size, W - 100)) - 1)
-        stack_h += extra * leading
-    # centraliza verticalmente no painel (com padding)
-    y = panel_y + (panel_h + stack_h) / 2 - 4
-    for text, font, size, leading in blocks:
-        h = cover_lines(text, font, size, leading, y - size * 0.15)
-        y -= max(h, leading) + 2
 
     brand_badge(y=12)
     c.showPage()
@@ -729,10 +901,7 @@ def build_pdf(
     is_preview = preview_pages is not None and len(pages) > preview_pages
     visible_pages = pages[:preview_pages] if is_preview else pages
 
-    story_font = F["brand"]
-    story_size = 20.5
-    story_leading = 29
-    for idx, p in enumerate(visible_pages):
+    for p in visible_pages:
         layout = (p.get("layout") or "story").strip()
         text = p.get("text", "")
         if layout == "dedication":
@@ -767,10 +936,9 @@ def build_pdf(
             full_bleed(ir)
         if layout == "name":
             name_panel(text)
-        elif idx % 2 == 0:
-            overlay(text, story_font, story_size, story_leading, 36, bottom=48)
         else:
-            overlay(text, story_font, story_size, story_leading, 36, top=42)
+            band = (p.get("text_band") or "bottom").strip().lower()
+            story_caption(text, "top" if band == "top" else "bottom")
         c.showPage()
 
     # Pagina de preview: aviso de que o livro completo esta disponivel

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@500;600;700&family=Lilita+One&family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@500;600;700&family=Lilita+One&family=Playfair+Display:wght@400;600&family=Quicksand:wght@400;500;600;700&display=swap');
 
 /* ---------- base ---------- */
 .kid {
@@ -143,16 +143,12 @@
 .kcat-feat-cover {
   position: relative; display: block; aspect-ratio: 3 / 4; overflow: hidden;
   border-radius: 10px; background: #12203f;
+  container-type: inline-size;
 }
 .kcat-feat-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
-.kcat-feat-title {
-  position: absolute; top: 6%; left: 50%; transform: translateX(-50%);
-  width: 90%; text-align: center; pointer-events: none;
-  font-family: var(--cover-font, 'Fredoka', 'Baloo 2', cursive); font-weight: 700;
-  font-size: clamp(.7rem, 1.4vw, .95rem); line-height: 1.05; color: #f6c93a;
-  text-shadow: 0 1px 0 #b88712, 0 3px 8px rgba(0,0,0,.45);
-  display: flex; flex-direction: column; align-items: center;
-}
+.kcat-feat-title.cover-title { inset: 0; }
+.kcat-feat-title .cover-name { font-size: 11cqw; }
+.kcat-feat-title .cover-story { font-size: 14cqw; }
 .kcat-all { grid-column: 1 / -1; justify-self: center; margin-top: 4px; }
 .khead-links {
   display: flex; align-items: center; gap: 10px; flex: none;
@@ -246,43 +242,46 @@
   content: ""; position: absolute; inset: 0; pointer-events: none;
   background: linear-gradient(0deg, rgba(9,15,32,.78) 0%, rgba(9,15,32,.28) 28%, rgba(9,15,32,0) 48%);
 }
-/* título da capa — dourado glitter (estilo História Surpresa) */
+/* título da capa — nome serifado no topo, aventura em balão 3D na base */
 .fb-stage { container-type: inline-size; }
-.kbh-cover-title,
-.fb-cover-title {
-  position: absolute; top: 6%; left: 50%; transform: translateX(-50%); z-index: 5;
-  width: 92%; max-width: 22ch; text-align: center; pointer-events: none;
-  font-family: var(--cover-font, 'Fredoka', 'Baloo 2', cursive); font-weight: 700; line-height: 1.02;
-  font-size: 1.55rem; letter-spacing: .02em;
-  color: #f6c93a;
+.cover-title {
+  position: absolute; inset: 0; z-index: 5; pointer-events: none;
+  --cover-name: #1a2748;
+  --cover-fill: #fffaf2;
+  --cover-stroke: #2a3d6b;
+}
+.cover-name,
+.cover-story {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  width: 92%; text-align: center;
+}
+.cover-name {
+  top: 5%;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 400;
+  font-size: 7.2cqw;
+  line-height: 1.05;
+  letter-spacing: .01em;
+  color: var(--cover-name);
+  text-shadow: 0 1px 2px rgba(0,0,0,.22);
+}
+.cover-story {
+  bottom: 8%;
+  font-family: 'Fredoka', 'Baloo 2', sans-serif;
+  font-weight: 700;
+  font-size: 10.4cqw;
+  line-height: .95;
+  letter-spacing: .01em;
+  color: var(--cover-fill);
+  -webkit-text-stroke: .055em var(--cover-stroke);
+  paint-order: stroke fill;
   text-shadow:
-    0 1px 0 #d4a21a,
-    0 2px 0 #b88712,
-    0 3px 0 #9a6f0e,
-    0 4px 0 #7a560c,
-    0 5px 12px rgba(0,0,0,.45),
-    0 0 18px rgba(255,214,90,.55);
+    .035em .05em 0 var(--cover-stroke),
+    .055em .08em 0 var(--cover-stroke),
+    .07em .11em .05em rgba(0,0,0,.28);
 }
-.fb-cover-title {
-  font-size: 10.2cqw; max-width: 92%; top: 2%;
-  display: flex; flex-direction: column; align-items: center; gap: .02em;
-  line-height: .96;
-}
-.fb-cover-title > span {
-  display: block; width: max-content; max-width: 100%; text-align: center;
-  white-space: nowrap;
-}
-/* título do hero — 2 linhas inteiras no topo do livro */
-.kbh-cover-title {
-  top: 7%; z-index: 5; left: 50%; width: 88%; max-width: none;
-  display: flex; flex-direction: column; align-items: center; gap: .06em;
-  padding: 4px 8px; box-sizing: border-box;
-  font-size: clamp(1.35rem, 5.2vw, 2.05rem); line-height: 1.05; letter-spacing: .02em;
-}
-.kbh-cover-title > span {
-  display: block; width: max-content; max-width: 100%; text-align: center;
-  white-space: nowrap;
-}
+.fb-cover-title.cover-title { inset: 0; width: auto; max-width: none; }
+.kbh-cover-title.cover-title { inset: 0; }
 .kbh-tag {
   position: absolute; top: 14px; left: 16px; z-index: 4; display: inline-flex; align-items: center;
   background: #fff; padding: 7px 12px; border-radius: 999px;
@@ -318,26 +317,21 @@
   position: relative; padding: 0; border: 2px solid #1a2748; background: #12203f;
   border-radius: 14px; overflow: hidden; cursor: pointer;
   aspect-ratio: 3 / 4; box-shadow: 0 16px 32px rgba(0,0,0,.32);
+  container-type: inline-size;
 }
 .kbh-thumb.on {
   border-color: var(--yellow);
   box-shadow: 0 0 0 2px rgba(244,183,64,.45), 0 16px 32px rgba(0,0,0,.32);
 }
 .kbh-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 28%; }
-.kbh-thumb-title {
-  position: absolute; top: 6%; left: 50%; transform: translateX(-50%); z-index: 2;
-  width: 92%; text-align: center; pointer-events: none;
-  font-family: var(--cover-font, 'Fredoka', 'Baloo 2', cursive); font-weight: 700;
-  font-size: clamp(.62rem, 2.4vw, .95rem); line-height: 1.05;
-  color: #f6c93a;
-  display: flex; flex-direction: column; align-items: center; gap: .04em;
-  text-shadow: 0 1px 0 #b88712, 0 2px 8px rgba(0,0,0,.5);
-}
-.kbh-thumb-title > span { display: block; white-space: nowrap; max-width: 100%; }
+.kbh-thumb-title.cover-title { z-index: 2; }
+.kbh-thumb-title .cover-name { font-size: clamp(.55rem, 2.1vw, .82rem); top: 5%; }
+.kbh-thumb-title .cover-story { font-size: clamp(.62rem, 2.5vw, .98rem); bottom: 7%; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 4px; }
   .kbh-frame { width: min(420px, 94vw); }
-  .kbh-cover-title { font-size: clamp(1.2rem, 5.6vw, 1.7rem); top: 6.5%; }
+  .kbh-cover-title .cover-name { font-size: clamp(.85rem, 3.4vw, 1.15rem); }
+  .kbh-cover-title .cover-story { font-size: clamp(1.05rem, 4.4vw, 1.45rem); }
   .kbh-tag { top: 12px; left: 12px; padding: 6px 11px; }
   .kbh-tag-top { font-size: .58rem; letter-spacing: 1px; }
   .kbh-book { width: 30%; max-width: 112px; top: 20%; right: 5%; }
@@ -349,7 +343,8 @@
 }
 @media (max-width: 480px) {
   .kbh-frame { width: min(360px, 94vw); }
-  .kbh-cover-title { font-size: 1.15rem; top: 6%; }
+  .kbh-cover-title .cover-name { font-size: .85rem; }
+  .kbh-cover-title .cover-story { font-size: 1.05rem; }
   .kbh-book { width: 32%; max-width: 100px; top: 18%; }
   .kbh-overlay { bottom: 7%; }
   .kbh-overlay .keyebrow { font-size: .68rem; padding: 5px 10px; }
@@ -667,7 +662,7 @@
   font-family: 'Baloo 2', cursive; font-weight: 700; color: var(--ink); background: #fff;
   padding: 3px 15px; border-radius: 999px; box-shadow: 0 6px 14px rgba(0,0,0,.08); font-size: .95rem;
 }
-.fb-cover-title { width: 92%; }
+.fb-cover-title.cover-title { width: auto; }
 .fb-hint { text-align: center; color: #6b6890; font-weight: 600; margin-top: 44px; }
 
 /* ---------- Como funciona com exemplos ---------- */
@@ -691,9 +686,8 @@
 }
 .howex-card-book .howex-book .flipbook-mini { width: 94%; max-width: none; margin: 0; }
 .howex-card-book .howex-book .fb-stage { width: 100%; }
-.howex-card-book .howex-book .fb-cover-title {
-  top: 2.2%; width: 94%; font-size: 11cqw;
-}
+.howex-card-book .howex-book .fb-cover-title .cover-name { font-size: 8cqw; }
+.howex-card-book .howex-book .fb-cover-title .cover-story { font-size: 11cqw; }
 .font-pick {
   display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 6px;
   margin: 8px 6px 0; font-size: .72rem; color: #cfe2ff; font-weight: 700;
@@ -703,9 +697,8 @@
   border-radius: 999px; padding: 3px 9px; cursor: pointer; font: inherit; font-weight: 700;
 }
 .font-pick button.on { background: var(--yellow); color: #1f3568; border-color: var(--yellow); }
-.featured-book .fb-cover-title {
-  top: 1.8%; font-size: 9.6cqw;
-}
+.featured-book .fb-cover-title .cover-name { font-size: 6.8cqw; }
+.featured-book .fb-cover-title .cover-story { font-size: 9.6cqw; }
 .howex-card-book .howex-book .fb-count { font-size: .72rem; padding: 2px 10px; }
 .howex-num { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%;
   background: var(--purple); color: #fff; display: grid; place-items: center; font-family: 'Baloo 2', cursive; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,.4); z-index: 3; }
