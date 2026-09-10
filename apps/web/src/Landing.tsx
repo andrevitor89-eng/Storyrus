@@ -44,11 +44,6 @@ const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 
 type CoverFont = "fredoka" | "baloo" | "lilita";
-const COVER_FONTS: { id: CoverFont; label: string }[] = [
-  { id: "fredoka", label: "Fredoka" },
-  { id: "baloo", label: "Baloo 2" },
-  { id: "lilita", label: "Lilita One" },
-];
 
 type MegaSub = {
   tema?: string;
@@ -807,7 +802,7 @@ export function Landing() {
   const [exBook, setExBook] = useState(0);
   const [megaOpen, setMegaOpen] = useState<string | null>(null);
   const [mobileAcc, setMobileAcc] = useState<string | null>(null);
-  const [coverFont, setCoverFont] = useState<CoverFont>(() => {
+  const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
       if (s === "fredoka" || s === "baloo" || s === "lilita") return s;
