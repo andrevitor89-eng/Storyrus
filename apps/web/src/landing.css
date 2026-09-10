@@ -137,6 +137,10 @@
 }
 .kcat-btn:hover, .kcat.open .kcat-btn { background: #182343; }
 .kcat-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+a.kcat-link {
+  text-decoration: none;
+  color: #e9eefb;
+}
 .kcat-panel {
   position: absolute; left: var(--page-gutter); right: var(--page-gutter);
   top: calc(100% - 4px); z-index: 45;
@@ -242,10 +246,11 @@
 }
 .khero-intro {
   text-align: center; width: 100%; max-width: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
-.khero-intro h1 { font-size: clamp(1.75rem, 2.8vw, 2.65rem); line-height: 1.2; margin: 6px 0 0; }
+.khero-intro h1 { font-size: clamp(1.75rem, 2.8vw, 2.65rem); line-height: 1.2; margin: 0; }
 .khero-intro .keyebrow { margin: 0; }
+.khero-intro .khero-sign { margin: 0; }
 .ksection-pill { display: inline-flex; margin: 0 auto 12px; }
 .cat-below {
   margin: 28px auto 0; text-align: center; max-width: 40rem;
@@ -424,11 +429,18 @@
 }
 
 /* ---------- Dicas de foto (enquadramento perfeito) ---------- */
-.shot-tips { max-width: 100%; margin: 30px auto 0; padding: 26px var(--page-gutter) 28px; border-radius: 24px; background: #f2faf3; border: 1.5px solid #cfe9d6; box-shadow: 0 12px 30px rgba(31,53,104,.06); }
+.ksection-como { padding-top: 36px; padding-bottom: 36px; }
+.ksection-como .ksub { margin-bottom: 16px; }
+.ksection-como .howex { margin-top: 18px; }
+.shot-tips {
+  max-width: 100%; margin: 0 auto; padding: 18px 18px 20px;
+  border-radius: 20px; background: #f2faf3; border: 1.5px solid #cfe9d6;
+  box-shadow: 0 10px 24px rgba(31,53,104,.05);
+}
 .shot-tips h2.ktitle,
-.shot-tips h3 { margin: 0 0 6px; font-size: clamp(1.3rem, 3vw, 1.85rem); color: var(--ink); text-align: center; }
-.shot-tips .shot-sub { text-align: center; color: #6b6890; margin: 0 auto 24px; max-width: 46ch; font-size: 1.02rem; }
-.shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; align-items: start; }
+.shot-tips h3 { margin: 0 0 4px; font-size: clamp(1.15rem, 2.6vw, 1.55rem); color: var(--ink); text-align: center; }
+.shot-tips .shot-sub { text-align: center; color: #6b6890; margin: 0 auto 14px; max-width: 46ch; font-size: .95rem; }
+.shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
 .shot { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .shot-ava-wrap { position: relative; width: 168px; max-width: 100%; margin: 0 auto 12px; }
 .shot.ok .shot-ava-wrap { width: 196px; }
@@ -461,7 +473,7 @@
   .shot.ok .shot-ava-wrap { width: 148px; }
 }
 @media (max-width: 480px) {
-  .shot-tips { padding: 20px var(--page-gutter) 22px; }
+  .shot-tips { padding: 14px 12px 16px; }
   .shot-ava-wrap { width: 126px; }
   .shot.ok .shot-ava-wrap { width: 152px; }
   .shot p { font-size: .9rem; }

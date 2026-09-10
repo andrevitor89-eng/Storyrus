@@ -64,7 +64,7 @@ const BOOK3D = [
   { bg: "#e4eed4" },
   { bg: "#d4e8f6" },
 ];
-const BANNER_IMGS = ["capa-sofia-alfabeto.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
+const BANNER_IMGS = ["capa-gael-economia.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 const HERO_SLIDES: { book: string; catalogI: number }[] = [
@@ -886,7 +886,6 @@ export function Landing() {
           <div className="khead-top">
             <div className="khead-top-inner">
               <div className="khead-utils">
-                <a href="#reviews" className="kutil" onClick={closeNav}><IcStar className="ni" />{t.reviews_link}</a>
                 <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
                   {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
                 </button>
@@ -945,10 +944,17 @@ export function Landing() {
                     </div>
                   </div>
                 ))}
+                <a href="#promessa" className="kcat-btn kcat-link" onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#ef8f4b" }} />
+                  {t.our_story}
+                </a>
+                <a href="#reviews" className="kcat-btn kcat-link" onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#f4b740" }} />
+                  {t.reviews_link}
+                </a>
               </nav>
               <div className="khead-links">
-                <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
-                <Link to="/app" className="kbtn kbtn-primary">{t.cta_story}</Link>
+                <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
               </div>
             </div>
           </div>
@@ -976,17 +982,18 @@ export function Landing() {
             </div>
           ))}
           <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
+          <a href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
           {t.nav.map((label, i) => (
             <a key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
           ))}
-          <a href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-          <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_story}</Link>
+          <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
       </header>
 
       {/* HERO — proposta de valor + 3 capas */}
-      <section className="kbanner-hero" aria-label={t.eyebrow}>
+      <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
+          <p className="khero-sign">{t.hero_sign}</p>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
         </div>
@@ -1012,35 +1019,15 @@ export function Landing() {
             </button>
           ))}
         </div>
-        <p className="khero-sign">{t.hero_sign}</p>
-      </section>
-
-      {/* COMO FUNCIONA */}
-      <section className="ksection" id="como">
-        <p className="keyebrow ksection-pill reveal"><IcStar className="ei" /> {t.cat_below}</p>
-        <h2 className="ktitle reveal">{t.hiw_title}</h2>
-        <p className="ksub reveal">{t.hiw_sub}</p>
-        <div className="howex">
-          {t.hiw.map((h, i) => (
-            <Fragment key={h.t}>
-              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
-                <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
-                <span className="howex-num">{i + 1}</span>
-                <figcaption>
-                  <h3>{h.t}</h3>
-                  <p>{h.p}</p>
-                </figcaption>
-              </figure>
-              {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
-            </Fragment>
-          ))}
         </div>
       </section>
 
-      {/* FOTO PERFEITA */}
-      <section className="ksection" id="foto-perfeita">
+      {/* COMO FUNCIONA + DICAS */}
+      <section className="ksection ksection-como" id="como">
+        <h2 className="ktitle reveal">{t.hiw_title}</h2>
+        <p className="ksub reveal">{t.hiw_sub}</p>
         <div className="shot-tips reveal">
-          <h2 className="ktitle">{t.shot_title}</h2>
+          <h3>{t.shot_title}</h3>
           <p className="shot-sub">{t.shot_sub}</p>
           <div className="shot-grid">
             {SHOTS.map((s, i) => (
@@ -1059,6 +1046,21 @@ export function Landing() {
               </div>
             ))}
           </div>
+        </div>
+        <div className="howex">
+          {t.hiw.map((h, i) => (
+            <Fragment key={h.t}>
+              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
+                <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                <span className="howex-num">{i + 1}</span>
+                <figcaption>
+                  <h3>{h.t}</h3>
+                  <p>{h.p}</p>
+                </figcaption>
+              </figure>
+              {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+            </Fragment>
+          ))}
         </div>
       </section>
 
@@ -1082,10 +1084,6 @@ export function Landing() {
               </div>
             </div>
           ))}
-        </div>
-        <div className="cat-below reveal">
-          <p className="keyebrow"><IcStar className="ei" /> {t.cat_below}</p>
-          <p className="cat-below-lead">{t.cat_below_lead}</p>
         </div>
       </section>
 
