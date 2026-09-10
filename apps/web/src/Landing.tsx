@@ -500,7 +500,7 @@ const I18N = {
     hiw: [
       { t: "Você envia a foto", p: "Uma foto da criança já basta para começar." },
       { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
-      { t: "Sua família vira o livro", p: "Páginas ilustradas, para guardar para sempre." },
+      { t: "Sua criança ganha o livro", p: "Páginas ilustradas para guardar para sempre." },
     ],
     shot_title: "Dicas para a foto perfeita",
     shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado. Os exemplos com X mostram o que evitar.",
@@ -604,7 +604,7 @@ const I18N = {
     hiw: [
       { t: "You send the photo", p: "One photo of your child is all it takes to begin." },
       { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
-      { t: "Your family becomes the book", p: "Illustrated pages, made to keep forever." },
+      { t: "Your child gets the book", p: "Illustrated pages to keep forever." },
     ],
     shot_title: "Tips for the perfect photo",
     shot_sub: "Upload a clear photo of your child with the face centered. The X examples show what to avoid.",
@@ -708,7 +708,7 @@ const I18N = {
     hiw: [
       { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
       { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
-      { t: "Tu familia se vuelve el libro", p: "Páginas ilustradas, para guardar para siempre." },
+      { t: "Tu niño recibe el libro", p: "Páginas ilustradas para guardar para siempre." },
     ],
     shot_title: "Consejos para la foto perfecta",
     shot_sub: "Envía una foto nítida del niño, con el rostro centrado. Los ejemplos con X muestran qué evitar.",
