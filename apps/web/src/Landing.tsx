@@ -56,13 +56,45 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
   { img: "dica-multi.png", ok: false, focus: "center center" },
   { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
-const CATALOG_IMGS = ["capa-martin-goleiro.jpg", "capa-emilia-bailarina.jpg", "capa-antonio-bicicleta.jpg"];
-const CATALOG_PAGES = ["pagina-martin-goleiro.jpg", "pagina-emilia-bailarina.jpg", "pagina-antonio-bicicleta.jpg"];
-const CATALOG_THEMES = ["adventure", "princess", "adventure"];
+const CATALOG_IMGS = [
+  "capa-martin-goleiro.jpg",
+  "capa-emilia-bailarina.jpg",
+  "capa-antonio-bicicleta.jpg",
+  "capa-sofia-alfabeto.jpg",
+  "capa-bruno-animais.jpg",
+  "capa-cristobal-esporte.jpg",
+  "capa-mariajesus-hockey.jpg",
+  "capa-facundo-motocross.jpg",
+];
+const CATALOG_PAGES = [
+  "pagina-martin-goleiro.jpg",
+  "pagina-emilia-bailarina.jpg",
+  "pagina-antonio-bicicleta.jpg",
+  "pagina-sofia-alfabeto.jpg",
+  "pagina-bruno-animais.jpg",
+  "pagina-cristobal-esporte.jpg",
+  "pagina-mariajesus-hockey.jpg",
+  "pagina-facundo-motocross.jpg",
+];
+const CATALOG_THEMES = [
+  "adventure",
+  "princess",
+  "adventure",
+  "alfabetizacao_inicial",
+  "animais_sons",
+  "adventure",
+  "adventure",
+  "adventure",
+];
 const BOOK3D = [
   { bg: "#efe4c4" },
   { bg: "#e4eed4" },
   { bg: "#d4e8f6" },
+  { bg: "#f0e4f4" },
+  { bg: "#e8f4e4" },
+  { bg: "#e4eef8" },
+  { bg: "#e8f0f8" },
+  { bg: "#f4ece4" },
 ];
 const BANNER_IMGS = ["capa-gael-economia.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
@@ -482,6 +514,11 @@ const I18N = {
       { t: "Martin, o Grande Goleiro do Chile", p: "No gol, coragem e perseverança: cair, levantar e continuar.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Cair, levantar e continuar!" },
       { t: "Emilia e os Primeiros Passos da Bailarina", p: "Disciplina, equilíbrio e confiança nos primeiros passos do ballet.", age: "2-5 anos", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
       { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e sorrir — pequenas aventuras, grandes conquistas.", age: "2-5 anos", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
+      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas com Sofia como protagonista.", age: "3-6 anos", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
+      { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza para conhecer e cuidar dos animais.", age: "3-7 anos", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
+      { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pela natureza.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
+      { t: "Maria Jesus e a Disciplina no Hockey", p: "No gelo: equilíbrio, equipe e perseverança com Maria Jesus.", age: "4-8 anos", tag: "Hockey e disciplina", quote: "Patinar, aprender e sorrir!" },
+      { t: "Facundo e o Motocross com Cuidado", p: "Segurança, respeito e diversão nas primeiras pedaladas do motocross.", age: "2-5 anos", tag: "Motocross e cuidado", quote: "Aprender, tentar e levantar!" },
     ],
     promise_title: "Cada detalhe pensado para ser especial",
     promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
@@ -614,6 +651,11 @@ const I18N = {
       { t: "Martin, the Great Goalkeeper of Chile", p: "In the goal: courage and grit — fall, get up, and keep going.", age: "ages 4-8", tag: "Sport and courage", quote: "Fall, rise, and keep going!" },
       { t: "Emilia and the Ballerina's First Steps", p: "Discipline, balance and confidence in ballet's first steps.", age: "ages 2-5", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
       { t: "Antonio and His Bicycle", p: "Pedal, learn and smile — small adventures, big wins.", age: "ages 2-5", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
+      { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries with Sofia as the hero.", age: "ages 3-6", tag: "Literacy through play", quote: "Every letter opens a new world." },
+      { t: "Bruno on an Animal Adventure", p: "A journey through nature to meet and care for the animals.", age: "ages 3-7", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
+      { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for nature.", age: "ages 4-8", tag: "Sport and courage", quote: "Small paddles, big victories." },
+      { t: "Maria Jesus and Hockey Discipline", p: "On the ice: balance, teamwork and grit with Maria Jesus.", age: "ages 4-8", tag: "Hockey and discipline", quote: "Skate, learn and smile!" },
+      { t: "Facundo and Careful Motocross", p: "Safety, respect and fun on Facundo's first motocross rides.", age: "ages 2-5", tag: "Motocross and care", quote: "Learn, try and get back up!" },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -746,6 +788,11 @@ const I18N = {
       { t: "Martin, el gran arquero de Chile", p: "En el arco: coraje y perseverancia — caer, levantarse y seguir.", age: "4-8 años", tag: "Deporte y coraje", quote: "¡Caer, levantarse y seguir!" },
       { t: "Emilia y los primeros pasos de la bailarina", p: "Disciplina, equilibrio y confianza en los primeros pasos del ballet.", age: "2-5 años", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
       { t: "Antonio y su bicicleta", p: "Pedalear, aprender y sonreír — pequeñas aventuras, grandes conquistas.", age: "2-5 años", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
+      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos con Sofia como protagonista.", age: "3-6 años", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
+      { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza para conocer y cuidar a los animales.", age: "3-7 años", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
+      { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por la naturaleza.", age: "4-8 años", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
+      { t: "Maria Jesus y la disciplina en el hockey", p: "En el hielo: equilibrio, equipo y perseverancia con Maria Jesus.", age: "4-8 años", tag: "Hockey y disciplina", quote: "¡Patinar, aprender y sonreír!" },
+      { t: "Facundo y el motocross con cuidado", p: "Seguridad, respeto y diversión en las primeras vueltas de motocross.", age: "2-5 años", tag: "Motocross y cuidado", quote: "¡Aprender, intentar y levantarse!" },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -875,6 +922,7 @@ export function Landing() {
       </div>
 
       <header className="khead">
+        <div className="khead-inner">
         <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
         <div className="khead-main">
           <div className="khead-top">
@@ -982,6 +1030,7 @@ export function Landing() {
           ))}
           <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
+        </div>
       </header>
 
       {/* HERO — proposta de valor + flipbook */}
