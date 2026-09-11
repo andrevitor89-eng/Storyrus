@@ -136,12 +136,12 @@
 .kcat-btn {
   display: inline-flex; align-items: center; gap: 5px;
   border: none; background: #182343; cursor: pointer;
-  padding: 7px 10px; border-radius: 999px;
+  padding: 7px 10px; border-radius: 10px;
   color: #e9eefb; font-weight: 700; font-size: .8rem; font-family: inherit;
   white-space: nowrap; text-decoration: none;
   box-shadow:
     0 0 0 1px rgba(244,183,64,.35),
-    0 0 16px rgba(244,183,64,.28);
+    0 0 14px rgba(244,183,64,.22);
   transition: background .15s ease, box-shadow .15s ease;
 }
 a.kcat-btn,
@@ -261,19 +261,19 @@ a.kcat-btn:active {
 /* ---------- HERO — livro grande (retrato), não banner full-bleed ---------- */
 .kbanner-hero {
   position: relative; z-index: 0; max-width: var(--page-max); width: 100%; margin: 0 auto;
-  padding: 6px var(--page-gutter) 16px; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 10px var(--page-gutter) 28px; display: flex; flex-direction: column; align-items: center; gap: 28px;
   box-sizing: border-box;
 }
 .khero-intro {
   text-align: center; width: 100%; max-width: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 20px;
+  display: flex; flex-direction: column; align-items: center; gap: 28px;
 }
 .khero-intro h1 { font-size: clamp(1.75rem, 2.8vw, 2.65rem); line-height: 1.2; margin: 0; }
 .khero-intro .keyebrow { margin: 0; }
 .khero-flip {
   width: 100%;
   display: flex; flex-direction: column; align-items: center;
-  gap: 18px; margin-top: 8px;
+  gap: 28px; margin-top: 4px;
 }
 .khero-tabs {
   margin: 0 auto 0;
@@ -322,8 +322,8 @@ a.kcat-btn:active {
   display: none !important;
 }
 .khero-after {
-  display: flex; flex-direction: column; align-items: center; gap: 18px;
-  margin-top: 22px; margin-bottom: 8px;
+  display: flex; flex-direction: column; align-items: center; gap: 26px;
+  margin-top: 12px; margin-bottom: 12px;
 }
 .khero-after .keyebrow { margin: 0; }
 .ksection-pill { display: inline-flex; margin: 0 auto 12px; }
@@ -530,15 +530,22 @@ a.kcat-btn:active {
 .shot { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .shot-ava-wrap { position: relative; width: 168px; max-width: 100%; margin: 0 auto 12px; }
 .shot.ok .shot-ava-wrap { width: 196px; }
-.shot-ava { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; border: 4px solid #d7dbe6; background: #fff; }
-.shot.ok .shot-ava { border-color: #2fa860; box-shadow: 0 0 0 6px rgba(47,168,96,.22); border-width: 5px; }
+.shot-ava {
+  width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden;
+  border: 4px solid #d7dbe6; background: #fff;
+  box-shadow: 0 12px 28px rgba(0,0,0,.28), 0 4px 10px rgba(0,0,0,.16);
+}
+.shot.ok .shot-ava {
+  border-color: #2fa860; border-width: 5px;
+  box-shadow: 0 0 0 6px rgba(47,168,96,.22), 0 14px 30px rgba(0,0,0,.3);
+}
 .shot-ava img, .shot-ava .shot-svg {
   width: 100%; height: 100%; display: block;
-  object-fit: cover; object-position: center center;
+  object-fit: cover; object-position: center 30%;
 }
 .shot.ok .shot-ava img {
   object-fit: cover;
-  object-position: center center;
+  object-position: center 28%;
 }
 .shot:not(.ok) .shot-ava img,
 .shot:not(.ok) .shot-ava .shot-svg { filter: grayscale(1) contrast(.95) brightness(.96); }

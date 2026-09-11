@@ -52,10 +52,18 @@ const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.j
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
-  { img: "dica-boa.png", ok: true, focus: "center center" },
-  { img: "dica-multi.png", ok: false, focus: "center center" },
-  { img: "dica-lado.png", ok: false, focus: "center center" },
+  { img: "dica-boa.png", ok: true, focus: "center 28%" },
+  { img: "dica-multi.png", ok: false, focus: "center 32%" },
+  { img: "dica-lado.png", ok: false, focus: "center 30%" },
 ];
+/** Hero FlipBook: only lifestyle books (child holding the book) from landing/ */
+const HERO_BOOKS = [
+  { tab: "foto-martin-goleiro.jpg", cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg" },
+  { tab: "foto-emilia-bailarina.jpg", cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg" },
+  { tab: "foto-antonio-bicicleta.jpg", cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg" },
+  { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg" },
+  { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg" },
+] as const;
 const CATALOG_IMGS = [
   "capa-martin-goleiro.jpg",
   "capa-emilia-bailarina.jpg",
@@ -63,14 +71,6 @@ const CATALOG_IMGS = [
   "capa-sofia-alfabeto.jpg",
   "capa-bruno-animais.jpg",
   "capa-cristobal-esporte.jpg",
-];
-const CATALOG_PAGES = [
-  "pagina-martin-goleiro.jpg",
-  "pagina-emilia-bailarina.jpg",
-  "pagina-antonio-bicicleta.jpg",
-  "pagina-sofia-alfabeto.jpg",
-  "pagina-bruno-animais.jpg",
-  "pagina-cristobal-esporte.jpg",
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -463,15 +463,22 @@ const I18N = {
       { t: "Construa a própria história", p: "Escolha a aventura, personalize os detalhes e crie um livro único." },
       { t: "Explore mundos incríveis", p: "Aventuras que despertam a curiosidade e alimentam a imaginação." },
     ],
-    hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele.",
+    hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada.",
     hiw: [
       { t: "Você envia a foto", p: "Uma foto da criança já basta para começar." },
       { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
       { t: "Sua criança ganha o livro", p: "Páginas ilustradas para guardar para sempre." },
     ],
     shot_title: "Dicas para a foto perfeita",
-    shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado. Os exemplos com X mostram o que evitar.",
-    shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
+    shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
+    shots: ["Nítida, bem iluminada e centralizada", "", ""],
+    hero_books: [
+      "Martin, o Grande Goleiro do Chile",
+      "Emilia e os Primeiros Passos da Bailarina",
+      "Antonio e sua Bicicleta",
+      "Maria Jesus e a Disciplina no Hockey",
+      "Facundo e o Motocross com Cuidado",
+    ],
     vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
@@ -599,15 +606,22 @@ const I18N = {
       { t: "Build their own story", p: "Choose the adventure, personalize the details and create a unique book." },
       { t: "Explore amazing worlds", p: "Adventures that spark curiosity and feed the imagination." },
     ],
-    hiw_title: "How it works", hiw_sub: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them.",
+    hiw_title: "How it works", hiw_sub: "You send the photo and we turn your little one into an illustrated character, creating a personalized adventure.",
     hiw: [
       { t: "You send the photo", p: "One photo of your child is all it takes to begin." },
       { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
       { t: "Your child gets the book", p: "Illustrated pages to keep forever." },
     ],
     shot_title: "Tips for the perfect photo",
-    shot_sub: "Upload a clear photo of your child with the face centered. The X examples show what to avoid.",
-    shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
+    shot_sub: "Upload a clear photo of your child with the face centered.",
+    shots: ["Clear, well-lit and centered", "", ""],
+    hero_books: [
+      "Martin, the Great Goalkeeper of Chile",
+      "Emilia and the Ballerina's First Steps",
+      "Antonio and His Bicycle",
+      "Maria Jesus and Hockey Discipline",
+      "Facundo and Careful Motocross",
+    ],
     vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
@@ -735,15 +749,22 @@ const I18N = {
       { t: "Construye su propia historia", p: "Elige la aventura, personaliza los detalles y crea un libro único." },
       { t: "Explora mundos increíbles", p: "Aventuras que despiertan la curiosidad y alimentan la imaginación." },
     ],
-    hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él.",
+    hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada.",
     hiw: [
       { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
       { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
       { t: "Tu niño recibe el libro", p: "Páginas ilustradas para guardar para siempre." },
     ],
     shot_title: "Consejos para la foto perfecta",
-    shot_sub: "Envía una foto nítida del niño, con el rostro centrado. Los ejemplos con X muestran qué evitar.",
-    shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
+    shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
+    shots: ["Nítida, bien iluminada y centrada", "", ""],
+    hero_books: [
+      "Martin, el gran arquero de Chile",
+      "Emilia y los primeros pasos de la bailarina",
+      "Antonio y su bicicleta",
+      "Maria Jesus y la disciplina en el hockey",
+      "Facundo y el motocross con cuidado",
+    ],
     vid_title: "Videos narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear mi video",
     videos: [
@@ -842,12 +863,11 @@ export function Landing() {
   });
   const t = I18N[lang];
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  // Hero FlipBook: all catalog books except Emilia (index 1)
-  const HERO_BOOK_IDX = [0, 2, 3, 4, 5] as const;
-  const exampleBooks = HERO_BOOK_IDX.map((i) => ({
-    title: t.catalog[i].t,
-    cover: CATALOG_IMGS[i],
-    pages: [CATALOG_IMGS[i], CATALOG_PAGES[i]],
+  const exampleBooks = HERO_BOOKS.map((b, i) => ({
+    title: t.hero_books[i],
+    tab: b.tab,
+    cover: b.cover,
+    pages: [b.cover, b.page],
   }));
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
   const navCats = t.cats.map((cat, i) => ({
@@ -1043,7 +1063,7 @@ export function Landing() {
                 aria-selected={i === exBook}
                 aria-controls="ex-book-panel"
               >
-                <img className="ex-tab-cover" src={exUrl(b.cover)} alt="" />
+                <img className="ex-tab-cover" src={exUrl(b.tab)} alt="" />
                 <span>{b.title}</span>
               </button>
             ))}
@@ -1076,14 +1096,14 @@ export function Landing() {
                   <div className="shot-ava-wrap">
                     <div className="shot-ava">
                       {s.img ? (
-                        <img src={exUrl(s.img)} alt={t.shots[i]} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                        <img src={exUrl(s.img)} alt={t.shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center 30%" }} />
                       ) : (
                         <ShotArt kind={s.art ?? "good"} />
                       )}
                     </div>
                     <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                   </div>
-                  <p>{t.shots[i]}</p>
+                  {t.shots[i] ? <p>{t.shots[i]}</p> : null}
                 </div>
               ))}
             </div>
