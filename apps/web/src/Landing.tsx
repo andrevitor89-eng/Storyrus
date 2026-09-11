@@ -67,11 +67,6 @@ const BOOK3D = [
 const BANNER_IMGS = ["capa-gael-economia.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
-const HERO_SLIDES: { book: string; catalogI: number }[] = [
-  { book: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-  { book: "capa-bruno-animais.jpg", catalogI: 1 },
-  { book: "capa-cristobal-esporte.jpg", catalogI: 2 },
-];
 const NAV_CAT_META = [
   {
     color: "#5aa6e8",
@@ -801,7 +796,6 @@ export function Landing() {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
-  const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
@@ -990,34 +984,43 @@ export function Landing() {
         </nav>
       </header>
 
-      {/* HERO — proposta de valor + 3 capas */}
+      {/* HERO — proposta de valor + flipbook */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
-          <p className="khero-sign">{t.hero_sign}</p>
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
-          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
         </div>
-        <div className="kbh-thumbs" role="tablist" aria-label={t.cat_title}>
-          {HERO_SLIDES.map((s, i) => (
-            <button
-              key={s.book}
-              type="button"
-              role="tab"
-              className={`kbh-thumb${i === heroI ? " on" : ""}`}
-              onClick={() => setHeroI(i)}
-              aria-label={t.catalog[s.catalogI].t}
-              aria-selected={i === heroI}
-              style={{ background: BOOK3D[s.catalogI].bg }}
-            >
-              <span className="kbh-book-wrap">
-                <img
-                  src={exUrl(s.book)}
-                  alt=""
-                  loading="eager"
-                />
-              </span>
-            </button>
-          ))}
+        <div className="khero-flip">
+          <div className="ex-tabs khero-tabs" role="tablist" aria-label={t.story_title}>
+            {exampleBooks.map((b, i) => (
+              <button
+                key={b.title}
+                type="button"
+                className={`ex-tab${i === exBook ? " on" : ""}`}
+                onClick={() => setExBook(i)}
+                role="tab"
+                id={`ex-tab-${i}`}
+                aria-selected={i === exBook}
+                aria-controls="ex-book-panel"
+              >
+                <span className="studio-cover ex-tab-cover">
+                  <img src={exUrl(b.cover)} alt="" />
+                </span>
+                <span>{b.title}</span>
+              </button>
+            ))}
+          </div>
+          <div id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
+            <FlipBook
+              key={exBook}
+              pages={exampleBooks[exBook].pages}
+              labels={flipLabels}
+            />
+          </div>
+        </div>
+        <div className="khero-after">
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
+          <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
         </div>
       </section>
 
@@ -1119,41 +1122,7 @@ export function Landing() {
         <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
       </section>
 
-      {/* FOLHEIE NOSSOS LIVROS */}
-      <section className="ksection featured-book" id="historia-exemplo">
-        <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
-        <h2 className="ktitle reveal">{t.story_title}</h2>
-        <p className="ksub reveal">{t.story_sub}</p>
-        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
-          {exampleBooks.map((b, i) => (
-            <button
-              key={b.title}
-              type="button"
-              className={`ex-tab${i === exBook ? " on" : ""}`}
-              onClick={() => setExBook(i)}
-              role="tab"
-              id={`ex-tab-${i}`}
-              aria-selected={i === exBook}
-              aria-controls="ex-book-panel"
-            >
-              <span className="studio-cover ex-tab-cover">
-                <img src={exUrl(b.cover)} alt="" />
-              </span>
-              <span>{b.title}</span>
-            </button>
-          ))}
-        </div>
-        <div className="reveal" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
-          <FlipBook
-            key={exBook}
-            pages={exampleBooks[exBook].pages}
-            labels={flipLabels}
-          />
-        </div>
-        <p className="fb-hint reveal">{t.story_hint}</p>
-      </section>
-
-      {/* BANNERS NARRATIVOS — abaixo do folheie */}
+      {/* BANNERS NARRATIVOS */}
       <section className="banners">
         {t.banners.map((b, i) => (
           <figure className="banner-card reveal" key={b.t} style={{ background: BOOK3D[i].bg }}>

@@ -111,7 +111,7 @@
 .khead-cta { margin-left: 4px; padding: 9px 16px; font-size: .95rem; }
 .khead .kbrand {
   display: inline-flex; align-items: center; align-self: stretch;
-  overflow: hidden; padding-left: 14px;
+  overflow: hidden; padding-left: 28px;
 }
 .khead .kbrand img {
   height: 80px;
@@ -139,7 +139,20 @@
 .kcat-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 a.kcat-link {
   text-decoration: none;
-  color: #e9eefb;
+  color: #fff;
+  background: #182343;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.35),
+    0 0 18px rgba(244,183,64,.28);
+}
+a.kcat-link .kcat-dot {
+  box-shadow: 0 0 8px rgba(244,183,64,.85);
+}
+a.kcat-link:hover {
+  background: #1f2d55;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.55),
+    0 0 24px rgba(244,183,64,.42);
 }
 .kcat-panel {
   position: absolute; left: var(--page-gutter); right: var(--page-gutter);
@@ -246,11 +259,33 @@ a.kcat-link {
 }
 .khero-intro {
   text-align: center; width: 100%; max-width: 100%;
-  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  display: flex; flex-direction: column; align-items: center; gap: 20px;
 }
 .khero-intro h1 { font-size: clamp(1.75rem, 2.8vw, 2.65rem); line-height: 1.2; margin: 0; }
 .khero-intro .keyebrow { margin: 0; }
-.khero-intro .khero-sign { margin: 0; }
+.khero-flip {
+  width: 100%;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 18px; margin-top: 8px;
+}
+.khero-tabs { margin: 0 auto 0; max-width: 720px; gap: 18px; }
+.khero-tabs .ex-tab-cover { width: 72px; }
+.khero-tabs .ex-tab > span:last-child { font-size: .78rem; max-width: 96px; }
+.kbanner-hero .fb-stage {
+  width: min(360px, 82vw);
+  aspect-ratio: 1 / 1;
+  background: #1a2748;
+}
+.kbanner-hero .fb-page {
+  object-fit: contain;
+  object-position: center;
+  background: #1a2748;
+}
+.khero-after {
+  display: flex; flex-direction: column; align-items: center; gap: 18px;
+  margin-top: 22px; margin-bottom: 8px;
+}
+.khero-after .keyebrow { margin: 0; }
 .ksection-pill { display: inline-flex; margin: 0 auto 12px; }
 .cat-below {
   margin: 28px auto 0; text-align: center; max-width: 40rem;
@@ -280,11 +315,6 @@ a.kcat-link {
   height: 100%;
   object-fit: contain;
   object-position: center;
-}
-.khero-sign {
-  margin: 4px 0 0; font-family: 'Baloo 2', cursive; font-weight: 800;
-  color: var(--yellow); font-size: clamp(1.2rem, 2.4vw, 1.65rem); letter-spacing: .01em;
-  text-align: center;
 }
 .kbh-frame {
   position: relative; width: min(400px, 70vw, calc(50dvh * 3 / 4)); border-radius: 14px 6px 6px 14px;
@@ -1197,7 +1227,6 @@ a.kcat-link {
 [data-theme="light"] .kid .ksub { color: #6b6890; }
 [data-theme="light"] .kid .klead,
 [data-theme="light"] .kid .cat-below-lead { color: #4a5170; }
-[data-theme="light"] .kid .khero-sign { color: var(--coral); }
 [data-theme="light"] .kid .font-pick { color: #4a5170; }
 [data-theme="light"] .kid .font-pick button { background: #f4f6fb; color: var(--ink); border-color: #e6ebf5; }
 [data-theme="light"] .kid .ktrust, [data-theme="light"] .kid .kfoot-tag, [data-theme="light"] .kid .fb-hint { color: #6b6890; }
