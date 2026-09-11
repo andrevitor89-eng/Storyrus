@@ -420,6 +420,7 @@ const I18N = {
     h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: " !",
     lead: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada especialmente para ele — um livro para presentear a família e guardar para sempre.",
     cta_play: "Criar minha conta",
+    hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
     cats: [
@@ -555,6 +556,7 @@ const I18N = {
     h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: " !",
     lead: "You send the photo and we turn your little one into an illustrated character, creating an adventure made just for them — a book to gift the family and keep forever.",
     cta_play: "Create my account",
+    hero_cta: "Create my book",
     cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
     cats: [
@@ -690,6 +692,7 @@ const I18N = {
     h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: " !",
     lead: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada especialmente para él — un libro para regalar a la familia y guardar para siempre.",
     cta_play: "Crear mi cuenta",
+    hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
     cats: [
@@ -839,8 +842,10 @@ export function Landing() {
   });
   const t = I18N[lang];
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const exampleBooks = t.catalog.map((c, i) => ({
-    title: c.t,
+  // Hero FlipBook: all catalog books except Emilia (index 1)
+  const HERO_BOOK_IDX = [0, 2, 3, 4, 5] as const;
+  const exampleBooks = HERO_BOOK_IDX.map((i) => ({
+    title: t.catalog[i].t,
     cover: CATALOG_IMGS[i],
     pages: [CATALOG_IMGS[i], CATALOG_PAGES[i]],
   }));
@@ -1053,49 +1058,51 @@ export function Landing() {
         </div>
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+          <Link to="/app" className="kbtn kbtn-primary">{t.hero_cta}</Link>
         </div>
       </section>
 
       {/* COMO FUNCIONA + DICAS */}
       <section className="ksection ksection-como" id="como">
-        <h2 className="ktitle reveal">{t.hiw_title}</h2>
-        <p className="ksub reveal">{t.hiw_sub}</p>
-        <div className="shot-tips reveal">
-          <h3>{t.shot_title}</h3>
-          <p className="shot-sub">{t.shot_sub}</p>
-          <div className="shot-grid">
-            {SHOTS.map((s, i) => (
-              <div className={`shot${s.ok ? " ok" : ""}`} key={i}>
-                <div className="shot-ava-wrap">
-                  <div className="shot-ava">
-                    {s.img ? (
-                      <img src={exUrl(s.img)} alt={t.shots[i]} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                    ) : (
-                      <ShotArt kind={s.art ?? "good"} />
-                    )}
+        <div className="como-panel reveal">
+          <h2 className="ktitle">{t.hiw_title}</h2>
+          <p className="ksub">{t.hiw_sub}</p>
+          <div className="shot-tips">
+            <h3>{t.shot_title}</h3>
+            <p className="shot-sub">{t.shot_sub}</p>
+            <div className="shot-grid">
+              {SHOTS.map((s, i) => (
+                <div className={`shot${s.ok ? " ok" : ""}`} key={i}>
+                  <div className="shot-ava-wrap">
+                    <div className="shot-ava">
+                      {s.img ? (
+                        <img src={exUrl(s.img)} alt={t.shots[i]} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                      ) : (
+                        <ShotArt kind={s.art ?? "good"} />
+                      )}
+                    </div>
+                    <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                   </div>
-                  <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+                  <p>{t.shots[i]}</p>
                 </div>
-                <p>{t.shots[i]}</p>
-              </div>
+              ))}
+            </div>
+          </div>
+          <div className="howex">
+            {t.hiw.map((h, i) => (
+              <Fragment key={h.t}>
+                <figure className={`howex-card${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
+                  <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                  <span className="howex-num">{i + 1}</span>
+                  <figcaption>
+                    <h3>{h.t}</h3>
+                    <p>{h.p}</p>
+                  </figcaption>
+                </figure>
+                {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+              </Fragment>
             ))}
           </div>
-        </div>
-        <div className="howex">
-          {t.hiw.map((h, i) => (
-            <Fragment key={h.t}>
-              <figure className={`howex-card reveal${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
-                <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
-                <span className="howex-num">{i + 1}</span>
-                <figcaption>
-                  <h3>{h.t}</h3>
-                  <p>{h.p}</p>
-                </figcaption>
-              </figure>
-              {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
-            </Fragment>
-          ))}
         </div>
       </section>
 
