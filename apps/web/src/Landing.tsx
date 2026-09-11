@@ -52,9 +52,9 @@ const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.j
 // Dicas de enquadramento: 1 exemplo bom (verde) + 2 a evitar (X).
 // img = foto real local (public/exemplos/) ou URL externa; art = ilustração SVG de fallback.
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
-  { img: "dica-boa.png", ok: true, focus: "center 28%" },
-  { img: "dica-multi.png", ok: false, focus: "center 32%" },
-  { img: "dica-lado.png", ok: false, focus: "center 30%" },
+  { img: "dica-boa.png", ok: true, focus: "center center" },
+  { img: "dica-multi.png", ok: false, focus: "68% 38%" },
+  { img: "dica-lado.png", ok: false, focus: "78% 32%" },
 ];
 /** Hero FlipBook: only lifestyle books (child holding the book) from landing/ */
 const HERO_BOOKS = [
@@ -1096,7 +1096,7 @@ export function Landing() {
                   <div className="shot-ava-wrap">
                     <div className="shot-ava">
                       {s.img ? (
-                        <img src={exUrl(s.img)} alt={t.shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center 30%" }} />
+                        <img src={exUrl(s.img)} alt={t.shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
                       ) : (
                         <ShotArt kind={s.art ?? "good"} />
                       )}
