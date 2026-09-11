@@ -141,9 +141,15 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/capa-bruno-animais.jpg
 !apps/web/public/exemplos/capa-cristobal-esporte.jpg
 !apps/web/public/exemplos/capa-gael-economia.jpg
+!apps/web/public/exemplos/capa-martin-goleiro.jpg
+!apps/web/public/exemplos/capa-emilia-bailarina.jpg
+!apps/web/public/exemplos/capa-antonio-bicicleta.jpg
 !apps/web/public/exemplos/pagina-sofia-alfabeto.jpg
 !apps/web/public/exemplos/pagina-bruno-animais.jpg
 !apps/web/public/exemplos/pagina-cristobal-esporte.jpg
+!apps/web/public/exemplos/pagina-martin-goleiro.jpg
+!apps/web/public/exemplos/pagina-emilia-bailarina.jpg
+!apps/web/public/exemplos/pagina-antonio-bicicleta.jpg
 !apps/web/public/exemplos/video-*.mp4
 !apps/web/public/exemplos/LEIA-ME.txt
 

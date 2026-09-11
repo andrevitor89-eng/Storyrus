@@ -56,9 +56,9 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
   { img: "dica-multi.png", ok: false, focus: "center center" },
   { img: "dica-lado.png", ok: false, focus: "center center" },
 ];
-const CATALOG_IMGS = ["capa-sofia-alfabeto.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
-const CATALOG_PAGES = ["pagina-sofia-alfabeto.jpg", "pagina-bruno-animais.jpg", "pagina-cristobal-esporte.jpg"];
-const CATALOG_THEMES = ["alfabetizacao_inicial", "animais_sons", "adventure"];
+const CATALOG_IMGS = ["capa-martin-goleiro.jpg", "capa-emilia-bailarina.jpg", "capa-antonio-bicicleta.jpg"];
+const CATALOG_PAGES = ["pagina-martin-goleiro.jpg", "pagina-emilia-bailarina.jpg", "pagina-antonio-bicicleta.jpg"];
+const CATALOG_THEMES = ["adventure", "princess", "adventure"];
 const BOOK3D = [
   { bg: "#efe4c4" },
   { bg: "#e4eed4" },
@@ -67,11 +67,6 @@ const BOOK3D = [
 const BANNER_IMGS = ["capa-gael-economia.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
-const HERO_SLIDES: { book: string; catalogI: number }[] = [
-  { book: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-  { book: "capa-bruno-animais.jpg", catalogI: 1 },
-  { book: "capa-cristobal-esporte.jpg", catalogI: 2 },
-];
 const NAV_CAT_META = [
   {
     color: "#5aa6e8",
@@ -85,10 +80,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=superhero" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 1 },
-      { href: "/app?tema=adventure", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
-      { href: "/app?tema=fantasy", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=alfabetizacao_inicial", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=animais_sons", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=adventure", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app?tema=fantasy", img: "capa-martin-goleiro.jpg", catalogI: 0 },
     ],
   },
   {
@@ -103,10 +98,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=new_year" },
     ],
     feats: [
-      { href: "/app?tema=christmas", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-      { href: "/app?tema=birthday", img: "capa-bruno-animais.jpg", catalogI: 1 },
-      { href: "/app?tema=mothers_day", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
-      { href: "/app?tema=fathers_day", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=christmas", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=birthday", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=mothers_day", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
     ],
   },
   {
@@ -118,10 +113,10 @@ const NAV_CAT_META = [
       { href: "/app" },
     ],
     feats: [
-      { href: "/app?tema=mothers_day", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-      { href: "/app?tema=fathers_day", img: "capa-bruno-animais.jpg", catalogI: 1 },
-      { href: "/app", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
-      { href: "/app", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
+      { href: "/app?tema=mothers_day", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app", img: "capa-martin-goleiro.jpg", catalogI: 0 },
     ],
   },
   {
@@ -133,10 +128,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=consciencia_corporal" },
     ],
     feats: [
-      { href: "/app?tema=literacia_emocional", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-      { href: "/app?tema=rotina_dormir", img: "capa-bruno-animais.jpg", catalogI: 1 },
-      { href: "/app?tema=compartilhar_revezar", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
-      { href: "/app?tema=consciencia_corporal", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=literacia_emocional", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=rotina_dormir", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=compartilhar_revezar", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app?tema=consciencia_corporal", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
     ],
   },
   {
@@ -151,10 +146,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=transporte_ajudantes" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 0 },
-      { href: "/app?tema=pensamento_matematico", img: "capa-bruno-animais.jpg", catalogI: 1 },
-      { href: "/app?tema=cores", img: "capa-cristobal-esporte.jpg", catalogI: 2 },
-      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 1 },
+      { href: "/app?tema=alfabetizacao_inicial", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=pensamento_matematico", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=cores", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app?tema=animais_sons", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
     ],
   },
 ] as const;
@@ -484,9 +479,9 @@ const I18N = {
     privacy_link: "Privacidade",
     terms_link: "Termos",
     catalog: [
-      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas com Sofia como protagonista.", age: "3-6 anos", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
-      { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza para conhecer e cuidar dos animais.", age: "3-7 anos", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
-      { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pela natureza.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
+      { t: "Martin, o Grande Goleiro do Chile", p: "No gol, coragem e perseverança: cair, levantar e continuar.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Cair, levantar e continuar!" },
+      { t: "Emilia e os Primeiros Passos da Bailarina", p: "Disciplina, equilíbrio e confiança nos primeiros passos do ballet.", age: "2-5 anos", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
+      { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e sorrir — pequenas aventuras, grandes conquistas.", age: "2-5 anos", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
     ],
     promise_title: "Cada detalhe pensado para ser especial",
     promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
@@ -616,9 +611,9 @@ const I18N = {
     privacy_link: "Privacy",
     terms_link: "Terms",
     catalog: [
-      { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries with Sofia as the hero.", age: "ages 3-6", tag: "Literacy through play", quote: "Every letter opens a new world." },
-      { t: "Bruno on an Animal Adventure", p: "A journey through nature to meet and care for the animals.", age: "ages 3-7", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
-      { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for nature.", age: "ages 4-8", tag: "Sport and courage", quote: "Small paddles, big victories." },
+      { t: "Martin, the Great Goalkeeper of Chile", p: "In the goal: courage and grit — fall, get up, and keep going.", age: "ages 4-8", tag: "Sport and courage", quote: "Fall, rise, and keep going!" },
+      { t: "Emilia and the Ballerina's First Steps", p: "Discipline, balance and confidence in ballet's first steps.", age: "ages 2-5", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
+      { t: "Antonio and His Bicycle", p: "Pedal, learn and smile — small adventures, big wins.", age: "ages 2-5", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -748,9 +743,9 @@ const I18N = {
     privacy_link: "Privacidad",
     terms_link: "Términos",
     catalog: [
-      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos con Sofia como protagonista.", age: "3-6 años", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
-      { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza para conocer y cuidar a los animales.", age: "3-7 años", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
-      { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por la naturaleza.", age: "4-8 años", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
+      { t: "Martin, el gran arquero de Chile", p: "En el arco: coraje y perseverancia — caer, levantarse y seguir.", age: "4-8 años", tag: "Deporte y coraje", quote: "¡Caer, levantarse y seguir!" },
+      { t: "Emilia y los primeros pasos de la bailarina", p: "Disciplina, equilibrio y confianza en los primeros pasos del ballet.", age: "2-5 años", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
+      { t: "Antonio y su bicicleta", p: "Pedalear, aprender y sonreír — pequeñas aventuras, grandes conquistas.", age: "2-5 años", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -801,7 +796,6 @@ export function Landing() {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
-  const [heroI, setHeroI] = useState(0);
   const [exBook, setExBook] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
@@ -990,34 +984,43 @@ export function Landing() {
         </nav>
       </header>
 
-      {/* HERO — proposta de valor + 3 capas */}
+      {/* HERO — proposta de valor + flipbook */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
-          <p className="khero-sign">{t.hero_sign}</p>
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
-          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
         </div>
-        <div className="kbh-thumbs" role="tablist" aria-label={t.cat_title}>
-          {HERO_SLIDES.map((s, i) => (
-            <button
-              key={s.book}
-              type="button"
-              role="tab"
-              className={`kbh-thumb${i === heroI ? " on" : ""}`}
-              onClick={() => setHeroI(i)}
-              aria-label={t.catalog[s.catalogI].t}
-              aria-selected={i === heroI}
-              style={{ background: BOOK3D[s.catalogI].bg }}
-            >
-              <span className="kbh-book-wrap">
-                <img
-                  src={exUrl(s.book)}
-                  alt=""
-                  loading="eager"
-                />
-              </span>
-            </button>
-          ))}
+        <div className="khero-flip">
+          <div className="ex-tabs khero-tabs" role="tablist" aria-label={t.story_title}>
+            {exampleBooks.map((b, i) => (
+              <button
+                key={b.title}
+                type="button"
+                className={`ex-tab${i === exBook ? " on" : ""}`}
+                onClick={() => setExBook(i)}
+                role="tab"
+                id={`ex-tab-${i}`}
+                aria-selected={i === exBook}
+                aria-controls="ex-book-panel"
+              >
+                <span className="studio-cover ex-tab-cover">
+                  <img src={exUrl(b.cover)} alt="" />
+                </span>
+                <span>{b.title}</span>
+              </button>
+            ))}
+          </div>
+          <div id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
+            <FlipBook
+              key={exBook}
+              pages={exampleBooks[exBook].pages}
+              labels={flipLabels}
+            />
+          </div>
+        </div>
+        <div className="khero-after">
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
+          <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
         </div>
       </section>
 
@@ -1119,41 +1122,7 @@ export function Landing() {
         <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
       </section>
 
-      {/* FOLHEIE NOSSOS LIVROS */}
-      <section className="ksection featured-book" id="historia-exemplo">
-        <span className="book-badge reveal"><IcStar className="bi" /> {t.book_badge}</span>
-        <h2 className="ktitle reveal">{t.story_title}</h2>
-        <p className="ksub reveal">{t.story_sub}</p>
-        <div className="ex-tabs reveal" role="tablist" aria-label={t.story_title}>
-          {exampleBooks.map((b, i) => (
-            <button
-              key={b.title}
-              type="button"
-              className={`ex-tab${i === exBook ? " on" : ""}`}
-              onClick={() => setExBook(i)}
-              role="tab"
-              id={`ex-tab-${i}`}
-              aria-selected={i === exBook}
-              aria-controls="ex-book-panel"
-            >
-              <span className="studio-cover ex-tab-cover">
-                <img src={exUrl(b.cover)} alt="" />
-              </span>
-              <span>{b.title}</span>
-            </button>
-          ))}
-        </div>
-        <div className="reveal" id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
-          <FlipBook
-            key={exBook}
-            pages={exampleBooks[exBook].pages}
-            labels={flipLabels}
-          />
-        </div>
-        <p className="fb-hint reveal">{t.story_hint}</p>
-      </section>
-
-      {/* BANNERS NARRATIVOS — abaixo do folheie */}
+      {/* BANNERS NARRATIVOS */}
       <section className="banners">
         {t.banners.map((b, i) => (
           <figure className="banner-card reveal" key={b.t} style={{ background: BOOK3D[i].bg }}>
