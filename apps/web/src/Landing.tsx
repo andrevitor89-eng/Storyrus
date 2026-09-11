@@ -63,8 +63,6 @@ const CATALOG_IMGS = [
   "capa-sofia-alfabeto.jpg",
   "capa-bruno-animais.jpg",
   "capa-cristobal-esporte.jpg",
-  "capa-mariajesus-hockey.jpg",
-  "capa-facundo-motocross.jpg",
 ];
 const CATALOG_PAGES = [
   "pagina-martin-goleiro.jpg",
@@ -73,8 +71,6 @@ const CATALOG_PAGES = [
   "pagina-sofia-alfabeto.jpg",
   "pagina-bruno-animais.jpg",
   "pagina-cristobal-esporte.jpg",
-  "pagina-mariajesus-hockey.jpg",
-  "pagina-facundo-motocross.jpg",
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -82,8 +78,6 @@ const CATALOG_THEMES = [
   "adventure",
   "alfabetizacao_inicial",
   "animais_sons",
-  "adventure",
-  "adventure",
   "adventure",
 ];
 const BOOK3D = [
@@ -93,8 +87,6 @@ const BOOK3D = [
   { bg: "#f0e4f4" },
   { bg: "#e8f4e4" },
   { bg: "#e4eef8" },
-  { bg: "#e8f0f8" },
-  { bg: "#f4ece4" },
 ];
 const BANNER_IMGS = ["capa-gael-economia.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
@@ -517,8 +509,6 @@ const I18N = {
       { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas com Sofia como protagonista.", age: "3-6 anos", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
       { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza para conhecer e cuidar dos animais.", age: "3-7 anos", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
       { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pela natureza.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
-      { t: "Maria Jesus e a Disciplina no Hockey", p: "No gelo: equilíbrio, equipe e perseverança com Maria Jesus.", age: "4-8 anos", tag: "Hockey e disciplina", quote: "Patinar, aprender e sorrir!" },
-      { t: "Facundo e o Motocross com Cuidado", p: "Segurança, respeito e diversão nas primeiras pedaladas do motocross.", age: "2-5 anos", tag: "Motocross e cuidado", quote: "Aprender, tentar e levantar!" },
     ],
     promise_title: "Cada detalhe pensado para ser especial",
     promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
@@ -654,8 +644,6 @@ const I18N = {
       { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries with Sofia as the hero.", age: "ages 3-6", tag: "Literacy through play", quote: "Every letter opens a new world." },
       { t: "Bruno on an Animal Adventure", p: "A journey through nature to meet and care for the animals.", age: "ages 3-7", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
       { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for nature.", age: "ages 4-8", tag: "Sport and courage", quote: "Small paddles, big victories." },
-      { t: "Maria Jesus and Hockey Discipline", p: "On the ice: balance, teamwork and grit with Maria Jesus.", age: "ages 4-8", tag: "Hockey and discipline", quote: "Skate, learn and smile!" },
-      { t: "Facundo and Careful Motocross", p: "Safety, respect and fun on Facundo's first motocross rides.", age: "ages 2-5", tag: "Motocross and care", quote: "Learn, try and get back up!" },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -791,8 +779,6 @@ const I18N = {
       { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos con Sofia como protagonista.", age: "3-6 años", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
       { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza para conocer y cuidar a los animales.", age: "3-7 años", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
       { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por la naturaleza.", age: "4-8 años", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
-      { t: "Maria Jesus y la disciplina en el hockey", p: "En el hielo: equilibrio, equipo y perseverancia con Maria Jesus.", age: "4-8 años", tag: "Hockey y disciplina", quote: "¡Patinar, aprender y sonreír!" },
-      { t: "Facundo y el motocross con cuidado", p: "Seguridad, respeto y diversión en las primeras vueltas de motocross.", age: "2-5 años", tag: "Motocross y cuidado", quote: "¡Aprender, intentar y levantarse!" },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -986,11 +972,11 @@ export function Landing() {
                     </div>
                   </div>
                 ))}
-                <a href="#promessa" className="kcat-btn kcat-link" onClick={closeNav}>
+                <a href="#promessa" className="kcat-btn" onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#ef8f4b" }} />
                   {t.our_story}
                 </a>
-                <a href="#reviews" className="kcat-btn kcat-link" onClick={closeNav}>
+                <a href="#reviews" className="kcat-btn" onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f4b740" }} />
                   {t.reviews_link}
                 </a>
@@ -1052,9 +1038,7 @@ export function Landing() {
                 aria-selected={i === exBook}
                 aria-controls="ex-book-panel"
               >
-                <span className="studio-cover ex-tab-cover">
-                  <img src={exUrl(b.cover)} alt="" />
-                </span>
+                <img className="ex-tab-cover" src={exUrl(b.cover)} alt="" />
                 <span>{b.title}</span>
               </button>
             ))}
