@@ -949,7 +949,7 @@ export function Landing() {
                       aria-haspopup="true"
                       onClick={() => setOpenCat(openCat === i ? null : i)}
                     >
-                      <span className="kcat-dot" style={{ background: cat.color }} />
+                      <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 10px ${cat.color}` }} />
                       {cat.name}
                     </button>
                     <div className="kcat-panel">
@@ -973,11 +973,11 @@ export function Landing() {
                   </div>
                 ))}
                 <a href="#promessa" className="kcat-btn" onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: "#ef8f4b" }} />
+                  <span className="kcat-dot" style={{ background: "#5ec4a8", boxShadow: "0 0 10px rgba(94,196,168,.9)" }} />
                   {t.our_story}
                 </a>
                 <a href="#reviews" className="kcat-btn" onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: "#f4b740" }} />
+                  <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
               </nav>

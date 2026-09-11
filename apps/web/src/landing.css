@@ -132,13 +132,32 @@
 .kcat { position: static; }
 .kcat-btn {
   display: inline-flex; align-items: center; gap: 6px;
-  border: none; background: none; cursor: pointer;
-  padding: 8px 8px; border-radius: 999px;
+  border: none; background: #182343; cursor: pointer;
+  padding: 8px 12px; border-radius: 999px;
   color: #e9eefb; font-weight: 700; font-size: .84rem; font-family: inherit;
-  white-space: nowrap;
+  white-space: nowrap; text-decoration: none;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.35),
+    0 0 16px rgba(244,183,64,.28);
+  transition: background .15s ease, box-shadow .15s ease;
 }
-.kcat-btn:hover, .kcat.open .kcat-btn { background: #182343; }
-.kcat-dot { width: 8px; height: 8px; border-radius: 50%; flex: none; }
+a.kcat-btn,
+a.kcat-btn:hover,
+a.kcat-btn:visited,
+a.kcat-btn:active {
+  text-decoration: none;
+  color: #e9eefb;
+}
+.kcat-btn:hover, .kcat.open .kcat-btn {
+  background: #1f2d55;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.55),
+    0 0 24px rgba(244,183,64,.42);
+}
+.kcat-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex: none;
+  box-shadow: 0 0 8px rgba(255,255,255,.55);
+}
 .kcat-panel {
   position: absolute; left: var(--page-gutter); right: var(--page-gutter);
   top: calc(100% - 4px); z-index: 45;
@@ -1248,8 +1267,19 @@ img.ex-tab-cover {
 [data-theme="light"] .kid .khead .theme-toggle { background: #f4f6fb; }
 [data-theme="light"] .kid .khead .lang { background: #f4f6fb; }
 [data-theme="light"] .kid .khead-bar { border-top: none; }
-[data-theme="light"] .kid .kcat-btn { color: #1f3568; }
-[data-theme="light"] .kid .kcat-btn:hover, [data-theme="light"] .kid .kcat.open .kcat-btn { background: #f4f6fb; }
+[data-theme="light"] .kid .kcat-btn {
+  color: #1f3568;
+  background: #fff;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.4),
+    0 0 14px rgba(244,183,64,.22);
+}
+[data-theme="light"] .kid .kcat-btn:hover, [data-theme="light"] .kid .kcat.open .kcat-btn {
+  background: #fff8eb;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.55),
+    0 0 20px rgba(244,183,64,.32);
+}
 [data-theme="light"] .kid .khead-links { border-left: none; }
 [data-theme="light"] .kid .khead-links a:not(.kbtn) { color: #1f3568; }
 [data-theme="light"] .kid .khead .khamb, [data-theme="light"] .kid .khamb { color: var(--ink); }
