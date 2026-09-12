@@ -88,7 +88,6 @@ const BOOK3D = [
   { bg: "#e8f4e4" },
   { bg: "#e4eef8" },
 ];
-const BANNER_IMGS = ["capa-gael-economia.jpg", "capa-bruno-animais.jpg", "capa-cristobal-esporte.jpg"];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 const NAV_CAT_META = [
@@ -461,11 +460,6 @@ const I18N = {
     ba_title: "Antes e depois de verdade",
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
-    banners: [
-      { t: "Voe com a imaginação", p: "Cada página abre uma aventura nova onde seu filho é o protagonista." },
-      { t: "Construa a própria história", p: "Escolha a aventura, personalize os detalhes e crie um livro único." },
-      { t: "Explore mundos incríveis", p: "Aventuras que despertam a curiosidade e alimentam a imaginação." },
-    ],
     hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada.",
     hiw: [
       { t: "Você envia a foto", p: "Uma foto da criança já basta para começar." },
@@ -604,11 +598,6 @@ const I18N = {
     ba_title: "Real before and after",
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
-    banners: [
-      { t: "Fly with imagination", p: "Every page opens a new adventure where your child is the hero." },
-      { t: "Build their own story", p: "Choose the adventure, personalize the details and create a unique book." },
-      { t: "Explore amazing worlds", p: "Adventures that spark curiosity and feed the imagination." },
-    ],
     hiw_title: "How it works", hiw_sub: "You send the photo and we turn your little one into an illustrated character, creating a personalized adventure.",
     hiw: [
       { t: "You send the photo", p: "One photo of your child is all it takes to begin." },
@@ -747,11 +736,6 @@ const I18N = {
     ba_title: "Antes y después de verdad",
     ba_sub: "Fotos reales convertidas en personajes ilustrados.",
     ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
-    banners: [
-      { t: "Vuela con la imaginación", p: "Cada página abre una aventura nueva donde tu hijo es el protagonista." },
-      { t: "Construye su propia historia", p: "Elige la aventura, personaliza los detalles y crea un libro único." },
-      { t: "Explora mundos increíbles", p: "Aventuras que despiertan la curiosidad y alimentan la imaginación." },
-    ],
     hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada.",
     hiw: [
       { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
@@ -1187,18 +1171,6 @@ export function Landing() {
           })}
         </div>
         <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
-      </section>
-
-      {/* BANNERS NARRATIVOS */}
-      <section className="banners">
-        {t.banners.map((b, i) => (
-          <figure className="banner-card reveal" key={b.t} style={{ background: BOOK3D[i].bg }}>
-            <span className="banner-book">
-              <img src={exUrl(BANNER_IMGS[i])} alt={b.t} loading="lazy" />
-            </span>
-            <figcaption><h3>{b.t}</h3><p>{b.p}</p></figcaption>
-          </figure>
-        ))}
       </section>
 
       {/* AVALIAÇÕES */}
