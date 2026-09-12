@@ -116,11 +116,11 @@
 .khead .kbrand {
   display: inline-flex; align-items: center; align-self: stretch;
   overflow: visible; padding-left: 0; margin-left: 0; margin-right: 8px;
-  flex: none; max-width: 120px;
+  flex: none; max-width: 160px;
 }
 .khead .kbrand img {
-  height: 64px;
-  transform: scale(1.06);
+  height: 84px;
+  transform: scale(1.04);
   transform-origin: left center;
   filter: saturate(0.75) brightness(0.92);
 }
@@ -1272,7 +1272,7 @@ img.ex-tab-cover {
   .feat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.14); padding-bottom: 12px; }
   .featurebar .feat:last-child { border-bottom: none; }
   .knav .kbrand img { height: 72px; }
-  .khead .kbrand img { height: 56px; transform: scale(1.04); }
+  .khead .kbrand img { height: 68px; transform: scale(1.04); }
 }
 
 /* =========================================================
