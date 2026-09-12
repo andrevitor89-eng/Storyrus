@@ -530,8 +530,8 @@ a.kcat-btn:active {
 }
 .ksection-como .howex { margin-top: 22px; }
 .shot-tips {
-  max-width: 100%; margin: 0 auto; padding: 18px 18px 20px;
-  border-radius: 20px; background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.12);
+  max-width: 100%; margin: 0 auto; padding: 8px 0 12px;
+  border-radius: 0; background: none; border: none;
   box-shadow: none;
 }
 .shot-tips h2.ktitle,
@@ -559,7 +559,8 @@ a.kcat-btn:active {
 .shot-badge svg { width: 17px; height: 17px; }
 .shot p { font-family: 'Baloo 2', cursive; font-weight: 800; color: #9aa3b8; margin: 0; font-size: 1rem; }
 .shot.ok p { color: #2fa860; }
-[data-theme="dark"] .kid .shot-tips { background: rgba(255,255,255,.05); border-color: rgba(255,255,255,.12); }
+.shot:not(.ok) p { color: #e2483d; }
+[data-theme="dark"] .kid .shot-tips { background: none; border: none; }
 [data-theme="dark"] .kid .shot-tips h2.ktitle,
 [data-theme="dark"] .kid .shot-tips h3 { color: #fff; }
 [data-theme="dark"] .kid .shot-tips .shot-sub { color: #b9c2dc; }
@@ -571,8 +572,8 @@ a.kcat-btn:active {
 [data-theme="light"] .kid .como-panel .ktitle { color: var(--ink); }
 [data-theme="light"] .kid .como-panel .ksub { color: #6b6890; }
 [data-theme="light"] .kid .shot-tips {
-  background: #f2faf3;
-  border-color: #cfe9d6;
+  background: none;
+  border: none;
 }
 [data-theme="light"] .kid .shot-tips h3 { color: var(--ink); }
 [data-theme="light"] .kid .shot-tips .shot-sub { color: #6b6890; }

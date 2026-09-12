@@ -474,7 +474,7 @@ const I18N = {
     ],
     shot_title: "Dicas para a foto perfeita",
     shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
-    shots: ["Nítida, bem iluminada e centralizada", "", ""],
+    shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
     hero_books: [
       "Martin, o Grande Goleiro do Chile",
       "Emilia e os Primeiros Passos da Bailarina",
@@ -617,7 +617,7 @@ const I18N = {
     ],
     shot_title: "Tips for the perfect photo",
     shot_sub: "Upload a clear photo of your child with the face centered.",
-    shots: ["Clear, well-lit and centered", "", ""],
+    shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
     hero_books: [
       "Martin, the Great Goalkeeper of Chile",
       "Emilia and the Ballerina's First Steps",
@@ -760,7 +760,7 @@ const I18N = {
     ],
     shot_title: "Consejos para la foto perfecta",
     shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
-    shots: ["Nítida, bien iluminada y centrada", "", ""],
+    shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
     hero_books: [
       "Martin, el gran arquero de Chile",
       "Emilia y los primeros pasos de la bailarina",
