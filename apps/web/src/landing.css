@@ -861,8 +861,8 @@ a.kcat-btn:active {
 }
 .howex-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .howex-card img { display: block; width: 100%; aspect-ratio: var(--photo-ratio); height: auto; object-fit: cover; object-position: center top; }
-.howex-card-face img { object-position: center 28%; }
-.howex-card-avatar img { object-position: center 32%; }
+.howex-card-face img { object-position: center 10%; }
+.howex-card-avatar img { object-position: center 30%; }
 .howex-card-book .howex-book {
   flex: 1; min-height: 0; aspect-ratio: 3 / 4; display: grid; place-items: center;
   background: radial-gradient(120% 90% at 50% 20%, #24345f 0%, #121a33 70%);
