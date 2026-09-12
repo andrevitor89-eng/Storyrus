@@ -276,10 +276,22 @@ a.kcat-btn:active {
   gap: 28px; margin-top: 4px;
 }
 .khero-tabs {
-  margin: 0 auto 0;
-  max-width: min(1100px, 100%);
-  gap: 18px 22px;
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-start;
   justify-content: center;
+  margin: 0 auto;
+  width: 100%;
+  max-width: min(1180px, 100%);
+  gap: 12px 16px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.khero-tabs::-webkit-scrollbar { display: none; }
+.khero-tabs .ex-tab {
+  flex: 0 0 auto;
+  min-width: 0;
 }
 .khero-tabs img.ex-tab-cover {
   display: block;
@@ -296,10 +308,11 @@ a.kcat-btn:active {
 }
 .khero-tabs .ex-tab > span:last-child {
   font-size: .7rem;
-  max-width: 156px;
+  max-width: 140px;
   line-height: 1.22;
-  overflow: visible;
-  white-space: normal;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   height: auto;
 }
 .kbanner-hero .fb-stage {
@@ -479,6 +492,7 @@ a.kcat-btn:active {
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 4px; }
   .khero-tabs img.ex-tab-cover { width: 112px; }
+  .khero-tabs .ex-tab > span:last-child { max-width: 112px; font-size: .64rem; }
   .kbanner-hero .fb-stage { width: min(320px, 86vw); }
   .kbh-frame { width: min(420px, 94vw); }
   .kbh-cover-title .cover-name { font-size: clamp(.85rem, 3.4vw, 1.15rem); }
