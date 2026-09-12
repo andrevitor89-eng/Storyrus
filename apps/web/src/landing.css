@@ -318,7 +318,7 @@ a.kcat-btn:active {
   width: min(380px, 86vw);
   aspect-ratio: 1 / 1;
   background: transparent;
-  border-radius: 14px;
+  border-radius: 12px;
   overflow: hidden;
   filter: drop-shadow(0 22px 36px rgba(0,0,0,.35));
 }
@@ -327,12 +327,11 @@ a.kcat-btn:active {
 .kbanner-hero img.fb-page {
   object-position: center center !important;
   background: transparent;
-  border-radius: 14px;
+  border-radius: 12px;
 }
 .kbanner-hero .fb-page--cover {
   object-fit: contain !important;
-  /* Pull art away from stage radius so title/hands aren't clipped */
-  transform: scale(0.92);
+  transform: scale(0.98);
   transform-origin: center center;
 }
 .kbanner-hero .fb-page--spread {
