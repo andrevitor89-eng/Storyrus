@@ -283,7 +283,7 @@ a.kcat-btn:active {
 }
 .khero-tabs img.ex-tab-cover {
   display: block;
-  width: 96px;
+  width: 120px;
   height: auto;
   aspect-ratio: 1 / 1;
   border-radius: 10px;
@@ -303,9 +303,9 @@ a.kcat-btn:active {
   height: auto;
 }
 .kbanner-hero .fb-stage {
-  width: min(340px, 78vw);
-  aspect-ratio: 3 / 4;
-  background: #1a2748;
+  width: min(380px, 86vw);
+  aspect-ratio: 1 / 1;
+  background: transparent;
   border-radius: 12px;
   overflow: hidden;
   filter: drop-shadow(0 22px 36px rgba(0,0,0,.35));
@@ -314,11 +314,13 @@ a.kcat-btn:active {
 .kbanner-hero .fb-leaf .fb-page,
 .kbanner-hero img.fb-page {
   object-position: center center !important;
-  background: #1a2748;
+  background: transparent;
   border-radius: 12px;
 }
 .kbanner-hero .fb-page--cover {
   object-fit: contain !important;
+  transform: scale(0.98);
+  transform-origin: center center;
 }
 .kbanner-hero .fb-page--spread {
   object-fit: cover !important;
@@ -476,8 +478,8 @@ a.kcat-btn:active {
 .kbh-thumb-title .cover-story { font-size: clamp(.62rem, 2.5vw, .98rem); bottom: 7%; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 4px; }
-  .khero-tabs img.ex-tab-cover { width: 80px; }
-  .kbanner-hero .fb-stage { width: min(300px, 82vw); }
+  .khero-tabs img.ex-tab-cover { width: 100px; }
+  .kbanner-hero .fb-stage { width: min(320px, 86vw); }
   .kbh-frame { width: min(420px, 94vw); }
   .kbh-cover-title .cover-name { font-size: clamp(.85rem, 3.4vw, 1.15rem); }
   .kbh-cover-title .cover-story { font-size: clamp(1.05rem, 4.4vw, 1.45rem); }
