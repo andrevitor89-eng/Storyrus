@@ -283,7 +283,7 @@ a.kcat-btn:active {
 }
 .khero-tabs img.ex-tab-cover {
   display: block;
-  width: 120px;
+  width: 140px;
   height: auto;
   aspect-ratio: 1 / 1;
   border-radius: 10px;
@@ -478,7 +478,7 @@ a.kcat-btn:active {
 .kbh-thumb-title .cover-story { font-size: clamp(.62rem, 2.5vw, .98rem); bottom: 7%; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 4px; }
-  .khero-tabs img.ex-tab-cover { width: 100px; }
+  .khero-tabs img.ex-tab-cover { width: 112px; }
   .kbanner-hero .fb-stage { width: min(320px, 86vw); }
   .kbh-frame { width: min(420px, 94vw); }
   .kbh-cover-title .cover-name { font-size: clamp(.85rem, 3.4vw, 1.15rem); }
@@ -540,7 +540,6 @@ a.kcat-btn:active {
 .shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
 .shot { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .shot-ava-wrap { position: relative; width: 168px; max-width: 100%; margin: 0 auto 12px; }
-.shot.ok .shot-ava-wrap { width: 196px; }
 .shot-ava { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; border: 4px solid #d7dbe6; background: #fff; }
 .shot.ok .shot-ava { border-color: #2fa860; box-shadow: 0 0 0 6px rgba(47,168,96,.22); border-width: 5px; }
 .shot-ava img, .shot-ava .shot-svg {
@@ -581,12 +580,10 @@ a.kcat-btn:active {
 @media (max-width: 620px) {
   .shot-grid { grid-template-columns: repeat(2, 1fr); gap: 20px 12px; }
   .shot-ava-wrap { width: 120px; }
-  .shot.ok .shot-ava-wrap { width: 148px; }
 }
 @media (max-width: 480px) {
   .shot-tips { padding: 14px 12px 16px; }
   .shot-ava-wrap { width: 126px; }
-  .shot.ok .shot-ava-wrap { width: 152px; }
   .shot p { font-size: .9rem; }
 }
 
@@ -864,8 +861,8 @@ a.kcat-btn:active {
 }
 .howex-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .howex-card img { display: block; width: 100%; aspect-ratio: var(--photo-ratio); height: auto; object-fit: cover; object-position: center top; }
-.howex-card-face img,
-.howex-card-avatar img { object-position: center center; }
+.howex-card-face img { object-position: center 28%; }
+.howex-card-avatar img { object-position: center 32%; }
 .howex-card-book .howex-book {
   flex: 1; min-height: 0; aspect-ratio: 3 / 4; display: grid; place-items: center;
   background: radial-gradient(120% 90% at 50% 20%, #24345f 0%, #121a33 70%);
@@ -1386,6 +1383,8 @@ img.ex-tab-cover {
 
 /* como funciona: leve zoom vivo */
 .howex-card img { animation: kenburnsSoft 24s ease-in-out infinite alternate; will-change: transform; }
+.howex-card-face img,
+.howex-card-avatar img { animation: none; will-change: auto; }
 .howex-card-page img { animation: kenburnsSoft 22s ease-in-out infinite alternate; }
 
 /* antes/depois: respiração sutil (mantém a moldura preenchida) */
