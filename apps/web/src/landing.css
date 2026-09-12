@@ -874,11 +874,15 @@ a.kcat-btn:active {
   display: flex; flex-direction: column;
 }
 .howex-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
-.howex-card img { display: block; width: 100%; aspect-ratio: var(--photo-ratio); height: auto; object-fit: cover; object-position: center top; }
-.howex-card-face img { object-position: center 10%; }
-.howex-card-avatar img { object-position: center 30%; }
+.howex-card img {
+  display: block; width: 100%; aspect-ratio: 1 / 1; height: auto;
+  object-fit: cover; object-position: center center; flex: none;
+}
+.howex-card-face img { object-position: center 20%; }
+.howex-card-avatar img { object-position: center 24%; }
+.howex-card-page img { object-position: center 40%; }
 .howex-card-book .howex-book {
-  flex: 1; min-height: 0; aspect-ratio: 3 / 4; display: grid; place-items: center;
+  flex: 1; min-height: 0; aspect-ratio: 1 / 1; display: grid; place-items: center;
   background: radial-gradient(120% 90% at 50% 20%, #24345f 0%, #121a33 70%);
   padding: 8px 6px 6px;
 }
@@ -898,10 +902,18 @@ a.kcat-btn:active {
 .featured-book .fb-cover-title .cover-name { font-size: 6.8cqw; }
 .featured-book .fb-cover-title .cover-story { font-size: 9.6cqw; }
 .howex-card-book .howex-book .fb-count { font-size: .72rem; padding: 2px 10px; }
-.howex-num { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%;
-  background: var(--purple); color: #fff; display: grid; place-items: center; font-family: 'Baloo 2', cursive; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,.4); z-index: 3; }
-.howex-card figcaption { padding: 14px 16px; min-height: 133px; flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; }
-.howex-card-book figcaption { min-height: 168px; }
+.howex-num {
+  position: absolute; top: 10px; left: 10px;
+  width: 30px; height: 30px; min-width: 30px; min-height: 30px;
+  border-radius: 50%; box-sizing: border-box;
+  background: var(--purple); color: #fff; display: grid; place-items: center;
+  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .95rem; line-height: 1;
+  box-shadow: 0 4px 10px rgba(0,0,0,.4); z-index: 3;
+}
+.howex-card figcaption {
+  padding: 14px 16px; min-height: 120px; flex: 0 0 auto;
+  display: flex; flex-direction: column; justify-content: center;
+}
 .howex-card h3 { margin: 0 0 4px; color: #e9eefb; font-size: 1.2rem; }
 .howex-card p { margin: 0; color: #9fabce; font-size: .98rem; line-height: 1.4; }
 .howex-arrow { color: var(--yellow); align-self: center; animation: nudge 1.5s ease-in-out infinite; }
@@ -927,7 +939,6 @@ a.kcat-btn:active {
   object-position: center;
   background: #1a2748;
 }
-.howex-card-page img { object-position: center 46%; }
 
 .ex-tabs { display: flex; justify-content: center; align-items: flex-start; gap: 26px; flex-wrap: wrap; max-width: 900px; margin: 0 auto 36px; }
 /* Reset global `button { border-radius: 999px; box-shadow... }` so hero tabs stay square */
