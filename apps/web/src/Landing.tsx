@@ -370,6 +370,9 @@ function FlipBook({
   }, [hover]);
   const underSrc = anim === "next" ? pages[target] : pages[i];
   const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
+  const underIdx = anim === "next" ? target : i;
+  const leafIdx = anim === "next" ? i : (anim === "prev" ? target : i);
+  const pageKind = (idx: number) => (idx === 0 ? "fb-page--cover" : "fb-page--spread");
   const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -393,9 +396,9 @@ function FlipBook({
       {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label={L.prev}>‹</button>}
       <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={L.turn}>
         <span className="fb-spine" />
-        <img className="fb-page fb-under" src={exUrl(underSrc)} alt="" aria-hidden />
+        <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
         <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
-          <img className="fb-page" src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
+          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
           <span className="fb-leaf-shade" aria-hidden />
         </div>
         <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
@@ -511,12 +514,12 @@ const I18N = {
     privacy_link: "Privacidade",
     terms_link: "Termos",
     catalog: [
-      { t: "Martin, o Grande Goleiro do Chile", p: "No gol, coragem e perseverança: cair, levantar e continuar.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Cair, levantar e continuar!" },
-      { t: "Emilia e os Primeiros Passos da Bailarina", p: "Disciplina, equilíbrio e confiança nos primeiros passos do ballet.", age: "2-5 anos", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
-      { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e sorrir — pequenas aventuras, grandes conquistas.", age: "2-5 anos", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
-      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras, floresta e descobertas com Sofia como protagonista.", age: "3-6 anos", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
-      { t: "Bruno em uma aventura animal", p: "Uma jornada pela natureza para conhecer e cuidar dos animais.", age: "3-7 anos", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
-      { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pela natureza.", age: "4-8 anos", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
+      { t: "Martin, o Grande Goleiro do Chile", p: "Goleiro que cai, levanta e defende: coragem e perseverança no campo.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Cair, levantar e continuar!" },
+      { t: "Emilia e os Primeiros Passos da Bailarina", p: "Primeiros passos no ballet com disciplina, equilíbrio e confiança.", cover: "Soft", size: "M", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
+      { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e explorar o mundo em pequenas aventuras.", cover: "Soft", size: "M", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
+      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras e descobertas na floresta, alfabetizar brincando.", cover: "Soft", size: "M", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
+      { t: "Bruno em uma aventura animal", p: "Conhecer animais e cuidar da natureza numa jornada gentil.", cover: "Soft", size: "M", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
+      { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
     ],
     promise_title: "Cada detalhe pensado para ser especial",
     promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
@@ -654,12 +657,12 @@ const I18N = {
     privacy_link: "Privacy",
     terms_link: "Terms",
     catalog: [
-      { t: "Martin, the Great Goalkeeper of Chile", p: "In the goal: courage and grit — fall, get up, and keep going.", age: "ages 4-8", tag: "Sport and courage", quote: "Fall, rise, and keep going!" },
-      { t: "Emilia and the Ballerina's First Steps", p: "Discipline, balance and confidence in ballet's first steps.", age: "ages 2-5", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
-      { t: "Antonio and His Bicycle", p: "Pedal, learn and smile — small adventures, big wins.", age: "ages 2-5", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
-      { t: "Learning the Alphabet with Sofia", p: "Letters, forest and discoveries with Sofia as the hero.", age: "ages 3-6", tag: "Literacy through play", quote: "Every letter opens a new world." },
-      { t: "Bruno on an Animal Adventure", p: "A journey through nature to meet and care for the animals.", age: "ages 3-7", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
-      { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for nature.", age: "ages 4-8", tag: "Sport and courage", quote: "Small paddles, big victories." },
+      { t: "Martin, the Great Goalkeeper of Chile", p: "A goalkeeper who falls, rises and defends: courage and grit on the field.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Fall, rise, and keep going!" },
+      { t: "Emilia and the Ballerina's First Steps", p: "Ballet's first steps with discipline, balance and confidence.", cover: "Soft", size: "M", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
+      { t: "Antonio and His Bicycle", p: "Pedal, learn and explore the world in small adventures.", cover: "Soft", size: "M", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
+      { t: "Learning the Alphabet with Sofia", p: "Letters and forest discoveries — literacy through play.", cover: "Soft", size: "M", tag: "Literacy through play", quote: "Every letter opens a new world." },
+      { t: "Bruno on an Animal Adventure", p: "Meet animals and care for nature on a gentle journey.", cover: "Soft", size: "M", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
+      { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for the river.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Small paddles, big victories." },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -797,12 +800,12 @@ const I18N = {
     privacy_link: "Privacidad",
     terms_link: "Términos",
     catalog: [
-      { t: "Martin, el gran arquero de Chile", p: "En el arco: coraje y perseverancia — caer, levantarse y seguir.", age: "4-8 años", tag: "Deporte y coraje", quote: "¡Caer, levantarse y seguir!" },
-      { t: "Emilia y los primeros pasos de la bailarina", p: "Disciplina, equilibrio y confianza en los primeros pasos del ballet.", age: "2-5 años", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
-      { t: "Antonio y su bicicleta", p: "Pedalear, aprender y sonreír — pequeñas aventuras, grandes conquistas.", age: "2-5 años", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
-      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras, bosque y descubrimientos con Sofia como protagonista.", age: "3-6 años", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
-      { t: "Bruno en una aventura animal", p: "Una jornada por la naturaleza para conocer y cuidar a los animales.", age: "3-7 años", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
-      { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por la naturaleza.", age: "4-8 años", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
+      { t: "Martin, el gran arquero de Chile", p: "Arquero que cae, se levanta y defiende: coraje y perseverancia en el campo.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "¡Caer, levantarse y seguir!" },
+      { t: "Emilia y los primeros pasos de la bailarina", p: "Primeros pasos en el ballet con disciplina, equilibrio y confianza.", cover: "Soft", size: "M", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
+      { t: "Antonio y su bicicleta", p: "Pedalear, aprender y explorar el mundo en pequeñas aventuras.", cover: "Soft", size: "M", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
+      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras y descubrimientos en el bosque, alfabetizar jugando.", cover: "Soft", size: "M", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
+      { t: "Bruno en una aventura animal", p: "Conocer animales y cuidar la naturaleza en una jornada gentil.", cover: "Soft", size: "M", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
+      { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por el río.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -1139,7 +1142,11 @@ export function Landing() {
                 </div>
               </div>
               <div className="cat-body">
-                <div className="cat-badges"><span className="cat-age">{c.age}</span><span className="cat-tag">{c.tag}</span></div>
+                <div className="cat-badges">
+                  <span className="cat-cover-type">{c.cover}</span>
+                  <span className="cat-size">{c.size}</span>
+                  <span className="cat-tag">{c.tag}</span>
+                </div>
                 <h3>{c.t}</h3>
                 <p>{c.p}</p>
                 <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
