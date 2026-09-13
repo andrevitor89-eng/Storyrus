@@ -888,8 +888,13 @@ a.kcat-btn:active {
   display: block; width: 100%; aspect-ratio: 1 / 1; height: auto;
   object-fit: cover; object-position: center center; flex: none;
 }
-.howex-card-face img { object-position: center 20%; }
-.howex-card-avatar img { object-position: center 24%; }
+/* Match head size + eye line between photo (1) and avatar (2) */
+.howex-card-face img {
+  object-position: center 32%;
+  transform: scale(1.32);
+  transform-origin: center 32%;
+}
+.howex-card-avatar img { object-position: center 32%; }
 .howex-card-page img { object-position: center 40%; }
 .howex-card-book .howex-book {
   flex: 1; min-height: 0; aspect-ratio: 1 / 1; display: grid; place-items: center;
