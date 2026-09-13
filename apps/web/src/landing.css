@@ -79,36 +79,48 @@
 .lang button.on { background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; }
 .khamb { display: none; font-size: 1.6rem; background: none; border: none; cursor: pointer; color: #e9eefb; }
 
-/* ---------- header navy STORY.R.US ---------- */
+/* ---------- header: logo fora do banner (faixa nav) ---------- */
 .khead {
   position: sticky; top: 0; z-index: 100;
-  padding: 0;
-  background: #0b1226;
-  box-shadow: 0 8px 24px rgba(0,0,0,.28);
+  padding: 10px 0;
+  background: transparent;
+  box-shadow: none;
   color: #e9eefb;
   overflow: visible;
   isolation: isolate;
 }
 .khead-inner {
-  display: grid; grid-template-columns: minmax(150px, 210px) 1fr; align-items: stretch;
+  display: grid;
+  grid-template-columns: minmax(112px, 148px) minmax(0, 1fr);
+  align-items: center;
   max-width: var(--page-max); width: 100%; margin: 0 auto;
   padding: 0 var(--page-gutter); box-sizing: border-box;
-  column-gap: 14px;
+  column-gap: 16px;
 }
-.khead-main { min-width: 0; display: flex; flex-direction: column; }
+.khead-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  background: #121a33;
+  border: 1px solid #26315a;
+  border-radius: 18px;
+  box-shadow: 0 10px 28px rgba(0,0,0,.32);
+  padding: 6px 12px 8px;
+  overflow: visible;
+}
 .khead-top { width: 100%; }
 .khead-top-inner {
   display: flex; align-items: center; justify-content: flex-end;
-  width: 100%; margin: 0; padding: 0; min-height: 56px; box-sizing: border-box;
+  width: 100%; margin: 0; padding: 0; min-height: 44px; box-sizing: border-box;
 }
 .khead-utils {
-  display: flex; align-items: center; justify-content: flex-end; gap: 10px;
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px;
   min-height: auto; flex-wrap: wrap;
 }
 .kutil {
   display: inline-flex; align-items: center; gap: 7px;
-  padding: 8px 16px; border-radius: 999px; text-decoration: none;
-  background: #182343; color: #e9eefb; font-weight: 800; font-size: 1.05rem;
+  padding: 7px 14px; border-radius: 999px; text-decoration: none;
+  background: #182343; color: #e9eefb; font-weight: 800; font-size: 1rem;
   white-space: nowrap;
 }
 .kutil .ni { width: 20px; height: 20px; color: var(--yellow); filter: drop-shadow(0 0 5px rgba(244,183,64,.7)); }
@@ -117,10 +129,10 @@
   display: inline-flex; align-items: center; justify-content: center;
   justify-self: center; align-self: center;
   overflow: visible; padding: 0; margin: 0;
-  flex: none; max-width: none; width: 100%;
+  flex: none; width: auto; max-width: 100%;
 }
 .khead .kbrand img {
-  height: 116px;
+  height: 108px;
   width: auto;
   max-width: 100%;
   transform: none;
@@ -131,16 +143,20 @@
 .khead .lang { box-shadow: none; background: #182343; }
 .khead-bar { border-top: none; width: 100%; }
 .khead-bar-inner {
-  display: flex; align-items: center; gap: 12px; min-height: 56px;
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
   width: 100%; margin: 0; padding: 0; box-sizing: border-box;
+  overflow: visible;
 }
-.kcats { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+.kcats {
+  display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0;
+  flex-wrap: wrap;
+}
 .kcat { position: static; }
 .kcat-btn {
   display: inline-flex; align-items: center; gap: 5px;
   border: none; background: #182343; cursor: pointer;
-  padding: 7px 10px; border-radius: 10px;
-  color: #e9eefb; font-weight: 700; font-size: .8rem; font-family: inherit;
+  padding: 6px 9px; border-radius: 10px;
+  color: #e9eefb; font-weight: 700; font-size: .74rem; font-family: inherit;
   white-space: nowrap; text-decoration: none;
   box-shadow:
     0 0 0 1px rgba(244,183,64,.35),
@@ -214,7 +230,7 @@ a.kcat-btn:active {
   color: #e9eefb; text-decoration: none; font-weight: 700; font-size: .86rem;
   text-transform: none; white-space: nowrap;
 }
-.khead-links .kbtn { padding: 9px 14px; font-size: .85rem; }
+.khead-links .kbtn { padding: 8px 12px; font-size: .8rem; white-space: nowrap; }
 .kmobile { display: none; }
 @media (max-width: 1180px) and (min-width: 901px) {
   .kcat-btn { font-size: .8rem; padding: 8px 6px; gap: 5px; }
@@ -1247,10 +1263,16 @@ img.ex-tab-cover {
   .khamb { display: block; }
   .khead-bar { display: none; }
   .khead-cta { display: none; }
-  .khead { position: sticky; padding-right: 0; }
-  .khead-inner { padding-right: max(14px, var(--page-gutter)); }
-  .khead-top-inner { padding-right: 0; min-height: 64px; }
-  .khead-utils { gap: 6px; min-height: 56px; }
+  .khead { position: sticky; padding: 8px 0; }
+  .khead-inner {
+    grid-template-columns: minmax(96px, 120px) minmax(0, 1fr);
+    column-gap: 12px;
+    padding-right: max(14px, var(--page-gutter));
+  }
+  .khead .kbrand img { height: 88px; }
+  .khead-main { padding: 4px 10px; }
+  .khead-top-inner { padding-right: 0; min-height: 52px; }
+  .khead-utils { gap: 6px; min-height: auto; }
   .kutil { font-size: .88rem; padding: 6px 10px; }
   .kutil .ni { width: 16px; height: 16px; }
   .kmobile {
@@ -1295,8 +1317,8 @@ img.ex-tab-cover {
   .feat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.14); padding-bottom: 12px; }
   .featurebar .feat:last-child { border-bottom: none; }
   .knav .kbrand img { height: 88px; }
-  .khead-inner { grid-template-columns: minmax(110px, 150px) 1fr; column-gap: 10px; }
-  .khead .kbrand img { height: 92px; transform: none; }
+  .khead-inner { grid-template-columns: minmax(84px, 104px) minmax(0, 1fr); column-gap: 10px; }
+  .khead .kbrand img { height: 76px; transform: none; }
 }
 
 /* =========================================================
@@ -1355,7 +1377,12 @@ img.ex-tab-cover {
   background: radial-gradient(1200px 520px at 50% -140px, #dcecfb 0%, transparent 70%),
     linear-gradient(180deg, #f3f8ff 0%, #fff7ec 55%, #fff2db 100%); }
 [data-theme="light"] .kid .khead {
-  background: #fff; color: #1f3568; box-shadow: 0 8px 24px rgba(31,53,104,.1);
+  background: transparent; color: #1f3568; box-shadow: none;
+}
+[data-theme="light"] .kid .khead-main {
+  background: #fff;
+  border-color: #e6ebf5;
+  box-shadow: 0 8px 24px rgba(31,53,104,.1);
 }
 [data-theme="light"] .kid .kutil { background: #f4f6fb; color: #1f3568; }
 [data-theme="light"] .kid .khead .theme-toggle { background: #f4f6fb; }
