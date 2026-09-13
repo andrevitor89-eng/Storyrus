@@ -281,24 +281,27 @@ a.kcat-btn:active {
   display: flex;
   flex-wrap: nowrap;
   align-items: flex-start;
-  justify-content: center;
+  justify-content: space-between;
   margin: 0 auto;
   width: 100%;
-  max-width: min(1180px, 100%);
-  gap: 12px 16px;
-  overflow-x: auto;
+  max-width: min(720px, 100%);
+  gap: 8px;
+  overflow-x: visible;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
 .khero-tabs::-webkit-scrollbar { display: none; }
 .khero-tabs .ex-tab {
-  flex: 0 0 auto;
+  flex: 1 1 0;
   min-width: 0;
+  align-items: center;
 }
 .khero-tabs img.ex-tab-cover {
   display: block;
-  width: 140px;
+  width: 100%;
+  max-width: 148px;
   height: auto;
+  margin-inline: auto;
   aspect-ratio: 1 / 1;
   border-radius: 10px;
   object-fit: cover;
@@ -310,19 +313,21 @@ a.kcat-btn:active {
 }
 .khero-tabs .ex-tab > span:last-child {
   font-size: .7rem;
-  max-width: 140px;
+  max-width: 100%;
+  width: 100%;
   line-height: 1.22;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   height: auto;
+  text-align: center;
 }
 .kbanner-hero .fb-stage {
-  width: min(560px, 92vw);
-  aspect-ratio: 4 / 3;
+  width: min(720px, 96vw);
+  aspect-ratio: 17 / 10;
   background: transparent;
   border-radius: 12px;
-  overflow: hidden;
+  overflow: visible;
   filter: drop-shadow(0 22px 36px rgba(0,0,0,.35));
 }
 .kbanner-hero .fb-stage .fb-page,
@@ -334,11 +339,13 @@ a.kcat-btn:active {
 }
 .kbanner-hero .fb-page--cover {
   object-fit: contain !important;
-  transform: scale(0.98);
+  transform: scale(0.96);
   transform-origin: center center;
 }
 .kbanner-hero .fb-page--spread {
   object-fit: contain !important;
+  transform: scale(0.98);
+  transform-origin: center center;
 }
 .kbanner-hero .fb-spine,
 .kbanner-hero .fb-stage::before,
@@ -493,9 +500,10 @@ a.kcat-btn:active {
 .kbh-thumb-title .cover-story { font-size: clamp(.62rem, 2.5vw, .98rem); bottom: 7%; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 4px; }
-  .khero-tabs img.ex-tab-cover { width: 112px; }
-  .khero-tabs .ex-tab > span:last-child { max-width: 112px; font-size: .64rem; }
-  .kbanner-hero .fb-stage { width: min(480px, 94vw); aspect-ratio: 4 / 3; }
+  .khero-tabs { max-width: min(560px, 100%); gap: 6px; }
+  .khero-tabs img.ex-tab-cover { max-width: 112px; }
+  .khero-tabs .ex-tab > span:last-child { font-size: .64rem; }
+  .kbanner-hero .fb-stage { width: min(560px, 96vw); aspect-ratio: 17 / 10; }
   .kbh-frame { width: min(420px, 94vw); }
   .kbh-cover-title .cover-name { font-size: clamp(.85rem, 3.4vw, 1.15rem); }
   .kbh-cover-title .cover-story { font-size: clamp(1.05rem, 4.4vw, 1.45rem); }
