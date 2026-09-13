@@ -335,7 +335,7 @@ a.kcat-btn:active {
   transform-origin: center center;
 }
 .kbanner-hero .fb-page--spread {
-  object-fit: cover !important;
+  object-fit: contain !important;
 }
 .kbanner-hero .fb-spine,
 .kbanner-hero .fb-stage::before,
