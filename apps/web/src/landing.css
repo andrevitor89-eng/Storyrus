@@ -951,6 +951,14 @@ a.kcat-btn:active {
 }
 
 .ex-tabs { display: flex; justify-content: center; align-items: flex-start; gap: 26px; flex-wrap: wrap; max-width: 900px; margin: 0 auto 36px; }
+.ex-tabs.khero-tabs {
+  justify-content: space-between;
+  flex-wrap: nowrap;
+  max-width: min(720px, 100%);
+  gap: 8px;
+  margin: 0 auto;
+  overflow-x: visible;
+}
 /* Reset global `button { border-radius: 999px; box-shadow... }` so hero tabs stay square */
 .ex-tab {
   display: flex; flex-direction: column; align-items: center; gap: 10px;
