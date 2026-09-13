@@ -143,20 +143,20 @@
 .khead .lang { box-shadow: none; background: #182343; }
 .khead-bar { border-top: none; width: 100%; }
 .khead-bar-inner {
-  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  display: flex; align-items: center; gap: 8px; min-height: 44px;
   width: 100%; margin: 0; padding: 0; box-sizing: border-box;
-  overflow: visible;
+  overflow: visible; flex-wrap: nowrap;
 }
 .kcats {
-  display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0;
-  flex-wrap: wrap;
+  display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0;
+  flex-wrap: nowrap;
 }
-.kcat { position: static; }
+.kcat { position: static; flex: 0 1 auto; min-width: 0; }
 .kcat-btn {
-  display: inline-flex; align-items: center; gap: 5px;
+  display: inline-flex; align-items: center; gap: 4px;
   border: none; background: #182343; cursor: pointer;
-  padding: 6px 9px; border-radius: 10px;
-  color: #e9eefb; font-weight: 700; font-size: .74rem; font-family: inherit;
+  padding: 5px 8px; border-radius: 10px;
+  color: #e9eefb; font-weight: 700; font-size: .7rem; font-family: inherit;
   white-space: nowrap; text-decoration: none;
   box-shadow:
     0 0 0 1px rgba(244,183,64,.35),
@@ -224,7 +224,7 @@ a.kcat-btn:active {
 .kcat-all { grid-column: 1 / -1; justify-self: center; margin-top: 4px; }
 .khead-links {
   display: flex; align-items: center; gap: 10px; flex: none;
-  padding-left: 12px; border-left: none;
+  padding-left: 4px; border-left: none;
 }
 .khead-links a:not(.kbtn) {
   color: #e9eefb; text-decoration: none; font-weight: 700; font-size: .86rem;
