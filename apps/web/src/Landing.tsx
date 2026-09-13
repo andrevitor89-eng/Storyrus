@@ -923,30 +923,6 @@ export function Landing() {
         <div className="khead-inner">
         <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
         <div className="khead-main">
-          <div className="khead-top">
-            <div className="khead-top-inner">
-              <div className="khead-utils">
-                <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
-                  {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
-                </button>
-                <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
-                  <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
-                  <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-                  <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
-                </div>
-                <div className="khead-links">
-                  <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-                </div>
-                <button
-                  className="khamb"
-                  aria-label={t.a11y_menu}
-                  aria-expanded={navOpen}
-                  aria-controls="site-menu"
-                  onClick={() => setNavOpen((v) => !v)}
-                >☰</button>
-              </div>
-            </div>
-          </div>
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
@@ -996,6 +972,26 @@ export function Landing() {
                   {t.reviews_link}
                 </a>
               </nav>
+              <div className="khead-utils">
+                <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
+                  {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+                </button>
+                <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
+                  <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
+                  <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
+                  <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
+                </div>
+                <div className="khead-links">
+                  <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                </div>
+                <button
+                  className="khamb"
+                  aria-label={t.a11y_menu}
+                  aria-expanded={navOpen}
+                  aria-controls="site-menu"
+                  onClick={() => setNavOpen((v) => !v)}
+                >☰</button>
+              </div>
             </div>
           </div>
         </div>
