@@ -934,6 +934,9 @@ export function Landing() {
                   <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
                   <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
                 </div>
+                <div className="khead-links">
+                  <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                </div>
                 <button
                   className="khamb"
                   aria-label={t.a11y_menu}
@@ -993,9 +996,6 @@ export function Landing() {
                   {t.reviews_link}
                 </a>
               </nav>
-              <div className="khead-links">
-                <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
-              </div>
             </div>
           </div>
         </div>
