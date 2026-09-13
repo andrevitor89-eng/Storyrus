@@ -1324,9 +1324,9 @@ img.ex-tab-cover {
   .featurebar { grid-template-columns: 1fr; }
   .feat { border-right: none; border-bottom: 1px solid rgba(255,255,255,.14); padding-bottom: 12px; }
   .featurebar .feat:last-child { border-bottom: none; }
-  .knav .kbrand img { height: 88px; }
+  .knav .kbrand img { height: 72px; }
   .khead-inner { grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; }
-  .khead .kbrand img { height: 76px; transform: none; }
+  .khead .kbrand img { height: 64px; transform: none; }
 }
 
 /* =========================================================
