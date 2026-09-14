@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@500;600;700&family=Lilita+One&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Quicksand:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Fredoka:wght@500;600;700&family=Lilita+One&family=Playfair+Display:wght@400;600&family=Quicksand:wght@400;500;600;700&display=swap');
 
 /* ---------- base ---------- */
 .kid {
@@ -147,7 +147,7 @@
   max-width: 100%;
   transform: none;
   transform-origin: center center;
-  filter: none;
+  filter: saturate(0.75) brightness(0.92);
 }
 .khead .theme-toggle { background: #182343; color: var(--coral); box-shadow: none; }
 .khead .lang { box-shadow: none; background: #182343; }
@@ -298,18 +298,7 @@ a.kcat-btn:active {
   text-align: center; width: 100%; max-width: 100%;
   display: flex; flex-direction: column; align-items: center; gap: 28px;
 }
-.khero-intro h1 {
-  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
-  font-weight: 600;
-  font-size: clamp(1.85rem, 3vw, 2.85rem);
-  line-height: 1.22;
-  margin: 0;
-  letter-spacing: .01em;
-}
-.khero-intro h1 em {
-  font-style: italic;
-  font-weight: 600;
-}
+.khero-intro h1 { font-size: clamp(1.75rem, 2.8vw, 2.65rem); line-height: 1.2; margin: 0; }
 .khero-intro .keyebrow { margin: 0; }
 .khero-flip {
   width: 100%;
