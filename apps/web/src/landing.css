@@ -930,10 +930,10 @@ a.kcat-btn:active {
   display: block; width: 100%; height: 100%;
   object-fit: cover; object-position: center center;
 }
-/* Raise photo so eyes match avatar eye line */
+/* Nudge photo down so eyes match avatar eye line */
 .howex-card-face .howex-media img {
   object-position: center 30%;
-  transform: scale(1.55) translateY(-14%);
+  transform: scale(1.55) translateY(-4%);
   transform-origin: center 30%;
 }
 .howex-card-avatar .howex-media img { object-position: center 22%; }
