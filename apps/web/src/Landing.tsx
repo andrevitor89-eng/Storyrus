@@ -1095,7 +1095,9 @@ export function Landing() {
             {t.hiw.map((h, i) => (
               <Fragment key={h.t}>
                 <figure className={`howex-card${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
-                  <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                  <div className="howex-media">
+                    <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                  </div>
                   <span className="howex-num">{i + 1}</span>
                   <figcaption>
                     <h3>{h.t}</h3>
