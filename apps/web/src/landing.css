@@ -930,13 +930,13 @@ a.kcat-btn:active {
   display: block; width: 100%; height: 100%;
   object-fit: cover; object-position: center center;
 }
-/* Zoom stays inside the square crop so it never covers the caption */
+/* Same head fill + eye line: photo zooms to match avatar crop */
 .howex-card-face .howex-media img {
-  object-position: center 28%;
-  transform: scale(1.28);
-  transform-origin: center 30%;
+  object-position: center 22%;
+  transform: scale(1.55);
+  transform-origin: center 22%;
 }
-.howex-card-avatar .howex-media img { object-position: center 28%; }
+.howex-card-avatar .howex-media img { object-position: center 22%; }
 .howex-card-page .howex-media img { object-position: center 40%; }
 .howex-card-book .howex-book {
   flex: 1; min-height: 0; aspect-ratio: 1 / 1; display: grid; place-items: center;
