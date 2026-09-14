@@ -147,7 +147,7 @@
   max-width: 100%;
   transform: none;
   transform-origin: center center;
-  filter: saturate(0.75) brightness(0.92);
+  filter: none;
 }
 .khead .theme-toggle { background: #182343; color: var(--coral); box-shadow: none; }
 .khead .lang { box-shadow: none; background: #182343; }
