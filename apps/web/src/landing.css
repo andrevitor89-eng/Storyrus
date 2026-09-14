@@ -361,19 +361,19 @@ a.kcat-btn:active {
 .kbanner-hero .fb-stage .fb-page,
 .kbanner-hero .fb-leaf .fb-page,
 .kbanner-hero img.fb-page {
-  object-position: center center !important;
+  object-position: center bottom !important;
   background: transparent;
   border-radius: 12px;
 }
 .kbanner-hero .fb-page--cover {
   object-fit: contain !important;
   transform: scale(0.96);
-  transform-origin: center center;
+  transform-origin: center bottom;
 }
 .kbanner-hero .fb-page--spread {
   object-fit: contain !important;
   transform: scale(0.98);
-  transform-origin: center center;
+  transform-origin: center bottom;
 }
 .kbanner-hero .fb-spine,
 .kbanner-hero .fb-stage::before,
