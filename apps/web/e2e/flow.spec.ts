@@ -105,8 +105,10 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
 
 test("landing leva ao estúdio", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("link", { name: /criar minha história/i }).first()).toBeVisible();
-  await page.getByRole("link", { name: /criar minha história/i }).first().click();
+  // Hero CTA atual: t.hero_cta → "Criar meu livro" (cta_story não é mais o link principal)
+  const heroCta = page.getByRole("link", { name: /^criar meu livro$/i });
+  await expect(heroCta).toBeVisible();
+  await heroCta.click();
   await expect(page).toHaveURL(/\/app/);
   await expect(page.getByRole("button", { name: /criar projeto/i })).toBeVisible();
 });
@@ -129,11 +131,12 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await expect(page.getByRole("button", { name: /enviar foto/i })).toBeDisabled();
   await page.getByRole("checkbox", { name: /responsável legal/i }).check();
   await page.getByRole("button", { name: /enviar foto/i }).click();
-  await expect(page.getByText("AVATAR")).toBeVisible();
-  await expect(page.getByText("DONE").first()).toBeVisible({ timeout: 15_000 });
+  // exact / jtype: evita colidir com status do projeto (AVATAR_READY / STORY_READY)
+  await expect(page.getByText("AVATAR", { exact: true })).toBeVisible();
+  await expect(page.getByText("DONE", { exact: true }).first()).toBeVisible({ timeout: 15_000 });
 
   await page.getByRole("button", { name: /gerar história com ia/i }).click();
-  await expect(page.getByText("STORY")).toBeVisible();
+  await expect(page.getByText("STORY", { exact: true })).toBeVisible();
   await expect(page.getByText(/pagina 1: ola/i)).toBeVisible({ timeout: 15_000 });
 });
 
