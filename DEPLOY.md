@@ -18,7 +18,9 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
 
 - **Frontend**: `apps/web` (Vite + React). Vai na **Vercel**.
 - **Backend**: `backend` (FastAPI). Vai no **Render** (Docker), com um **worker** que processa os jobs (personagem, história, e-book, vídeo) e um **Postgres**.
-- **Storage**: **Cloudflare R2** (em produção; o MinIO é só para desenvolvimento local).
+- **Storage**: **Cloudflare R2** em produção (variáveis `STORAGE_*`). Localmente o
+  compose **não** sobe MinIO — use as mesmas vars apontando para R2 (ou outro
+  endpoint S3-compatible que você configure à parte).
 - **Redis**: opcional. Sem ele, o worker faz *polling* do banco e tudo funciona.
 
 > As chaves (Gemini, Anthropic, Kling, ElevenLabs, R2) **nunca** ficam no repositório — só em variáveis de ambiente. O `.env` está no `.gitignore`.
@@ -58,7 +60,11 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
 2. **Root Directory**: deixe na **raiz** do repo (o `vercel.json` da raiz já manda construir `apps/web`).
 3. Framework/Build/Output já vêm do `vercel.json`. Clique em **Deploy**.
 4. Confirme que o `/v1` aponta para a sua API do Render:
-   - Em `vercel.json` (raiz e `apps/web`), a `destination` deve ser a URL real da api (ex.: `https://storyrus-api.onrender.com`). Se a URL do Render for diferente, ajuste e dê `git push` (a Vercel redeploya sozinha).
+   - Há **dois** `vercel.json`: na **raiz** (usado quando o Root Directory da Vercel
+     é a raiz do repo — o fluxo oficial) e em `apps/web/` (espelho se o root
+     directory for `apps/web`). As `destination` de `/v1` e `/health` devem
+     permanecer **iguais** nos dois arquivos (hoje: `https://storyrus-api.onrender.com`).
+     Se a URL do Render mudar, atualize **ambos** e dê `git push`.
 
 ### Como ver o site
 - URL canônica: **https://storyrus.ai**
@@ -127,16 +133,19 @@ Propagação: minutos na maioria dos casos; até 24–48 h se havia parking. Rev
 
 ## Desenvolvimento local (opcional)
 
-Tudo roda em Docker:
+Backend (Postgres + Redis + API + worker) via `backend/docker-compose.yml`:
 
 ```bash
-docker compose up -d --build
+cp backend/.env.example backend/.env   # preencha STORAGE_* e chaves de IA
+cd backend && docker compose up -d --build
 ```
 
-- Web: http://localhost:5173
 - API: http://localhost:8000/docs
-- Storage local (MinIO): console em http://localhost:9001
-- As variáveis ficam em `backend/.env` (veja `backend/.env.example`).
+- Web (separado): `cd apps/web && npm install && npm run dev` → http://localhost:5173
+- Storage: configure `STORAGE_*` em `backend/.env` (R2 ou S3-compatible). O compose
+  **não** inclui MinIO nem o frontend.
+
+Detalhes: `README.md` (raiz) e `backend/README.md`.
 
 ---
 
