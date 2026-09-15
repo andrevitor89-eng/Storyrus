@@ -1,19 +1,22 @@
 # Stories Web (frontend)
 
-Vite + React + TypeScript. Fluxo: login/signup → criar projeto → upload de foto →
-escolher estilo → disparar etapas (avatar/história/ebook/vídeo) com **progresso ao
+Vite + React + TypeScript. Fluxo **guest-first**: o estúdio pede um JWT de
+convidado (`POST /v1/auth/guest`) na primeira chamada à API → criar projeto →
+upload de foto → disparar etapas (avatar/história/ebook/vídeo) com **progresso ao
 vivo** via polling dos jobs.
 
 ## Rotas
 
-`react-router-dom` separa marketing de produto:
+`react-router-dom` separa marketing de produto (`Root.tsx`):
 
-- `/` — **Landing** de marketing (bilíngue PT/EN, tema mágico). Os CTAs levam a `/app`.
-- `/app` — **App** do produto: `Auth` → `Studio`.
+- `/` — **Landing** de marketing (bilíngue PT/EN). Os CTAs levam a `/app`.
+- `/app` — **Estúdio** (`App` → `Studio`); sem tela de login.
+- `/gastos` — painel privado de custos USD.
+- `/privacidade`, `/termos` (+ aliases EN) — páginas legais.
 
-`App`/`Auth`/`Studio` não dependem do router (os testes os renderizam direto). O
-roteamento vive em `Root.tsx`; a landing é `Landing.tsx` + `landing.css` (estilos
-isolados sob `.lp`, sem conflito com o tema escuro do estúdio em `styles.css`).
+`App`/`Studio` não dependem do router (os testes os renderizam direto). A landing
+é `Landing.tsx` + `landing.css` (estilos isolados sob `.lp`, sem conflito com o
+tema do estúdio em `styles.css`).
 
 ## Rodar
 
@@ -22,7 +25,7 @@ npm install
 npm run dev        # http://localhost:5173 (proxy /v1 -> http://localhost:8000)
 ```
 
-A API precisa estar de pé (`cd ../../backend && docker compose up`).
+A API precisa estar de pé (`cd ../../backend && docker compose up --build`).
 
 ## Testes
 
@@ -35,25 +38,26 @@ npm run test:run   # uma passada (CI)
 
 Cobertura dos testes:
 
-- `Auth.test.tsx` — signup com sucesso; erro de credenciais no login.
-- `App.test.tsx` (E2E) — signup → criar projeto → upload → disparar história →
-  progresso `PENDING → RUNNING → DONE` → história exibida → crédito debitado (10→9);
-  bloqueio de "gerar personagem" sem foto; logout volta ao login.
+- `App.test.tsx` — estúdio sem login → criar projeto → upload → personagem/história
+  com progresso via polling; habilitar ebook após aprovar personagem.
+- `Studio.test.tsx` — componentes de progresso do estúdio.
+- `Usage.test.tsx` — painel `/gastos`.
 
 Os mocks ficam em `src/test/server.ts` (handlers MSW com estado em memória que imita
-projetos, jobs e o avanço de status a cada polling).
+projetos, jobs, guest auth e o avanço de status a cada polling).
 
 ## Estrutura
 
 ```
 src/
-  api.ts        # client REST (token em memória, Idempotency-Key por etapa)
+  api.ts        # client REST (token em memória, guest JWT, Idempotency-Key por etapa)
   types.ts      # tipos compartilhados com a API
-  Auth.tsx      # login/signup
   Studio.tsx    # projeto, upload, etapas e progresso ao vivo
-  App.tsx       # alterna Auth/Studio
+  App.tsx       # renderiza o Studio (guest-first)
   Landing.tsx   # landing de marketing (bilíngue PT/EN)
   landing.css   # estilos da landing, isolados sob .lp
-  Root.tsx      # roteamento: / (Landing) e /app (App)
+  Usage.tsx     # painel de gastos
+  Legal.tsx     # privacidade / termos
+  Root.tsx      # roteamento: /, /app, /gastos, legales
   test/         # setup + servidor MSW
 ```
