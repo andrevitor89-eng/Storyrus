@@ -35,11 +35,24 @@ backend/
 
 ## Rodar local (Docker)
 
+Na raiz do monorepo (preferido):
+
+```bash
+make init && make up          # Postgres + Redis + API + worker
+# Swagger: http://localhost:8000/docs
+# Frontend: make web  (apps/web; proxy /v1 → :8000)
+```
+
+Ou só neste diretório:
+
 ```bash
 cp .env.example .env          # preencha as chaves de IA
-docker compose up --build     # sobe Postgres + Redis + API (migra automático)
+docker compose up --build     # sobe Postgres + Redis + API + worker (migra automático)
 # Swagger: http://localhost:8000/docs
 ```
+
+Dentro do compose, `DATABASE_URL` / `REDIS_URL` apontam para os serviços `db` e
+`redis` (o `.env.example` usa `localhost` para quem roda a API no host).
 
 ## Rodar local (sem Docker)
 

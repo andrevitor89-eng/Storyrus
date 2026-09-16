@@ -79,7 +79,7 @@ diag.txt
 # (mantidos no PC, fora do GitHub)
 *.bat
 /docker-compose.yml
-/Makefile
+# /Makefile — versionado (STO-10): orquestra backend/docker-compose.yml + make web
 /logo.png
 *.docx
 examples/
