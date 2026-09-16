@@ -21,31 +21,35 @@ apps/mobile/  # App Expo (React Native): mesmo fluxo no celular → apps/mobile/
 - **frontend** — `tsc --noEmit` + `vitest run` + `vite build`.
 - **e2e** — `playwright test` (navegador real, API mockada), com relatório anexado.
 
-## Subir tudo (um comando)
+## Rodar local
 
-O `docker-compose.yml` na raiz sobe **db + redis + api + worker + web** juntos:
-
-```bash
-make init                     # copia backend/.env (preencha as CHAVES depois)
-make up                       # docker compose up --build
-#  API: http://localhost:8000/docs   ·   Web: http://localhost:5173
-```
-
-Popular dados e validar o fluxo ponta a ponta:
+O compose em `backend/docker-compose.yml` sobe **Postgres + Redis + API + worker**
+(não inclui frontend nem MinIO):
 
 ```bash
-make seed                     # cria demo@forteshub.com / demo12345 (50 créditos)
-make demo                     # exercita signup → projeto → upload → etapas → jobs
+cp backend/.env.example backend/.env   # preencha as CHAVES depois
+cd backend && docker compose up --build
+#  API: http://localhost:8000/docs
 ```
 
-> Sem `make`, use os comandos equivalentes: `cp backend/.env.example backend/.env`,
-> `docker compose up --build`, `docker compose run --rm api python scripts/seed.py`.
+Popular dados e validar o fluxo da API:
 
-Rodar só o frontend em modo dev (com a API já de pé):
+```bash
+cd backend
+docker compose run --rm api python scripts/seed.py
+# cria demo@forteshub.com / demo12345 (50 créditos)
+API_URL=http://localhost:8000 python scripts/demo_flow.py
+# exercita signup → projeto → upload → etapas → jobs
+```
+
+Frontend em modo dev (com a API já de pé):
 
 ```bash
 cd apps/web && npm install && npm run dev   # proxy /v1 -> :8000 (VITE_API_PROXY)
+#  Web: http://localhost:5173
 ```
+
+Deploy em produção: `DEPLOY.md` (Vercel + Render). Detalhes da API: `backend/README.md`.
 
 ## Chaves a preencher (`backend/.env`)
 
@@ -64,14 +68,17 @@ Sem as chaves de IA/storage, a API e os workers sobem e o fluxo de
 créditos/jobs/idempotência roda; as chamadas de geração falham de forma controlada
 (estado `FAILED` + estorno).
 
+Storage local: configure `STORAGE_*` apontando para **Cloudflare R2** (ou outro
+S3-compatible). O compose **não** sobe MinIO — veja `DEPLOY.md`.
+
 ## Fluxo
 
-1. Cria conta → recebe créditos de bônus.
+1. Abre o estúdio (`/app`) — o front pede um **JWT de convidado** (`POST /v1/auth/guest`).
 2. Cria projeto e escolhe o estilo.
 3. Envia a foto (URL assinada).
 4. Dispara as etapas (avatar → história → ebook → vídeo). Cada uma debita créditos,
    enfileira um job e responde **202**; o worker processa e o front acompanha o
    progresso ao vivo.
 
-Detalhes de arquitetura, dados, segurança/LGPD e roadmap: `backend/README.md` e os
-documentos `Arquitetura_*.docx`.
+Signup/login (`POST /v1/auth/signup` / `login`) continuam disponíveis na API
+(ex.: seed/demo e mobile); o web atual é guest-first.
