@@ -1,8 +1,34 @@
 """Configuracao central da aplicacao (12-factor: tudo via ambiente)."""
 from functools import lru_cache
-from typing import Literal
+from typing import Literal, Self
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Defaults inseguros: fora de `dev` a API/worker recusam subir com estes valores.
+_UNSAFE_SECRET_VALUES = frozenset(
+    {
+        "",
+        "change-me",
+        "change-me-in-prod",
+        "change-me-webhook",
+        "changeme",
+        "secret",
+        "password",
+    }
+)
+
+
+def _is_unsafe_secret(value: str | None) -> bool:
+    if value is None:
+        return False
+    cleaned = value.strip()
+    if not cleaned:
+        return True
+    low = cleaned.lower()
+    if low in _UNSAFE_SECRET_VALUES:
+        return True
+    return low.startswith("change-me")
 
 
 class Settings(BaseSettings):
@@ -23,6 +49,10 @@ class Settings(BaseSettings):
     access_token_ttl_min: int = 60 * 24
     # Vazio / default = POST /v1/credits/grant recusa. Nao exponha no front.
     credit_grant_secret: str = ""
+    # Anti-farming em POST /v1/auth/guest (0 = desliga aquele eixo).
+    guest_rate_limit_per_ip: int = 10
+    guest_rate_limit_per_fingerprint: int = 5
+    guest_rate_limit_window_s: int = 3600
 
     # Storage (R2/S3)
     storage_bucket: str = "stories-dev"
@@ -120,6 +150,9 @@ class Settings(BaseSettings):
     job_max_attempts: int = 5
     retry_backoff_base_s: float = 2.0
     retry_backoff_max_s: float = 60.0
+    # Sem heartbeat por este tempo => RUNNING volta a PENDING (worker morreu).
+    job_stale_timeout_s: float = 900.0
+    job_heartbeat_interval_s: float = 30.0
     ebook_pages: int = 12
     # True = refine de cena permitido. Quem dispara e o juiz de rosto
     # (`ebook_face_match`); false nunca refina (corte de custo).
@@ -146,6 +179,29 @@ class Settings(BaseSettings):
     opik_project_name: str = "storyrus"
     opik_url_override: str | None = None
     opik_eval_story: bool = True
+
+    @model_validator(mode="after")
+    def _refuse_insecure_defaults_outside_dev(self) -> Self:
+        """STO-8: staging/prod nao sobem com secrets `change-me-*`."""
+        if self.app_env == "dev":
+            return self
+        bad: list[str] = []
+        if _is_unsafe_secret(self.jwt_secret):
+            bad.append("JWT_SECRET")
+        if _is_unsafe_secret(self.webhook_signing_secret):
+            bad.append("WEBHOOK_SIGNING_SECRET")
+        # So recusa se o valor estiver explicitamente setado para default inseguro
+        # (None/ausente e ok — storage pode ser local/offline).
+        if self.storage_access_key is not None and _is_unsafe_secret(self.storage_access_key):
+            bad.append("STORAGE_ACCESS_KEY")
+        if self.storage_secret_key is not None and _is_unsafe_secret(self.storage_secret_key):
+            bad.append("STORAGE_SECRET_KEY")
+        if bad:
+            raise ValueError(
+                f"APP_ENV={self.app_env}: recusando secrets inseguros/default em "
+                f"{', '.join(bad)}. Defina valores fortes via ambiente."
+            )
+        return self
 
 
 @lru_cache
