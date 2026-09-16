@@ -10,9 +10,10 @@ describe("startStep Idempotency-Key", () => {
     fetchMock.mockReset();
     vi.stubGlobal("fetch", fetchMock);
     let n = 0;
-    vi.spyOn(globalThis.crypto, "randomUUID").mockImplementation(
-      () => `stable-uuid-${++n}`,
-    );
+    vi.spyOn(globalThis.crypto, "randomUUID").mockImplementation(() => {
+      const id = String(++n).padStart(12, "0");
+      return `00000000-0000-4000-8000-${id}`;
+    });
   });
 
   afterEach(() => {
@@ -47,7 +48,7 @@ describe("startStep Idempotency-Key", () => {
     await vi.waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
 
     const headers = new Headers(fetchMock.mock.calls[0][1].headers);
-    expect(headers.get("Idempotency-Key")).toBe("stable-uuid-1");
+    expect(headers.get("Idempotency-Key")).toBe("00000000-0000-4000-8000-000000000001");
 
     resolveFetch!(
       new Response(JSON.stringify({ job_id: "j1", estimated_cost_credits: 1 }), {
@@ -75,7 +76,7 @@ describe("startStep Idempotency-Key", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
     const key1 = new Headers(fetchMock.mock.calls[0][1].headers).get("Idempotency-Key");
     const key2 = new Headers(fetchMock.mock.calls[1][1].headers).get("Idempotency-Key");
-    expect(key1).toBe("stable-uuid-1");
+    expect(key1).toBe("00000000-0000-4000-8000-000000000001");
     expect(key2).toBe(key1);
   });
 
@@ -93,8 +94,8 @@ describe("startStep Idempotency-Key", () => {
 
     const key1 = new Headers(fetchMock.mock.calls[0][1].headers).get("Idempotency-Key");
     const key2 = new Headers(fetchMock.mock.calls[1][1].headers).get("Idempotency-Key");
-    expect(key1).toBe("stable-uuid-1");
-    expect(key2).toBe("stable-uuid-2");
+    expect(key1).toBe("00000000-0000-4000-8000-000000000001");
+    expect(key2).toBe("00000000-0000-4000-8000-000000000002");
   });
 
   it("emite chave nova após erro HTTP definitivo", async () => {
@@ -113,8 +114,8 @@ describe("startStep Idempotency-Key", () => {
 
     const key1 = new Headers(fetchMock.mock.calls[0][1].headers).get("Idempotency-Key");
     const key2 = new Headers(fetchMock.mock.calls[1][1].headers).get("Idempotency-Key");
-    expect(key1).toBe("stable-uuid-1");
-    expect(key2).toBe("stable-uuid-2");
+    expect(key1).toBe("00000000-0000-4000-8000-000000000001");
+    expect(key2).toBe("00000000-0000-4000-8000-000000000002");
   });
 
   it("isola chaves por projeto e por etapa", async () => {
@@ -129,6 +130,10 @@ describe("startStep Idempotency-Key", () => {
     const keys = fetchMock.mock.calls.map((call) =>
       new Headers(call[1].headers).get("Idempotency-Key"),
     );
-    expect(keys).toEqual(["stable-uuid-1", "stable-uuid-2", "stable-uuid-3"]);
+    expect(keys).toEqual([
+      "00000000-0000-4000-8000-000000000001",
+      "00000000-0000-4000-8000-000000000002",
+      "00000000-0000-4000-8000-000000000003",
+    ]);
   });
 });
