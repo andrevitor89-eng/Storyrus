@@ -1151,9 +1151,7 @@ async def _score_page_face(
             )
         if attempt < attempts:
             await asyncio.sleep(min(4.0, 0.8 * attempt))
-    logger.warning(
-        "Juiz de rosto da pagina sem nota apos retry; segue para Fal/portao"
-    )
+    logger.warning("Juiz de rosto da pagina sem nota apos retry; segue para Fal/portao")
     return None
 
 

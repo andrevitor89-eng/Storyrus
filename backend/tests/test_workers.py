@@ -369,9 +369,7 @@ async def test_avatar_face_judge_none_retries_then_fails(db, mem_storage, monkey
     assert len(score_calls) == 4
 
 
-async def test_avatar_face_judge_exception_retries_then_succeeds(
-    db, mem_storage, monkeypatch
-):
+async def test_avatar_face_judge_exception_retries_then_succeeds(db, mem_storage, monkeypatch):
     """STO-37: falha transitória do juiz retenta e segue se a nota voltar."""
     score_calls: list[int] = []
 

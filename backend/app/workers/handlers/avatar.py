@@ -44,9 +44,7 @@ from .common import (
 logger = logging.getLogger("worker")
 
 # STO-37: juiz sem nota apos retry nao pode soft-skip o avatar em silencio.
-AVATAR_FACE_JUDGE_ERROR = (
-    "juiz de rosto falhou apos retry; identidade do avatar nao verificada"
-)
+AVATAR_FACE_JUDGE_ERROR = "juiz de rosto falhou apos retry; identidade do avatar nao verificada"
 
 
 def _pkg():
