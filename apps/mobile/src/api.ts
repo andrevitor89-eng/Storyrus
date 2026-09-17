@@ -19,6 +19,32 @@ function uuid(): string {
   });
 }
 
+/** Idempotency-Key estável por projeto+etapa enquanto a tentativa estiver viva. */
+const stepIdempotencyKeys = new Map<string, string>();
+const stepInFlight = new Map<string, Promise<unknown>>();
+
+function stepCacheKey(projectId: string, step: string): string {
+  return `${projectId}:${step}`;
+}
+
+function getOrCreateStepIdempotencyKey(projectId: string, step: string): string {
+  const cacheKey = stepCacheKey(projectId, step);
+  let key = stepIdempotencyKeys.get(cacheKey);
+  if (!key) {
+    key = uuid();
+    stepIdempotencyKeys.set(cacheKey, key);
+  }
+  return key;
+}
+
+function releaseStepIdempotencyKey(projectId: string, step: string): void {
+  stepIdempotencyKeys.delete(stepCacheKey(projectId, step));
+}
+
+function isHttpErrorMessage(message: string): boolean {
+  return /^\d{3}:/.test(message);
+}
+
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
@@ -67,10 +93,39 @@ export const api = {
       /* storage stub em dev */
     }
   },
-  startStep: (id: string, step: "avatar" | "story" | "ebook" | "video", body: object = {}) =>
-    req<{ job_id: string; estimated_cost_credits: number }>(`/v1/projects/${id}/${step}`, {
-      method: "POST",
-      headers: { "Idempotency-Key": uuid() },
-      body: JSON.stringify(body),
-    }),
+  startStep(id: string, step: "avatar" | "story" | "ebook" | "video", body: object = {}) {
+    // Clique duplo / retry em voo: mesma promise + mesma Idempotency-Key.
+    const cacheKey = stepCacheKey(id, step);
+    const inFlight = stepInFlight.get(cacheKey);
+    if (inFlight) {
+      return inFlight as Promise<{ job_id: string; estimated_cost_credits: number }>;
+    }
+
+    const idempotencyKey = getOrCreateStepIdempotencyKey(id, step);
+    const promise = (async () => {
+      try {
+        const accepted = await req<{ job_id: string; estimated_cost_credits: number }>(
+          `/v1/projects/${id}/${step}`,
+          {
+            method: "POST",
+            headers: { "Idempotency-Key": idempotencyKey },
+            body: JSON.stringify(body),
+          },
+        );
+        releaseStepIdempotencyKey(id, step);
+        return accepted;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "";
+        if (isHttpErrorMessage(message)) {
+          releaseStepIdempotencyKey(id, step);
+        }
+        throw err;
+      } finally {
+        stepInFlight.delete(cacheKey);
+      }
+    })();
+
+    stepInFlight.set(cacheKey, promise);
+    return promise;
+  },
 };

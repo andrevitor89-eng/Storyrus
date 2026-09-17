@@ -64,6 +64,39 @@ function uuid(): string {
   return crypto.randomUUID();
 }
 
+/** Idempotency-Key estável por projeto+etapa enquanto a tentativa estiver viva. */
+const stepIdempotencyKeys = new Map<string, string>();
+const stepInFlight = new Map<string, Promise<unknown>>();
+
+function stepCacheKey(projectId: string, step: string): string {
+  return `${projectId}:${step}`;
+}
+
+function getOrCreateStepIdempotencyKey(projectId: string, step: string): string {
+  const cacheKey = stepCacheKey(projectId, step);
+  let key = stepIdempotencyKeys.get(cacheKey);
+  if (!key) {
+    key = uuid();
+    stepIdempotencyKeys.set(cacheKey, key);
+  }
+  return key;
+}
+
+function releaseStepIdempotencyKey(projectId: string, step: string): void {
+  stepIdempotencyKeys.delete(stepCacheKey(projectId, step));
+}
+
+/** Erros HTTP do `req` (ex.: "402: ...") vs falha de rede/ambígua. */
+function isHttpErrorMessage(message: string): boolean {
+  return /^\d{3}:/.test(message);
+}
+
+/** Limpa estado de idempotência (só para testes). */
+export function resetStepIdempotencyState(): void {
+  stepIdempotencyKeys.clear();
+  stepInFlight.clear();
+}
+
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const skipGuest =
     path.startsWith("/v1/auth/signup") ||
@@ -217,16 +250,41 @@ export const api = {
       /* storage stub local */
     }
   },
-  async startStep(
+  startStep(
     id: string,
     step: "avatar" | "realistic" | "story" | "ebook" | "video" | "extra-character" | "narrated-video",
     body: Record<string, unknown> = {},
-  ) {
-    return req<JobAccepted>(`/v1/projects/${id}/${step}`, {
-      method: "POST",
-      headers: { "Idempotency-Key": uuid() },
-      body: JSON.stringify(body),
-    });
+  ): Promise<JobAccepted> {
+    // Clique duplo / retry em voo: mesma promise + mesma Idempotency-Key.
+    const cacheKey = stepCacheKey(id, step);
+    const inFlight = stepInFlight.get(cacheKey);
+    if (inFlight) return inFlight as Promise<JobAccepted>;
+
+    const idempotencyKey = getOrCreateStepIdempotencyKey(id, step);
+    const promise = (async () => {
+      try {
+        const accepted = await req<JobAccepted>(`/v1/projects/${id}/${step}`, {
+          method: "POST",
+          headers: { "Idempotency-Key": idempotencyKey },
+          body: JSON.stringify(body),
+        });
+        // Sucesso: libera a chave para um próximo start intencional (regenerar).
+        releaseStepIdempotencyKey(id, step);
+        return accepted;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "";
+        // Resposta HTTP definitiva: libera. Falha de rede: mantém a chave no retry.
+        if (isHttpErrorMessage(message)) {
+          releaseStepIdempotencyKey(id, step);
+        }
+        throw err;
+      } finally {
+        stepInFlight.delete(cacheKey);
+      }
+    })();
+
+    stepInFlight.set(cacheKey, promise);
+    return promise;
   },
   async listVoices() {
     return req<VoiceList>("/v1/voices");
