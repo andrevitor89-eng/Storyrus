@@ -6,6 +6,7 @@ Public API matches the former monolithic ``app.workers.handlers`` module:
 from __future__ import annotations
 
 from app import storage
+from app.ai_clients import get_image_provider, get_text_provider, get_video_provider
 from app.ai_clients.face_match import score_face_match
 from app.config import settings
 
@@ -35,7 +36,7 @@ from .story import (
     handle_storyboard,
     lock_page_identity,
 )
-from .video import _clamp_kling_duration, handle_video
+from .video import _clamp_kling_duration, _use_video_offline, handle_video
 
 HANDLERS = {
     "AVATAR": handle_avatar,
@@ -72,6 +73,10 @@ __all__ = [
     "_refine_scene",
     "_lock_avatar_identity",
     "_clamp_kling_duration",
+    "_use_video_offline",
+    "get_image_provider",
+    "get_text_provider",
+    "get_video_provider",
     "score_face_match",
     "settings",
     "storage",

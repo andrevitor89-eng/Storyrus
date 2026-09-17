@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients import get_video_provider
 from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, Job, Project, ProjectStatus
@@ -25,6 +24,11 @@ from .common import (
 from .story import _latest_storyboard
 
 logger = logging.getLogger("worker")
+
+def _pkg():
+    """Package root — tests monkeypatch providers/score on app.workers.handlers."""
+    from app.workers import handlers as pkg
+    return pkg
 
 def _kling_configured() -> bool:
     return bool(settings.kling_access_key and settings.kling_secret_key)
@@ -75,7 +79,7 @@ async def handle_video(db: Session, job: Job) -> None:
     base_image = storage.get_bytes(ref_key)
     source_url: str | None = None
     task = None
-    if _use_video_offline():
+    if _pkg()._use_video_offline():
         video_key = storage.new_key(project.id, AssetKind.VIDEO.value, "gif")
         video_label = "Animacao offline"
         if sb and sb.get("scenes"):
@@ -84,7 +88,7 @@ async def handle_video(db: Session, job: Job) -> None:
         stored = video_key
         source_url = "offline:local"
     else:
-        provider = get_video_provider(payload.get("provider") or job.provider)
+        provider = _pkg().get_video_provider(payload.get("provider") or job.provider)
 
         prompt = "Anime o personagem com movimento suave e expressivo."
         if sb and sb.get("scenes"):
@@ -129,7 +133,7 @@ async def handle_video(db: Session, job: Job) -> None:
     db.add(Asset(project_id=project.id, kind=AssetKind.VIDEO.value, storage_key=stored,
                  meta={"source": source_url, "kind": "animation"}))
     project.video_url = stored
-    if _use_video_offline():
+    if _pkg()._use_video_offline():
         job.cost_usd = 0.0
     else:
         billed = getattr(task, "cost_usd", None)

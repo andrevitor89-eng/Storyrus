@@ -8,7 +8,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients import get_image_provider
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
@@ -18,7 +17,6 @@ from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
 )
 from app.ai_clients.face_detect import face_reference, identity_images
-from app.ai_clients.face_match import score_face_match
 from app.ai_clients.image_pulid_fal import pulid_head_enabled
 from app.config import settings
 from app.models import Asset, AssetKind, Job, ProjectStatus
@@ -49,6 +47,11 @@ from .common import (
 
 logger = logging.getLogger("worker")
 
+def _pkg():
+    """Package root — tests monkeypatch providers/score on app.workers.handlers."""
+    from app.workers import handlers as pkg
+    return pkg
+
 async def handle_avatar(db: Session, job: Job) -> None:
     project = _project(db, job)
     update_trace(
@@ -77,7 +80,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
         )
     else:
         # Gemini gera o corpo CGI; Fal cola o rosto (sem chave: refine Gemini).
-        provider = get_image_provider(job.provider)
+        provider = _pkg().get_image_provider(job.provider)
         style = AVATAR_STYLE
         gen_refs = (await identity_images(refs[0])) + refs[1:]
         face = gen_refs[0]
@@ -159,7 +162,7 @@ async def _score_avatar_face(photo: bytes | None, scene: bytes) -> float | None:
     if not photo or not scene:
         return None
     try:
-        return await score_face_match(photo, scene)
+        return await _pkg().score_face_match(photo, scene)
     except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o avatar
         logger.warning("Juiz de rosto do avatar falhou; segue sem retry")
         return None
@@ -247,7 +250,7 @@ async def handle_extra_character(db: Session, job: Job) -> None:
     if not extras:
         raise ProviderError("Sem personagens extras para gerar", transient=False)
 
-    provider = get_image_provider(job.provider)
+    provider = _pkg().get_image_provider(job.provider)
     updated = False
 
     for idx, ec in enumerate(extras):
@@ -347,7 +350,7 @@ async def handle_realistic(db: Session, job: Job) -> None:
         raise ProviderError("Sem foto para gerar a imagem realistica", transient=False)
 
     photo_bytes = storage.get_bytes(photos[0].storage_key)
-    provider = get_image_provider(job.provider)
+    provider = _pkg().get_image_provider(job.provider)
     result = await provider.generate_realistic(
         photo=photo_bytes, prompt=REALISTIC_PROMPT, negative=REALISTIC_NEGATIVE, style="realistic"
     )

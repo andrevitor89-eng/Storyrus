@@ -8,8 +8,7 @@ import uuid
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients import get_image_provider, get_text_provider
-from app.ai_clients.base import ProviderError
+from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     costume_extras_for_template,
     costume_extras_for_theme,
@@ -53,6 +52,11 @@ from .story import (
 
 logger = logging.getLogger("worker")
 
+def _pkg():
+    """Package root — tests monkeypatch providers/score on app.workers.handlers."""
+    from app.workers import handlers as pkg
+    return pkg
+
 async def handle_ebook(db: Session, job: Job) -> None:
     project = _project(db, job)
     update_trace(metadata=job_metadata(job), tags=["EBOOK"])
@@ -69,7 +73,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         storage.get_bytes(project.character_ref["storage_key"])
     )
     photo_bytes = await _project_photo_bytes(db, project)
-    image_provider = get_image_provider()
+    image_provider = _pkg().get_image_provider()
 
     language = project.language or "pt-BR"
     child_name = (project.child_name or "").strip()
@@ -104,7 +108,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     else:
         captions = _short_captions(pages_text)
         try:
-            text_provider = get_text_provider()
+            text_provider = _pkg().get_text_provider()
             ai_caps = await text_provider.summarize_pages(
                 pages=pages_text, style=BOOK_STYLE, language=language
             )

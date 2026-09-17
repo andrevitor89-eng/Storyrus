@@ -11,7 +11,6 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
-from app.ai_clients import get_image_provider, get_text_provider
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     CHARACTER_SHEET_PROMPT,
@@ -32,7 +31,6 @@ from app.ai_clients.book_prompts import (
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
 )
-from app.ai_clients.face_match import score_face_match
 from app.ai_clients.identity_lock import (
     IDENTITY_MISMATCH_ERROR,
     IdentityLock,
@@ -76,6 +74,11 @@ from .common import (
 )
 
 logger = logging.getLogger("worker")
+
+def _pkg():
+    """Package root — tests monkeypatch providers/score on app.workers.handlers."""
+    from app.workers import handlers as pkg
+    return pkg
 
 # --------------------------------------------------------------------------- #
 # Guias educativos por tema: (o que a história ensina, sequência lógica da jornada)
@@ -765,7 +768,7 @@ async def handle_story(db: Session, job: Job) -> None:
         input={"brief": brief[:2000], "theme": theme, "language": language},
         tags=["STORY"],
     )
-    provider = get_text_provider(job.provider)
+    provider = _pkg().get_text_provider(job.provider)
     result = await provider.generate_story(
         brief=brief, style=BOOK_STYLE, pages=settings.ebook_pages,
         language=language, age=project.child_age,
@@ -921,7 +924,7 @@ async def _compose_storyboard(
         return existing
 
     sb: dict | None = None
-    text_provider = get_text_provider()
+    text_provider = _pkg().get_text_provider()
     gen = getattr(text_provider, "generate_storyboard", None)
     if gen is not None:
         try:
@@ -1097,7 +1100,7 @@ async def _score_page_face(
     if not settings.ebook_face_match or not probe or not scene:
         return None
     try:
-        return await score_face_match(probe, scene, domain=domain)
+        return await _pkg().score_face_match(probe, scene, domain=domain)
     except Exception:  # noqa: BLE001 - refine segue; o portao fail-closed julga depois
         logger.warning("Juiz de rosto falhou; pagina segue sem refine")
         return None
@@ -1108,7 +1111,7 @@ async def _judge_page(
 ):
     async def scorer(truth, scene_bytes, avatar=None, **_k):
         domain = "same" if avatar else "photo"
-        return await score_face_match(
+        return await _pkg().score_face_match(
             truth, scene_bytes, domain=domain, avatar=avatar
         )
 
