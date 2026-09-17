@@ -176,6 +176,116 @@ summary { cursor: pointer; color: var(--teal-deep); font-weight: 700; }
 }
 
 /* =========================================================
+   RESPONSIVO — estúdio / auth (não afeta landing.css)
+   Escopo: .studio / .auth / .card do app — styles.css é global via main.tsx
+   ========================================================= */
+.studio img,
+.studio video,
+.studio .card img,
+.studio .card video,
+.auth img { max-width: 100%; height: auto; }
+
+@media (max-width: 720px) {
+  .studio { padding: 1rem 0.85rem 2rem; }
+  .studio .card {
+    margin: 0.75rem auto 1.25rem;
+    padding: 1.35rem 1.1rem;
+    border-radius: 16px;
+  }
+  .card.auth,
+  .auth.card {
+    margin: 1.5rem 0.85rem;
+    padding: 1.35rem 1.1rem;
+    border-radius: 16px;
+  }
+  .studio header {
+    flex-wrap: wrap;
+    row-gap: 0.55rem;
+    column-gap: 0.55rem;
+    padding-bottom: 0.85rem;
+  }
+  .studio .hdr-logo { height: 48px; }
+  .studio header strong { font-size: 1rem; }
+  .studio .steps { grid-template-columns: 1fr; }
+  .studio .demo-banner p { min-width: 0; }
+  .studio .job {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .studio .jtype { min-width: 0; }
+  .studio .jstatus,
+  .studio .job .error,
+  .studio .job .muted { word-break: break-word; }
+}
+
+@media (max-width: 480px) {
+  .studio { padding: 0.75rem 0.65rem 1.75rem; font-size: 14px; }
+  .studio .card {
+    margin: 0.5rem 0 1rem;
+    padding: 1.1rem 0.9rem;
+    border-radius: 14px;
+  }
+  .card.auth,
+  .auth.card {
+    margin: 0.75rem 0.65rem;
+    padding: 1.1rem 0.9rem;
+    border-radius: 14px;
+  }
+  .auth { margin-inline: 0.65rem; }
+  .auth-logo { height: 72px; }
+  .studio .hdr-logo { height: 40px; }
+  .studio header { gap: 0.45rem; }
+  .studio header .spacer {
+    flex-basis: 100%;
+    height: 0;
+    margin: 0;
+    overflow: hidden;
+  }
+  .studio header .credits {
+    font-size: 0.78rem;
+    padding: 0.3rem 0.65rem;
+  }
+  .studio button:not(.chip):not(.link),
+  .studio a.btn,
+  .studio label.btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .studio .styles button.chip {
+    flex: 1 1 auto;
+    min-width: calc(50% - 0.35rem);
+  }
+  .studio .upload {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .studio .upload input[type="file"],
+  .studio .upload input:not([type="file"]),
+  .studio .upload button {
+    width: 100%;
+  }
+  .studio .demo-banner {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 0.75rem;
+  }
+  .studio .demo-banner button { width: 100%; }
+  .studio .field-label { font-size: 0.9rem; }
+  .studio .slogan { font-size: 0.95rem; }
+  .studio .story { padding: 0.75rem; font-size: 0.9rem; overflow-x: auto; }
+  .studio .consent { font-size: 0.88rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio button,
+  .auth button { transition: none; }
+  .studio button:hover:not(:disabled),
+  .auth button:hover:not(:disabled) { transform: none; }
+  .studio .job.running .dot { animation: none; }
+}
+
+/* =========================================================
    TEMA ESCURO (login + estúdio)
    ========================================================= */
 :root {
