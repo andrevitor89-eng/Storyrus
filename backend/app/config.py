@@ -137,15 +137,15 @@ class Settings(BaseSettings):
     gemini_retry_base_s: float = 2.0
     gemini_retry_max_s: float = 60.0
     anthropic_api_key: str | None = None    # historia (Claude)
-    kling_access_key: str | None = None     # animacao MVP (image2video)
+    kling_access_key: str | None = None     # video (image2video) — unico provedor
     kling_secret_key: str | None = None
-    veo_api_key: str | None = None          # video fase 2 (placeholder)
     elevenlabs_api_key: str | None = None   # TTS video narrado
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
 
     # Selecao de provedores por etapa
     image_provider: str = "nano-banana"
     text_provider: str = "claude"
+    # Unico VideoProvider registrado: Kling. Outros nomes falham na factory.
     video_provider: str = "kling"
 
     # Workers

@@ -1,7 +1,8 @@
 """VideoProvider real: Kling (image2video).
 
-Autenticacao por JWT (HS256) assinado com AccessKey/SecretKey a cada chamada.
-Fluxo task-based: cria a tarefa e depois consulta o resultado (polling/callback).
+Unico provedor de video da plataforma. Autenticacao por JWT (HS256) assinado
+com AccessKey/SecretKey a cada chamada. Fluxo task-based: cria a tarefa e
+depois consulta o resultado (polling/callback).
 """
 from __future__ import annotations
 

@@ -113,5 +113,6 @@ Handlers (`app/workers/handlers.py`):
 - `AVATAR` gera o personagem e grava `character_ref` (reusado em todas as cenas).
 - `STORY` gera o texto (Claude).
 - `EBOOK` ilustra cada página reusando o personagem e monta o PDF.
-- `STORYBOARD` gera keyframes; `VIDEO` dispara o Kling e faz polling até concluir
-  (ou conclui via webhook), republicando o arquivo no storage próprio.
+- `STORYBOARD` gera keyframes; `VIDEO` dispara o Kling (único provedor de vídeo)
+  e faz polling até concluir (ou conclui via webhook), republicando o arquivo no
+  storage próprio. Não há integração Veo — `VIDEO_PROVIDER` deve ser `kling`.
