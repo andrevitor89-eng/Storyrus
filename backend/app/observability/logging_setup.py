@@ -85,9 +85,7 @@ def configure_logging(*, level: str = "INFO", fmt: str = "text", service: str = 
     if fmt == "json":
         handler.setFormatter(JsonFormatter())
     else:
-        handler.setFormatter(
-            TextFormatter("%(asctime)s %(levelname)s %(name)s - %(message)s")
-        )
+        handler.setFormatter(TextFormatter("%(asctime)s %(levelname)s %(name)s - %(message)s"))
     root.addHandler(handler)
 
     # Uvicorn/access: herdam o mesmo formato.

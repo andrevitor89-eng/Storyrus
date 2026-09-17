@@ -90,7 +90,12 @@ def test_job_metadata_includes_request_id():
 def test_configure_logging_json_and_resolved_format():
     from app.config import Settings
 
-    s = Settings(app_env="prod", log_format="auto", jwt_secret="prod-secret-ok", webhook_signing_secret="prod-wh-ok")
+    s = Settings(
+        app_env="prod",
+        log_format="auto",
+        jwt_secret="prod-secret-ok",
+        webhook_signing_secret="prod-wh-ok",
+    )
     assert s.resolved_log_format() == "json"
     s_dev = Settings(app_env="dev", log_format="auto")
     assert s_dev.resolved_log_format() == "text"
