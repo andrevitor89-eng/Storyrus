@@ -515,8 +515,8 @@ const I18N = {
       { t: "Bruno em uma aventura animal", p: "Conhecer animais e cuidar da natureza numa jornada gentil.", cover: "Soft", size: "M", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
       { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
     ],
-    promise_title: "Cada detalhe pensado para ser especial",
-    promise_sub: "Do envio da foto à prévia, tudo é feito para o livro ficar pronto para presentear.",
+    promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
+    promise_sub: "Da foto à prévia final, cada detalhe é preparado para transformar o livro em um presente inesquecível.",
     promise: [
       { t: "Privacidade da foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
       { t: "Impressão pensada como presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
