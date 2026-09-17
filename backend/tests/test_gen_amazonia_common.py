@@ -72,7 +72,7 @@ def _no_sleep(monkeypatch):
     async def no_score(*_a, **_k):
         return None
 
-    monkeypatch.setattr("app.workers.handlers.score_face_match", no_score)
+    monkeypatch.setattr("app.workers.handlers.story.score_face_match", no_score)
 
 
 @pytest.fixture()
@@ -375,7 +375,7 @@ async def test_ensure_page_fals_when_avatar_score_low(spec, monkeypatch):
     async def low(*_a, **_k):
         return 0.4
 
-    monkeypatch.setattr("app.workers.handlers.score_face_match", low)
+    monkeypatch.setattr("app.workers.handlers.story.score_face_match", low)
     spec.out_dir.mkdir(parents=True)
     provider = FakeProvider()
     char = _blob(b"char")
@@ -402,7 +402,7 @@ async def test_ensure_page_skips_fal_when_avatar_score_high(spec, monkeypatch):
     async def high(*_a, **_k):
         return 0.91
 
-    monkeypatch.setattr("app.workers.handlers.score_face_match", high)
+    monkeypatch.setattr("app.workers.handlers.story.score_face_match", high)
     spec.out_dir.mkdir(parents=True)
     provider = FakeProvider()
 
