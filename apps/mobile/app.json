@@ -10,8 +10,12 @@
       "resizeMode": "contain",
       "backgroundColor": "#0f1320"
     },
-    "ios": { "supportsTablet": true },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "ai.storyrus.app"
+    },
     "android": {
+      "package": "ai.storyrus.app",
       "permissions": ["READ_EXTERNAL_STORAGE"]
     },
     "extra": {

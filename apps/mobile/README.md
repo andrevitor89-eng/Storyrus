@@ -46,3 +46,13 @@ src/StudioScreen.tsx # projeto, expo-image-picker, etapas, progresso
 ```bash
 npm run typecheck
 ```
+
+## Publicar (EAS / lojas)
+
+Builds e submit via Expo Application Services: ver **[PUBLISH.md](./PUBLISH.md)**
+(`eas.json`, perfis `preview` / `production`, checklist de segredos).
+
+```bash
+# após eas login + eas init (uma vez)
+npm run eas:build:preview -- --platform android
+```
