@@ -329,8 +329,8 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   return (
     <div className="studio">
       <header>
-        <img className="hdr-logo" src={logo} alt="Story.R.Us" />
-        <strong>Plataforma de Histórias</strong>
+        <img className="hdr-logo" src={logo} alt="Story R Us" />
+        <strong>Story R Us</strong>
         <span className="spacer" />
         <button
           className="chip"

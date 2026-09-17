@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Plataforma de Histórias",
-    "slug": "stories-mobile",
+    "name": "Story R Us",
+    "slug": "storyrus-mobile",
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "dark",
-    "scheme": "stories",
+    "scheme": "storyrus",
     "splash": {
       "resizeMode": "contain",
       "backgroundColor": "#0f1320"

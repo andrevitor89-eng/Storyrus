@@ -1,4 +1,4 @@
-# Plataforma de Histórias — FortesHub
+# Story R Us
 
 Transforma uma foto em um personagem ilustrado, gera uma história, monta um ebook
 e (opcional) um vídeo animado. Pipeline assíncrono de IA com créditos, jobs
@@ -38,7 +38,7 @@ make down          # para o stack do backend
 Popular dados e validar o fluxo da API (com o stack no ar):
 
 ```bash
-make seed          # demo@forteshub.com / demo12345 (50 créditos)
+make seed          # demo@storyrus.app / demo12345 (50 créditos)
 make demo          # signup → projeto → upload → etapas → jobs
 ```
 

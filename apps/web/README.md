@@ -1,4 +1,4 @@
-# Stories Web (frontend)
+# Story R Us — Web (frontend)
 
 Vite + React + TypeScript. Fluxo **guest-first**: o estúdio pede um JWT de
 convidado (`POST /v1/auth/guest`) na primeira chamada à API → criar projeto →

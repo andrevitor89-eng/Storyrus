@@ -17,7 +17,7 @@ from app.database import Base, SessionLocal, engine
 from app.models import Project, ProjectStatus, ProjectStyle, User
 from app.security import hash_password
 
-DEMO_EMAIL = "demo@forteshub.com"
+DEMO_EMAIL = "demo@storyrus.app"
 DEMO_PASSWORD = "demo12345"
 DEMO_CREDITS = 50
 

@@ -28,7 +28,7 @@ def log(msg: str) -> None:
 
 
 def main() -> int:
-    email = f"demo+{uuid.uuid4().hex[:8]}@forteshub.com"
+    email = f"demo+{uuid.uuid4().hex[:8]}@storyrus.app"
     password = "demo12345"
 
     with httpx.Client(base_url=API_URL, timeout=30) as c:

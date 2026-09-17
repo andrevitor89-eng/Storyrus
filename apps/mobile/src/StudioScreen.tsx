@@ -126,7 +126,7 @@ export function StudioScreen({
   return (
     <ScrollView style={s.screen} contentContainerStyle={{ padding: 20, gap: 12 }}>
       <View style={s.header}>
-        <Text style={s.brand}>Histórias</Text>
+        <Text style={s.brand}>Story R Us</Text>
         <View style={{ flex: 1 }} />
         <Text style={s.muted}>Créditos: {credits ?? "…"}</Text>
         <Pressable onPress={onLogin}>
