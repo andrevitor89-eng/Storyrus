@@ -105,12 +105,12 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
 
 test("landing leva ao estúdio", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  // Hero CTA atual: t.hero_cta → "Criar meu livro" (cta_story não é mais o link principal)
-  const heroCta = page.getByRole("link", { name: /^criar meu livro$/i });
+  // Stable selector: not tied to hero CTA copy (pt/en/es).
+  const heroCta = page.getByTestId("landing-hero-cta");
   await expect(heroCta).toBeVisible();
   await heroCta.click();
   await expect(page).toHaveURL(/\/app/);
-  await expect(page.getByRole("button", { name: /criar projeto/i })).toBeVisible();
+  await expect(page.getByTestId("studio-create-project")).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {
@@ -118,26 +118,31 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await mockApi(page, state);
   await page.goto("/app");
 
-  await expect(page.getByText(/créditos: 10/i)).toBeVisible();
+  await expect(page.getByTestId("studio-credits")).toContainText(/créditos:\s*10/i);
 
-  await page.getByRole("button", { name: /criar projeto/i }).click();
-  await expect(page.getByRole("heading", { name: /^projeto$/i })).toBeVisible();
+  await page.getByTestId("studio-create-project").click();
+  await expect(page.getByTestId("studio-project")).toBeVisible();
+  await expect(page.getByTestId("studio-project").getByRole("heading", { level: 2 })).toBeVisible();
 
-  await page.setInputFiles('input[type="file"]', {
+  await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
     buffer: Buffer.from("x"),
   });
-  await expect(page.getByRole("button", { name: /enviar foto/i })).toBeDisabled();
-  await page.getByRole("checkbox", { name: /responsável legal/i }).check();
-  await page.getByRole("button", { name: /enviar foto/i }).click();
-  // exact / jtype: evita colidir com status do projeto (AVATAR_READY / STORY_READY)
-  await expect(page.getByText("AVATAR", { exact: true })).toBeVisible();
-  await expect(page.getByText("DONE", { exact: true }).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByTestId("studio-upload-photo")).toBeDisabled();
+  await page.getByTestId("studio-media-consent").check();
+  await page.getByTestId("studio-upload-photo").click();
+  // Job rows use stable test ids (avoids colliding with AVATAR_READY / STORY_READY status text).
+  await expect(page.getByTestId("studio-job-type-AVATAR")).toBeVisible();
+  await expect(page.getByTestId("studio-job-AVATAR")).toHaveAttribute("data-job-status", "DONE", {
+    timeout: 15_000,
+  });
 
-  await page.getByRole("button", { name: /gerar história com ia/i }).click();
-  await expect(page.getByText("STORY", { exact: true })).toBeVisible();
-  await expect(page.getByText(/pagina 1: ola/i)).toBeVisible({ timeout: 15_000 });
+  await page.getByTestId("studio-generate-story").click();
+  await expect(page.getByTestId("studio-job-type-STORY")).toBeVisible();
+  await expect(page.getByTestId("studio-story-text")).toContainText(/pagina 1: ola/i, {
+    timeout: 15_000,
+  });
 });
 
 test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
@@ -145,36 +150,36 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await mockApi(page, state);
   await page.goto("/app");
 
-  await page.getByRole("button", { name: /criar projeto/i }).click();
-  await expect(page.getByRole("button", { name: /montar ebook/i })).toBeDisabled();
+  await page.getByTestId("studio-create-project").click();
+  await expect(page.getByTestId("studio-mount-ebook")).toBeDisabled();
 });
 
 test("path inexistente mostra 404", async ({ page }) => {
   await page.goto("/pagina-que-nao-existe");
-  await expect(page.getByRole("heading", { name: /página não encontrada/i })).toBeVisible();
-  await expect(page.getByRole("link", { name: /^início$/i })).toBeVisible();
+  await expect(page.getByTestId("not-found-title")).toBeVisible();
+  await expect(page.getByTestId("not-found-home")).toBeVisible();
 });
 
 test("landing sem preço e EN atualiza lang", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("link", { name: /personalizar/i }).first()).toBeVisible();
+  await expect(page.getByTestId("landing-personalize").first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText("US$ 39,99");
   await expect(page.locator("body")).not.toContainText("$39.99");
   await expect(page.locator("body")).not.toContainText("ECONOMIZE 33%");
-  await page.getByRole("button", { name: /^EN$/ }).click();
+  await page.getByTestId("landing-lang-en").click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await page.getByRole("button", { name: /^ES$/ }).click();
+  await page.getByTestId("landing-lang-es").click();
   await expect(page.locator("html")).toHaveAttribute("lang", "es");
 });
 
 test("menu mobile abre abaixo da logo", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  const menuBtn = page.getByRole("button", { name: /menu/i });
+  const menuBtn = page.getByTestId("landing-menu");
   await menuBtn.click();
   await expect(menuBtn).toHaveAttribute("aria-expanded", "true");
-  const logo = page.locator(".kbrand img");
-  const panel = page.locator("#site-menu");
+  const logo = page.getByTestId("landing-brand").locator("img");
+  const panel = page.getByTestId("landing-site-menu");
   await expect(panel).toBeVisible();
   const logoBox = await logo.boundingBox();
   const panelBox = await panel.boundingBox();

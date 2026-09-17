@@ -921,7 +921,7 @@ export function Landing() {
 
       <header className="khead">
         <div className="khead-inner">
-        <a href="#top" className="kbrand"><img src={logo} alt="Story.R.Us" /></a>
+        <a href="#top" className="kbrand" data-testid="landing-brand"><img src={logo} alt="Story.R.Us" /></a>
         <div className="khead-main">
           <div className="khead-bar">
             <div className="khead-bar-inner">
@@ -976,26 +976,27 @@ export function Landing() {
                 <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
                   {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
                 </button>
-                <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
-                  <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")}>PT</button>
-                  <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")}>EN</button>
-                  <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")}>ES</button>
+                <div className="lang" role="group" aria-label="Idioma / Language / Idioma" data-testid="landing-lang">
+                  <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")} data-testid="landing-lang-pt">PT</button>
+                  <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
+                  <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
                 </div>
                 <div className="khead-links">
-                  <Link to="/app" className="kbtn kbtn-primary">{t.cta_play}</Link>
+                  <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
                 </div>
                 <button
                   className="khamb"
                   aria-label={t.a11y_menu}
                   aria-expanded={navOpen}
                   aria-controls="site-menu"
+                  data-testid="landing-menu"
                   onClick={() => setNavOpen((v) => !v)}
                 >☰</button>
               </div>
             </div>
           </div>
         </div>
-        <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`}>
+        <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`} data-testid="landing-site-menu">
           {navCats.map((cat, i) => (
             <div key={cat.name} className={`kmobile-cat${mobileCat === i ? " open" : ""}`}>
               <button
@@ -1022,7 +1023,7 @@ export function Landing() {
           {t.nav.map((label, i) => (
             <a key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
           ))}
-          <Link to="/app" className="kbtn kbtn-primary" onClick={closeNav}>{t.cta_play}</Link>
+          <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
         </div>
       </header>
@@ -1061,7 +1062,7 @@ export function Landing() {
         </div>
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <Link to="/app" className="kbtn kbtn-primary">{t.hero_cta}</Link>
+          <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
       </section>
 
@@ -1131,7 +1132,7 @@ export function Landing() {
                 </div>
                 <h3>{c.t}</h3>
                 <p>{c.p}</p>
-                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary">{t.personalize}</Link>
+                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
               </div>
             </div>
           ))}
