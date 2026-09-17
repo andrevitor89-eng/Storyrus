@@ -6,14 +6,32 @@ type Args = {
   isDemo: boolean;
   mediaConsent: boolean;
   setError: Dispatch<SetStateAction<string | null>>;
+  consentError: string;
+  defaultVoiceName: string;
 };
 
-export function useStudioVoices({ isDemo, mediaConsent, setError }: Args) {
+export function useStudioVoices({
+  isDemo,
+  mediaConsent,
+  setError,
+  consentError,
+  defaultVoiceName,
+}: Args) {
   const [voices, setVoices] = useState<UserVoice[]>([]);
   const [customVoiceAvailable, setCustomVoiceAvailable] = useState(false);
   const [selectedVoiceId, setSelectedVoiceId] = useState("");
-  const [voiceName, setVoiceName] = useState("Minha voz");
+  const [voiceName, setVoiceName] = useState(defaultVoiceName);
   const [voiceUploading, setVoiceUploading] = useState(false);
+
+  useEffect(() => {
+    setVoiceName((prev) => {
+      // Only sync placeholder default when user hasn't customized it.
+      if (!prev || prev === "Minha voz" || prev === "My voice" || prev === "Mi voz") {
+        return defaultVoiceName;
+      }
+      return prev;
+    });
+  }, [defaultVoiceName]);
 
   const refreshVoices = useCallback(async () => {
     try {
@@ -37,13 +55,17 @@ export function useStudioVoices({ isDemo, mediaConsent, setError }: Args) {
   async function onVoiceFile(file: File | null) {
     if (!file || isDemo) return;
     if (!mediaConsent) {
-      setError("Marque o consentimento para clonar a voz.");
+      setError(consentError);
       return;
     }
     setVoiceUploading(true);
     setError(null);
     try {
-      const voice = await api.uploadVoice(file, voiceName.trim() || "Minha voz", voices.length === 0);
+      const voice = await api.uploadVoice(
+        file,
+        voiceName.trim() || defaultVoiceName,
+        voices.length === 0,
+      );
       await refreshVoices();
       setSelectedVoiceId(voice.id);
     } catch (e) {

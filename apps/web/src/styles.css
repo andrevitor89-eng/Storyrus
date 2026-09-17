@@ -114,6 +114,12 @@ button.chip:hover:not(:disabled) { border-color: var(--teal); transform: none; }
 button.chip.on { background: var(--teal); border-color: var(--teal); color: #fff; }
 
 .studio { max-width: 720px; margin: 0 auto; padding: 1.5rem; }
+.studio-lang {
+  display: inline-flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
 .studio header {
   display: flex; align-items: center; gap: 0.85rem; padding: 0.5rem 0 1.25rem;
 }

@@ -1,9 +1,11 @@
 import type { Job } from "../types";
+import { useStudioI18n } from "./useStudioI18n";
 
 export function ProgressList({ jobs }: { jobs: Job[] }) {
+  const { t } = useStudioI18n();
   if (jobs.length === 0) return null;
   return (
-    <div role="status" aria-live="polite" aria-label="Progresso das etapas">
+    <div role="status" aria-live="polite" aria-label={t.ariaProgress}>
       <ul className="jobs">
         {jobs.map((j) => {
           const progress = j.result?.progress;
@@ -20,14 +22,20 @@ export function ProgressList({ jobs }: { jobs: Job[] }) {
               data-job-status={j.status}
             >
               <span className="dot" aria-hidden="true" />
-              <span className="jtype" data-testid={`studio-job-type-${j.type}`}>{j.type}</span>
-              <span className="jstatus" data-testid={`studio-job-status-${j.type}`}>{j.status}</span>
-              {showPages && (
+              <span className="jtype" data-testid={`studio-job-type-${j.type}`}>
+                {j.type}
+              </span>
+              <span className="jstatus" data-testid={`studio-job-status-${j.type}`}>
+                {j.status}
+              </span>
+              {showPages && progress?.done != null && progress?.total != null && (
+                <span className="muted">{t.illustrating(progress.done, progress.total)}</span>
+              )}
+              {j.attempts > 1 && (
                 <span className="muted">
-                  Ilustrando {progress!.done}/{progress!.total}
+                  {t.attempt} {j.attempts}
                 </span>
               )}
-              {j.attempts > 1 && <span className="muted">tent. {j.attempts}</span>}
               {j.error && (
                 <span className="error" role="alert">
                   {j.error}
