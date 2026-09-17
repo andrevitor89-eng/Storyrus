@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 
 from sqlalchemy import select
@@ -41,6 +42,11 @@ from .common import (
 )
 
 logger = logging.getLogger("worker")
+
+# STO-37: juiz sem nota apos retry nao pode soft-skip o avatar em silencio.
+AVATAR_FACE_JUDGE_ERROR = (
+    "juiz de rosto falhou apos retry; identidade do avatar nao verificada"
+)
 
 
 def _pkg():
@@ -161,20 +167,41 @@ async def _refine_identity(
 
 
 async def _score_avatar_face(photo: bytes | None, scene: bytes) -> float | None:
+    """Nota do juiz, com retry. None so depois de esgotar tentativas (STO-37)."""
     if not photo or not scene:
         return None
-    try:
-        return await _pkg().score_face_match(photo, scene)
-    except Exception:  # noqa: BLE001 - juiz nunca deve derrubar o avatar
-        logger.warning("Juiz de rosto do avatar falhou; segue sem retry")
-        return None
+    attempts = max(1, settings.gemini_face_retries)
+    for attempt in range(1, attempts + 1):
+        try:
+            score = await _pkg().score_face_match(photo, scene)
+        except Exception as exc:  # noqa: BLE001 - retenta; portao falha visivel depois
+            logger.warning(
+                "Juiz de rosto do avatar falhou (tentativa %s/%s): %s",
+                attempt,
+                attempts,
+                exc,
+            )
+            score = None
+        else:
+            if score is not None:
+                return score
+            logger.warning(
+                "Juiz de rosto do avatar sem nota (tentativa %s/%s)",
+                attempt,
+                attempts,
+            )
+        if attempt < attempts:
+            await asyncio.sleep(min(4.0, 0.8 * attempt))
+    return None
 
 
 async def _lock_avatar_identity(provider, face: bytes, result, style):
     """Gemini gera o corpo; Fal cola o rosto sempre (1x). Sem FAL_KEY: refine Gemini.
 
     Nota alta nao pula o Fal — o retrato e a ancora das 12 paginas. Segundo
-    passe so se a nota ficar abaixo de `avatar_face_match_min`.
+    passe se a nota ficar abaixo de `avatar_face_match_min` **ou** se o juiz
+    nao devolver nota apos retry. Sem nota nos dois passes → falha visivel
+    (STO-37), sem soft-skip silencioso.
     """
     method = "refine_identity" if pulid_head_enabled() else "refine_character"
     first = await _refine_identity(provider, face, result, style, passes=1, method=method)
@@ -182,18 +209,20 @@ async def _lock_avatar_identity(provider, face: bytes, result, style):
         return first
     threshold = settings.avatar_face_match_min
     score = await _score_avatar_face(face, first.image_bytes)
-    if score is None or score >= threshold:
-        if score is not None:
-            log_feedback("face_score", score, reason="avatar identity")
+    if score is not None and score >= threshold:
+        log_feedback("face_score", score, reason="avatar identity")
         return first
+
     second = await _refine_identity(
         provider, face, first, style, passes=1, method="refine_identity"
     )
     score2 = await _score_avatar_face(face, second.image_bytes)
+    if score is None and score2 is None:
+        raise ProviderError(AVATAR_FACE_JUDGE_ERROR, transient=True)
     if score2 is None:
-        if score is not None:
-            log_feedback("face_score", score, reason="avatar identity")
-        return second
+        # Segundo juiz falhou; fica com o primeiro (nota conhecida).
+        log_feedback("face_score", score, reason="avatar identity (kept first; judge retry failed)")
+        return first
     if score is not None and score2 < score:
         log_feedback("face_score", score, reason="avatar identity (kept first)")
         return first
