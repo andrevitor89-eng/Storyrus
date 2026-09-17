@@ -18,6 +18,7 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
 
 - **Frontend**: `apps/web` (Vite + React). Vai na **Vercel**.
 - **Backend**: `backend` (FastAPI). Vai no **Render** (Docker), com um **worker** que processa os jobs (personagem, história, e-book, vídeo) e um **Postgres**.
+- **Mobile**: `apps/mobile` (Expo). Builds/submit via **EAS** — ver `apps/mobile/PUBLISH.md` (não bloqueia o deploy web/API).
 - **Storage**: **Cloudflare R2** em produção (variáveis `STORAGE_*`). Localmente o
   compose **não** sobe MinIO — use as mesmas vars apontando para R2 (ou outro
   endpoint S3-compatible que você configure à parte).
@@ -191,3 +192,4 @@ Detalhes: `README.md` (raiz), `Makefile`, `backend/README.md`.
 | Banco     | Render Postgres | Free ~90 dias; pago em prod |
 | Storage   | Cloudflare R2 | Variáveis `STORAGE_*` |
 | Redis     | — (opcional) | Sem ele, worker faz polling do banco |
+| Mobile    | EAS (Expo) | `apps/mobile/eas.json` + [PUBLISH.md](apps/mobile/PUBLISH.md); segredos fora do git |
