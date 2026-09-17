@@ -1,4 +1,5 @@
 """Hashing de senha e emissao/validacao de JWT."""
+
 from datetime import UTC, datetime, timedelta
 
 from jose import JWTError, jwt

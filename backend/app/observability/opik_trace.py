@@ -4,6 +4,7 @@ Os provedores falam HTTP via httpx (nao SDKs oficiais), entao o tracing e
 manual: `@track` + metadata. `enabled()` olha settings em tempo de chamada
 para testes poderem ligar/desligar sem reimportar.
 """
+
 from __future__ import annotations
 
 import functools
@@ -16,20 +17,22 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
-_REDACT_KEYS = frozenset({
-    "data",
-    "inline_data",
-    "inlineData",
-    "image_bytes",
-    "reference_images",
-    "reference_image_url",
-    "face_image_0",
-    "target_image",
-    "photo",
-    "character_ref",
-    "illustration",
-    "extra_refs",
-})
+_REDACT_KEYS = frozenset(
+    {
+        "data",
+        "inline_data",
+        "inlineData",
+        "image_bytes",
+        "reference_images",
+        "reference_image_url",
+        "face_image_0",
+        "target_image",
+        "photo",
+        "character_ref",
+        "illustration",
+        "extra_refs",
+    }
+)
 _MAX_STR = 4000
 _ssl_hook_installed = False
 

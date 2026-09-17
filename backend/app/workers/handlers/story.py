@@ -1,4 +1,5 @@
 """Story and storyboard job handlers."""
+
 from __future__ import annotations
 
 import asyncio
@@ -62,10 +63,13 @@ from .common import (
 
 logger = logging.getLogger("worker")
 
+
 def _pkg():
     """Package root — tests monkeypatch providers/score on app.workers.handlers."""
     from app.workers import handlers as pkg
+
     return pkg
+
 
 # --------------------------------------------------------------------------- #
 # Guias educativos por tema: (o que a história ensina, sequência lógica da jornada)
@@ -604,20 +608,28 @@ async def handle_story(db: Session, job: Job) -> None:
     is_en = (language or "").lower().startswith("en")
     if is_en:
         who = f"the child named {name}" if name else "the child from the photo"
-        brief = (_payload(job).get("brief")
-                 or f"Invent an ORIGINAL, coherent story in the theme '{theme}': give {who} "
-                    "a small goal or problem, a journey with one or two obstacles and friends "
-                    "who help, a gentle climax and a warm ending with a subtle lesson (courage, "
-                    f"friendship or kindness). {who} is the hero from beginning to end."
-                    + (f" Use the name '{name}' for the hero throughout the whole story." if name else ""))
+        brief = (
+            _payload(job).get("brief")
+            or f"Invent an ORIGINAL, coherent story in the theme '{theme}': give {who} "
+            "a small goal or problem, a journey with one or two obstacles and friends "
+            "who help, a gentle climax and a warm ending with a subtle lesson (courage, "
+            f"friendship or kindness). {who} is the hero from beginning to end."
+            + (f" Use the name '{name}' for the hero throughout the whole story." if name else "")
+        )
     else:
         who = f"a crianca chamada {name}" if name else "o personagem da foto"
-        brief = (_payload(job).get("brief")
-                 or f"Invente uma historia ORIGINAL e coerente no tema '{theme}': de a {who} "
-                    "um pequeno objetivo ou problema, uma jornada com um ou dois obstaculos e "
-                    "amiguinhos que ajudam, um climax gentil e um final acolhedor com uma licao "
-                    f"sutil (coragem, amizade ou gentileza). {who} e o protagonista do inicio ao fim."
-                    + (f" Use o nome '{name}' como protagonista ao longo de toda a historia." if name else ""))
+        brief = (
+            _payload(job).get("brief")
+            or f"Invente uma historia ORIGINAL e coerente no tema '{theme}': de a {who} "
+            "um pequeno objetivo ou problema, uma jornada com um ou dois obstaculos e "
+            "amiguinhos que ajudam, um climax gentil e um final acolhedor com uma licao "
+            f"sutil (coragem, amizade ou gentileza). {who} e o protagonista do inicio ao fim."
+            + (
+                f" Use o nome '{name}' como protagonista ao longo de toda a historia."
+                if name
+                else ""
+            )
+        )
 
     # Guia educativo do tema: foco, vilão, cenário e sequência da jornada.
     # Prioriza LEARNING_GOALS (temas educacionais estruturados); senão usa THEME_EDU
@@ -632,9 +644,7 @@ async def handle_story(db: Session, job: Job) -> None:
         espaco = goals.get("espaco", "")
         sequence = goals["sequencia"]
         if is_en:
-            brief += (
-                " LEARNING (essential): the story must playfully TEACH — " + focus + "."
-            )
+            brief += " LEARNING (essential): the story must playfully TEACH — " + focus + "."
             if vilao:
                 brief += f" The villain is {vilao}."
             if espaco:
@@ -642,13 +652,13 @@ async def handle_story(db: Session, job: Job) -> None:
             brief += (
                 " Weave 2 or 3 REAL, simple, age-appropriate facts about the theme into "
                 "the action or dialogue (never lecture-like). MANDATORY LOGICAL SEQUENCE "
-                "of the journey, adapted creatively: " + sequence +
-                ". At the end, the hero happily realizes what they learned."
+                "of the journey, adapted creatively: "
+                + sequence
+                + ". At the end, the hero happily realizes what they learned."
             )
         else:
             brief += (
-                " APRENDIZADO (essencial): a história deve ENSINAR de forma lúdica — "
-                + focus + "."
+                " APRENDIZADO (essencial): a história deve ENSINAR de forma lúdica — " + focus + "."
             )
             if vilao:
                 brief += f" O vilão da jornada é {vilao}."
@@ -657,28 +667,32 @@ async def handle_story(db: Session, job: Job) -> None:
             brief += (
                 " Insira 2 ou 3 curiosidades REAIS, simples e adequadas à idade sobre "
                 "o tema dentro da ação ou das falas (nunca em tom de aula). SEQUÊNCIA "
-                "LÓGICA obrigatória da jornada, adaptada com criatividade: " + sequence +
-                ". No final, o protagonista percebe com alegria o que aprendeu."
+                "LÓGICA obrigatória da jornada, adaptada com criatividade: "
+                + sequence
+                + ". No final, o protagonista percebe com alegria o que aprendeu."
             )
     else:
         # Aventura/datas comemorativas: foco e sequência embutidos na string
         focus, sequence = guides.get(theme, guides["adventure"])
         if is_en:
             brief += (
-                " LEARNING (essential): the story must playfully TEACH — " + focus +
-                ". Weave 2 or 3 REAL, simple, age-appropriate facts about the theme into "
+                " LEARNING (essential): the story must playfully TEACH — "
+                + focus
+                + ". Weave 2 or 3 REAL, simple, age-appropriate facts about the theme into "
                 "the action or dialogue (never lecture-like). MANDATORY LOGICAL SEQUENCE "
-                "of the journey, adapted creatively: " + sequence +
-                ". At the end, the hero happily realizes what they learned."
+                "of the journey, adapted creatively: "
+                + sequence
+                + ". At the end, the hero happily realizes what they learned."
             )
         else:
             brief += (
                 " APRENDIZADO (essencial): a história deve ENSINAR de forma lúdica — "
-                + focus +
-                ". Insira 2 ou 3 curiosidades REAIS, simples e adequadas à idade sobre "
+                + focus
+                + ". Insira 2 ou 3 curiosidades REAIS, simples e adequadas à idade sobre "
                 "o tema dentro da ação ou das falas (nunca em tom de aula). SEQUÊNCIA "
-                "LÓGICA obrigatória da jornada, adaptada com criatividade: " + sequence +
-                ". No final, o protagonista percebe com alegria o que aprendeu."
+                "LÓGICA obrigatória da jornada, adaptada com criatividade: "
+                + sequence
+                + ". No final, o protagonista percebe com alegria o que aprendeu."
             )
 
     # Segundo tema opcional (máx. 2 por história): o tema principal continua com o
@@ -729,20 +743,36 @@ async def handle_story(db: Session, job: Job) -> None:
         if is_en:
             brief += (
                 " CHILD PROFILE (use it to shape the plot): "
-                + (f"the hero's starting trait is '{trait}' — this is the story's starting "
-                   f"point, exactly what the journey transforms into growth. " if trait else "")
-                + (f"the hero's talent/interest is '{interest}' — this is the tool the hero "
-                   f"uses to name, calm or overcome the villain at the climax; never let an "
-                   f"adult or luck solve it instead. " if interest else "")
+                + (
+                    f"the hero's starting trait is '{trait}' — this is the story's starting "
+                    f"point, exactly what the journey transforms into growth. "
+                    if trait
+                    else ""
+                )
+                + (
+                    f"the hero's talent/interest is '{interest}' — this is the tool the hero "
+                    f"uses to name, calm or overcome the villain at the climax; never let an "
+                    f"adult or luck solve it instead. "
+                    if interest
+                    else ""
+                )
             )
         else:
             brief += (
                 " PERFIL DA CRIANÇA (use para moldar o enredo): "
-                + (f"o traço inicial do herói é '{trait}' — esse é o ponto de partida da "
-                   f"história, exatamente o que a jornada transforma em crescimento. " if trait else "")
-                + (f"o talento/interesse do herói é '{interest}' — é a ferramenta que ele usa "
-                   f"para nomear, acalmar ou superar o vilão no clímax; nunca deixe um adulto "
-                   f"ou a sorte resolverem por ele. " if interest else "")
+                + (
+                    f"o traço inicial do herói é '{trait}' — esse é o ponto de partida da "
+                    f"história, exatamente o que a jornada transforma em crescimento. "
+                    if trait
+                    else ""
+                )
+                + (
+                    f"o talento/interesse do herói é '{interest}' — é a ferramenta que ele usa "
+                    f"para nomear, acalmar ou superar o vilão no clímax; nunca deixe um adulto "
+                    f"ou a sorte resolverem por ele. "
+                    if interest
+                    else ""
+                )
             )
 
     update_trace(
@@ -757,8 +787,11 @@ async def handle_story(db: Session, job: Job) -> None:
     )
     provider = _pkg().get_text_provider(job.provider)
     result = await provider.generate_story(
-        brief=brief, style=BOOK_STYLE, pages=settings.ebook_pages,
-        language=language, age=project.child_age,
+        brief=brief,
+        style=BOOK_STYLE,
+        pages=settings.ebook_pages,
+        language=language,
+        age=project.child_age,
     )
     project.story_text = result.text
     job.cost_usd = result.cost_usd
@@ -817,9 +850,7 @@ def _catalog_template_id(db: Session, project: Project) -> str | None:
     return tid or None
 
 
-def _book_costume_line(
-    briefs: list[dict], template_id: str | None, theme: str | None
-) -> str:
+def _book_costume_line(briefs: list[dict], template_id: str | None, theme: str | None) -> str:
     for brief in briefs:
         line = (brief.get("costume") or "").strip()
         if line:
@@ -864,32 +895,32 @@ def _fallback_page_briefs(
         note = notes[i] if notes and i < len(notes) else ""
         scene = (note or page).strip()
         layout = layouts[i] if layouts and i < len(layouts) else "story"
-        briefs.append({
-            "n": i + 1,
-            "scene": scene,
-            "expression": infer_expression(page, note),
-            "shot": identity_shot(None, layout=layout),
-            "costume": costume,
-            "text_band": "left" if layout == "name" else (
-                "top" if i % 2 == 0 else "bottom"
-            ),
-        })
+        briefs.append(
+            {
+                "n": i + 1,
+                "scene": scene,
+                "expression": infer_expression(page, note),
+                "shot": identity_shot(None, layout=layout),
+                "costume": costume,
+                "text_band": "left" if layout == "name" else ("top" if i % 2 == 0 else "bottom"),
+            }
+        )
     return briefs
 
 
-def _save_storyboard_asset(
-    db: Session, project: Project, sb: dict, *, auto: bool
-) -> None:
+def _save_storyboard_asset(db: Session, project: Project, sb: dict, *, auto: bool) -> None:
     key = storage.new_key(project.id, AssetKind.STORYBOARD.value, "json")
     storage.put_bytes(
         key, json.dumps(sb, ensure_ascii=False, indent=2).encode("utf-8"), "application/json"
     )
-    db.add(Asset(
-        project_id=project.id,
-        kind=AssetKind.STORYBOARD.value,
-        storage_key=key,
-        meta={"scenes": len(sb.get("scenes") or []), "auto": auto},
-    ))
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.STORYBOARD.value,
+            storage_key=key,
+            meta={"scenes": len(sb.get("scenes") or []), "auto": auto},
+        )
+    )
     db.commit()
 
 
@@ -935,14 +966,16 @@ async def _compose_storyboard(
     theme = project.theme or "adventure"
     if extra_theme == theme:
         extra_theme = None
-    sb.update({
-        "version": 1,
-        "theme": theme,
-        "extra_theme": extra_theme,
-        "language": language,
-        "title": sb.get("title") or title,
-        "total_duration_s": sum(s.get("duration_s", 5) for s in sb["scenes"]),
-    })
+    sb.update(
+        {
+            "version": 1,
+            "theme": theme,
+            "extra_theme": extra_theme,
+            "language": language,
+            "title": sb.get("title") or title,
+            "total_duration_s": sum(s.get("duration_s", 5) for s in sb["scenes"]),
+        }
+    )
     _save_storyboard_asset(db, project, sb, auto=auto)
     return sb
 
@@ -964,9 +997,7 @@ async def ensure_page_briefs(
         else costume_extras_for_theme(project.theme)
     )
     if template_id:
-        briefs = _fallback_page_briefs(
-            pages, notes=notes, costume=costume, layouts=layouts
-        )
+        briefs = _fallback_page_briefs(pages, notes=notes, costume=costume, layouts=layouts)
         for i, brief in enumerate(briefs):
             if i < len(notes) and (notes[i] or "").strip():
                 brief["scene"] = notes[i].strip()
@@ -979,8 +1010,13 @@ async def ensure_page_briefs(
         extra_theme = None
     theme_combined = f"{theme} + {extra_theme}" if extra_theme else theme
     sb = await _compose_storyboard(
-        db, project, pages, title=title, theme_combined=theme_combined,
-        language=language, auto=True,
+        db,
+        project,
+        pages,
+        title=title,
+        theme_combined=theme_combined,
+        language=language,
+        auto=True,
     )
     scenes = sb.get("scenes") or []
     briefs = []
@@ -999,12 +1035,14 @@ async def _store_bible_asset(
 ) -> bytes:
     key = storage.new_key(project.id, kind.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
-    db.add(Asset(
-        project_id=project.id,
-        kind=kind.value,
-        storage_key=key,
-        meta={"mime": result.mime_type},
-    ))
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=kind.value,
+            storage_key=key,
+            meta={"mime": result.mime_type},
+        )
+    )
     return result.image_bytes
 
 
@@ -1093,14 +1131,10 @@ async def _score_page_face(
         return None
 
 
-async def _judge_page(
-    lock: IdentityLock, scene: bytes, *, avatar: bytes | None
-):
+async def _judge_page(lock: IdentityLock, scene: bytes, *, avatar: bytes | None):
     async def scorer(truth, scene_bytes, avatar=None, **_k):
         domain = "same" if avatar else "photo"
-        return await _pkg().score_face_match(
-            truth, scene_bytes, domain=domain, avatar=avatar
-        )
+        return await _pkg().score_face_match(truth, scene_bytes, domain=domain, avatar=avatar)
 
     return await judge_identity(lock, scene, scorer=scorer)
 
@@ -1123,9 +1157,7 @@ async def lock_page_identity(
     """
     probe = avatar or photo
     domain = "same" if avatar else "photo"
-    threshold = (
-        settings.ebook_avatar_match_min if avatar else settings.ebook_face_match_min
-    )
+    threshold = settings.ebook_avatar_match_min if avatar else settings.ebook_face_match_min
     judge = bool(settings.ebook_face_match and probe)
     last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
     if not judge:
@@ -1208,9 +1240,7 @@ async def _illustrate_page(
         input={"page": idx, "prompt": prompt, "caption": caption[:400]},
     )
     probe = char_bytes or photo_bytes
-    threshold = (
-        settings.ebook_avatar_match_min if char_bytes else settings.ebook_face_match_min
-    )
+    threshold = settings.ebook_avatar_match_min if char_bytes else settings.ebook_face_match_min
     lock = build_identity_lock(
         character_ref=char_bytes,
         face_crop=photo_bytes,
@@ -1237,9 +1267,7 @@ async def _illustrate_page(
             async with style_lock:
                 if good_style:
                     style_ref = good_style[0]
-        extra_refs = _scene_extra_refs(
-            bible, brief.get("expression") or "", style_ref=style_ref
-        )
+        extra_refs = _scene_extra_refs(bible, brief.get("expression") or "", style_ref=style_ref)
         scene = await provider.generate_scene(
             prompt=prompt,
             character_ref=char_bytes,
@@ -1269,9 +1297,7 @@ async def _illustrate_page(
             refine_first=True,
             page_idx=idx,
         )
-        last_verdict = await _judge_page(
-            lock, headed.image_bytes, avatar=char_bytes
-        )
+        last_verdict = await _judge_page(lock, headed.image_bytes, avatar=char_bytes)
         if last_verdict.accepted(threshold):
             return await _accept_illustrated_page(
                 _take(headed),
@@ -1313,18 +1339,17 @@ def _set_job_progress(job: Job, *, stage: str, done: int, total: int) -> None:
     }
 
 
-def _persist_page_image(
-    db: Session, project: Project, idx: int, scene: ImageResult
-) -> None:
+def _persist_page_image(db: Session, project: Project, idx: int, scene: ImageResult) -> None:
     img_key = storage.new_key(project.id, AssetKind.PAGE_IMAGE.value, _ext(scene.mime_type))
     storage.put_bytes(img_key, scene.image_bytes, scene.mime_type)
-    db.add(Asset(
-        project_id=project.id,
-        kind=AssetKind.PAGE_IMAGE.value,
-        storage_key=img_key,
-        meta={"page": idx},
-    ))
-
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.PAGE_IMAGE.value,
+            storage_key=img_key,
+            meta={"page": idx},
+        )
+    )
 
 
 # --------------------------------------------------------------------------- #
@@ -1344,22 +1369,24 @@ def _fallback_storyboard(pages: list[str], *, title: str, theme: str) -> dict:
     for i, page in enumerate(pages, 1):
         flat = page.replace("\n", " ").strip()
         first = re.split(r"(?<=[.!?])\s+", flat)[0] if flat else ""
-        scenes.append({
-            "n": i,
-            "narration": page.strip(),
-            "setting": "",
-            "action": first[:220],
-            "scene": flat[:400],
-            "expression": infer_expression(page),
-            "shot": "medium",
-            "costume": costume_extras_for_theme(theme.split(" + ")[0] if theme else None),
-            "text_band": "top" if (i - 1) % 2 == 0 else "bottom",
-            "camera": _CAMERA_FALLBACK[(i - 1) % len(_CAMERA_FALLBACK)],
-            "mood": "",
-            "duration_s": 5,
-            "image_prompt": f"Cena {i} da história (tema {theme}): {flat[:400]}",
-            "video_prompt": f"Anime a cena com movimento suave e expressivo: {first[:200]}",
-        })
+        scenes.append(
+            {
+                "n": i,
+                "narration": page.strip(),
+                "setting": "",
+                "action": first[:220],
+                "scene": flat[:400],
+                "expression": infer_expression(page),
+                "shot": "medium",
+                "costume": costume_extras_for_theme(theme.split(" + ")[0] if theme else None),
+                "text_band": "top" if (i - 1) % 2 == 0 else "bottom",
+                "camera": _CAMERA_FALLBACK[(i - 1) % len(_CAMERA_FALLBACK)],
+                "mood": "",
+                "duration_s": 5,
+                "image_prompt": f"Cena {i} da história (tema {theme}): {flat[:400]}",
+                "video_prompt": f"Anime a cena com movimento suave e expressivo: {first[:200]}",
+            }
+        )
     return {"title": title, "logline": "", "moral": "", "scenes": scenes}
 
 
@@ -1386,22 +1413,26 @@ def _parse_storyboard_json(text: str) -> dict | None:
             dur = int(sc.get("duration_s") or 5)
         except (TypeError, ValueError):
             dur = 5
-        scenes.append({
-            "n": i,
-            "narration": str(sc.get("narration") or "").strip(),
-            "setting": str(sc.get("setting") or "").strip(),
-            "action": str(sc.get("action") or "").strip(),
-            "scene": str(sc.get("scene") or sc.get("action") or sc.get("setting") or "").strip(),
-            "expression": normalize_expression(sc.get("expression") or sc.get("mood")),
-            "shot": normalize_shot(sc.get("shot")),
-            "costume": str(sc.get("costume") or "").strip(),
-            "text_band": normalize_text_band(sc.get("text_band")),
-            "camera": str(sc.get("camera") or "").strip(),
-            "mood": str(sc.get("mood") or "").strip(),
-            "duration_s": min(8, max(4, dur)),
-            "image_prompt": str(sc.get("image_prompt") or "").strip(),
-            "video_prompt": str(sc.get("video_prompt") or "").strip(),
-        })
+        scenes.append(
+            {
+                "n": i,
+                "narration": str(sc.get("narration") or "").strip(),
+                "setting": str(sc.get("setting") or "").strip(),
+                "action": str(sc.get("action") or "").strip(),
+                "scene": str(
+                    sc.get("scene") or sc.get("action") or sc.get("setting") or ""
+                ).strip(),
+                "expression": normalize_expression(sc.get("expression") or sc.get("mood")),
+                "shot": normalize_shot(sc.get("shot")),
+                "costume": str(sc.get("costume") or "").strip(),
+                "text_band": normalize_text_band(sc.get("text_band")),
+                "camera": str(sc.get("camera") or "").strip(),
+                "mood": str(sc.get("mood") or "").strip(),
+                "duration_s": min(8, max(4, dur)),
+                "image_prompt": str(sc.get("image_prompt") or "").strip(),
+                "video_prompt": str(sc.get("video_prompt") or "").strip(),
+            }
+        )
     if not scenes:
         return None
     return {
@@ -1445,7 +1476,9 @@ async def handle_storyboard(db: Session, job: Job) -> None:
     title = _parse_title(project.story_text) or ""
     pages = _parse_pages(project.story_text)
     await _compose_storyboard(
-        db, project, pages,
+        db,
+        project,
+        pages,
         title=title,
         theme_combined=theme_combined,
         language=language,
@@ -1453,5 +1486,3 @@ async def handle_storyboard(db: Session, job: Job) -> None:
         require_ai=True,
         job=job,
     )
-
-

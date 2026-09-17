@@ -5,6 +5,7 @@ somente Kling (`video_kling.KlingVideoProvider`); imagem e Nano Banana (com
 lane Fal). Trocar de provedor e registrar outra implementacao na factory, nao
 mudar o fluxo dos handlers.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -102,7 +103,12 @@ class TextProvider(Protocol):
     name: str
 
     async def generate_story(
-        self, *, brief: str, style: str, pages: int, language: str = "pt-BR",
+        self,
+        *,
+        brief: str,
+        style: str,
+        pages: int,
+        language: str = "pt-BR",
         age: int | None = None,
     ) -> TextResult:
         """Gera a historia personalizada (etapas 5-8) no idioma e idade pedidos."""

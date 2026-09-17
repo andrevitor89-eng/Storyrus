@@ -1,4 +1,5 @@
 """Configuracao central da aplicacao (12-factor: tudo via ambiente)."""
+
 from functools import lru_cache
 from typing import Literal, Self
 
@@ -114,7 +115,7 @@ class Settings(BaseSettings):
     webhook_max_age_s: float = 300.0
 
     # Provedores de IA
-    gemini_api_key: str | None = None       # Nano Banana Pro (Gemini 3 Pro Image)
+    gemini_api_key: str | None = None  # Nano Banana Pro (Gemini 3 Pro Image)
     gemini_image_model: str = "gemini-3-pro-image"
     # So Nano Banana Pro nas imagens. A lane devolve 503 ("high demand") em picos;
     # sem fallback o job falha e estorna depois dos retries. Vazio desliga a
@@ -138,10 +139,10 @@ class Settings(BaseSettings):
     gemini_max_retries: int = 5
     gemini_retry_base_s: float = 2.0
     gemini_retry_max_s: float = 60.0
-    anthropic_api_key: str | None = None    # historia (Claude)
-    kling_access_key: str | None = None     # video (image2video) — unico provedor
+    anthropic_api_key: str | None = None  # historia (Claude)
+    kling_access_key: str | None = None  # video (image2video) — unico provedor
     kling_secret_key: str | None = None
-    elevenlabs_api_key: str | None = None   # TTS video narrado
+    elevenlabs_api_key: str | None = None  # TTS video narrado
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
 
     # Selecao de provedores por etapa

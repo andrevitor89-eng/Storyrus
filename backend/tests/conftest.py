@@ -1,4 +1,5 @@
 """Fixtures: app + banco SQLite em memoria isolado por teste."""
+
 import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")

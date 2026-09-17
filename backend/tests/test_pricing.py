@@ -1,4 +1,5 @@
 """Tabela de preço: imagem, tokens Claude e vídeo."""
+
 from app.services import pricing
 
 

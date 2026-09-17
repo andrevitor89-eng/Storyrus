@@ -1,4 +1,5 @@
 """Narrated video job handler."""
+
 from __future__ import annotations
 
 import logging
@@ -18,6 +19,7 @@ from .story import _latest_storyboard
 from .video import _scene_image_bytes
 
 logger = logging.getLogger("worker")
+
 
 def _resolve_elevenlabs_voice_id(db: Session, user_id: uuid.UUID, payload: dict) -> str | None:
     """Resolve voice_id interno do payload (ou default do usuário) para ID ElevenLabs."""
@@ -121,5 +123,3 @@ async def handle_narrated_video(db: Session, job: Job) -> None:
         _set_status(db, project, ProjectStatus.VIDEO_READY)
     else:
         db.commit()
-
-

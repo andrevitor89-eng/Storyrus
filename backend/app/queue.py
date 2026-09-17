@@ -5,6 +5,7 @@ serve apenas para *acordar* o worker quase instantaneamente, evitando latencia d
 polling. Se o Redis estiver indisponivel, tudo degrada para polling do banco — o
 pipeline nao para.
 """
+
 from __future__ import annotations
 
 import logging

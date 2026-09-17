@@ -6,6 +6,7 @@ Na cena, o juiz pega o rosto mais proximo do recorte — nao o maior bbox
 Qualquer falha devolve None. `identity_accepted(None)` ainda e True (legado);
 o portao fail-closed mora em `identity_lock.judge_identity`.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -83,9 +84,7 @@ async def _post_with_retry(url: str, payload: dict):
             try:
                 resp = await client.post(url, json=payload, headers=headers)
             except httpx.RequestError as exc:
-                logger.warning(
-                    "Juiz de rosto, rede (tentativa %s/%s): %s", attempt, attempts, exc
-                )
+                logger.warning("Juiz de rosto, rede (tentativa %s/%s): %s", attempt, attempts, exc)
                 if attempt >= attempts:
                     return None
                 await asyncio.sleep(min(4.0, 0.8 * attempt))
@@ -352,9 +351,7 @@ async def score_face_match_detail(
         return None
     backend = (settings.face_match_backend or "gemini").strip().lower()
     if backend == "insightface":
-        scored = await asyncio.to_thread(
-            _score_insightface, photo, scene, domain=domain
-        )
+        scored = await asyncio.to_thread(_score_insightface, photo, scene, domain=domain)
         if scored is not None:
             return scored
         logger.warning("InsightFace sem nota; tenta Gemini se configurado")
@@ -373,7 +370,5 @@ async def score_face_match(
     `domain=photo`: recorte real x ilustracao. `domain=same`: avatar x cena.
     Backend `insightface` (padrao) com fallback Gemini. `gemini` so o Flash Lite.
     """
-    scored = await score_face_match_detail(
-        photo, scene, domain=domain, avatar=avatar
-    )
+    scored = await score_face_match_detail(photo, scene, domain=domain, avatar=avatar)
     return None if scored is None else scored.match

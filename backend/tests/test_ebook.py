@@ -1,4 +1,5 @@
 """Testes da diagramação especial das páginas do ebook."""
+
 from io import BytesIO
 
 from PIL import Image
@@ -28,9 +29,10 @@ def _image_bytes() -> bytes:
 
 def test_split_cover_title_strips_name_and_glue():
     assert split_cover_title("Lia e o Fundo do Mar", "Lia") == ("Lia", "O Fundo do Mar")
-    assert split_cover_title(
-        "Matteo na Amazônia — Alfabeto dos Animais", "Matteo"
-    ) == ("Matteo", "Na Amazônia — Alfabeto dos Animais")
+    assert split_cover_title("Matteo na Amazônia — Alfabeto dos Animais", "Matteo") == (
+        "Matteo",
+        "Na Amazônia — Alfabeto dos Animais",
+    )
     assert split_cover_title("O atacante Matteo", "Matteo") == ("Matteo", "O atacante")
     assert split_cover_title("As aventuras de Matteo e Dino", "Matteo") == (
         "Matteo",
@@ -178,12 +180,14 @@ def test_story_caption_sits_on_lower_third_and_fact_is_smaller():
 def test_story_caption_honors_top_text_band():
     blob = build_pdf(
         title="Matteo no Reino",
-        pages=[{
-            "text": "Matteo acordou bem cedo, contente para passear.",
-            "image": _image_bytes(),
-            "layout": "story",
-            "text_band": "top",
-        }],
+        pages=[
+            {
+                "text": "Matteo acordou bem cedo, contente para passear.",
+                "image": _image_bytes(),
+                "layout": "story",
+                "text_band": "top",
+            }
+        ],
         child_name="",
         preview_pages=None,
     )

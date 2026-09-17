@@ -1,4 +1,5 @@
 """Juiz de historia (Gemini flash-lite) compartilhado entre o job e o script Opik."""
+
 from __future__ import annotations
 
 import json
@@ -108,9 +109,7 @@ async def score_story(
     """Chama Gemini flash-lite. None se a chave faltar ou a resposta for ilegivel."""
     if not settings.gemini_api_key or not settings.gemini_face_model:
         return None
-    prompt = build_judge_prompt(
-        brief=brief, story=story, age=age, language=language, theme=theme
-    )
+    prompt = build_judge_prompt(brief=brief, story=story, age=age, language=language, theme=theme)
     update_span(
         metadata={
             "provider": "gemini",

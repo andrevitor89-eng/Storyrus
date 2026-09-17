@@ -13,6 +13,7 @@ Headers esperados no callback:
 Rejeita timestamp fora da janela ``webhook_max_age_s`` e nonce ja visto
 (Redis SET NX quando disponivel; senao memoria no processo).
 """
+
 from __future__ import annotations
 
 import hashlib

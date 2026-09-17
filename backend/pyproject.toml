@@ -34,6 +34,7 @@ dependencies = [
 dev = [
     "pytest>=8.2",
     "pytest-asyncio>=0.23",
+    "pytest-cov>=5.0",
     "ruff>=0.4",
 ]
 
@@ -49,6 +50,16 @@ ignore = ["E702", "E731"]
 [tool.pytest.ini_options]
 pythonpath = ["."]
 asyncio_mode = "auto"
+
+[tool.coverage.run]
+branch = false
+source = ["app"]
+omit = ["app/ai_clients/text_anthropic.py"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 70
 
 [tool.setuptools.packages.find]
 include = ["app*"]

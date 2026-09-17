@@ -14,6 +14,7 @@ Desenho:
 - Exception nao-ProviderError tambem retenta quando classificada como transitória
   (rede/timeout/5xx) — STO-36.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -181,7 +182,10 @@ async def process_job(db: Session, job: Job) -> None:
                 retriable = exc.transient and job.attempts < settings.job_max_attempts
                 logger.warning(
                     "job %s falhou (tentativa %s): %s [transient=%s]",
-                    job.id, job.attempts, exc, exc.transient,
+                    job.id,
+                    job.attempts,
+                    exc,
+                    exc.transient,
                 )
                 if not retriable:
                     jobs_svc.mark_failed_and_refund(db, job, str(exc))
@@ -198,9 +202,7 @@ async def process_job(db: Session, job: Job) -> None:
                     transient,
                 )
                 if not retriable:
-                    jobs_svc.mark_failed_and_refund(
-                        db, job, f"{type(exc).__name__}: {exc}"
-                    )
+                    jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
     finally:

@@ -1,4 +1,5 @@
 """Testes do juiz de identidade foto x cena (sem rede)."""
+
 from io import BytesIO
 
 import httpx
@@ -135,9 +136,7 @@ async def test_insightface_backend_uses_mapped_cosine(monkeypatch):
     monkeypatch.setattr(fm.settings, "face_match_backend", "insightface")
 
     def fake_score(_photo, _scene, *, domain="photo"):
-        return fm.FaceScore(
-            match=0.88, eye_inflate=0.0, geometry=0.88, age=0.88, hair=0.88
-        )
+        return fm.FaceScore(match=0.88, eye_inflate=0.0, geometry=0.88, age=0.88, hair=0.88)
 
     monkeypatch.setattr(fm, "_score_insightface", fake_score)
     score = await fm.score_face_match(_png(), _png())

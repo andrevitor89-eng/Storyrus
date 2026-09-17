@@ -1,4 +1,5 @@
 """Painel de gastos: agrega jobs.cost_usd. Protegido por senha no header."""
+
 from __future__ import annotations
 
 import hmac
@@ -64,7 +65,9 @@ def _parse_day(value: date | None, *, end: bool) -> datetime | None:
     return local.astimezone(UTC)
 
 
-def _event_rows(db: Session, range_start: datetime, range_end: datetime, job_rows) -> list[UsageEventOut]:
+def _event_rows(
+    db: Session, range_start: datetime, range_end: datetime, job_rows
+) -> list[UsageEventOut]:
     events = db.execute(
         select(UsageEvent, Project)
         .join(Project, Project.id == UsageEvent.project_id)
@@ -255,7 +258,6 @@ def get_usage(
         today_credits=day.credits_spent,
         reserved_usd=round(day.reserved_usd, 4),
         anomalies=[
-            UsageAnomalyOut(kind=a.kind, severity=a.severity, message=a.message)
-            for a in flags
+            UsageAnomalyOut(kind=a.kind, severity=a.severity, message=a.message) for a in flags
         ],
     )

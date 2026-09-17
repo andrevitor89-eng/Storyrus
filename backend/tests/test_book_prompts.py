@@ -1,4 +1,5 @@
 """Testes do modulo de prompts do livro (avatar + expressao + cena)."""
+
 from app.ai_clients.book_prompts import (
     ALPHABET_SCENE_EXTRAS,
     AVATAR_PROMPT,
@@ -135,11 +136,17 @@ def test_refine_identity_orders_photo_first():
     assert "fracao do rosto" in REFINE_IDENTITY_PROMPT
     assert "REDUZA" in REFINE_IDENTITY_PROMPT
     assert "TAREFA CIRURGICA" in REFINE_IDENTITY_PROMPT
-    assert "fonte de verdade" in REFINE_IDENTITY_PROMPT.lower() or "UNICA fonte" in REFINE_IDENTITY_PROMPT
+    assert (
+        "fonte de verdade" in REFINE_IDENTITY_PROMPT.lower()
+        or "UNICA fonte" in REFINE_IDENTITY_PROMPT
+    )
     assert "RECORTE" in REFINE_IDENTITY_PROMPT
     assert "mais gordo" in REFINE_IDENTITY_PROMPT
     assert "REDUZA o volume das bochechas" in REFINE_IDENTITY_PROMPT
-    assert "nao cole o close" in REFINE_IDENTITY_PROMPT.lower() or "nao copie o close" in REFINE_IDENTITY_PROMPT.lower()
+    assert (
+        "nao cole o close" in REFINE_IDENTITY_PROMPT.lower()
+        or "nao copie o close" in REFINE_IDENTITY_PROMPT.lower()
+    )
 
 
 def test_scene_and_style_are_hybrid_illustration():

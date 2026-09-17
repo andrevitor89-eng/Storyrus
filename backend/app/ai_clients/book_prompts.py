@@ -8,6 +8,7 @@ Regras de ouro:
 - Proporcoes naturais da foto (cabeca anatomica, sem aumento); sem chibi/funko
 - Expressao facial MUDA por pagina e deve coincidir com a historia
 """
+
 from __future__ import annotations
 
 import re
@@ -30,8 +31,7 @@ EXPRESSIONS: dict[str, str] = {
         "palpebras abertas no MESMO tamanho de olho — sem terror, sem chibi"
     ),
     "determinacao": (
-        "queixo firme, boca fechada decidida, corpo inclinado para a acao, "
-        "olhar direto no objetivo"
+        "queixo firme, boca fechada decidida, corpo inclinado para a acao, olhar direto no objetivo"
     ),
     "surpresa": (
         "boca em O bem marcada, sobrancelhas BEM erguidas, palpebras abertas "
@@ -41,24 +41,17 @@ EXPRESSIONS: dict[str, str] = {
         "sorriso fechado aconchegante, ombros baixos e soltos, olhar sereno — "
         "ainda assim uma emocao, nao cara vazia"
     ),
-    "tristeza_leve": (
-        "cantos da boca caidos, ombros caidos, olhar baixo — sem choro de teatro"
-    ),
+    "tristeza_leve": ("cantos da boca caidos, ombros caidos, olhar baixo — sem choro de teatro"),
     "concentracao": (
-        "sobrancelhas franzidas, boca fechada, corpo quieto e inclinado no "
-        "trabalho, olhar cravado"
+        "sobrancelhas franzidas, boca fechada, corpo quieto e inclinado no trabalho, olhar cravado"
     ),
     "carinho": (
         "sorriso terno amplo, cabeca inclinada, corpo perto do outro, bracos "
         "em gesto de abraco ou cuidado"
     ),
-    "orgulho": (
-        "peito estufado, sorriso confiante aberto, queixo um pouco alto, "
-        "postura ereta"
-    ),
+    "orgulho": ("peito estufado, sorriso confiante aberto, queixo um pouco alto, postura ereta"),
     "vergonha": (
-        "olhar baixo, sorriso timido de lado, ombros para dentro, mao perto "
-        "do rosto ou da barriga"
+        "olhar baixo, sorriso timido de lado, ombros para dentro, mao perto do rosto ou da barriga"
     ),
     "animacao": (
         "sorriso LARGO, corpo em movimento (pulo ou bracos abertos), energia "
@@ -70,24 +63,39 @@ _DEFAULT_EXPRESSION = "alegria"
 
 _INFER_RULES: list[tuple[str, re.Pattern[str]]] = [
     ("medo_gentil", re.compile(r"medo|assust|escuro|trem|perigo|susto|receio", re.IGNORECASE)),
-    ("tristeza_leve", re.compile(r"trist|chor|doente|separad|desanim|sozinh|saudade", re.IGNORECASE)),
+    (
+        "tristeza_leve",
+        re.compile(r"trist|chor|doente|separad|desanim|sozinh|saudade", re.IGNORECASE),
+    ),
     ("vergonha", re.compile(r"vergonh|timid|constrang|envergonh|corado", re.IGNORECASE)),
-    ("surpresa", re.compile(r"surpre|de repente|olha!|inesperad|uau|nossa|assombro", re.IGNORECASE)),
-    ("curiosidade", re.compile(r"curios|pergunt|descob|imagin|pensa|olha as|observ|investig", re.IGNORECASE)),
-    ("determinacao", re.compile(r"decid|determin|coragem|tentar|construir|ajuda|limpo|miss|enfrentar", re.IGNORECASE)),
+    (
+        "surpresa",
+        re.compile(r"surpre|de repente|olha!|inesperad|uau|nossa|assombro", re.IGNORECASE),
+    ),
+    (
+        "curiosidade",
+        re.compile(r"curios|pergunt|descob|imagin|pensa|olha as|observ|investig", re.IGNORECASE),
+    ),
+    (
+        "determinacao",
+        re.compile(
+            r"decid|determin|coragem|tentar|construir|ajuda|limpo|miss|enfrentar", re.IGNORECASE
+        ),
+    ),
     ("concentracao", re.compile(r"concent|cuidado|conta|junta|coloca|aprende|foco", re.IGNORECASE)),
     ("carinho", re.compile(r"abrac|carinh|amor|anin|colo|corac|beijo", re.IGNORECASE)),
     ("orgulho", re.compile(r"orgulh|conquist|consegui|pronto|cheinho|vitor", re.IGNORECASE)),
-    ("animacao", re.compile(r"empolg|animad|eufor|pulando|correndo de alegria|animacao", re.IGNORECASE)),
+    (
+        "animacao",
+        re.compile(r"empolg|animad|eufor|pulando|correndo de alegria|animacao", re.IGNORECASE),
+    ),
     ("calma", re.compile(r"calm|quiet|paz|dorm|tranquil|seren|descans", re.IGNORECASE)),
     ("alegria", re.compile(r"feliz|alegr|sorr|brinc|festa|brilha|divert|risad", re.IGNORECASE)),
 ]
 
 
 def _strip_accents(text: str) -> str:
-    return "".join(
-        c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c)
-    )
+    return "".join(c for c in unicodedata.normalize("NFKD", text) if not unicodedata.combining(c))
 
 
 def normalize_expression(value: str | None) -> str:

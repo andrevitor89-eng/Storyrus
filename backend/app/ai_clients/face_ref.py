@@ -8,6 +8,7 @@ de deteccao (`face_detect`) e o heuristico aqui e so a rede de seguranca.
 
 Este modulo e puro e offline: nao faz rede.
 """
+
 from __future__ import annotations
 
 from io import BytesIO

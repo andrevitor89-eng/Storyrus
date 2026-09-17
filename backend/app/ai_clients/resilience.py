@@ -5,6 +5,7 @@ credito esgotado, chave ausente): a primeira pede espera, a segunda pede
 aborto imediato. `retry_until` insiste dentro de um orcamento de tempo e
 termina com `OutageError` em vez de girar para sempre.
 """
+
 from __future__ import annotations
 
 import asyncio

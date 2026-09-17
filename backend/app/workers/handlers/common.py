@@ -1,4 +1,5 @@
 """Shared helpers for worker job handlers."""
+
 from __future__ import annotations
 
 import logging
@@ -16,7 +17,10 @@ from app.services.usage_ledger import append_usage, image_provider_name, usage_l
 
 logger = logging.getLogger("worker")
 
-def _offline_png(label: str, *, palette: tuple[tuple[int, int, int], tuple[int, int, int]]) -> bytes:
+
+def _offline_png(
+    label: str, *, palette: tuple[tuple[int, int, int], tuple[int, int, int]]
+) -> bytes:
     """Gera uma imagem local simples para fallback offline/demonstração.
 
     O objetivo não é reproduzir a qualidade do provedor, apenas manter o fluxo
@@ -79,8 +83,16 @@ def _offline_gif(label: str) -> bytes:
         draw.ellipse((110 + idx * 30, 135, 350 + idx * 30, 375), fill=(246, 214, 170))
         draw.ellipse((210 + idx * 30, 230, 255 + idx * 30, 275), fill=(40, 40, 40))
         draw.ellipse((285 + idx * 30, 230, 330 + idx * 30, 275), fill=(40, 40, 40))
-        draw.arc((235 + idx * 30, 280, 305 + idx * 30, 345), start=15, end=165, fill=(120, 60, 60), width=6)
-        draw.rounded_rectangle((530, 170, 840, 330), radius=28, fill=(255, 255, 255), outline=(170, 180, 190), width=4)
+        draw.arc(
+            (235 + idx * 30, 280, 305 + idx * 30, 345),
+            start=15,
+            end=165,
+            fill=(120, 60, 60),
+            width=6,
+        )
+        draw.rounded_rectangle(
+            (530, 170, 840, 330), radius=28, fill=(255, 255, 255), outline=(170, 180, 190), width=4
+        )
         draw.text((560, 205), label[:24], fill=(34, 42, 54), font=font)
         draw.text((560, 255), f"Cena {idx + 1}", fill=(84, 98, 112), font=font)
         frames.append(frame)
@@ -109,6 +121,7 @@ def _offline_video_bytes(label: str) -> bytes:
         f"Fallback offline do video indisponivel para: {label}\n"
         "Use o provedor configurado para gerar o mp4 real quando houver acesso.\n"
     ).encode()
+
 
 def _project(db: Session, job: Job) -> Project:
     project = db.get(Project, job.project_id)
@@ -172,9 +185,7 @@ def _parse_pages(story: str, limit: int = 200) -> list[str]:
         sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", story) if s.strip()]
         if len(sentences) > 1:
             group = 2
-            pages = [
-                " ".join(sentences[i : i + group]) for i in range(0, len(sentences), group)
-            ]
+            pages = [" ".join(sentences[i : i + group]) for i in range(0, len(sentences), group)]
 
     return pages[:limit] or [story]
 
@@ -229,8 +240,5 @@ def _tag_image(result, *, action: str, label: str, fallback_provider: str | None
     return result
 
 
-
 def _ext(mime: str) -> str:
     return {"image/png": "png", "image/jpeg": "jpg", "image/webp": "webp"}.get(mime, "png")
-
-

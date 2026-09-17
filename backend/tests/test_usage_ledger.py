@@ -1,4 +1,5 @@
 """Linhas do extrato: append/merge/flush."""
+
 from app.ai_clients.base import ImageResult
 from app.services.usage_ledger import (
     append_usage,

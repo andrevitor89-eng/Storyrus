@@ -3,6 +3,7 @@
 O que importa aqui e a degradacao: nenhuma falha de deteccao pode impedir a
 geracao do avatar, e nenhuma caixa implausivel pode ser aceita.
 """
+
 from io import BytesIO
 
 import httpx
@@ -96,7 +97,10 @@ async def test_retries_transient_then_succeeds():
 @pytest.mark.asyncio
 async def test_does_not_retry_client_error():
     """400 e erro nosso: insistir so atrasa o avatar."""
-    _Client.script = [_Resp(400, {"error": {"message": "bad request"}}), _Resp(200, _reply([1, 1, 500, 500]))]
+    _Client.script = [
+        _Resp(400, {"error": {"message": "bad request"}}),
+        _Resp(200, _reply([1, 1, 500, 500])),
+    ]
     assert await fd.detect_face_box(_png()) is None
     assert _Client.posts == 1
 
@@ -202,9 +206,7 @@ def test_box_iou_empty_and_full():
 
 
 def test_tighten_box_uses_overlapping_face(monkeypatch):
-    monkeypatch.setattr(
-        fd, "face_boxes", lambda _p: [(50, 50, 90, 100), (200, 200, 380, 380)]
-    )
+    monkeypatch.setattr(fd, "face_boxes", lambda _p: [(50, 50, 90, 100), (200, 200, 380, 380)])
     gemini = (40, 40, 100, 110)
     assert fd.tighten_box(b"x", gemini) == (50, 50, 90, 100)
 

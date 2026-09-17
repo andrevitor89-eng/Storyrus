@@ -3,6 +3,7 @@
 Rotas autenticadas exigem JWT. Convidados passam por POST /v1/auth/guest,
 que cria um usuario isolado e devolve o token — nunca um guest compartilhado.
 """
+
 import uuid
 
 from fastapi import Depends, HTTPException, status

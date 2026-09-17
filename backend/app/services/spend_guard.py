@@ -5,6 +5,7 @@ creditos debitados. 0 / None nos settings = desligado.
 
 O painel /gastos consome `anomalies()` para alertar burn anômalo.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -132,8 +133,7 @@ def assert_vendor_allowed(db: Session, job_type: str | None = None) -> DaySpend:
     if usd_ceiling > 0 and spend.measured_usd >= usd_ceiling - 1e-9:
         raise SpendCeilingError(
             f"Teto diario de USD atingido ({spend.measured_usd:.4f} >= {usd_ceiling:.4f}); "
-            f"recusando chamada de vendor"
-            + (f" para {job_type}" if job_type else ""),
+            f"recusando chamada de vendor" + (f" para {job_type}" if job_type else ""),
             kind="usd",
         )
 
@@ -163,10 +163,7 @@ def anomalies(db: Session, *, today_usd: float | None = None) -> list[Anomaly]:
                 Anomaly(
                     kind="daily_usd_ceiling",
                     severity="critical",
-                    message=(
-                        f"Teto diario de USD atingido: "
-                        f"{measured:.4f} / {usd_ceiling:.4f}"
-                    ),
+                    message=(f"Teto diario de USD atingido: {measured:.4f} / {usd_ceiling:.4f}"),
                 )
             )
         elif ratio >= warn_at:
@@ -175,8 +172,7 @@ def anomalies(db: Session, *, today_usd: float | None = None) -> list[Anomaly]:
                     kind="daily_usd_warn",
                     severity="warn",
                     message=(
-                        f"Burn do dia em {ratio:.0%} do teto "
-                        f"({measured:.4f} / {usd_ceiling:.4f})"
+                        f"Burn do dia em {ratio:.0%} do teto ({measured:.4f} / {usd_ceiling:.4f})"
                     ),
                 )
             )
@@ -200,8 +196,7 @@ def anomalies(db: Session, *, today_usd: float | None = None) -> list[Anomaly]:
                 kind="daily_credits_ceiling",
                 severity="critical",
                 message=(
-                    f"Teto diario de creditos atingido: "
-                    f"{spend.credits_spent} / {credits_ceiling}"
+                    f"Teto diario de creditos atingido: {spend.credits_spent} / {credits_ceiling}"
                 ),
             )
         )

@@ -1,4 +1,5 @@
 """Montagem de vídeo narrado com ffmpeg (Ken Burns + TTS + concat)."""
+
 from __future__ import annotations
 
 import logging

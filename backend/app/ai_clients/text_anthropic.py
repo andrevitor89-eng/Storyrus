@@ -1,4 +1,5 @@
 """TextProvider real: Claude (Anthropic Messages API). Versos rimados por pagina."""
+
 from __future__ import annotations
 
 import httpx
@@ -19,7 +20,7 @@ _SYSTEM_PT = (
     "PERFIL DA CRIANÇA: quando o pedido trouxer um nome, uma idade, um TRAÇO CENTRAL "
     "(o ponto de partida que a história vai transformar) e um INTERESSE/TALENTO (a "
     "ferramenta que a criança usa para vencer o obstáculo), use-os como base do "
-    "enredo — o traço central é o \"antes\"; a lição é o \"depois\". Nunca troque o "
+    'enredo — o traço central é o "antes"; a lição é o "depois". Nunca troque o '
     "traço central por outro no meio da história, e nunca deixe um adulto ou a sorte "
     "resolver o problema por ela: quem supera o obstáculo é a própria criança, usando "
     "o que já é seu.\n\n"
@@ -28,7 +29,7 @@ _SYSTEM_PT = (
     "história pode ser um SENTIMENTO PERSONIFICADO (Medo-do-Escuro, Timidez, Ciúme, "
     "Vergonha, Impaciência, Frustração) para temas emocionais e de rotina, ou um "
     "DESAFIO-OBSTÁCULO concreto para temas de descoberta do mundo. Em ambos os casos, "
-    "o vilão nunca é \"mau\" nem é destruído — ele é NOMEADO, COMPREENDIDO e ACALMADO "
+    'o vilão nunca é "mau" nem é destruído — ele é NOMEADO, COMPREENDIDO e ACALMADO '
     "(se sentimento) ou SUPERADO com o traço/interesse da própria criança (se "
     "obstáculo). É isso que torna a lição transferível para a vida real da criança.\n\n"
     "ESPAÇO: antes de escrever, construa o mundo da história em três camadas. (1) "
@@ -41,7 +42,7 @@ _SYSTEM_PT = (
     "(3) A TOCA DO VILÃO: onde o sentimento ou obstáculo mora ou aparece dentro "
     "desse espaço (o canto escuro do quarto, a poça funda do riacho) — o vilão "
     "pertence ao mundo, não surge do nada. No clímax, o espaço ganha um detalhe "
-    "novo CONCRETO e visível (nunca abstrato: não basta \"algo mudou\", diga o QUE "
+    'novo CONCRETO e visível (nunca abstrato: não basta "algo mudou", diga o QUE '
     "mudou — a luz que entra pela primeira vez, o brinquedo agora dividido em cima "
     "da cama) — sinal visual direto de que a criança se transformou.\n\n"
     "HISTÓRIA (o mais importante): antes de escrever, planeje mentalmente um ENREDO "
@@ -62,7 +63,7 @@ _SYSTEM_PT = (
     "ritmo desacelera: o espaço muda de leve, final caloroso). TRANSIÇÃO: a última "
     "imagem ou verso de cada página deve plantar uma semente (som, pergunta, "
     "movimento) que a página seguinte responde — nunca feche uma página com um ponto "
-    "final \"morto\".\n\n"
+    'final "morto".\n\n'
     "CRIATIVIDADE E ENCANTAMENTO: abra a página 1 com um GANCHO irresistível que dê "
     "vontade de virar a página. Crie um momento de DESCOBERTA ou uma pequena SURPRESA "
     "no meio, aumente a emoção e a tensão gentil até um CLÍMAX triunfante, e termine "
@@ -74,7 +75,7 @@ _SYSTEM_PT = (
     "curiosidades verdadeiras pedidas no brief — a criança aprende brincando, sem "
     "tom de aula. Use o nome certo das coisas (animais, plantas, planetas, "
     "instrumentos) com uma explicação simples de 1 frase, e faça o final retomar "
-    "com leveza o que o herói descobriu e sentiu — não apenas \"aprendeu\", mas "
+    'com leveza o que o herói descobriu e sentiu — não apenas "aprendeu", mas '
     "sentiu na pele.\n\n"
     "FORMA: cada página é uma ESTROFE CURTA de 2 a 4 versos, musical, no máximo "
     "~40 palavras, descrevendo UMA cena visual clara (lugar + ação do protagonista).\n\n"
@@ -99,7 +100,7 @@ _SYSTEM_EN = (
     "CHILD PROFILE: when the request includes a name, an age, a STARTING TRAIT (the "
     "starting point the story will transform) and a TALENT/INTEREST (the tool the "
     "child uses to overcome the obstacle), build the plot around them — the starting "
-    "trait is the \"before\"; the lesson is the \"after\". Never swap the starting trait "
+    'trait is the "before"; the lesson is the "after". Never swap the starting trait '
     "for another one mid-story, and never let an adult or luck solve the problem for "
     "her: the child overcomes the obstacle herself, using what is already hers.\n\n"
     "CHARACTERS AS SETTING: every side character works as a piece of set design — "
@@ -107,7 +108,7 @@ _SYSTEM_EN = (
     "VILLAIN of the story can be a PERSONIFIED FEELING (Fear-of-the-Dark, Shyness, "
     "Jealousy, Shame, Impatience, Frustration) for emotional and routine themes, or a "
     "concrete CHALLENGE-OBSTACLE for world-discovery themes. Either way, the villain "
-    "is never \"evil\" nor destroyed — it is NAMED, UNDERSTOOD and CALMED (if a "
+    'is never "evil" nor destroyed — it is NAMED, UNDERSTOOD and CALMED (if a '
     "feeling) or OVERCOME with the child's own trait/interest (if an obstacle). "
     "That's what makes the lesson transferable to the child's real life.\n\n"
     "SETTING: before writing, build the story's world in three layers. (1) The "
@@ -121,7 +122,7 @@ _SYSTEM_EN = (
     "appears within that space (the dark corner of the room, the deep puddle in the "
     "creek) — the villain belongs to the world, it doesn't come from nowhere. At the "
     "climax, the setting gains one new CONCRETE, visible detail (never abstract — "
-    "don't just say \"something changed\", say WHAT changed: the light coming in for "
+    'don\'t just say "something changed", say WHAT changed: the light coming in for '
     "the first time, the toy now shared on the bed) — a direct visual sign that the "
     "child has transformed.\n\n"
     "STORY (most important): before writing, mentally plan a COHERENT plot with a "
@@ -141,7 +142,7 @@ _SYSTEM_EN = (
     "the child names/calms/overcomes the villain with her own trait), RESOLUTION "
     "(~15-20%, pace slows: the setting shifts slightly, warm ending). TRANSITION: the "
     "last image or line of each page must plant a seed (a sound, a question, a "
-    "movement) that the next page answers — never close a page on a \"dead\" full "
+    'movement) that the next page answers — never close a page on a "dead" full '
     "stop.\n\n"
     "CREATIVITY AND WONDER: open page 1 with an irresistible HOOK that makes the "
     "reader want to turn the page. Add a moment of DISCOVERY or a small SURPRISE in "
@@ -154,7 +155,7 @@ _SYSTEM_EN = (
     "brief into the action and dialogue — the child learns while playing, never "
     "lectured. Name things correctly (animals, plants, planets, tools) with a simple "
     "one-sentence explanation, and let the ending lightly revisit what the hero "
-    "discovered and felt — not just \"learned\", but felt firsthand.\n\n"
+    'discovered and felt — not just "learned", but felt firsthand.\n\n'
     "FORM: each page is a SHORT STANZA of 2 to 4 lines, musical, at most ~40 words, "
     "depicting ONE clear visual scene (place + the hero's action).\n\n"
     "GOLDEN RULE OF MEANING: every line must be a NATURAL English sentence, in "
@@ -268,7 +269,12 @@ class AnthropicTextProvider:
         self.last_cost_usd: float | None = None
 
     async def generate_story(
-        self, *, brief: str, style: str, pages: int, language: str = "pt-BR",
+        self,
+        *,
+        brief: str,
+        style: str,
+        pages: int,
+        language: str = "pt-BR",
         age: int | None = None,
     ) -> TextResult:
         if not self._api_key:
@@ -290,7 +296,7 @@ class AnthropicTextProvider:
                 "satisfying ending. Every page must follow logically from the previous one.\n\n"
                 "Return EXACTLY in this format:\n"
                 f"Line 1 => 'Título: <book title featuring the hero's name, e.g. "
-                f"\"NAME and the Great Adventure\">'.\n"
+                f'"NAME and the Great Adventure">\'.\n'
                 f"Then exactly {pages} pages, each starting with 'Página N:' followed by "
                 "the stanza (2-4 short, natural lines; rhyme only when effortless). "
                 "No image suggestions."
@@ -311,7 +317,7 @@ class AnthropicTextProvider:
                 "anterior, sem cenas soltas.\n\n"
                 "Devolva EXATAMENTE neste formato:\n"
                 "Linha 1 => 'Título: <título do livro com o nome do protagonista, ex.: "
-                "\"NOME e a Grande Aventura\">'.\n"
+                '"NOME e a Grande Aventura">\'.\n'
                 f"Depois exatamente {pages} páginas, cada uma iniciada por 'Página N:' "
                 "seguida da estrofe (2 a 4 versos curtos e naturais; rime só quando sair "
                 "sem esforço). Português do Brasil com acentuação correta, sem sugestões "
@@ -348,7 +354,9 @@ class AnthropicTextProvider:
 
         data = resp.json()
         text = "".join(
-            block.get("text", "") for block in data.get("content", []) if block.get("type") == "text"
+            block.get("text", "")
+            for block in data.get("content", [])
+            if block.get("type") == "text"
         )
         usage = data.get("usage", {})
         return TextResult(
@@ -400,7 +408,7 @@ class AnthropicTextProvider:
                 "- video_prompt: 1-2 sentences describing the scene motion for an "
                 "image-to-video generator.\n"
                 "- logline: one-sentence summary. moral: what the child learns.\n"
-                'Reply ONLY with valid JSON in this format:\n'
+                "Reply ONLY with valid JSON in this format:\n"
                 '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
                 '"narration": "...", "setting": "...", "action": "...", "scene": "...", '
                 '"expression": "alegria", "shot": "medium", "costume": "...", '
@@ -441,7 +449,7 @@ class AnthropicTextProvider:
                 "- video_prompt: 1-2 frases descrevendo o movimento da cena para um gerador "
                 "de vídeo image-to-video.\n"
                 "- logline: resumo de 1 frase. moral: o que a criança aprende.\n"
-                'Responda SOMENTE com JSON válido neste formato:\n'
+                "Responda SOMENTE com JSON válido neste formato:\n"
                 '{"title": "...", "logline": "...", "moral": "...", "scenes": [{"n": 1, '
                 '"narration": "...", "setting": "...", "action": "...", "scene": "...", '
                 '"expression": "alegria", "shot": "medium", "costume": "...", '

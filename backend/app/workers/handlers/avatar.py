@@ -1,4 +1,5 @@
 """Avatar / character job handlers."""
+
 from __future__ import annotations
 
 import logging
@@ -41,10 +42,13 @@ from .common import (
 
 logger = logging.getLogger("worker")
 
+
 def _pkg():
     """Package root — tests monkeypatch providers/score on app.workers.handlers."""
     from app.workers import handlers as pkg
+
     return pkg
+
 
 async def handle_avatar(db: Session, job: Job) -> None:
     project = _project(db, job)
@@ -55,9 +59,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
     _set_status(db, project, ProjectStatus.AVATAR_RUNNING)
 
     photos = db.scalars(
-        select(Asset).where(
-            Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value
-        )
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
     ).all()
     if not photos:
         raise ProviderError("Sem fotos para gerar o personagem", transient=False)
@@ -94,8 +96,14 @@ async def handle_avatar(db: Session, job: Job) -> None:
 
     key = storage.new_key(project.id, AssetKind.CHARACTER.value, _ext(result.mime_type))
     storage.put_bytes(key, result.image_bytes, result.mime_type)
-    db.add(Asset(project_id=project.id, kind=AssetKind.CHARACTER.value, storage_key=key,
-                 meta={"mime": result.mime_type}))
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.CHARACTER.value,
+            storage_key=key,
+            meta={"mime": result.mime_type},
+        )
+    )
     project.character_ref = {"storage_key": key, "mime": result.mime_type}
     project.character_approved_at = None
     project.book_approved_at = None
@@ -367,5 +375,3 @@ async def handle_realistic(db: Session, job: Job) -> None:
     job.cost_usd = result.cost_usd
     flush_usage(db, job, lines_of(result))
     db.commit()
-
-

@@ -1,4 +1,5 @@
 """Testes do catálogo de histórias prontas (templates traduzidos)."""
+
 from app.story_templates import (
     STORY_TEMPLATES,
     build_name_rhyme,

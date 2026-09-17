@@ -1,4 +1,5 @@
 """Video job handler (Kling image2video)."""
+
 from __future__ import annotations
 
 import logging
@@ -22,10 +23,13 @@ from .story import _latest_storyboard
 
 logger = logging.getLogger("worker")
 
+
 def _pkg():
     """Package root — tests monkeypatch providers/score on app.workers.handlers."""
     from app.workers import handlers as pkg
+
     return pkg
+
 
 def _kling_configured() -> bool:
     return bool(settings.kling_access_key and settings.kling_secret_key)
@@ -59,7 +63,6 @@ def _video_reference_key(db: Session, project: Project, *, scene_n: int = 1) -> 
         "Imagem de referencia ausente: gere e aprove o personagem antes",
         transient=False,
     )
-
 
 
 async def handle_video(db: Session, job: Job) -> None:
@@ -127,8 +130,14 @@ async def handle_video(db: Session, job: Job) -> None:
             stored = task.video_url
             source_url = task.video_url
 
-    db.add(Asset(project_id=project.id, kind=AssetKind.VIDEO.value, storage_key=stored,
-                 meta={"source": source_url, "kind": "animation"}))
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.VIDEO.value,
+            storage_key=stored,
+            meta={"source": source_url, "kind": "animation"},
+        )
+    )
     project.video_url = stored
     if _pkg()._use_video_offline():
         job.cost_usd = 0.0
@@ -164,5 +173,3 @@ def _scene_image_bytes(db: Session, project: Project, scene_n: int) -> bytes:
     if project.character_ref and project.character_ref.get("storage_key"):
         return storage.get_bytes(project.character_ref["storage_key"])
     raise ProviderError("Sem imagens para montar o video narrado", transient=False)
-
-

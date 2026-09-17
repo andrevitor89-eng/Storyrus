@@ -1,4 +1,5 @@
 """STO-16: envelope estável de erros da API."""
+
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 

@@ -70,5 +70,6 @@ export function useStudioPolling({
       pollRef.current = null;
     };
     // Deps match the former inline effect (project identity via project?.id).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- setters are stable; poll on project id + active job only
   }, [project?.id, hasActiveJob, refreshCredits, isDemo]);
 }

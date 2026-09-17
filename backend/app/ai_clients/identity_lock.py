@@ -6,6 +6,7 @@ for `generate_scene`. Prompt text is not a lock.
 A page that fails — low match, inflated eyes, drifted mouth/jaw/age, or
 None while the judge is on — is retried, then refused.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass
@@ -15,9 +16,7 @@ from app.ai_clients.base import ProviderError
 from app.ai_clients.face_match import FaceScore, coerce_face_score, score_face_match
 from app.config import settings
 
-IDENTITY_REQUIRED_ERROR = (
-    "character_ref ausente: a identidade travada e obrigatoria em toda pagina"
-)
+IDENTITY_REQUIRED_ERROR = "character_ref ausente: a identidade travada e obrigatoria em toda pagina"
 
 IDENTITY_MISMATCH_ERROR = (
     "identidade nao bateu com a crianca da foto/avatar; a pagina nao foi publicada"
@@ -87,9 +86,7 @@ class FaceVerdict:
             return True
         if self.status != "scored" or self.score is None:
             return False
-        limit = (
-            settings.ebook_eye_inflate_max if max_eye_inflate is None else max_eye_inflate
-        )
+        limit = settings.ebook_eye_inflate_max if max_eye_inflate is None else max_eye_inflate
         return identity_geometry_ok(
             FaceScore(
                 match=self.score,
@@ -198,10 +195,18 @@ async def judge_identity(
     try:
         raw = await _call_scorer(scorer, lock, truth, scene)
     except Exception:  # noqa: BLE001 - caller fail-closes on unverified
-        return FaceVerdict("unverified", reason="juiz falhou") if judge_configured() else FaceVerdict("disabled")
+        return (
+            FaceVerdict("unverified", reason="juiz falhou")
+            if judge_configured()
+            else FaceVerdict("disabled")
+        )
     score = coerce_face_score(raw)
     if score is None:
-        return FaceVerdict("unverified", reason="sem nota") if judge_configured() else FaceVerdict("disabled")
+        return (
+            FaceVerdict("unverified", reason="sem nota")
+            if judge_configured()
+            else FaceVerdict("disabled")
+        )
     reason = verdict_reason(
         score,
         min_match=settings.ebook_face_match_min,

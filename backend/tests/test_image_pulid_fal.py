@@ -1,4 +1,5 @@
 """PuLID Fal + compositor Hybrid (Gemini cena / PuLID rosto), sem rede."""
+
 from __future__ import annotations
 
 import pytest
@@ -108,9 +109,7 @@ async def test_refine_identity_calls_face_swap(monkeypatch):
     monkeypatch.setattr(pulid, "_subscribe", fake_sub)
     monkeypatch.setattr(pulid, "_download_image", lambda _url: b"SWAP")
 
-    result = await pulid.PulidFalProvider().refine_identity(
-        photo=_png(80), illustration=_png(2048)
-    )
+    result = await pulid.PulidFalProvider().refine_identity(photo=_png(80), illustration=_png(2048))
     assert result.image_bytes == b"SWAP"
     assert captured["endpoint"] == "easel-ai/advanced-face-swap"
     assert captured["arguments"]["workflow_type"] == "user_hair"
@@ -135,14 +134,10 @@ async def test_hybrid_routes_head_to_pulid_and_scene_to_gemini(monkeypatch):
     scene, head = _Scene(), _Head()
     hybrid = HybridImageProvider(scene=scene, head=head)
 
-    char = await hybrid.generate_character(
-        prompt="p", reference_images=[b"f"], style="s"
-    )
+    char = await hybrid.generate_character(prompt="p", reference_images=[b"f"], style="s")
     refined = await hybrid.refine_identity(photo=b"p", illustration=b"i")
     painted = await hybrid.refine_character(photo=b"p", illustration=b"i")
-    page = await hybrid.generate_scene(
-        prompt="pomar", character_ref=b"c", style="s"
-    )
+    page = await hybrid.generate_scene(prompt="pomar", character_ref=b"c", style="s")
 
     assert char.image_bytes == b"GCHAR"
     assert refined.image_bytes == b"PREF"
@@ -160,9 +155,7 @@ async def test_hybrid_refine_scene_with_photo_uses_gemini(monkeypatch):
     scene, head = _Scene(), _Head()
     hybrid = HybridImageProvider(scene=scene, head=head)
 
-    refined = await hybrid.refine_scene(
-        character_ref=b"c", scene=b"s", style="s", photo=b"photo"
-    )
+    refined = await hybrid.refine_scene(character_ref=b"c", scene=b"s", style="s", photo=b"photo")
     assert refined.image_bytes == b"GRSCENE"
     assert refined.meta["head_provider"] == "gemini"
     assert head.calls == []

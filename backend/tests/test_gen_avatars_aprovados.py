@@ -1,4 +1,5 @@
 """Testes do lote de avatares das criancas aprovadas (sem Gemini)."""
+
 from __future__ import annotations
 
 import sys

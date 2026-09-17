@@ -2,6 +2,7 @@
 
 Usa fake providers (sem rede) e storage em memoria (monkeypatch). Banco SQLite.
 """
+
 import uuid
 from datetime import UTC
 
@@ -39,52 +40,73 @@ def mem_storage(monkeypatch):
     monkeypatch.setattr("app.storage.put_bytes", lambda k, d, ct="x": store.setdefault(k, d) or k)
     monkeypatch.setattr("app.storage.get_bytes", lambda k: store.get(k, b"bytes"))
     # handlers e storage referenciam o mesmo modulo; cobre ambos os imports
-    monkeypatch.setattr(handlers.storage, "put_bytes", lambda k, d, ct="x": store.setdefault(k, d) or k)
+    monkeypatch.setattr(
+        handlers.storage, "put_bytes", lambda k, d, ct="x": store.setdefault(k, d) or k
+    )
     monkeypatch.setattr(handlers.storage, "get_bytes", lambda k: store.get(k, b"bytes"))
     return store
 
 
 def _seed(db, status=ProjectStatus.CREATED, credits=10):
     u = User(email=f"{uuid.uuid4().hex}@t.com", password_hash="x", credits=credits)
-    db.add(u); db.flush()
+    db.add(u)
+    db.flush()
     p = Project(user_id=u.id, status=status.value, style="cartoon")
-    db.add(p); db.flush()
+    db.add(p)
+    db.flush()
     return u, p
 
 
 def _job(db, project, jtype, cost=1, payload=None):
-    j = Job(project_id=project.id, type=jtype, status=JobStatus.PENDING.value, cost_credits=cost,
-            result={"payload": payload} if payload else None)
-    db.add(j); db.commit(); db.refresh(j)
+    j = Job(
+        project_id=project.id,
+        type=jtype,
+        status=JobStatus.PENDING.value,
+        cost_credits=cost,
+        result={"payload": payload} if payload else None,
+    )
+    db.add(j)
+    db.commit()
+    db.refresh(j)
     return j
 
 
 # ---- fakes ----
 class FakeImage:
     name = "fake-img"
+
     async def generate_character(self, **kw):
         return ImageResult(image_bytes=b"CHAR", mime_type="image/png", cost_usd=0.04)
+
     async def generate_realistic(self, **kw):
         return ImageResult(image_bytes=b"REAL", mime_type="image/png", cost_usd=0.04)
+
     async def generate_scene(self, **kw):
         return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
+
     async def refine_identity(self, **kw):
         return ImageResult(image_bytes=b"REFINED", mime_type="image/png", cost_usd=0.03)
+
     async def refine_character(self, **kw):
         return ImageResult(image_bytes=b"REFINED", mime_type="image/png", cost_usd=0.04)
+
     async def refine_scene(self, **kw):
         return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png", cost_usd=0.03)
 
 
 class FakeText:
     name = "fake-text"
+
     async def generate_story(self, **kw):
         return TextResult(text="Pagina 1: ola.\nPagina 2: fim.")
 
 
 class FlakyText:
     name = "flaky"
-    def __init__(self): self.calls = 0
+
+    def __init__(self):
+        self.calls = 0
+
     async def generate_story(self, **kw):
         self.calls += 1
         if self.calls < 3:
@@ -195,12 +217,14 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
     monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
     _, p = _seed(db)
-    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1")); db.commit()
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
     j = _job(db, p, "AVATAR")
 
     await runner.process_job(db, j)
 
-    db.refresh(p); db.refresh(j)
+    db.refresh(p)
+    db.refresh(j)
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.AVATAR_READY.value
     assert p.character_ref and "storage_key" in p.character_ref
@@ -309,7 +333,8 @@ async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     _, p = _seed(db)
-    p.character_ref = {"storage_key": "char1", "mime": "image/png"}; db.commit()
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    db.commit()
 
     await runner.process_job(db, _job(db, p, "STORY"))
     db.refresh(p)
@@ -343,12 +368,8 @@ def test_is_transient_exception_classifies_network_blips():
     assert runner.is_transient_exception(TimeoutError("timed out"))
     assert runner.is_transient_exception(ConnectionResetError("peer reset"))
     assert runner.is_transient_exception(httpx.ConnectError("dns"))
-    assert runner.is_transient_exception(
-        ProviderError("rate limit", transient=True)
-    )
-    assert not runner.is_transient_exception(
-        ProviderError("bad config", transient=False)
-    )
+    assert runner.is_transient_exception(ProviderError("rate limit", transient=True))
+    assert not runner.is_transient_exception(ProviderError("bad config", transient=False))
     assert not runner.is_transient_exception(ValueError("bug"))
     assert not runner.is_transient_exception(KeyError("missing"))
 
@@ -384,6 +405,7 @@ async def test_unexpected_transient_retries_then_success(db, mem_storage, monkey
 
 async def test_unexpected_non_transient_fails_immediately(db, mem_storage, monkeypatch):
     """Bug de codigo (ValueError) continua falhando na hora e estorna credito."""
+
     class Boom:
         async def generate_story(self, **kw):
             raise ValueError("bug no handler")
@@ -433,37 +455,47 @@ async def test_permanent_failure_refunds_credits(db, mem_storage, monkeypatch):
     class Boom:
         async def generate_story(self, **kw):
             raise ProviderError("config invalida", transient=False)
+
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: Boom())
     u, p = _seed(db, credits=10)
     j = _job(db, p, "STORY", cost=1)
     # simula debito previo (como o endpoint faria)
-    u.credits -= 1; db.commit()
+    u.credits -= 1
+    db.commit()
 
     await runner.process_job(db, j)
 
-    db.refresh(j); db.refresh(u)
+    db.refresh(j)
+    db.refresh(u)
     assert j.status == JobStatus.FAILED.value
     assert u.credits == 10  # estorno do credito debitado
 
 
 async def test_video_create_and_poll(db, mem_storage, monkeypatch):
     class FakeVideo:
-        def __init__(self): self.polls = 0
-        async def create_video(self, **kw): return VideoJob(provider_task_id="t1", status="RUNNING")
+        def __init__(self):
+            self.polls = 0
+
+        async def create_video(self, **kw):
+            return VideoJob(provider_task_id="t1", status="RUNNING")
+
         async def poll_video(self, **kw):
             self.polls += 1
             return VideoJob(provider_task_id="t1", status="DONE", video_url="https://cdn/v.mp4")
+
     monkeypatch.setattr(handlers, "get_video_provider", lambda *a, **k: FakeVideo())
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(runner.settings, "video_poll_interval_s", 0.0)
     # evita baixar o video de verdade -> guarda a URL do provedor
     _, p = _seed(db)
-    p.character_ref = {"storage_key": "char1", "mime": "image/png"}; db.commit()
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    db.commit()
     j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 10})
 
     await runner.process_job(db, j)
 
-    db.refresh(p); db.refresh(j)
+    db.refresh(p)
+    db.refresh(j)
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.VIDEO_READY.value
     assert p.video_url
@@ -492,12 +524,14 @@ async def test_video_prefers_keyframe_reference(db, mem_storage, monkeypatch):
     store["kf1"] = b"KEYFRAME1"
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
-    db.add(Asset(
-        project_id=p.id,
-        kind=AssetKind.PAGE_IMAGE.value,
-        storage_key="kf1",
-        meta={"keyframe": 1},
-    ))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PAGE_IMAGE.value,
+            storage_key="kf1",
+            meta={"keyframe": 1},
+        )
+    )
     db.commit()
     j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 5})
 
@@ -531,11 +565,13 @@ async def test_video_uses_character_ref_not_realistic(db, mem_storage, monkeypat
     store["real1"] = b"REALISTIC"
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
-    db.add(Asset(
-        project_id=p.id,
-        kind=AssetKind.REALISTIC.value,
-        storage_key="real1",
-    ))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.REALISTIC.value,
+            storage_key="real1",
+        )
+    )
     db.commit()
     j = _job(db, p, "VIDEO", cost=5, payload={"duration_s": 5})
 
@@ -772,29 +808,33 @@ async def test_ebook_invent_uses_storyboard_scene_not_caption(db, mem_storage, m
 
     class BriefText(FakeText):
         async def generate_storyboard(self, **kw):
-            return TextResult(text=json.dumps({
-                "title": "T",
-                "scenes": [
+            return TextResult(
+                text=json.dumps(
                     {
-                        "n": 1,
-                        "narration": "ola",
-                        "scene": "CENA_JSON_PORQUINHO",
-                        "expression": "carinho",
-                        "shot": "close",
-                        "costume": "pijama azul",
-                        "text_band": "top",
-                    },
-                    {
-                        "n": 2,
-                        "narration": "fim",
-                        "scene": "CENA_JSON_FINAL",
-                        "expression": "orgulho",
-                        "shot": "wide",
-                        "costume": "pijama azul",
-                        "text_band": "bottom",
-                    },
-                ],
-            }))
+                        "title": "T",
+                        "scenes": [
+                            {
+                                "n": 1,
+                                "narration": "ola",
+                                "scene": "CENA_JSON_PORQUINHO",
+                                "expression": "carinho",
+                                "shot": "close",
+                                "costume": "pijama azul",
+                                "text_band": "top",
+                            },
+                            {
+                                "n": 2,
+                                "narration": "fim",
+                                "scene": "CENA_JSON_FINAL",
+                                "expression": "orgulho",
+                                "shot": "wide",
+                                "costume": "pijama azul",
+                                "text_band": "bottom",
+                            },
+                        ],
+                    }
+                )
+            )
 
     prompts: list[str] = []
 
@@ -1092,8 +1132,7 @@ async def test_ebook_pages_persist_in_order_after_gather(db, mem_storage, monkey
 
     await runner.process_job(db, _job(db, p, "EBOOK"))
     pages = db.scalars(
-        sel(Asset)
-        .where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+        sel(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
     ).all()
     pages = sorted(pages, key=lambda a: (a.meta or {}).get("page") or 0)
     assert [a.meta.get("page") for a in pages] == [1, 2]
@@ -1138,23 +1177,23 @@ async def test_ebook_clears_old_pages_and_records_progress(db, mem_storage, monk
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
-    db.add(Asset(
-        project_id=p.id,
-        kind=AssetKind.PAGE_IMAGE.value,
-        storage_key="old-page",
-        meta={"page": 99},
-    ))
+    db.add(
+        Asset(
+            project_id=p.id,
+            kind=AssetKind.PAGE_IMAGE.value,
+            storage_key="old-page",
+            meta={"page": 99},
+        )
+    )
     db.commit()
     job = _job(db, p, "EBOOK")
 
     await runner.process_job(db, job)
     db.refresh(job)
     pages = db.scalars(
-        select(Asset).where(
-            Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value
-        )
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
     ).all()
-    assert { (a.meta or {}).get("page") for a in pages } == {1, 2}
+    assert {(a.meta or {}).get("page") for a in pages} == {1, 2}
     assert job.result and job.result.get("progress") == {
         "stage": "pages",
         "done": 2,
@@ -1182,4 +1221,3 @@ def test_job_out_includes_progress():
 
     out = JobOut.model_validate(_Row())
     assert out.result == {"progress": {"stage": "pages", "done": 4, "total": 11}}
-

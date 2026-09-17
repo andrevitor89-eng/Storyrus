@@ -6,6 +6,7 @@ Regras (do documento de arquitetura):
 - Limite de jobs simultaneos por usuario (backpressure).
 - Em SQLite/dev nao ha broker; expomos `enqueue_fn` para o worker real (RQ/Celery/Temporal).
 """
+
 import uuid
 from collections.abc import Callable
 

@@ -1,4 +1,5 @@
 """Ledger de cada chamada de IA (uma linha no extrato)."""
+
 from __future__ import annotations
 
 from typing import Any

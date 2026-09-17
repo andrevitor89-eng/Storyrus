@@ -3,6 +3,7 @@
 Video: somente `kling` esta registrado. Nomes como `veo` levantam ValueError —
 nao ha placeholder de segundo provedor de video.
 """
+
 from __future__ import annotations
 
 from app.ai_clients.base import ImageProvider, TextProvider, VideoProvider

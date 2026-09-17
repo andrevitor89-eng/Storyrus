@@ -1,4 +1,5 @@
 """Entrypoint da API."""
+
 import logging
 
 from fastapi import FastAPI
