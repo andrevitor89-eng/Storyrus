@@ -15,8 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import Job, JobStatus, JobType, Project, User
-from app.services import credits
-from app.services import spend_guard
+from app.services import credits, spend_guard
 
 # Custo (em creditos) por tipo de etapa.
 COST_BY_TYPE: dict[JobType, int] = {

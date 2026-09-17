@@ -16,7 +16,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import Job, JobStatus
-from app.services.pricing import estimate_job_usd, _f
+from app.services.pricing import _f, estimate_job_usd
 
 _TZ = ZoneInfo("America/Sao_Paulo")
 
