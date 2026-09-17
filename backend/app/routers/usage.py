@@ -62,9 +62,7 @@ def _password_matches(provided: str, accepted: list[str]) -> bool:
     matched = False
     for expected in accepted:
         expected_b = expected.encode("utf-8")
-        if len(provided_b) == len(expected_b) and hmac.compare_digest(
-            provided_b, expected_b
-        ):
+        if len(provided_b) == len(expected_b) and hmac.compare_digest(provided_b, expected_b):
             matched = True
     return matched
 

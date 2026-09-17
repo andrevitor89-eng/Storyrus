@@ -90,29 +90,14 @@ def test_usage_success_clears_lockout_counter(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_lockout_window_s", 900)
     rate_limit.reset()
 
-    assert (
-        client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code
-        == 401
-    )
-    assert (
-        client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code
-        == 401
-    )
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
     ok = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
     assert ok.status_code == 200, ok.text
     # Contador zerado: mais 2 falhas nao devem lockar ainda.
-    assert (
-        client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code
-        == 401
-    )
-    assert (
-        client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code
-        == 401
-    )
-    assert (
-        client.get("/v1/usage", headers={"X-Usage-Password": "segredo"}).status_code
-        == 200
-    )
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "segredo"}).status_code == 200
 
 
 def test_usage_sums_seeded_jobs(auth_client, monkeypatch):
