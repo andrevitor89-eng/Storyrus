@@ -148,6 +148,7 @@ class JobOut(BaseModel):
     cost_usd: float | None = None
     attempts: int
     error: str | None
+    request_id: str | None = None
     created_at: datetime
     result: dict | None = None
 
@@ -159,6 +160,7 @@ class JobAcceptedOut(BaseModel):
     status: str
     type: JobType
     estimated_cost_credits: int
+    request_id: str | None = None
 
 
 # ---- Credits ----

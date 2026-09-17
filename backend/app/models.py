@@ -227,6 +227,8 @@ class Job(Base):
     status: Mapped[str] = mapped_column(String(16), nullable=False, default=JobStatus.PENDING.value)
     provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    # STO-29: correlacao API ↔ worker (mesmo id nos logs JSON + metadata Opik).
+    request_id: Mapped[str | None] = mapped_column(String(128), nullable=True, index=True)
     cost_usd: Mapped[float | None] = mapped_column(Numeric(10, 4), nullable=True)
     cost_credits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     attempts: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

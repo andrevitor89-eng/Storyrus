@@ -23,6 +23,7 @@ from app.models import (
     User,
     UserVoice,
 )
+from app.observability.context import get_request_id
 from app.schemas import (
     JobAcceptedOut,
     NarratedVideoRequestIn,
@@ -111,6 +112,7 @@ def set_story_text(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "História vazia")
     project.story_text = text
     project.status = ProjectStatus.STORY_READY.value
+    rid = get_request_id()
     # Registra um job concluído para a história aparecer no progresso, sem custo.
     db.add(
         Job(
@@ -119,6 +121,7 @@ def set_story_text(
             status=JobStatus.DONE.value,
             cost_credits=0,
             attempts=1,
+            request_id=rid,
             result={"source": "user"},
         )
     )
@@ -129,6 +132,7 @@ def set_story_text(
             type=JobType.STORYBOARD.value,
             status=JobStatus.PENDING.value,
             cost_credits=0,
+            request_id=rid,
             result={"payload": {"auto": True, "source": "user_story"}},
         )
     )
@@ -162,6 +166,7 @@ def apply_story_template(
         raise HTTPException(status.HTTP_404_NOT_FOUND, "História não encontrada no catálogo")
     project.story_text = text
     project.status = ProjectStatus.STORY_READY.value
+    rid = get_request_id()
     # Registra um job concluído para a história aparecer no progresso, sem custo.
     db.add(
         Job(
@@ -170,6 +175,7 @@ def apply_story_template(
             status=JobStatus.DONE.value,
             cost_credits=0,
             attempts=1,
+            request_id=rid,
             result={"source": "template", "template_id": body.template_id},
         )
     )
@@ -180,6 +186,7 @@ def apply_story_template(
             type=JobType.STORYBOARD.value,
             status=JobStatus.PENDING.value,
             cost_credits=0,
+            request_id=rid,
             result={"payload": {"auto": True, "source": "template_story"}},
         )
     )

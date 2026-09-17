@@ -190,12 +190,16 @@ def prompt_text_from_parts(parts: list[Any] | None) -> str:
 
 
 def job_metadata(job: Any) -> dict[str, Any]:
-    return {
+    meta = {
         "job_id": str(getattr(job, "id", "") or ""),
         "job_type": getattr(job, "type", None),
         "project_id": str(getattr(job, "project_id", "") or ""),
         "attempts": getattr(job, "attempts", None),
     }
+    rid = getattr(job, "request_id", None)
+    if rid:
+        meta["request_id"] = str(rid)
+    return meta
 
 
 def update_span(

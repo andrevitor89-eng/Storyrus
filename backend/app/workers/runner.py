@@ -30,6 +30,9 @@ from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.database import SessionLocal
 from app.models import Job, JobStatus
+from app.observability import opik_trace
+from app.observability.context import correlation_scope
+from app.observability.logging_setup import configure_logging
 from app.services import jobs as jobs_svc
 
 logger = logging.getLogger("worker")
@@ -149,13 +152,24 @@ def claim_next(db: Session) -> Job | None:
 
 async def process_job(db: Session, job: Job) -> None:
     """Executa um job com retry/backoff. Importa handlers tardiamente (evita ciclo)."""
-    from app.services import spend_guard
     from app.workers.handlers import HANDLERS
 
     handler = HANDLERS.get(job.type)
     if handler is None:
         jobs_svc.mark_failed_and_refund(db, job, f"Sem handler para tipo {job.type}")
         return
+
+    # STO-29: mesmo request_id da API nos logs JSON + metadata Opik.
+    with correlation_scope(
+        request_id=job.request_id,
+        job_id=str(job.id),
+        service="worker",
+    ):
+        await _process_job_inner(db, job, handler)
+
+
+async def _process_job_inner(db: Session, job: Job, handler) -> None:
+    from app.services import spend_guard
 
     # STO-18: se o teto diario ja foi medido, falha sem chamar vendor.
     try:
@@ -173,7 +187,7 @@ async def process_job(db: Session, job: Job) -> None:
             job.updated_at = datetime.now(UTC)
             db.commit()
             try:
-                await handler(db, job)
+                await _run_tracked(db, job, handler)
                 job.status = JobStatus.DONE.value
                 db.commit()
                 logger.info("job %s (%s) DONE", job.id, job.type)
@@ -208,6 +222,17 @@ async def process_job(db: Session, job: Job) -> None:
     finally:
         stop.set()
         await hb
+        opik_trace.flush()
+
+
+@opik_trace.track(name="worker_job", capture_input=False, capture_output=False)
+async def _run_tracked(db: Session, job: Job, handler) -> None:
+    """Trace Opik raiz do job (request_id na metadata para correlacionar com a API)."""
+    opik_trace.update_trace(
+        metadata=opik_trace.job_metadata(job),
+        tags=[str(job.type), "worker"],
+    )
+    await handler(db, job)
 
 
 async def run_once(db: Session) -> int:
@@ -245,7 +270,12 @@ async def run_forever() -> None:
 
 
 def main() -> None:
-    logging.basicConfig(level=settings.log_level)
+    configure_logging(
+        level=settings.log_level,
+        fmt=settings.resolved_log_format(),
+        service="worker",
+    )
+    opik_trace.configure()
     # settings ja validou secrets no import (STO-8); log explicito ajuda ops.
     logger.info("APP_ENV=%s — secrets ok", settings.app_env)
     asyncio.run(run_forever())

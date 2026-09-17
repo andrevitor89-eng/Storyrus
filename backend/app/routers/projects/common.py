@@ -24,4 +24,5 @@ def accept_job(job: Job) -> JobAcceptedOut:
         status=job.status,
         type=JobType(job.type),
         estimated_cost_credits=job.cost_credits,
+        request_id=job.request_id,
     )

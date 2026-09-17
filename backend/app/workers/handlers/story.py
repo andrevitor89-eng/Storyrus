@@ -824,6 +824,7 @@ def _enqueue_auto_storyboard(db: Session, project: Project, source_job: Job) -> 
             status=JobStatus.PENDING.value,
             provider=settings.text_provider,
             idempotency_key=key,
+            request_id=source_job.request_id,
             cost_credits=0,
             result={"payload": {"auto": True}},
         )
