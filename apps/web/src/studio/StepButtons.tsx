@@ -9,11 +9,13 @@ type EbookStepsProps = {
 
 export function EbookStepButtons({ locked, canMountEbook, runStep }: EbookStepsProps) {
   return (
-    <div className="steps">
+    <div className="steps" role="group" aria-label="Etapa do e-book">
       {STEPS.filter((s) => s.key === "ebook").map((s) => (
         <button
           key={s.key}
+          type="button"
           title={s.hint}
+          aria-label={`${s.label} (${s.cost}). ${s.hint}`}
           disabled={locked || !canMountEbook}
           onClick={() => runStep(s.key)}
           data-testid="studio-mount-ebook"
@@ -33,11 +35,13 @@ type VideoStepsProps = {
 
 export function VideoStepButtons({ locked, canMakeVideo, runStep }: VideoStepsProps) {
   return (
-    <div className="steps">
+    <div className="steps" role="group" aria-label="Etapas de vídeo">
       {STEPS.filter((s) => s.key !== "ebook").map((s) => (
         <button
           key={s.key}
+          type="button"
           title={s.hint}
+          aria-label={`${s.label} (${s.cost}). ${s.hint}`}
           disabled={locked || !canMakeVideo}
           onClick={() => runStep(s.key)}
           data-testid={`studio-step-${s.key}`}

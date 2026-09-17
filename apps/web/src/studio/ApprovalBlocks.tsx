@@ -14,22 +14,28 @@ export function CharacterApprovalBlock({
   onRegenerate,
 }: CharacterProps) {
   return (
-    <div className="result-block">
-      <h3 className="field-label">Personagem</h3>
+    <div className="result-block" role="region" aria-labelledby="studio-character-heading">
+      <h3 className="field-label" id="studio-character-heading">Personagem</h3>
       <img
         src={characterUrl}
         alt="Personagem gerado"
         style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
       />
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+      <div
+        style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}
+        role="group"
+        aria-label="Ações do personagem"
+      >
         {characterApproved ? (
-          <p className="muted">Personagem aprovado. Pode montar o livro.</p>
+          <p className="muted" role="status">
+            Personagem aprovado. Pode montar o livro.
+          </p>
         ) : (
-          <button disabled={locked} onClick={onApprove}>
+          <button type="button" disabled={locked} onClick={onApprove}>
             Aprovar personagem
           </button>
         )}
-        <button disabled={locked} onClick={onRegenerate}>
+        <button type="button" disabled={locked} onClick={onRegenerate}>
           Regenerar personagem <span className="muted">(1 crédito)</span>
         </button>
       </div>
@@ -61,10 +67,13 @@ export function BookApprovalBlock({
   onRequestPrint,
 }: BookProps) {
   return (
-    <div className="result-block">
-      <h3 className="field-label">E-book</h3>
+    <div className="result-block" role="region" aria-labelledby="studio-ebook-heading">
+      <h3 className="field-label" id="studio-ebook-heading">E-book</h3>
       {pageImages.length > 0 && (
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
+        <div
+          style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}
+          aria-label="Páginas do e-book"
+        >
           {pageImages.map((u, i) => (
             <img
               key={i}
@@ -81,25 +90,33 @@ export function BookApprovalBlock({
           📖 Abrir e-book
         </a>
       )}
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
+      <div
+        style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}
+        role="group"
+        aria-label="Ações do livro"
+      >
         {bookApproved ? (
-          <p className="muted">Livro aprovado. PDF, impressão e vídeo liberados.</p>
+          <p className="muted" role="status">
+            Livro aprovado. PDF, impressão e vídeo liberados.
+          </p>
         ) : (
-          <button disabled={locked || !ebookUrl} onClick={onApprove}>
+          <button type="button" disabled={locked || !ebookUrl} onClick={onApprove}>
             Aprovar livro
           </button>
         )}
-        <button disabled={locked || !canMountEbook} onClick={onRegenerate}>
+        <button type="button" disabled={locked || !canMountEbook} onClick={onRegenerate}>
           Regenerar páginas <span className="muted">(1 crédito)</span>
         </button>
       </div>
       {bookApproved && (
-        <div style={{ marginTop: 12 }}>
-          <h3 className="field-label">Livro impresso</h3>
+        <div style={{ marginTop: 12 }} role="region" aria-labelledby="studio-print-heading">
+          <h3 className="field-label" id="studio-print-heading">Livro impresso</h3>
           {printRequested ? (
-            <p className="muted">Pedido registrado — em até 24h enviamos a cotação e o prazo.</p>
+            <p className="muted" role="status">
+              Pedido registrado — em até 24h enviamos a cotação e o prazo.
+            </p>
           ) : (
-            <button disabled={locked} onClick={onRequestPrint}>
+            <button type="button" disabled={locked} onClick={onRequestPrint}>
               Pedir livro impresso
             </button>
           )}
