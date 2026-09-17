@@ -69,6 +69,8 @@ services:
         sync: false
       - key: USAGE_DASHBOARD_PASSWORD
         sync: false
+      - key: USAGE_DASHBOARD_PASSWORD_PREVIOUS
+        sync: false
       # STO-18: teto diario da plataforma (0 = desligado)
       - key: DAILY_SPEND_USD_CEILING
         value: "0"
@@ -125,6 +127,8 @@ services:
       - key: STORAGE_SECRET_KEY
         sync: false
       - key: USAGE_DASHBOARD_PASSWORD
+        sync: false
+      - key: USAGE_DASHBOARD_PASSWORD_PREVIOUS
         sync: false
       - key: DAILY_SPEND_USD_CEILING
         value: "0"

@@ -43,8 +43,8 @@ app.include_router(usage.router)
 
 @app.get("/health", tags=["meta"])
 def health() -> dict:
+    # STO-28: nao vazar quais provedores estao configurados (ex. ElevenLabs).
     return {
         "status": "ok",
         "env": settings.app_env,
-        "has_elevenlabs": bool(settings.elevenlabs_api_key),
     }

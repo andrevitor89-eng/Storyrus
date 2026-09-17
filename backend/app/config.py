@@ -83,6 +83,11 @@ class Settings(BaseSettings):
 
     # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503).
     usage_dashboard_password: str | None = None
+    # Senha anterior aceita durante rotacao (grace). Vazio = so a atual.
+    usage_dashboard_password_previous: str | None = None
+    # Lockout apos N senhas erradas por IP (0 = desliga). Janela em segundos.
+    usage_lockout_max_attempts: int = 5
+    usage_lockout_window_s: int = 900
     # Teto diario da plataforma (America/Sao_Paulo). 0 = desligado.
     daily_spend_usd_ceiling: float = 0.0
     daily_credits_ceiling: int = 0

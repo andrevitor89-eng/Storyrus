@@ -8,10 +8,11 @@ from datetime import UTC, date, datetime, time
 from typing import Annotated
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Depends, Header, HTTPException, Query, status
+from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import rate_limit
 from app.config import settings
 from app.database import get_db
 from app.models import Job, Project, UsageEvent
@@ -43,19 +44,64 @@ def _as_float(value) -> float | None:
     return float(value)
 
 
+def _accepted_passwords() -> list[str]:
+    """Senha atual + anterior (rotacao). Ordem: atual primeiro."""
+    out: list[str] = []
+    for raw in (
+        settings.usage_dashboard_password,
+        settings.usage_dashboard_password_previous,
+    ):
+        cleaned = (raw or "").strip()
+        if cleaned and cleaned not in out:
+            out.append(cleaned)
+    return out
+
+
+def _password_matches(provided: str, accepted: list[str]) -> bool:
+    provided_b = provided.encode("utf-8")
+    matched = False
+    for expected in accepted:
+        expected_b = expected.encode("utf-8")
+        if len(provided_b) == len(expected_b) and hmac.compare_digest(
+            provided_b, expected_b
+        ):
+            matched = True
+    return matched
+
+
 def _require_password(
+    request: Request,
     x_usage_password: Annotated[str | None, Header(alias=_HEADER)] = None,
 ) -> None:
-    expected = (settings.usage_dashboard_password or "").strip()
-    if not expected:
+    accepted = _accepted_passwords()
+    if not accepted:
         raise HTTPException(
             status.HTTP_503_SERVICE_UNAVAILABLE,
             "Painel de gastos nao configurado",
         )
+
+    ip = rate_limit.client_ip(request)
+    lock_key = f"usage:fail:{ip}"
+    max_attempts = int(settings.usage_lockout_max_attempts)
+    window = float(settings.usage_lockout_window_s)
+    if rate_limit.blocked(lock_key, max_attempts, window):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Muitas tentativas; tente mais tarde",
+        )
+
     provided = x_usage_password or ""
-    left, right = provided.encode("utf-8"), expected.encode("utf-8")
-    if len(left) != len(right) or not hmac.compare_digest(left, right):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Senha invalida")
+    if _password_matches(provided, accepted):
+        rate_limit.clear_key(lock_key)
+        return
+
+    rate_limit.hit(lock_key, window)
+    if rate_limit.blocked(lock_key, max_attempts, window):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Muitas tentativas; tente mais tarde",
+        )
+    raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Senha invalida")
 
 
 def _parse_day(value: date | None, *, end: bool) -> datetime | None:
