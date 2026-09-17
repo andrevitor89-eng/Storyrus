@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import logging
 import re
-import uuid
 from io import BytesIO
 
 from sqlalchemy import select
@@ -12,7 +11,6 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.ai_clients.base import ProviderError
 from app.ai_clients.face_detect import face_reference
-from app.config import settings
 from app.models import Asset, AssetKind, Job, Project, ProjectStatus
 from app.services.usage_ledger import append_usage, image_provider_name, usage_line
 

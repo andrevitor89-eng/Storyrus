@@ -5,7 +5,6 @@ import asyncio
 import json
 import logging
 import re
-import uuid
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -22,11 +21,9 @@ from app.ai_clients.book_prompts import (
     costume_lock_prompt,
     identity_shot,
     infer_expression,
-    name_scene_extras_for_template,
     normalize_expression,
     normalize_shot,
     normalize_text_band,
-    scene_extras_for_template,
 )
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
@@ -36,7 +33,6 @@ from app.ai_clients.identity_lock import (
     IdentityLock,
     build_identity_lock,
     judge_identity,
-    require_character_ref,
 )
 from app.config import settings
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus
@@ -50,27 +46,18 @@ from app.observability.opik_trace import (
 from app.observability.story_judge import score_and_log_story
 from app.services.pricing import add_usd
 from app.services.usage_ledger import (
-    append_usage,
-    flush_usage,
-    image_provider_name,
     lines_of,
-    merge_usage,
-    usage_line,
-)
-from app.story_templates import (
-    illustration_notes,
-    page_layouts,
 )
 
 from .avatar import _refine_identity, _refine_scene
 from .common import (
+    _ext,
     _parse_pages,
     _parse_title,
     _payload,
     _project,
     _set_status,
     _tag_image,
-    _ext,
 )
 
 logger = logging.getLogger("worker")

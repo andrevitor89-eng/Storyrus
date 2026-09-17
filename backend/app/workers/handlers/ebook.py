@@ -3,29 +3,26 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import uuid
 
 from sqlalchemy.orm import Session
 
 from app import storage
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
-    costume_extras_for_template,
+    STYLE as BOOK_STYLE,
+)
+from app.ai_clients.book_prompts import (
     costume_extras_for_theme,
     identity_shot,
     name_scene_extras_for_template,
     scene_extras_for_template,
 )
-from app.ai_clients.book_prompts import (
-    STYLE as BOOK_STYLE,
-)
-from app.ai_clients.face_detect import face_reference
-from app.ai_clients.identity_lock import build_identity_lock, require_character_ref
+from app.ai_clients.identity_lock import require_character_ref
 from app.config import settings
 from app.models import Asset, AssetKind, Job, ProjectStatus
-from app.observability.opik_trace import job_metadata, track, update_span, update_trace
+from app.observability.opik_trace import job_metadata, update_trace
 from app.services.pricing import add_usd
-from app.services.usage_ledger import flush_usage, lines_of, merge_usage
+from app.services.usage_ledger import flush_usage, lines_of
 from app.story_templates import illustration_notes, page_layouts
 from app.workers import ebook as ebook_builder
 

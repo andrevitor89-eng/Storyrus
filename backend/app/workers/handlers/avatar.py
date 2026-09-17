@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import uuid
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -16,33 +15,28 @@ from app.ai_clients.book_prompts import (
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
 )
-from app.ai_clients.face_detect import face_reference, identity_images
+from app.ai_clients.face_detect import identity_images
 from app.ai_clients.image_pulid_fal import pulid_head_enabled
 from app.config import settings
 from app.models import Asset, AssetKind, Job, ProjectStatus
 from app.observability.opik_trace import (
     job_metadata,
     log_feedback,
-    track,
-    update_span,
     update_trace,
 )
 from app.services.pricing import add_usd
 from app.services.usage_ledger import (
-    append_usage,
     flush_usage,
-    image_provider_name,
     lines_of,
     merge_usage,
-    usage_line,
 )
 
 from .common import (
+    _ext,
     _offline_png,
     _project,
     _set_status,
     _tag_image,
-    _ext,
 )
 
 logger = logging.getLogger("worker")

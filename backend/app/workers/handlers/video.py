@@ -2,7 +2,6 @@
 from __future__ import annotations
 
 import logging
-import uuid
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -11,9 +10,7 @@ from app import storage
 from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.models import Asset, AssetKind, Job, Project, ProjectStatus
-from app.observability.opik_trace import job_metadata, track, update_span, update_trace
-from app.services.pricing import add_usd, video_cost
-from app.services.usage_ledger import flush_usage, usage_line
+from app.services.pricing import video_cost
 
 from .common import (
     _offline_gif,
