@@ -99,6 +99,39 @@ def test_backoff_is_exponential_and_capped():
     assert runner.backoff_delay(50) <= 60.0  # teto
 
 
+def test_jobs_queue_composite_index_defined():
+    """STO-30: modelo declara indice (status, created_at) no lugar do so-status."""
+    names = {ix.name for ix in Job.__table__.indexes}
+    assert "ix_jobs_status_created_at" in names
+    assert "ix_jobs_status" not in names
+    cols = next(ix for ix in Job.__table__.indexes if ix.name == "ix_jobs_status_created_at")
+    assert [c.name for c in cols.columns] == ["status", "created_at"]
+
+
+def test_claim_next_fifo_by_created_at(db):
+    """STO-30: claim pega o PENDING mais antigo primeiro."""
+    from datetime import datetime, timedelta
+
+    _, p = _seed(db)
+    older = _job(db, p, "STORY")
+    newer = _job(db, p, "STORY")
+    skipped = _job(db, p, "STORY")
+    older.created_at = datetime.now(UTC) - timedelta(minutes=10)
+    newer.created_at = datetime.now(UTC) - timedelta(minutes=1)
+    skipped.status = JobStatus.DONE.value
+    skipped.created_at = datetime.now(UTC) - timedelta(minutes=20)
+    db.commit()
+
+    first = runner.claim_next(db)
+    assert first is not None and first.id == older.id
+    assert first.status == JobStatus.RUNNING.value
+
+    second = runner.claim_next(db)
+    assert second is not None and second.id == newer.id
+
+    assert runner.claim_next(db) is None
+
+
 def test_reclaim_stale_running_jobs(db, monkeypatch):
     """STO-9: RUNNING sem heartbeat recente volta a PENDING."""
     from datetime import datetime, timedelta

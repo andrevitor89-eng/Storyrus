@@ -13,6 +13,7 @@ from sqlalchemy import (
     CHAR,
     Boolean,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -209,7 +210,11 @@ class Project(Base):
 
 class Job(Base):
     __tablename__ = "jobs"
-    __table_args__ = (UniqueConstraint("idempotency_key", name="uq_jobs_idempotency_key"),)
+    __table_args__ = (
+        UniqueConstraint("idempotency_key", name="uq_jobs_idempotency_key"),
+        # Claim FIFO: WHERE status = PENDING ORDER BY created_at (STO-30).
+        Index("ix_jobs_status_created_at", "status", "created_at"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
     project_id: Mapped[uuid.UUID] = mapped_column(
@@ -217,7 +222,7 @@ class Job(Base):
     )
     type: Mapped[str] = mapped_column(String(32), nullable=False)
     status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default=JobStatus.PENDING.value, index=True
+        String(16), nullable=False, default=JobStatus.PENDING.value
     )
     provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
