@@ -368,12 +368,8 @@ def test_is_transient_exception_classifies_network_blips():
     assert runner.is_transient_exception(TimeoutError("timed out"))
     assert runner.is_transient_exception(ConnectionResetError("peer reset"))
     assert runner.is_transient_exception(httpx.ConnectError("dns"))
-    assert runner.is_transient_exception(
-        ProviderError("rate limit", transient=True)
-    )
-    assert not runner.is_transient_exception(
-        ProviderError("bad config", transient=False)
-    )
+    assert runner.is_transient_exception(ProviderError("rate limit", transient=True))
+    assert not runner.is_transient_exception(ProviderError("bad config", transient=False))
     assert not runner.is_transient_exception(ValueError("bug"))
     assert not runner.is_transient_exception(KeyError("missing"))
 
@@ -409,6 +405,7 @@ async def test_unexpected_transient_retries_then_success(db, mem_storage, monkey
 
 async def test_unexpected_non_transient_fails_immediately(db, mem_storage, monkeypatch):
     """Bug de codigo (ValueError) continua falhando na hora e estorna credito."""
+
     class Boom:
         async def generate_story(self, **kw):
             raise ValueError("bug no handler")

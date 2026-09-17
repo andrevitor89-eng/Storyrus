@@ -224,9 +224,7 @@ class Job(Base):
         GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False, index=True
     )
     type: Mapped[str] = mapped_column(String(32), nullable=False)
-    status: Mapped[str] = mapped_column(
-        String(16), nullable=False, default=JobStatus.PENDING.value
-    )
+    status: Mapped[str] = mapped_column(String(16), nullable=False, default=JobStatus.PENDING.value)
     provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
     idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
     cost_usd: Mapped[float | None] = mapped_column(Numeric(10, 4), nullable=True)

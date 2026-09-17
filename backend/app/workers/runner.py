@@ -202,9 +202,7 @@ async def process_job(db: Session, job: Job) -> None:
                     transient,
                 )
                 if not retriable:
-                    jobs_svc.mark_failed_and_refund(
-                        db, job, f"{type(exc).__name__}: {exc}"
-                    )
+                    jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
     finally:

@@ -1,4 +1,5 @@
 """STO-27: anti-replay no webhook de video (timestamp + nonce no HMAC)."""
+
 from __future__ import annotations
 
 import json
