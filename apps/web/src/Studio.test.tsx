@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
-import { ProgressList } from "./Studio";
+import { ProgressList, Studio } from "./Studio";
 import type { Job } from "./types";
 import { state } from "./test/server";
 
@@ -31,6 +31,35 @@ describe("ProgressList", () => {
   it("mostra Ilustrando 4/11 no job EBOOK em andamento", () => {
     render(<ProgressList jobs={[ebookJob()]} />);
     expect(screen.getByText("Ilustrando 4/11")).toBeInTheDocument();
+  });
+
+  it("expõe progresso com role status e aria-live", () => {
+    render(<ProgressList jobs={[ebookJob()]} />);
+    const status = screen.getByRole("status", { name: /progresso das etapas/i });
+    expect(status).toHaveAttribute("aria-live", "polite");
+    expect(within(status).getByText("EBOOK")).toBeInTheDocument();
+  });
+});
+
+describe("Studio a11y", () => {
+  it("marca fluxos principais com landmark, alert e tabs", async () => {
+    state.credits = 10;
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    expect(screen.getByRole("banner")).toBeInTheDocument();
+    expect(screen.getByRole("main")).toHaveAttribute("id", "studio-main");
+    expect(screen.getByRole("heading", { name: /crie a sua história/i })).toBeInTheDocument();
+
+    const adventure = screen.getByRole("button", { name: /aventura/i });
+    expect(adventure).toHaveAttribute("aria-pressed", "true");
+
+    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+
+    const inventTab = await screen.findByRole("tab", { name: /inventar com ia/i });
+    expect(inventTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toBeInTheDocument();
+    expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
   });
 });
 

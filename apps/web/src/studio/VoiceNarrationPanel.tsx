@@ -27,8 +27,13 @@ export function VoiceNarrationPanel({
   removeSelectedVoice,
 }: Props) {
   return (
-    <div className="result-block" style={{ marginBottom: 16 }}>
-      <h3 className="field-label">Voz da narração</h3>
+    <div
+      className="result-block"
+      style={{ marginBottom: 16 }}
+      role="region"
+      aria-labelledby="studio-voice-heading"
+    >
+      <h3 className="field-label" id="studio-voice-heading">Voz da narração</h3>
       {!customVoiceAvailable ? (
         <p className="muted">
           Voz personalizada indisponível (ElevenLabs não configurado). O vídeo narrado usará a
@@ -36,16 +41,21 @@ export function VoiceNarrationPanel({
         </p>
       ) : (
         <>
-          <p className="muted" style={{ marginBottom: 10 }}>
+          <p className="muted" style={{ marginBottom: 10 }} id="studio-voice-hint">
             Envie 30–60s de fala clara (MP3, WAV ou M4A), sem música de fundo. Fale naturalmente,
             como se estivesse contando uma história. A voz fica salva e pode ser reutilizada.
           </p>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
+          <div
+            style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}
+            role="group"
+            aria-labelledby="studio-voice-heading"
+          >
             <input
               type="text"
               value={voiceName}
               onChange={(e) => setVoiceName(e.target.value)}
               placeholder="Nome da voz"
+              aria-label="Nome da voz"
             />
             <label className="btn" style={{ cursor: voiceUploading ? "wait" : "pointer" }}>
               {voiceUploading ? "Clonando..." : "Enviar áudio"}
@@ -54,6 +64,8 @@ export function VoiceNarrationPanel({
                 accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/webm,audio/ogg,.mp3,.wav,.m4a,.webm,.ogg"
                 hidden
                 disabled={voiceUploading || locked || !mediaConsent}
+                aria-label="Enviar áudio para clonar voz"
+                aria-describedby="studio-voice-hint"
                 onChange={(e) => onVoiceFile(e.target.files?.[0] || null)}
               />
             </label>
@@ -64,6 +76,7 @@ export function VoiceNarrationPanel({
                 value={selectedVoiceId}
                 onChange={(e) => setSelectedVoiceId(e.target.value)}
                 disabled={locked}
+                aria-label="Selecionar voz da narração"
               >
                 <option value="">Automática (padrão da conta ou sistema)</option>
                 {voices.map((v) => (

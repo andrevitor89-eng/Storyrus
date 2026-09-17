@@ -328,11 +328,12 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
   return (
     <div className="studio">
-      <header>
+      <header role="banner">
         <img className="hdr-logo" src={logo} alt="Story R Us" />
         <strong>Story R Us</strong>
         <span className="spacer" />
         <button
+          type="button"
           className="chip"
           onClick={() => {
             const cur = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
@@ -343,25 +344,32 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         >
           Tema
         </button>
-        <span className="credits" data-testid="studio-credits">Créditos: {credits ?? "…"}</span>
+        <span className="credits" data-testid="studio-credits" aria-live="polite">
+          Créditos: {credits ?? "…"}
+        </span>
         {onLogout && (
-          <button className="link" onClick={onLogout}>
+          <button type="button" className="link" onClick={onLogout}>
             Sair
           </button>
         )}
       </header>
 
+      <main id="studio-main" aria-busy={busy || undefined}>
       {isDemo && (
-        <div className="demo-banner" role="status">
+        <div className="demo-banner" role="status" aria-live="polite">
           <p>Você está vendo um exemplo pronto.</p>
           <button type="button" onClick={exitDemo}>Criar a minha história</button>
         </div>
       )}
 
-      {error && <p className="error">{error}</p>}
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
+      )}
 
-      <section className="card">
-        <h2>Crie a sua história</h2>
+      <section className="card" aria-labelledby="studio-create-heading">
+        <h2 id="studio-create-heading">Crie a sua história</h2>
         {project ? (
           <p className="muted">
             ✓ Projeto criado — os campos abaixo ficam travados até você começar um novo projeto.
@@ -370,19 +378,21 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <p className="slogan">Toda história merece um protagonista — e o protagonista é você.</p>
         )}
 
-          <h3 className="field-label">1 · Escolha até 2 temas para a aventura</h3>
+          <h3 className="field-label" id="studio-themes-aventura">1 · Escolha até 2 temas para a aventura</h3>
           <p className="muted">
             O 1º escolhido é o tema principal (define vilão, cenário e arco); o 2º só soma
             um aprendizado extra na mesma jornada.
           </p>
-          <div className="styles">
+          <div className="styles" role="group" aria-labelledby="studio-themes-aventura">
             {THEMES.filter((t) => t.group === "aventura").map((t) => {
               const order = selectedThemes.indexOf(t.id);
               return (
                 <button
                   key={t.id}
+                  type="button"
                   disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
+                  aria-pressed={order >= 0}
                   onClick={() => toggleTheme(t.id)}
                 >
                   {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
@@ -391,15 +401,17 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             })}
           </div>
 
-          <h3 className="field-label">Datas comemorativas</h3>
-          <div className="styles">
+          <h3 className="field-label" id="studio-themes-datas">Datas comemorativas</h3>
+          <div className="styles" role="group" aria-labelledby="studio-themes-datas">
             {THEMES.filter((t) => t.group === "datas").map((t) => {
               const order = selectedThemes.indexOf(t.id);
               return (
                 <button
                   key={t.id}
+                  type="button"
                   disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
+                  aria-pressed={order >= 0}
                   onClick={() => toggleTheme(t.id)}
                 >
                   {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
@@ -408,15 +420,17 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             })}
           </div>
 
-          <h3 className="field-label">Temas educativos</h3>
-          <div className="styles">
+          <h3 className="field-label" id="studio-themes-educativo">Temas educativos</h3>
+          <div className="styles" role="group" aria-labelledby="studio-themes-educativo">
             {THEMES.filter((t) => t.group === "educativo").map((t) => {
               const order = selectedThemes.indexOf(t.id);
               return (
                 <button
                   key={t.id}
+                  type="button"
                   disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
+                  aria-pressed={order >= 0}
                   onClick={() => toggleTheme(t.id)}
                 >
                   {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
@@ -466,13 +480,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           </label>
 
           {!project && (
-            <button disabled={locked} onClick={start} data-testid="studio-create-project">
+            <button type="button" disabled={locked} onClick={start} data-testid="studio-create-project">
               Criar projeto
             </button>
           )}
 
-          <div className="how">
-            <h3 className="field-label">Como funciona</h3>
+          <div className="how" role="region" aria-labelledby="studio-how-heading">
+            <h3 className="field-label" id="studio-how-heading">Como funciona</h3>
             <ol>
               {HOW.map((h) => (
                 <li key={h}>{h}</li>
@@ -482,9 +496,14 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       </section>
 
       {project && (
-        <section className="card" data-testid="studio-project">
-          <h2>Projeto</h2>
-          <p className="muted">
+        <section
+          className="card"
+          data-testid="studio-project"
+          aria-labelledby="studio-project-heading"
+          aria-busy={busy || undefined}
+        >
+          <h2 id="studio-project-heading">Projeto</h2>
+          <p className="muted" role="status" aria-live="polite">
             Tema: <b>{themeLabel(project.theme ?? theme)}</b>
             {(project.extra_theme ?? extraTheme) && (
               <> + <b>{themeLabel(project.extra_theme ?? extraTheme)}</b></>
@@ -503,15 +522,17 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.
           </label>
 
-          <div className="upload">
+          <div className="upload" role="group" aria-label="Foto do protagonista">
             <input
               type="file"
               accept="image/*"
               disabled={isDemo}
               data-testid="studio-photo-input"
+              aria-label="Selecionar foto do protagonista"
               onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
             />
             <button
+              type="button"
               disabled={!photo || locked || !mediaConsent}
               onClick={upload}
               data-testid="studio-upload-photo"
@@ -526,54 +547,84 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             personagem nas páginas e no vídeo.
           </p>
 
-          <h3 className="field-label">Personagens Extras (amigos, irmãos, etc.)</h3>
-          <div className="upload">
+          <h3 className="field-label" id="studio-extra-chars-heading">Personagens Extras (amigos, irmãos, etc.)</h3>
+          <div className="upload" role="group" aria-labelledby="studio-extra-chars-heading">
             <input
               type="file"
               accept="image/*"
+              aria-label="Selecionar foto do personagem extra"
               onChange={(e) => setExtraCharFile(e.target.files?.[0] ?? null)}
             />
             <input
               value={extraCharName}
               onChange={(e) => setExtraCharName(e.target.value)}
               placeholder="Nome do personagem"
+              aria-label="Nome do personagem extra"
               maxLength={40}
               style={{ flex: 1, minWidth: 120 }}
             />
-            <button disabled={!extraCharFile || locked || !mediaConsent} onClick={uploadExtraCharacter}>
+            <button
+              type="button"
+              disabled={!extraCharFile || locked || !mediaConsent}
+              onClick={uploadExtraCharacter}
+            >
               Adicionar
             </button>
           </div>
           {extraChars.length > 0 && (
-            <div style={{ margin: "8px 0" }}>
+            <div style={{ margin: "8px 0" }} role="status" aria-live="polite">
               <p className="muted">{extraChars.length} personagem(ns) extra(s) adicionado(s)</p>
-              <button disabled={locked} onClick={generateExtraCharacters}>
+              <button type="button" disabled={locked} onClick={generateExtraCharacters}>
                 Gerar ilustrações dos extras <span className="muted">(1 crédito cada)</span>
               </button>
             </div>
           )}
 
-          <h3 className="field-label">História</h3>
-          <div className="styles">
+          <h3 className="field-label" id="studio-story-mode-heading">História</h3>
+          <div
+            className="styles"
+            role="tablist"
+            aria-labelledby="studio-story-mode-heading"
+          >
             <button
+              type="button"
+              role="tab"
+              id="studio-story-tab-invent"
+              aria-selected={storyMode === "invent"}
+              aria-controls="studio-story-panel"
               className={`chip ${storyMode === "invent" ? "on" : ""}`}
               onClick={() => setStoryMode("invent")}
             >
               ✨ Inventar com IA
             </button>
             <button
+              type="button"
+              role="tab"
+              id="studio-story-tab-write"
+              aria-selected={storyMode === "write"}
+              aria-controls="studio-story-panel"
               className={`chip ${storyMode === "write" ? "on" : ""}`}
               onClick={() => setStoryMode("write")}
             >
               ✍️ Escrever a minha
             </button>
             <button
+              type="button"
+              role="tab"
+              id="studio-story-tab-file"
+              aria-selected={storyMode === "file"}
+              aria-controls="studio-story-panel"
               className={`chip ${storyMode === "file" ? "on" : ""}`}
               onClick={() => setStoryMode("file")}
             >
               📄 Enviar arquivo
             </button>
             <button
+              type="button"
+              role="tab"
+              id="studio-story-tab-catalog"
+              aria-selected={storyMode === "catalog"}
+              aria-controls="studio-story-panel"
               className={`chip ${storyMode === "catalog" ? "on" : ""}`}
               onClick={openCatalog}
             >
@@ -581,15 +632,29 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             </button>
           </div>
 
+          <div
+            id="studio-story-panel"
+            role="tabpanel"
+            aria-labelledby={`studio-story-tab-${storyMode}`}
+          >
           {storyMode === "invent" && (
-            <button disabled={locked} onClick={() => runStep("story")} data-testid="studio-generate-story">
+            <button
+              type="button"
+              disabled={locked}
+              onClick={() => runStep("story")}
+              data-testid="studio-generate-story"
+            >
               Gerar história com IA <span className="muted">(1 crédito)</span>
             </button>
           )}
 
           {storyMode === "catalog" && (
-            <div className="story-catalog">
-              {!templates && <p className="muted">Carregando catálogo…</p>}
+            <div className="story-catalog" role="list" aria-label="Catálogo de histórias prontas">
+              {!templates && (
+                <p className="muted" role="status" aria-live="polite">
+                  Carregando catálogo…
+                </p>
+              )}
               {templates && !project?.child_name && (
                 <p className="muted">
                   Defina o nome da criança ao criar o projeto — ele entra no título e no texto.
@@ -599,12 +664,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                 <div
                   key={t.id}
                   className="catalog-item"
+                  role="listitem"
                   style={{
                     display: "flex", alignItems: "center", gap: 8,
                     padding: "8px 0", borderBottom: "1px solid var(--border, #333)",
                   }}
                 >
-                  <span style={{ fontSize: 22 }}>{t.emoji}</span>
+                  <span style={{ fontSize: 22 }} aria-hidden="true">{t.emoji}</span>
                   <div style={{ flex: 1 }}>
                     <strong>
                       {t.titulo.replace("{NOME}", project?.child_name || "{nome}")}
@@ -615,7 +681,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                     </div>
                   </div>
                   <button
+                    type="button"
                     disabled={locked || !project}
+                    aria-pressed={appliedTemplate === t.id}
                     onClick={() => applyTemplate(t.id)}
                   >
                     {appliedTemplate === t.id ? "✓ Aplicada" : "Usar"}
@@ -628,7 +696,12 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
           {storyMode === "file" && (
             <div className="upload">
-              <input type="file" accept=".pdf,.doc,.docx,.txt" onChange={onStoryFile} />
+              <input
+                type="file"
+                accept=".pdf,.doc,.docx,.txt"
+                aria-label="Enviar arquivo de história (PDF, DOCX ou TXT)"
+                onChange={onStoryFile}
+              />
               <span className="muted">PDF, DOCX ou TXT (até 5MB)</span>
             </div>
           )}
@@ -640,14 +713,16 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                 rows={8}
                 style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }}
                 placeholder="Escreva ou cole a sua história aqui. Dica: separe as páginas com 'Página 1:', 'Página 2:'..."
+                aria-label="Texto da história"
                 value={storyText}
                 onChange={(e) => setStoryText(e.target.value)}
               />
-              <button disabled={locked || !storyText.trim()} onClick={saveStory}>
+              <button type="button" disabled={locked || !storyText.trim()} onClick={saveStory}>
                 Salvar história
               </button>
             </div>
           )}
+          </div>
 
           <VoiceNarrationPanel
             customVoiceAvailable={customVoiceAvailable}
@@ -671,7 +746,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           <ProgressList jobs={jobs} />
 
           {/* Resultado de cada etapa */}
-          <div className="results">
+          <div className="results" role="region" aria-label="Resultados do projeto">
             {assets?.character_url && (
               <CharacterApprovalBlock
                 characterUrl={assets.character_url}
@@ -683,11 +758,11 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             )}
 
             {assets?.extra_characters && assets.extra_characters.length > 0 && (
-              <div className="result-block">
-                <h3 className="field-label">Personagens Extras</h3>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+              <div className="result-block" role="region" aria-labelledby="studio-extra-results-heading">
+                <h3 className="field-label" id="studio-extra-results-heading">Personagens Extras</h3>
+                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }} role="list">
                   {assets.extra_characters.map((ec, i) => (
-                    <div key={i} style={{ textAlign: "center" }}>
+                    <div key={i} style={{ textAlign: "center" }} role="listitem">
                       <img
                         src={ec.url}
                         alt={ec.name}
@@ -701,8 +776,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             )}
 
             {project.story_text && (
-              <div className="result-block" data-testid="studio-story-result">
-                <h3 className="field-label">História</h3>
+              <div
+                className="result-block"
+                data-testid="studio-story-result"
+                role="region"
+                aria-labelledby="studio-story-result-heading"
+              >
+                <h3 className="field-label" id="studio-story-result-heading">História</h3>
                 <pre className="story" style={{ whiteSpace: "pre-wrap" }} data-testid="studio-story-text">{project.story_text}</pre>
               </div>
             )}
@@ -722,16 +802,16 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             )}
 
             {bookApproved && (
-              <div className="result-block">
-                <h3 className="field-label">Vídeo</h3>
+              <div className="result-block" role="region" aria-labelledby="studio-video-heading">
+                <h3 className="field-label" id="studio-video-heading">Vídeo</h3>
                 <p className="muted">O clipe e o vídeo narrado usam o mesmo personagem 3D do livro.</p>
                 <VideoStepButtons locked={locked} canMakeVideo={canMakeVideo} runStep={runStep} />
               </div>
             )}
 
             {assets?.video_url && (
-              <div className="result-block">
-                <h3 className="field-label">Animação</h3>
+              <div className="result-block" role="region" aria-labelledby="studio-animation-heading">
+                <h3 className="field-label" id="studio-animation-heading">Animação</h3>
                 {assets.video_url.toLowerCase().includes(".gif") ? (
                   <img
                     src={assets.video_url}
@@ -739,14 +819,19 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                     style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
                   />
                 ) : (
-                  <video src={assets.video_url} controls style={{ maxWidth: 360, width: "100%" }} />
+                  <video
+                    src={assets.video_url}
+                    controls
+                    aria-label="Animação gerada"
+                    style={{ maxWidth: 360, width: "100%" }}
+                  />
                 )}
               </div>
             )}
 
             {assets?.narrated_video_url && (
-              <div className="result-block">
-                <h3 className="field-label">Vídeo narrado</h3>
+              <div className="result-block" role="region" aria-labelledby="studio-narrated-heading">
+                <h3 className="field-label" id="studio-narrated-heading">Vídeo narrado</h3>
                 {assets.narrated_video_url.toLowerCase().includes(".gif") ? (
                   <img
                     src={assets.narrated_video_url}
@@ -757,6 +842,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                   <video
                     src={assets.narrated_video_url}
                     controls
+                    aria-label="Vídeo narrado gerado"
                     style={{ maxWidth: 360, width: "100%" }}
                   />
                 )}
@@ -764,11 +850,12 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             )}
           </div>
 
-          <button className="link" onClick={() => (isDemo ? exitDemo() : setProject(null))}>
+          <button type="button" className="link" onClick={() => (isDemo ? exitDemo() : setProject(null))}>
             {isDemo ? "← Criar a minha história" : "← Novo projeto"}
           </button>
         </section>
       )}
+      </main>
     </div>
   );
 }
