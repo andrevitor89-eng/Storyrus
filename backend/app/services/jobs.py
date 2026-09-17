@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import Job, JobStatus, JobType, Project, User
-from app.services import credits
+from app.services import credits, spend_guard
 
 # Custo (em creditos) por tipo de etapa.
 COST_BY_TYPE: dict[JobType, int] = {
@@ -89,13 +89,19 @@ def enqueue_job(
             f"Limite de {settings.max_concurrent_jobs_per_user} jobs simultaneos atingido",
         )
 
-    # 3) Debito ANTES da etapa paga.
+    # 3) Teto diario da plataforma (USD/creditos) ANTES do vendor (STO-18).
+    try:
+        spend_guard.assert_can_enqueue(db, job_type.value, cost_credits=cost)
+    except spend_guard.SpendCeilingError as exc:
+        raise HTTPException(status.HTTP_402_PAYMENT_REQUIRED, str(exc))
+
+    # 4) Debito ANTES da etapa paga.
     try:
         credits.debit(db, user.id, cost)
     except credits.InsufficientCreditsError as exc:
         raise HTTPException(status.HTTP_402_PAYMENT_REQUIRED, str(exc))
 
-    # 4) Persiste o job PENDING.
+    # 5) Persiste o job PENDING.
     job = Job(
         project_id=project.id,
         type=job_type.value,
@@ -109,7 +115,7 @@ def enqueue_job(
     db.commit()
     db.refresh(job)
 
-    # 5) Sinaliza o broker (best-effort).
+    # 6) Sinaliza o broker (best-effort).
     try:
         enqueue_fn(job.id)
     except Exception:  # noqa: BLE001 - broker indisponivel nao deve quebrar a request

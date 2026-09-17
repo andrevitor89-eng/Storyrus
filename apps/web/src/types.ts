@@ -142,6 +142,12 @@ export interface UsageEvent {
   created_at: string;
 }
 
+export interface UsageAnomaly {
+  kind: string;
+  severity: string;
+  message: string;
+}
+
 export interface UsageReport {
   timezone: string;
   from_at: string;
@@ -157,6 +163,11 @@ export interface UsageReport {
   recent_jobs: UsageJob[];
   events?: UsageEvent[];
   events_count?: number;
+  daily_spend_usd_ceiling?: number | null;
+  daily_credits_ceiling?: number | null;
+  today_credits?: number;
+  reserved_usd?: number;
+  anomalies?: UsageAnomaly[];
 }
 
 export interface UploadUrl {

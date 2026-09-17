@@ -39,4 +39,43 @@ describe("Painel /gastos", () => {
     expect(screen.getByText(/página 3 — geração/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /extrato/i })).toBeInTheDocument();
   });
+
+  it("mostra alertas de custo quando a API devolve anomalies", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server } = await import("./test/server");
+    server.use(
+      http.get("*/v1/usage", () =>
+        HttpResponse.json({
+          timezone: "America/Sao_Paulo",
+          from_at: new Date().toISOString(),
+          to_at: new Date().toISOString(),
+          today_usd: 9.5,
+          month_usd: 9.5,
+          range_usd: 9.5,
+          books_count: 0,
+          avg_book_usd: null,
+          by_type: [],
+          by_provider: [],
+          books: [],
+          recent_jobs: [],
+          events: [],
+          events_count: 0,
+          daily_spend_usd_ceiling: 10,
+          anomalies: [
+            {
+              kind: "daily_usd_warn",
+              severity: "warn",
+              message: "Burn do dia em 95% do teto (9.5000 / 10.0000)",
+            },
+          ],
+        }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<Usage />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByRole("heading", { name: /alertas de custo/i })).toBeInTheDocument();
+    expect(screen.getByText(/95% do teto/i)).toBeInTheDocument();
+  });
 });

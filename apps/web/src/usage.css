@@ -85,6 +85,37 @@
   border-bottom: 1px solid var(--line-soft);
 }
 .usage th { color: var(--muted); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; }
+.usage-cards small {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.78rem;
+}
+.usage-anomalies {
+  margin: 0 0 1rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid #e3b86a;
+  background: #fff8eb;
+}
+.usage-anomalies h2 {
+  margin: 0 0 0.55rem;
+  font-size: 1rem;
+  color: var(--navy);
+}
+.usage-anomalies ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.usage-anomalies li {
+  display: grid;
+  gap: 0.15rem;
+}
+.usage-anomalies li[data-severity="critical"] strong { color: #9b1c1c; }
+.usage-anomalies li[data-severity="warn"] strong { color: #9a6700; }
+.usage-anomalies li[data-severity="info"] strong { color: var(--muted); }
 @media (max-width: 720px) {
   .usage-cards { grid-template-columns: 1fr; }
   .usage-head { flex-wrap: wrap; }
