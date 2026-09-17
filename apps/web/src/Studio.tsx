@@ -1,94 +1,27 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
-import type { ExtraCharacter, Job, Project, StoryTemplate, Theme, UserVoice } from "./types";
+import type { ExtraCharacter, Job, Project, StoryTemplate, Theme } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import logo from "./assets/logo.png";
+import type { StudioAssets } from "./studio/assets";
+import {
+  ART_STYLE_LABEL,
+  HOW,
+  THEMES,
+  themeLabel,
+} from "./studio/constants";
+import { ProgressList } from "./studio/ProgressList";
+import { VoiceNarrationPanel } from "./studio/VoiceNarrationPanel";
+import { EbookStepButtons, VideoStepButtons } from "./studio/StepButtons";
+import { BookApprovalBlock, CharacterApprovalBlock } from "./studio/ApprovalBlocks";
+import { useStudioPolling } from "./studio/useStudioPolling";
+import { useStudioVoices } from "./studio/useStudioVoices";
+import { useStudioSteps } from "./studio/useStudioSteps";
+import { useStudioApprovals } from "./studio/useStudioApprovals";
 
-const ART_STYLE_LABEL: Record<string, string> = {
-  cgi_3d: "Rosto realista",
-  realistic: "Rosto realista",
-  cartoon: "Rosto realista",
-  anime: "Rosto realista",
-};
-
-// Temas narrativos do briefing — a história nasce ao redor do tema escolhido.
-type ThemeGroup = "aventura" | "datas" | "educativo";
-const THEMES: { id: Theme; label: string; emoji: string; group: ThemeGroup }[] = [
-  // Aventura e fantasia
-  { id: "adventure", label: "Aventura", emoji: "🗺️", group: "aventura" },
-  { id: "princess", label: "Princesas", emoji: "👑", group: "aventura" },
-  { id: "superhero", label: "Super-heróis", emoji: "🦸", group: "aventura" },
-  { id: "space", label: "Espaço", emoji: "🚀", group: "aventura" },
-  { id: "underwater", label: "Fundo do mar", emoji: "🐠", group: "aventura" },
-  { id: "dinosaurs", label: "Dinossauros", emoji: "🦕", group: "aventura" },
-  { id: "fantasy", label: "Fantasia", emoji: "🧚", group: "aventura" },
-  // Datas comemorativas
-  { id: "birthday", label: "Aniversário", emoji: "🎂", group: "datas" },
-  { id: "christmas", label: "Natal", emoji: "🎄", group: "datas" },
-  { id: "easter", label: "Páscoa", emoji: "🐣", group: "datas" },
-  { id: "childrens_day", label: "Dia das Crianças", emoji: "🎈", group: "datas" },
-  { id: "mothers_day", label: "Dia das Mães", emoji: "💐", group: "datas" },
-  { id: "fathers_day", label: "Dia dos Pais", emoji: "👔", group: "datas" },
-  { id: "new_year", label: "Ano Novo", emoji: "🎉", group: "datas" },
-  // Temas educativos — Linguagem & Conceitos Fundamentais
-  { id: "alfabetizacao_inicial", label: "Alfabetização", emoji: "🔤", group: "educativo" },
-  { id: "pensamento_matematico", label: "Matemática", emoji: "🔢", group: "educativo" },
-  { id: "cores", label: "Cores", emoji: "🎨", group: "educativo" },
-  { id: "opostos_espacial", label: "Opostos", emoji: "↕️", group: "educativo" },
-  // Temas educativos — Habilidades de Vida & Rotinas Diárias
-  { id: "higiene_desfralde", label: "Higiene", emoji: "🧼", group: "educativo" },
-  { id: "rotina_dormir", label: "Hora de Dormir", emoji: "🌙", group: "educativo" },
-  { id: "alimentacao_saudavel", label: "Alimentação", emoji: "🥗", group: "educativo" },
-  { id: "vestir_autonomia", label: "Vestir-se Sozinho", emoji: "👕", group: "educativo" },
-  // Temas educativos — Autoconsciência & Aprendizagem Socioemocional
-  { id: "literacia_emocional", label: "Sentimentos", emoji: "💗", group: "educativo" },
-  { id: "consciencia_corporal", label: "Corpo", emoji: "🙆", group: "educativo" },
-  { id: "compartilhar_revezar", label: "Compartilhar", emoji: "🤝", group: "educativo" },
-  // Temas educativos — Descoberta & Exploração do Mundo
-  { id: "animais_sons", label: "Animais e Sons", emoji: "🐾", group: "educativo" },
-  { id: "transporte_ajudantes", label: "Transporte", emoji: "🚚", group: "educativo" },
-  { id: "clima_estacoes", label: "Clima e Estações", emoji: "⛅", group: "educativo" },
-];
-const themeLabel = (id: string | null | undefined) =>
-  THEMES.find((t) => t.id === id)?.label ?? "—";
-
-// O personagem é gerado automaticamente ao enviar a foto, e a história tem
-// seção própria. Aqui ficam as etapas finais (dependem de personagem + história).
-const STEPS: { key: "ebook" | "video" | "narrated-video"; label: string; cost: string; hint: string }[] = [
-  { key: "ebook", label: "Montar ebook", cost: "1 crédito", hint: "E-book ilustrado (precisa de personagem aprovado + história)." },
-  { key: "video", label: "Gerar animação", cost: "5 créditos", hint: "Clipe curto (5–10s) com movimento — não é o vídeo narrado." },
-  { key: "narrated-video", label: "Gerar vídeo narrado", cost: "8 créditos", hint: "História com narração (~1–2 min) a partir do storyboard." },
-];
+export { ProgressList } from "./studio/ProgressList";
 
 type StoryMode = "invent" | "write" | "file" | "catalog";
-
-type StudioAssets = {
-  character_url: string | null;
-  realistic_url: string | null;
-  extra_characters: { name: string; url: string }[];
-  page_images: string[];
-  ebook_url: string | null;
-  video_url: string | null;
-  narrated_video_url: string | null;
-};
-
-function mergeStudioAssets(prev: StudioAssets | null, next: StudioAssets): StudioAssets {
-  if (!prev) return next;
-  const prevPages = prev.page_images ?? [];
-  const nextPages = next.page_images ?? [];
-  return {
-    ...next,
-    page_images: nextPages.length === prevPages.length ? prevPages : nextPages,
-  };
-}
-
-const HOW = [
-  "Envie uma foto de frente (um rosto, luz boa).",
-  "Aprove o personagem (rosto realista).",
-  "Escolha o tema ou uma história pronta.",
-  "Aprove o livro (capa e páginas).",
-  "Baixe o PDF, peça o impresso ou gere o vídeo narrado.",
-];
 
 export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [credits, setCredits] = useState<number | null>(null);
@@ -123,6 +56,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
   const [mediaConsent, setMediaConsent] = useState(false);
+  const [busy, setBusy] = useState(false);
 
   // aplica o tema (claro/escuro) salvo na landing
   useEffect(() => {
@@ -161,14 +95,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setPhotoUploaded(true);
     setJobs([]);
   }, [isDemo]);
-  const [busy, setBusy] = useState(false);
-  const pollRef = useRef<number | null>(null);
-  const pollInFlightRef = useRef(false);
-  const [voices, setVoices] = useState<UserVoice[]>([]);
-  const [customVoiceAvailable, setCustomVoiceAvailable] = useState(false);
-  const [selectedVoiceId, setSelectedVoiceId] = useState("");
-  const [voiceName, setVoiceName] = useState("Minha voz");
-  const [voiceUploading, setVoiceUploading] = useState(false);
 
   const refreshCredits = useCallback(async () => {
     try {
@@ -182,70 +108,52 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     refreshCredits();
   }, [refreshCredits]);
 
-  const refreshVoices = useCallback(async () => {
-    try {
-      const data = await api.listVoices();
-      setVoices(data.items);
-      setCustomVoiceAvailable(data.custom_voice_available);
-      setSelectedVoiceId((prev) => {
-        if (prev && data.items.some((v) => v.id === prev)) return prev;
-        const def = data.items.find((v) => v.is_default);
-        return def?.id || data.items[0]?.id || "";
-      });
-    } catch {
-      /* ignore */
-    }
-  }, []);
+  const {
+    voices,
+    customVoiceAvailable,
+    selectedVoiceId,
+    setSelectedVoiceId,
+    voiceName,
+    setVoiceName,
+    voiceUploading,
+    onVoiceFile,
+    removeSelectedVoice,
+  } = useStudioVoices({ isDemo, mediaConsent, setError });
 
-  useEffect(() => {
-    refreshVoices();
-  }, [refreshVoices]);
+  useStudioPolling({
+    project,
+    jobs,
+    setProject,
+    setJobs,
+    setAssets,
+    refreshCredits,
+    isDemo,
+  });
 
-  const hasActiveJob = jobs.some((j) => j.status === "PENDING" || j.status === "RUNNING");
+  const { runStep } = useStudioSteps({
+    project,
+    isDemo,
+    selectedVoiceId,
+    setBusy,
+    setError,
+    setJobs,
+    refreshCredits,
+  });
 
-  // Polling do estado enquanto houver job ativo.
-  useEffect(() => {
-    if (!project || isDemo) return;
-    const projectId = project.id;
-
-    const tick = async () => {
-      if (pollInFlightRef.current) return;
-      pollInFlightRef.current = true;
-      try {
-        const js = await api.listJobs(projectId);
-        const p = await api.getProject(projectId);
-        setProject(p);
-        setJobs(js);
-        const stillActive = js.some((j) => j.status === "PENDING" || j.status === "RUNNING");
-        api.getAssets(projectId)
-          .then((next) => {
-            setAssets((prev) => (stillActive ? mergeStudioAssets(prev, next) : next));
-          })
-          .catch(() => {});
-        refreshCredits();
-      } catch {
-        /* ignore */
-      } finally {
-        pollInFlightRef.current = false;
-      }
-    };
-
-    if (!hasActiveJob) {
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      pollRef.current = null;
-      api.getAssets(projectId).then(setAssets).catch(() => {});
-      return;
-    }
-
-    void tick();
-    pollRef.current = window.setInterval(() => {
-      void tick();
-    }, 2500);
-    return () => {
-      if (pollRef.current) window.clearInterval(pollRef.current);
-      pollRef.current = null;
-    };
-  }, [project?.id, hasActiveJob, refreshCredits, isDemo]);
+  const {
+    approveCharacter,
+    approveBook,
+    requestPrint,
+    characterApproved,
+    bookApproved,
+    printRequested,
+  } = useStudioApprovals({
+    project,
+    isDemo,
+    setBusy,
+    setError,
+    setProject,
+  });
 
   async function start() {
     if (isDemo) return;
@@ -287,94 +195,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       setError((e as Error).message);
     } finally {
       setBusy(false);
-    }
-  }
-
-  async function runStep(step: "avatar" | "story" | "ebook" | "video" | "narrated-video") {
-    if (!project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      let body: Record<string, unknown> = {};
-      if (step === "video") body = { duration_s: 5 };
-      if (step === "narrated-video" && selectedVoiceId) body = { voice_id: selectedVoiceId };
-      await api.startStep(project.id, step, body);
-      const js = await api.listJobs(project.id);
-      setJobs(js);
-      refreshCredits();
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function approveCharacter() {
-    if (!project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      setProject(await api.approveCharacter(project.id));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function approveBook() {
-    if (!project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      setProject(await api.approveBook(project.id));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function requestPrint() {
-    if (!project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      setProject(await api.requestPrint(project.id));
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onVoiceFile(file: File | null) {
-    if (!file || isDemo) return;
-    if (!mediaConsent) {
-      setError("Marque o consentimento para clonar a voz.");
-      return;
-    }
-    setVoiceUploading(true);
-    setError(null);
-    try {
-      const voice = await api.uploadVoice(file, voiceName.trim() || "Minha voz", voices.length === 0);
-      await refreshVoices();
-      setSelectedVoiceId(voice.id);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setVoiceUploading(false);
-    }
-  }
-
-  async function removeSelectedVoice() {
-    if (!selectedVoiceId || isDemo) return;
-    setError(null);
-    try {
-      await api.deleteVoice(selectedVoiceId);
-      await refreshVoices();
-    } catch (e) {
-      setError((e as Error).message);
     }
   }
 
@@ -481,9 +301,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  const characterApproved = !!project?.character_approved_at;
-  const bookApproved = !!project?.book_approved_at;
-  const printRequested = !!project?.print_requested_at;
   const canMountEbook = photoUploaded && !!project?.story_text && characterApproved;
   const canMakeVideo = bookApproved;
   const locked = busy || isDemo;
@@ -826,75 +643,21 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             </div>
           )}
 
-          <div className="result-block" style={{ marginBottom: 16 }}>
-            <h3 className="field-label">Voz da narração</h3>
-            {!customVoiceAvailable ? (
-              <p className="muted">
-                Voz personalizada indisponível (ElevenLabs não configurado). O vídeo narrado usará a
-                narração padrão.
-              </p>
-            ) : (
-              <>
-                <p className="muted" style={{ marginBottom: 10 }}>
-                  Envie 30–60s de fala clara (MP3, WAV ou M4A), sem música de fundo. Fale naturalmente,
-                  como se estivesse contando uma história. A voz fica salva e pode ser reutilizada.
-                </p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 10 }}>
-                  <input
-                    type="text"
-                    value={voiceName}
-                    onChange={(e) => setVoiceName(e.target.value)}
-                    placeholder="Nome da voz"
-                  />
-                  <label className="btn" style={{ cursor: voiceUploading ? "wait" : "pointer" }}>
-                    {voiceUploading ? "Clonando..." : "Enviar áudio"}
-                    <input
-                      type="file"
-                      accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,audio/webm,audio/ogg,.mp3,.wav,.m4a,.webm,.ogg"
-                      hidden
-                      disabled={voiceUploading || locked || !mediaConsent}
-                      onChange={(e) => onVoiceFile(e.target.files?.[0] || null)}
-                    />
-                  </label>
-                </div>
-                {voices.length > 0 && (
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
-                    <select
-                      value={selectedVoiceId}
-                      onChange={(e) => setSelectedVoiceId(e.target.value)}
-                      disabled={locked}
-                    >
-                      <option value="">Automática (padrão da conta ou sistema)</option>
-                      {voices.map((v) => (
-                        <option key={v.id} value={v.id}>
-                          {v.name}
-                          {v.is_default ? " (padrão)" : ""}
-                        </option>
-                      ))}
-                    </select>
-                    {selectedVoiceId && (
-                      <button type="button" disabled={locked} onClick={removeSelectedVoice}>
-                        Remover voz
-                      </button>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
-          </div>
+          <VoiceNarrationPanel
+            customVoiceAvailable={customVoiceAvailable}
+            voiceName={voiceName}
+            setVoiceName={setVoiceName}
+            voiceUploading={voiceUploading}
+            locked={locked}
+            mediaConsent={mediaConsent}
+            onVoiceFile={onVoiceFile}
+            voices={voices}
+            selectedVoiceId={selectedVoiceId}
+            setSelectedVoiceId={setSelectedVoiceId}
+            removeSelectedVoice={removeSelectedVoice}
+          />
 
-          <div className="steps">
-            {STEPS.filter((s) => s.key === "ebook").map((s) => (
-              <button
-                key={s.key}
-                title={s.hint}
-                disabled={locked || !canMountEbook}
-                onClick={() => runStep(s.key)}
-              >
-                {s.label} <span className="muted">({s.cost})</span>
-              </button>
-            ))}
-          </div>
+          <EbookStepButtons locked={locked} canMountEbook={canMountEbook} runStep={runStep} />
           {!characterApproved && photoUploaded && (
             <p className="muted">Aprove o personagem para montar o e-book.</p>
           )}
@@ -904,26 +667,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           {/* Resultado de cada etapa */}
           <div className="results">
             {assets?.character_url && (
-              <div className="result-block">
-                <h3 className="field-label">Personagem</h3>
-                <img
-                  src={assets.character_url}
-                  alt="Personagem gerado"
-                  style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
-                />
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-                  {characterApproved ? (
-                    <p className="muted">Personagem aprovado. Pode montar o livro.</p>
-                  ) : (
-                    <button disabled={locked} onClick={approveCharacter}>
-                      Aprovar personagem
-                    </button>
-                  )}
-                  <button disabled={locked} onClick={() => runStep("avatar")}>
-                    Regenerar personagem <span className="muted">(1 crédito)</span>
-                  </button>
-                </div>
-              </div>
+              <CharacterApprovalBlock
+                characterUrl={assets.character_url}
+                characterApproved={characterApproved}
+                locked={locked}
+                onApprove={approveCharacter}
+                onRegenerate={() => runStep("avatar")}
+              />
             )}
 
             {assets?.extra_characters && assets.extra_characters.length > 0 && (
@@ -952,73 +702,24 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             )}
 
             {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0 || ebookRunning) && (
-              <div className="result-block">
-                <h3 className="field-label">E-book</h3>
-                {(assets?.page_images?.length ?? 0) > 0 && (
-                  <div
-                    style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}
-                  >
-                    {assets!.page_images.map((u, i) => (
-                      <img
-                        key={i}
-                        src={u}
-                        alt={`Página ${i + 1}`}
-                        loading="lazy"
-                        style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
-                      />
-                    ))}
-                  </div>
-                )}
-                {assets?.ebook_url && (
-                  <a href={assets.ebook_url} target="_blank" rel="noreferrer" className="btn">
-                    📖 Abrir e-book
-                  </a>
-                )}
-                <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-                  {bookApproved ? (
-                    <p className="muted">Livro aprovado. PDF, impressão e vídeo liberados.</p>
-                  ) : (
-                    <button disabled={locked || !assets?.ebook_url} onClick={approveBook}>
-                      Aprovar livro
-                    </button>
-                  )}
-                  <button disabled={locked || !canMountEbook} onClick={() => runStep("ebook")}>
-                    Regenerar páginas <span className="muted">(1 crédito)</span>
-                  </button>
-                </div>
-                {bookApproved && (
-                  <div style={{ marginTop: 12 }}>
-                    <h3 className="field-label">Livro impresso</h3>
-                    {printRequested ? (
-                      <p className="muted">
-                        Pedido registrado — em até 24h enviamos a cotação e o prazo.
-                      </p>
-                    ) : (
-                      <button disabled={locked} onClick={requestPrint}>
-                        Pedir livro impresso
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+              <BookApprovalBlock
+                pageImages={assets?.page_images ?? []}
+                ebookUrl={assets?.ebook_url ?? null}
+                bookApproved={bookApproved}
+                locked={locked}
+                canMountEbook={canMountEbook}
+                printRequested={printRequested}
+                onApprove={approveBook}
+                onRegenerate={() => runStep("ebook")}
+                onRequestPrint={requestPrint}
+              />
             )}
 
             {bookApproved && (
               <div className="result-block">
                 <h3 className="field-label">Vídeo</h3>
                 <p className="muted">O clipe e o vídeo narrado usam o mesmo personagem 3D do livro.</p>
-                <div className="steps">
-                  {STEPS.filter((s) => s.key !== "ebook").map((s) => (
-                    <button
-                      key={s.key}
-                      title={s.hint}
-                      disabled={locked || !canMakeVideo}
-                      onClick={() => runStep(s.key)}
-                    >
-                      {s.label} <span className="muted">({s.cost})</span>
-                    </button>
-                  ))}
-                </div>
+                <VideoStepButtons locked={locked} canMakeVideo={canMakeVideo} runStep={runStep} />
               </div>
             )}
 
@@ -1063,35 +764,5 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         </section>
       )}
     </div>
-  );
-}
-
-export function ProgressList({ jobs }: { jobs: Job[] }) {
-  if (jobs.length === 0) return null;
-  return (
-    <ul className="jobs">
-      {jobs.map((j) => {
-        const progress = j.result?.progress;
-        const showPages =
-          j.type === "EBOOK" &&
-          (j.status === "RUNNING" || j.status === "PENDING") &&
-          typeof progress?.done === "number" &&
-          typeof progress?.total === "number";
-        return (
-          <li key={j.id} className={`job ${j.status.toLowerCase()}`}>
-            <span className="dot" />
-            <span className="jtype">{j.type}</span>
-            <span className="jstatus">{j.status}</span>
-            {showPages && (
-              <span className="muted">
-                Ilustrando {progress!.done}/{progress!.total}
-              </span>
-            )}
-            {j.attempts > 1 && <span className="muted">tent. {j.attempts}</span>}
-            {j.error && <span className="error">{j.error}</span>}
-          </li>
-        );
-      })}
-    </ul>
   );
 }
