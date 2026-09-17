@@ -10,13 +10,15 @@ describe("Painel /gastos", () => {
     sessionStorage.clear();
   });
 
-  it("rota /gastos nao cai na landing", () => {
+  it("rota /gastos nao cai na landing", async () => {
     render(
       <MemoryRouter initialEntries={["/gastos"]}>
         <AppRoutes />
       </MemoryRouter>,
     );
-    expect(screen.getByRole("heading", { name: /gastos da plataforma/i })).toBeInTheDocument();
+    expect(
+      await screen.findByRole("heading", { name: /gastos da plataforma/i }),
+    ).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
   });
 
