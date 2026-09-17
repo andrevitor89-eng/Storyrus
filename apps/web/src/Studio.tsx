@@ -343,7 +343,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
         >
           Tema
         </button>
-        <span className="credits">Créditos: {credits ?? "…"}</span>
+        <span className="credits" data-testid="studio-credits">Créditos: {credits ?? "…"}</span>
         {onLogout && (
           <button className="link" onClick={onLogout}>
             Sair
@@ -466,7 +466,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           </label>
 
           {!project && (
-            <button disabled={locked} onClick={start}>
+            <button disabled={locked} onClick={start} data-testid="studio-create-project">
               Criar projeto
             </button>
           )}
@@ -482,7 +482,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
       </section>
 
       {project && (
-        <section className="card">
+        <section className="card" data-testid="studio-project">
           <h2>Projeto</h2>
           <p className="muted">
             Tema: <b>{themeLabel(project.theme ?? theme)}</b>
@@ -497,6 +497,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               type="checkbox"
               checked={mediaConsent}
               disabled={isDemo}
+              data-testid="studio-media-consent"
               onChange={(e) => setMediaConsent(e.target.checked)}
             />
             Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.
@@ -507,9 +508,14 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
               type="file"
               accept="image/*"
               disabled={isDemo}
+              data-testid="studio-photo-input"
               onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
             />
-            <button disabled={!photo || locked || !mediaConsent} onClick={upload}>
+            <button
+              disabled={!photo || locked || !mediaConsent}
+              onClick={upload}
+              data-testid="studio-upload-photo"
+            >
               {photoUploaded ? "Foto enviada ✓" : "Enviar foto"}
             </button>
           </div>
@@ -576,7 +582,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
           </div>
 
           {storyMode === "invent" && (
-            <button disabled={locked} onClick={() => runStep("story")}>
+            <button disabled={locked} onClick={() => runStep("story")} data-testid="studio-generate-story">
               Gerar história com IA <span className="muted">(1 crédito)</span>
             </button>
           )}
@@ -695,9 +701,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
             )}
 
             {project.story_text && (
-              <div className="result-block">
+              <div className="result-block" data-testid="studio-story-result">
                 <h3 className="field-label">História</h3>
-                <pre className="story" style={{ whiteSpace: "pre-wrap" }}>{project.story_text}</pre>
+                <pre className="story" style={{ whiteSpace: "pre-wrap" }} data-testid="studio-story-text">{project.story_text}</pre>
               </div>
             )}
 

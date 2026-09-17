@@ -16,6 +16,7 @@ export function EbookStepButtons({ locked, canMountEbook, runStep }: EbookStepsP
           title={s.hint}
           disabled={locked || !canMountEbook}
           onClick={() => runStep(s.key)}
+          data-testid="studio-mount-ebook"
         >
           {s.label} <span className="muted">({s.cost})</span>
         </button>
@@ -39,6 +40,7 @@ export function VideoStepButtons({ locked, canMakeVideo, runStep }: VideoStepsPr
           title={s.hint}
           disabled={locked || !canMakeVideo}
           onClick={() => runStep(s.key)}
+          data-testid={`studio-step-${s.key}`}
         >
           {s.label} <span className="muted">({s.cost})</span>
         </button>

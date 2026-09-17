@@ -12,10 +12,15 @@ export function ProgressList({ jobs }: { jobs: Job[] }) {
           typeof progress?.done === "number" &&
           typeof progress?.total === "number";
         return (
-          <li key={j.id} className={`job ${j.status.toLowerCase()}`}>
+          <li
+            key={j.id}
+            className={`job ${j.status.toLowerCase()}`}
+            data-testid={`studio-job-${j.type}`}
+            data-job-status={j.status}
+          >
             <span className="dot" />
-            <span className="jtype">{j.type}</span>
-            <span className="jstatus">{j.status}</span>
+            <span className="jtype" data-testid={`studio-job-type-${j.type}`}>{j.type}</span>
+            <span className="jstatus" data-testid={`studio-job-status-${j.type}`}>{j.status}</span>
             {showPages && (
               <span className="muted">
                 Ilustrando {progress!.done}/{progress!.total}
