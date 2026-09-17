@@ -34,3 +34,21 @@ def decode_access_token(token: str) -> dict | None:
         return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
     except JWTError:
         return None
+
+
+def decode_access_token_allow_expired(token: str) -> dict | None:
+    """Valida assinatura/alg sem exigir `exp` (STO-26 resume de sessao)."""
+    try:
+        return jwt.decode(
+            token,
+            settings.jwt_secret,
+            algorithms=[settings.jwt_algorithm],
+            options={"verify_exp": False},
+        )
+    except JWTError:
+        return None
+
+
+def is_guest_user(*, email: str, password_hash: str) -> bool:
+    """Convidados: hash sentinela `!guest` + e-mail sintetico @storyrus.app."""
+    return password_hash == "!guest" and email.endswith("@storyrus.app")

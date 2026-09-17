@@ -73,6 +73,7 @@ pytest            # usa SQLite em memória; não chama provedores externos
 ## Fluxo da API (resumo)
 
 1. `POST /v1/auth/signup` → token JWT (+ créditos de bônus).
+   Convidado: `POST /v1/auth/guest`; `refresh` / `resume` / `upgrade` (STO-26).
 2. `POST /v1/projects` → cria projeto (`style`: realistic|cartoon|anime).
 3. `POST /v1/projects/{id}/photos` → URL assinada para upload da foto.
 4. `POST /v1/projects/{id}/avatar|story|ebook|video` → **202 Accepted** com `job_id`.
@@ -90,7 +91,8 @@ pytest            # usa SQLite em memória; não chama provedores externos
 - **Envelope de erros**: respostas de erro usam `{detail, error:{code,message,status}}`
   (handlers em `app/errors.py`).
 - **Consistência de personagem**: `character_ref` é reutilizada em todas as cenas.
-- **Segurança/LGPD**: convidados recebem JWT isolado (`POST /v1/auth/guest`); chaves só no
+- **Segurança/LGPD**: convidados recebem JWT isolado (`POST /v1/auth/guest`); refresh/resume
+  evitam órfãos; upgrade mantém o mesmo `user_id`. Chaves só no
   backend, entregáveis via URL assinada de curta duração, callbacks HMAC com janela de
   tempo e nonce (anti-replay).
 - **Troca de provedor** sem reescrever o fluxo: tudo atrás de `ai_clients` (factory).

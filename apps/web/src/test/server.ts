@@ -43,10 +43,14 @@ const COST: Record<string, number> = {
 
 export const state = {
   credits: 0,
+  isGuest: true,
+  email: "guest-test@storyrus.app",
   projects: new Map<string, Project>(),
   jobs: new Map<string, Job[]>(),
   reset() {
     this.credits = 0;
+    this.isGuest = true;
+    this.email = "guest-test@storyrus.app";
     this.projects.clear();
     this.jobs.clear();
   },
@@ -90,10 +94,37 @@ function advance(job: Job, project: Project) {
 export const handlers = [
   http.post("*/v1/auth/guest", async () => {
     if (state.credits === 0) state.credits = 10;
+    state.isGuest = true;
+    state.email = "guest-test@storyrus.app";
     return HttpResponse.json({ access_token: "test-token" }, { status: 201 });
   }),
+  http.post("*/v1/auth/refresh", async () => {
+    return HttpResponse.json({ access_token: "test-token-refreshed" });
+  }),
+  http.post("*/v1/auth/resume", async () => {
+    return HttpResponse.json({ access_token: "test-token-resumed" });
+  }),
+  http.post("*/v1/auth/upgrade", async ({ request }) => {
+    const body = (await request.json()) as { email: string; password: string };
+    if (!body.email || (body.password?.length ?? 0) < 8) {
+      return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
+    }
+    state.isGuest = false;
+    state.email = body.email;
+    return HttpResponse.json({ access_token: "test-token-upgraded" });
+  }),
+  http.get("*/v1/auth/me", () =>
+    HttpResponse.json({
+      id: "user-1",
+      email: state.email,
+      credits: state.credits,
+      created_at: "2026-01-01T00:00:00Z",
+      is_guest: state.isGuest,
+    }),
+  ),
   http.post("*/v1/auth/signup", async () => {
     state.credits = 10;
+    state.isGuest = false;
     return HttpResponse.json({ access_token: "test-token" }, { status: 201 });
   }),
   http.post("*/v1/auth/login", async ({ request }) => {
@@ -102,6 +133,8 @@ export const handlers = [
       return HttpResponse.json({ detail: "Credenciais invalidas" }, { status: 401 });
     }
     state.credits = 10;
+    state.isGuest = false;
+    state.email = body.email;
     return HttpResponse.json({ access_token: "test-token" });
   }),
   http.get("*/v1/credits", () => HttpResponse.json({ credits: state.credits })),

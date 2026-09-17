@@ -51,7 +51,19 @@ export function hydrateToken(): Promise<void> {
 /** Guest-first: mint an isolated JWT via POST /v1/auth/guest when none is stored. */
 export async function ensureGuest(): Promise<void> {
   await hydrateToken();
-  if (token) return;
+  if (token) {
+    if (tokenExpired(token)) {
+      const old = token;
+      const ok = await resumeSession(old);
+      if (ok) return;
+      setToken(null);
+    } else {
+      if (tokenExpiresSoon(token)) {
+        void refreshSession();
+      }
+      return;
+    }
+  }
   if (!guestPromise) {
     guestPromise = (async () => {
       const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
@@ -71,6 +83,72 @@ export async function ensureGuest(): Promise<void> {
     });
   }
   await guestPromise;
+}
+
+function readJwtPayload(t: string): { exp?: number } | null {
+  try {
+    const parts = t.split(".");
+    if (parts.length < 2) return null;
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    // atob is available in RN Hermes / modern JS engines.
+    const json = globalThis.atob(b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "="));
+    return JSON.parse(json) as { exp?: number };
+  } catch {
+    return null;
+  }
+}
+
+function tokenExpired(t: string, nowSec = Date.now() / 1000): boolean {
+  const payload = readJwtPayload(t);
+  if (!payload?.exp) return false;
+  return payload.exp <= nowSec;
+}
+
+function tokenExpiresSoon(t: string, skewSec = 60 * 60 * 2, nowSec = Date.now() / 1000): boolean {
+  const payload = readJwtPayload(t);
+  if (!payload?.exp) return false;
+  return payload.exp <= nowSec + skewSec;
+}
+
+let refreshPromise: Promise<boolean> | null = null;
+let resumePromise: Promise<boolean> | null = null;
+
+async function refreshSession(): Promise<boolean> {
+  if (!token) return false;
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const resp = await fetch(`${BASE}/v1/auth/refresh`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!resp.ok) return false;
+      const data = (await resp.json()) as { access_token: string };
+      setToken(data.access_token);
+      return true;
+    })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+async function resumeSession(oldToken: string): Promise<boolean> {
+  if (!resumePromise) {
+    resumePromise = (async () => {
+      const resp = await fetch(`${BASE}/v1/auth/resume`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: oldToken }),
+      });
+      if (!resp.ok) return false;
+      const data = (await resp.json()) as { access_token: string };
+      setToken(data.access_token);
+      return true;
+    })().finally(() => {
+      resumePromise = null;
+    });
+  }
+  return resumePromise;
 }
 
 /** Clear session and mint a fresh guest (studio "Sair"). */
@@ -117,15 +195,31 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const skipGuest =
     path.startsWith("/v1/auth/signup") ||
     path.startsWith("/v1/auth/login") ||
-    path.startsWith("/v1/auth/guest");
+    path.startsWith("/v1/auth/guest") ||
+    path.startsWith("/v1/auth/resume");
   if (!skipGuest) await ensureGuest();
 
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(init.headers as Record<string, string>),
   };
+  if (!(init.body instanceof FormData) && !headers["Content-Type"]) {
+    headers["Content-Type"] = "application/json";
+  }
   if (token) headers.Authorization = `Bearer ${token}`;
-  const resp = await fetch(`${BASE}${path}`, { ...init, headers });
+  let resp = await fetch(`${BASE}${path}`, { ...init, headers });
+  if (resp.status === 401 && token && !path.startsWith("/v1/auth/")) {
+    const old = token;
+    const resumed = await resumeSession(old);
+    if (resumed) {
+      headers.Authorization = `Bearer ${token}`;
+      resp = await fetch(`${BASE}${path}`, { ...init, headers });
+    } else {
+      setToken(null);
+      await ensureGuest();
+      headers.Authorization = `Bearer ${token}`;
+      resp = await fetch(`${BASE}${path}`, { ...init, headers });
+    }
+  }
   if (!resp.ok) {
     let detail = resp.statusText;
     try {
@@ -142,7 +236,27 @@ export const api = {
   guest: () =>
     req<{ access_token: string }>("/v1/auth/guest", { method: "POST" }),
   signup: async (email: string, password: string) => {
+    // Prefer upgrade so guest projects are kept (STO-26).
+    try {
+      const out = await req<{ access_token: string }>("/v1/auth/upgrade", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      setToken(out.access_token);
+      return out;
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "";
+      if (!message.startsWith("400:")) throw err;
+    }
     const out = await req<{ access_token: string }>("/v1/auth/signup", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    setToken(out.access_token);
+    return out;
+  },
+  upgrade: async (email: string, password: string) => {
+    const out = await req<{ access_token: string }>("/v1/auth/upgrade", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     });
@@ -157,6 +271,8 @@ export const api = {
     setToken(out.access_token);
     return out;
   },
+  me: () =>
+    req<{ id: string; email: string; credits: number; is_guest: boolean }>("/v1/auth/me"),
   credits: () => req<{ credits: number }>("/v1/credits"),
   createProject: () =>
     req<Project>("/v1/projects", { method: "POST", body: JSON.stringify({ style: "cgi_3d" }) }),

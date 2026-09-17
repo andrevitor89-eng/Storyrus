@@ -19,6 +19,12 @@ class LoginIn(BaseModel):
     password: str
 
 
+class ResumeIn(BaseModel):
+    """JWT expirado (ou quase) para reemitir sessao sem criar usuario novo."""
+
+    access_token: str = Field(min_length=20, max_length=4096)
+
+
 class TokenOut(BaseModel):
     access_token: str
     token_type: str = "bearer"
@@ -30,6 +36,7 @@ class UserOut(BaseModel):
     email: EmailStr
     credits: int
     created_at: datetime
+    is_guest: bool = False
 
 
 # ---- Projects ----

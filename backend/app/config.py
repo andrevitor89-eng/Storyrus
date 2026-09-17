@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     jwt_secret: str = "change-me-in-prod"
     jwt_algorithm: str = "HS256"
     access_token_ttl_min: int = 60 * 24
+    # Janela extra apos o exp do JWT em que POST /v1/auth/resume ainda reemite
+    # o mesmo user_id (evita projetos orfaos de guest). 0 = so tokens validos.
+    guest_resume_grace_min: int = 60 * 24 * 30
     # Vazio / default = POST /v1/credits/grant recusa. Nao exponha no front.
     credit_grant_secret: str = ""
     # Anti-farming em POST /v1/auth/guest (0 = desliga aquele eixo).
