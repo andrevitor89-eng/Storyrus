@@ -1,0 +1,190 @@
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { MemoryRouter } from "react-router-dom";
+import { Landing } from "./Landing";
+
+function renderLanding() {
+  return render(
+    <MemoryRouter>
+      <Landing />
+    </MemoryRouter>,
+  );
+}
+
+beforeAll(() => {
+  class IO {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  vi.stubGlobal("IntersectionObserver", IO);
+
+  Object.defineProperty(HTMLMediaElement.prototype, "play", {
+    configurable: true,
+    value: vi.fn().mockResolvedValue(undefined),
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, "pause", {
+    configurable: true,
+    value: vi.fn(),
+  });
+});
+
+beforeEach(() => {
+  localStorage.clear();
+  document.documentElement.removeAttribute("data-theme");
+  document.documentElement.lang = "en";
+});
+
+afterEach(() => {
+  localStorage.clear();
+  document.documentElement.removeAttribute("data-theme");
+});
+
+describe("Landing — idioma", () => {
+  it("inicia em PT e troca copy/document.lang/localStorage ao clicar EN e ES", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    expect(await screen.findByTestId("landing-hero-cta")).toHaveTextContent(/criar meu livro/i);
+    expect(screen.getByRole("heading", { name: /perguntas frequentes/i })).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("landing-lang-en"));
+    expect(screen.getByTestId("landing-hero-cta")).toHaveTextContent(/create my book/i);
+    expect(screen.getByRole("heading", { name: /frequently asked questions/i })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe("en");
+    expect(localStorage.getItem("lang")).toBe("en");
+    expect(screen.getByTestId("landing-lang-en")).toHaveClass("on");
+    expect(screen.getByTestId("landing-lang-pt")).not.toHaveClass("on");
+
+    await user.click(screen.getByTestId("landing-lang-es"));
+    expect(screen.getByTestId("landing-hero-cta")).toHaveTextContent(/crear mi libro/i);
+    expect(screen.getByRole("heading", { name: /preguntas frecuentes/i })).toBeInTheDocument();
+    expect(document.documentElement.lang).toBe("es");
+    expect(localStorage.getItem("lang")).toBe("es");
+    expect(screen.getByTestId("landing-lang-es")).toHaveClass("on");
+  });
+
+  it("restaura idioma salvo no localStorage", async () => {
+    localStorage.setItem("lang", "en");
+    renderLanding();
+
+    expect(await screen.findByTestId("landing-hero-cta")).toHaveTextContent(/create my book/i);
+    expect(document.documentElement.lang).toBe("en");
+    expect(screen.getByTestId("landing-lang-en")).toHaveClass("on");
+  });
+});
+
+describe("Landing — tema", () => {
+  it("alterna data-theme e persiste em localStorage", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    await screen.findByTestId("landing-hero-cta");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    expect(localStorage.getItem("theme")).toBe("dark");
+
+    await user.click(screen.getByRole("button", { name: /alternar tema/i }));
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    expect(localStorage.getItem("theme")).toBe("light");
+
+    await user.click(screen.getByRole("button", { name: /alternar tema/i }));
+    expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+  });
+
+  it("restaura tema claro do localStorage", async () => {
+    localStorage.setItem("theme", "light");
+    renderLanding();
+
+    await screen.findByTestId("landing-hero-cta");
+    expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+  });
+});
+
+describe("Landing — FAQ", () => {
+  it("abre e fecha item; só um fica expandido por vez", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const faqSection = (await screen.findByRole("heading", { name: /perguntas frequentes/i })).closest(
+      "section",
+    ) as HTMLElement;
+    const questions = within(faqSection).getAllByRole("button");
+    expect(questions.length).toBeGreaterThanOrEqual(2);
+
+    expect(questions[0]).toHaveAttribute("aria-expanded", "false");
+    await user.click(questions[0]);
+    expect(questions[0]).toHaveAttribute("aria-expanded", "true");
+    expect(questions[1]).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(questions[1]);
+    expect(questions[0]).toHaveAttribute("aria-expanded", "false");
+    expect(questions[1]).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(questions[1]);
+    expect(questions[1]).toHaveAttribute("aria-expanded", "false");
+  });
+});
+
+describe("Landing — menu mobile e abas do hero", () => {
+  it("abre/fecha o menu e Escape fecha", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const menuBtn = await screen.findByTestId("landing-menu");
+    const siteMenu = screen.getByTestId("landing-site-menu");
+    expect(menuBtn).toHaveAttribute("aria-expanded", "false");
+    expect(siteMenu).not.toHaveClass("open");
+
+    await user.click(menuBtn);
+    expect(menuBtn).toHaveAttribute("aria-expanded", "true");
+    expect(siteMenu).toHaveClass("open");
+
+    await user.keyboard("{Escape}");
+    expect(menuBtn).toHaveAttribute("aria-expanded", "false");
+    expect(siteMenu).not.toHaveClass("open");
+  });
+
+  it("troca o livro de exemplo no hero via tabs", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const tabs = await screen.findAllByRole("tab");
+    expect(tabs.length).toBeGreaterThanOrEqual(2);
+    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+    expect(tabs[1]).toHaveAttribute("aria-selected", "false");
+
+    await user.click(tabs[1]);
+    expect(tabs[0]).toHaveAttribute("aria-selected", "false");
+    expect(tabs[1]).toHaveAttribute("aria-selected", "true");
+  });
+});
+
+describe("Landing — CTAs e links", () => {
+  it("CTAs principais apontam para /app", async () => {
+    renderLanding();
+
+    expect(await screen.findByTestId("landing-hero-cta")).toHaveAttribute("href", "/app");
+    expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
+    expect(screen.getByTestId("landing-mobile-cta")).toHaveAttribute("href", "/app");
+  });
+
+  it("footer liga privacidade e termos", async () => {
+    renderLanding();
+    await screen.findByTestId("landing-hero-cta");
+
+    expect(screen.getByRole("link", { name: /^privacidade$/i })).toHaveAttribute("href", "/privacidade");
+    expect(screen.getByRole("link", { name: /^termos$/i })).toHaveAttribute("href", "/termos");
+  });
+
+  it("botão Personalizar leva tema no query", async () => {
+    renderLanding();
+    await screen.findByTestId("landing-hero-cta");
+
+    const personalize = screen.getAllByTestId("landing-personalize");
+    expect(personalize.length).toBeGreaterThan(0);
+    for (const link of personalize) {
+      expect(link.getAttribute("href")).toMatch(/^\/app\?tema=/);
+    }
+  });
+});
