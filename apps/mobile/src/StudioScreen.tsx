@@ -24,7 +24,15 @@ const DOT: Record<string, string> = {
   FAILED: "#f87171",
 };
 
-export function StudioScreen({ onLogout }: { onLogout: () => void }) {
+export function StudioScreen({
+  onLogout,
+  onLogin,
+  bootError,
+}: {
+  onLogout: () => void | Promise<void>;
+  onLogin: () => void;
+  bootError?: string | null;
+}) {
   const [credits, setCredits] = useState<number | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -121,11 +129,15 @@ export function StudioScreen({ onLogout }: { onLogout: () => void }) {
         <Text style={s.brand}>Histórias</Text>
         <View style={{ flex: 1 }} />
         <Text style={s.muted}>Créditos: {credits ?? "…"}</Text>
-        <Pressable onPress={onLogout}>
+        <Pressable onPress={onLogin}>
+          <Text style={s.link}>  Entrar</Text>
+        </Pressable>
+        <Pressable onPress={() => void onLogout()}>
           <Text style={s.link}>  Sair</Text>
         </Pressable>
       </View>
 
+      {bootError && <Text style={s.error}>{bootError}</Text>}
       {error && <Text style={s.error}>{error}</Text>}
 
       {!project ? (

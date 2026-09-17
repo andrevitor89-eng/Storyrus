@@ -15,7 +15,7 @@
       "permissions": ["READ_EXTERNAL_STORAGE"]
     },
     "extra": {
-      "apiBase": "http://localhost:8000"
+      "apiBase": "https://storyrus.ai"
     }
   }
 }
