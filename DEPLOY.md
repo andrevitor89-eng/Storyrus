@@ -36,7 +36,13 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
 3. Em cada serviço (api e worker), preencha as variáveis marcadas como *secret* em **Environment**:
    - `GEMINI_API_KEY` — chave do Gemini no formato `AIza...`
    - `ANTHROPIC_API_KEY` — `sk-ant-...`
+   - `FAL_KEY` — Fal.ai (avatar / face-swap / SAM)
    - `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` — (só se for usar vídeo)
+   - `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` — TTS narrado (opcional; sem chave usa edge-tts)
+   - `CREDIT_GRANT_SECRET` — só a API; vazio = `POST /v1/credits/grant` recusa. **Nunca** no frontend
+   - `OPIK_API_KEY` / `OPIK_WORKSPACE` / `OPIK_PROJECT_NAME` — tracing Opik (opcional; sem chave o wrapper é no-op)
+   - `USAGE_DASHBOARD_PASSWORD` — painel `/gastos` (opcional)
+   - `REDIS_URL` — opcional; sem Redis o worker faz polling do Postgres
    - `STORAGE_BUCKET` — ex.: `storyrus`
    - `STORAGE_ENDPOINT_URL` — `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
    - `STORAGE_PUBLIC_ENDPOINT_URL` — **mesma URL acima** (no R2 é o mesmo endpoint)
@@ -45,7 +51,27 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `DATABASE_URL` é injetada automaticamente pelo banco do Blueprint.
 4. Aguarde o build. Quando a **storyrus-api** ficar *Live*, copie a URL (ex.: `https://storyrus-api.onrender.com`).
 
-> Free tier do Render hiberna após inatividade e o Postgres free expira em ~90 dias — ok para testes.
+> Free tier do Render hiberna após inatividade e o Postgres free expira em ~90 dias — ok para testes. Para produção/demos estáveis, veja **§ Beyond free (recomendado)**.
+
+### Beyond free (recomendado)
+
+O Blueprint (`render.yaml`) continua em `plan: free` de propósito — **não** força upgrade pago no git. Em produção (ou demos que não podem “acordar frias”), suba os planos **no painel** do Render:
+
+| Recurso | Free (demo) | Recomendado além do free |
+|---------|-------------|---------------------------|
+| **storyrus-api** | Hiberna após ~15 min sem tráfego | Plano **Starter** (ou superior) — API always-on |
+| **storyrus-worker** | Também hiberna; jobs param enquanto dorme | Mesmo plano always-on — worker precisa ficar acordado |
+| **storyrus-db** | Expira em ~90 dias | Postgres **pago** (Starter+) — sem expiração do free |
+
+**Cold start (free):** o primeiro request depois da hibernação demora (imagem Docker pesada: InsightFace/ONNX/ffmpeg). Enquanto a API/worker dormem, o estúdio parece “morto” e jobs enfileirados não avançam. Postgres free somado a isso torna demos instáveis.
+
+**Mitigação temporária (só free):** um health-check externo periódico em `GET /health` (ex.: UptimeRobot) pode reduzir hibernação da **web** service. Isso **não** substitui always-on: o worker free ainda pode dormir, o banco free ainda expira, e pings abusivos podem violar o fair-use do free. Trate como paliativo até migrar API+worker+DB.
+
+Passos no Render (painel, sem mudar o Blueprint):
+
+1. **API** → Settings → Instance Type → Starter (ou acima).
+2. **Worker** → o mesmo (always-on).
+3. **Postgres** → upgrade para plano pago **antes** dos ~90 dias do free, ou crie um DB pago e aponte `DATABASE_URL` (Blueprint `fromDatabase` ou var manual).
 
 ### Cloudflare R2 (storage)
 - Painel Cloudflare → **R2** → crie um bucket (ex.: `storyrus`).
@@ -157,8 +183,8 @@ Detalhes: `README.md` (raiz), `Makefile`, `backend/README.md`.
 |-----------|------------|------------|
 | Frontend  | Vercel     | Root = raiz; `vercel.json` constrói `apps/web` |
 | Domínio   | GoDaddy → Vercel | `storyrus.ai`; DNS na GoDaddy; site na Vercel |
-| API       | Render     | Docker; `dockerCommand` roda `alembic upgrade` + uvicorn |
-| Worker    | Render     | Processa os jobs de IA |
-| Banco     | Render Postgres | `DATABASE_URL` automática |
+| API       | Render     | Docker; free hiberna — Starter+ always-on em prod (§ Beyond free) |
+| Worker    | Render     | Jobs de IA; same always-on em prod |
+| Banco     | Render Postgres | Free ~90 dias; pago em prod |
 | Storage   | Cloudflare R2 | Variáveis `STORAGE_*` |
 | Redis     | — (opcional) | Sem ele, worker faz polling do banco |

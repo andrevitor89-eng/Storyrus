@@ -1,7 +1,8 @@
 # Render Blueprint — backend do Story R Us (api + worker + Postgres).
 # Como usar: no Render -> New -> Blueprint -> conecte o repo. Ele cria tudo.
-# Depois preencha as variaveis marcadas (chaves de IA e storage R2) no painel.
-# Redis e OPCIONAL: sem ele, o worker faz polling do banco (tudo funciona).
+# Depois preencha as variaveis sync:false (IA, storage, Opik, credits, etc.) no painel.
+# Redis e OPCIONAL (REDIS_URL sync:false): sem ele, o worker faz polling do banco.
+# plan: free fica no Blueprint de proposito — upgrade always-on/DB pago no painel (DEPLOY.md).
 
 databases:
   - name: storyrus-db
@@ -42,6 +43,20 @@ services:
         sync: false
       - key: KLING_SECRET_KEY
         sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: CREDIT_GRANT_SECRET
+        sync: false
+      - key: OPIK_API_KEY
+        sync: false
+      - key: OPIK_WORKSPACE
+        sync: false
+      - key: OPIK_PROJECT_NAME
+        sync: false
+      - key: REDIS_URL
+        sync: false
       - key: STORAGE_BUCKET
         sync: false
       - key: STORAGE_ENDPOINT_URL
@@ -81,6 +96,18 @@ services:
       - key: KLING_ACCESS_KEY
         sync: false
       - key: KLING_SECRET_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: ELEVENLABS_VOICE_ID
+        sync: false
+      - key: OPIK_API_KEY
+        sync: false
+      - key: OPIK_WORKSPACE
+        sync: false
+      - key: OPIK_PROJECT_NAME
+        sync: false
+      - key: REDIS_URL
         sync: false
       - key: STORAGE_BUCKET
         sync: false
