@@ -1,4 +1,4 @@
-# Stories Mobile (Expo)
+# Story R Us — Mobile (Expo)
 
 App React Native (Expo) que espelha o fluxo do web: **guest-first** → criar
 projeto → enviar foto → disparar etapas (avatar/história/ebook/vídeo) com

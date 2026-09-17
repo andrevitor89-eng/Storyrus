@@ -17,7 +17,7 @@ logging.basicConfig(level=settings.log_level)
 jobs_svc.enqueue_fn = queue.notify
 
 app = FastAPI(
-    title="Plataforma de Historias - API",
+    title="Story R Us — API",
     version="0.1.0",
     description="Foto -> personagem -> ebook -> video. Pipeline assincrono com creditos.",
 )

@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     # App
     app_env: Literal["dev", "staging", "prod"] = "dev"
-    app_name: str = "stories-api"
+    app_name: str = "storyrus-api"
     log_level: str = "INFO"
 
     # Banco / fila

@@ -1,4 +1,4 @@
-# Storyrus local DX — backend stack via backend/docker-compose.yml;
+# Story R Us local DX — backend stack via backend/docker-compose.yml;
 # Vite web runs on the host (proxy /v1 → :8000). No MinIO.
 COMPOSE := docker compose -f backend/docker-compose.yml
 BACKEND_ENV := backend/.env
@@ -7,7 +7,7 @@ API_URL ?= http://localhost:8000
 .PHONY: help init up down logs ps seed demo web restart
 
 help: ## List targets
-	@awk 'BEGIN {FS = ":.*##"; printf "Storyrus local DX\n\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  make %-10s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "Story R Us local DX\n\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  make %-10s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
 init: ## Copy backend/.env.example → backend/.env if missing
 	@if [ ! -f $(BACKEND_ENV) ]; then \
@@ -34,7 +34,7 @@ logs: ## Tail compose logs
 ps: ## Compose service status
 	$(COMPOSE) ps
 
-seed: init ## Seed demo user (demo@forteshub.com / demo12345)
+seed: init ## Seed demo user (demo@storyrus.app / demo12345)
 	$(COMPOSE) run --rm api python scripts/seed.py
 
 demo: ## Exercise API flow against running stack (needs make up)

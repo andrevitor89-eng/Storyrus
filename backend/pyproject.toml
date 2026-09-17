@@ -1,7 +1,7 @@
 [project]
-name = "stories-api"
+name = "storyrus-api"
 version = "0.1.0"
-description = "Plataforma de Historias - API core (foto -> personagem -> ebook -> video)"
+description = "Story R Us — API core (foto -> personagem -> ebook -> video)"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.111",

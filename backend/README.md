@@ -1,4 +1,4 @@
-# Plataforma de Histórias — API (núcleo)
+# Story R Us — API (núcleo)
 
 MVP do backend: **foto → personagem → ebook → vídeo animado**. Pipeline assíncrono com
 créditos, jobs idempotentes, moderação/segurança e clients reais de IA (Nano Banana Pro —
