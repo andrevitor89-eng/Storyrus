@@ -45,9 +45,10 @@ enqueue_fn: Callable[[uuid.UUID], None] = lambda job_id: None
 
 
 def _active_jobs(db: Session, user: User) -> int:
-    """Conta jobs ativos para o limite de backpressure.
+    """Conta jobs ativos (PENDING/RUNNING) para o limite de backpressure.
 
-    VIDEO / NARRATED_VIDEO ficam de fora: podem permanecer RUNNING por muito tempo.
+    Inclui VIDEO / NARRATED_VIDEO — mesmo padrão dos demais tipos — para evitar
+    pile-up de jobs longos sem teto de concorrência.
     """
     stmt = (
         select(func.count(Job.id))
@@ -55,7 +56,6 @@ def _active_jobs(db: Session, user: User) -> int:
         .where(
             Project.user_id == user.id,
             Job.status.in_([JobStatus.PENDING.value, JobStatus.RUNNING.value]),
-            Job.type.notin_([JobType.VIDEO.value, JobType.NARRATED_VIDEO.value]),
         )
     )
     return db.scalar(stmt) or 0
