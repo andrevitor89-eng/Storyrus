@@ -11,6 +11,8 @@ Desenho:
 - Video e assincrono: o handler dispara e faz polling ate concluir (ou timeout),
   podendo tambem ser finalizado pelo webhook.
 - Jobs RUNNING sem heartbeat (worker morto) voltam a PENDING (STO-9).
+- Exception nao-ProviderError tambem retenta quando classificada como transitória
+  (rede/timeout/5xx) — STO-36.
 """
 from __future__ import annotations
 
@@ -19,9 +21,11 @@ import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
+import httpx
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.ai_clients.base import ProviderError
 from app.config import settings
 from app.database import SessionLocal
 from app.models import Job, JobStatus
@@ -29,11 +33,34 @@ from app.services import jobs as jobs_svc
 
 logger = logging.getLogger("worker")
 
+# Status HTTP que costumam ser blips de cota/infra (alinhado a gemini_api / resilience).
+_TRANSIENT_HTTP_STATUS = frozenset({429, 500, 502, 503, 504})
+
 
 def backoff_delay(attempt: int) -> float:
     """Backoff exponencial limitado: base * 2^(attempt-1), teto retry_backoff_max_s."""
     raw = settings.retry_backoff_base_s * (2 ** max(0, attempt - 1))
     return min(raw, settings.retry_backoff_max_s)
+
+
+def is_transient_exception(exc: BaseException) -> bool:
+    """True quando o erro inesperado merece retry (rede, timeout, 429/5xx).
+
+    ProviderError usa o flag proprio. Demais Exceptions so retentam se forem
+    claramente transitórias — ValueError/KeyError/etc. falham na hora.
+    """
+    if isinstance(exc, ProviderError):
+        return bool(exc.transient)
+    if isinstance(exc, (TimeoutError, ConnectionError)):
+        return True
+    if isinstance(exc, httpx.RequestError):
+        return True
+    if isinstance(exc, httpx.HTTPStatusError):
+        return exc.response.status_code in _TRANSIENT_HTTP_STATUS
+    cause = exc.__cause__
+    if cause is not None and cause is not exc:
+        return is_transient_exception(cause)
+    return False
 
 
 def reclaim_stale_jobs(db: Session) -> int:
@@ -121,7 +148,6 @@ def claim_next(db: Session) -> Job | None:
 
 async def process_job(db: Session, job: Job) -> None:
     """Executa um job com retry/backoff. Importa handlers tardiamente (evita ciclo)."""
-    from app.ai_clients.base import ProviderError
     from app.services import spend_guard
     from app.workers.handlers import HANDLERS
 
@@ -162,9 +188,21 @@ async def process_job(db: Session, job: Job) -> None:
                     return
                 await asyncio.sleep(backoff_delay(job.attempts))
             except Exception as exc:
-                logger.exception("job %s erro inesperado", job.id)
-                jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
-                return
+                # STO-36: blips de rede/timeout nao queimam o job na 1a tentativa.
+                transient = is_transient_exception(exc)
+                retriable = transient and job.attempts < settings.job_max_attempts
+                logger.exception(
+                    "job %s erro inesperado (tentativa %s) [transient=%s]",
+                    job.id,
+                    job.attempts,
+                    transient,
+                )
+                if not retriable:
+                    jobs_svc.mark_failed_and_refund(
+                        db, job, f"{type(exc).__name__}: {exc}"
+                    )
+                    return
+                await asyncio.sleep(backoff_delay(job.attempts))
     finally:
         stop.set()
         await hb

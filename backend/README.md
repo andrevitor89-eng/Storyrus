@@ -107,7 +107,8 @@ python -m app.workers.runner     # local
 Runner (`app/workers/runner.py`):
 
 - **claim** do próximo `PENDING` com `FOR UPDATE SKIP LOCKED` (vários workers em paralelo).
-- **retry** com backoff exponencial só em erro transitório (429/5xx/timeout).
+- **retry** com backoff exponencial em erro transitório (`ProviderError(transient=True)`
+  e Exceptions de rede/timeout/429/5xx — STO-36).
 - ao esgotar `JOB_MAX_ATTEMPTS` → `FAILED` + **estorno** de créditos.
 
 Handlers (`app/workers/handlers.py`):

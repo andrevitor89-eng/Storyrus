@@ -336,6 +336,99 @@ async def test_retry_then_success(db, mem_storage, monkeypatch):
     assert j.attempts == 3  # 2 falhas transitorias + sucesso
 
 
+def test_is_transient_exception_classifies_network_blips():
+    import httpx
+
+    assert runner.is_transient_exception(ConnectionError("reset"))
+    assert runner.is_transient_exception(TimeoutError("timed out"))
+    assert runner.is_transient_exception(ConnectionResetError("peer reset"))
+    assert runner.is_transient_exception(httpx.ConnectError("dns"))
+    assert runner.is_transient_exception(
+        ProviderError("rate limit", transient=True)
+    )
+    assert not runner.is_transient_exception(
+        ProviderError("bad config", transient=False)
+    )
+    assert not runner.is_transient_exception(ValueError("bug"))
+    assert not runner.is_transient_exception(KeyError("missing"))
+
+    wrapped = RuntimeError("wrap")
+    wrapped.__cause__ = ConnectionError("reset")
+    assert runner.is_transient_exception(wrapped)
+
+
+async def test_unexpected_transient_retries_then_success(db, mem_storage, monkeypatch):
+    """STO-36: ConnectionError / TimeoutError nao falham na 1a tentativa."""
+    monkeypatch.setattr(runner.settings, "retry_backoff_base_s", 0.0)
+    monkeypatch.setattr(runner.settings, "retry_backoff_max_s", 0.0)
+    calls = {"n": 0}
+
+    class FlakyNet:
+        async def generate_story(self, **kw):
+            calls["n"] += 1
+            if calls["n"] < 3:
+                raise ConnectionError("temporary network blip")
+            return TextResult(text="Pagina 1: ok.")
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FlakyNet())
+    _, p = _seed(db)
+    j = _job(db, p, "STORY")
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+    assert j.attempts == 3
+    assert calls["n"] == 3
+
+
+async def test_unexpected_non_transient_fails_immediately(db, mem_storage, monkeypatch):
+    """Bug de codigo (ValueError) continua falhando na hora e estorna credito."""
+    class Boom:
+        async def generate_story(self, **kw):
+            raise ValueError("bug no handler")
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: Boom())
+    u, p = _seed(db, credits=10)
+    j = _job(db, p, "STORY", cost=1)
+    u.credits -= 1
+    db.commit()
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    db.refresh(u)
+    assert j.status == JobStatus.FAILED.value
+    assert j.attempts == 1
+    assert "ValueError" in (j.error or "")
+    assert u.credits == 10
+
+
+async def test_unexpected_transient_exhausts_attempts(db, mem_storage, monkeypatch):
+    monkeypatch.setattr(runner.settings, "retry_backoff_base_s", 0.0)
+    monkeypatch.setattr(runner.settings, "retry_backoff_max_s", 0.0)
+    monkeypatch.setattr(runner.settings, "job_max_attempts", 3)
+
+    class AlwaysDown:
+        async def generate_story(self, **kw):
+            raise TimeoutError("upstream hung")
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: AlwaysDown())
+    u, p = _seed(db, credits=10)
+    j = _job(db, p, "STORY", cost=1)
+    u.credits -= 1
+    db.commit()
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    db.refresh(u)
+    assert j.status == JobStatus.FAILED.value
+    assert j.attempts == 3
+    assert "TimeoutError" in (j.error or "")
+    assert u.credits == 10
+
+
 async def test_permanent_failure_refunds_credits(db, mem_storage, monkeypatch):
     class Boom:
         async def generate_story(self, **kw):
