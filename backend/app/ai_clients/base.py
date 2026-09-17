@@ -1,7 +1,9 @@
 """Interfaces dos provedores de IA.
 
-A camada de abstracao isola o pipeline do provedor concreto: trocar Kling por
-Veo, ou Nano Banana por Flux, e mudar a implementacao, nao o fluxo.
+A camada de abstracao isola o pipeline do provedor concreto: hoje o video e
+somente Kling (`video_kling.KlingVideoProvider`); imagem e Nano Banana (com
+lane Fal). Trocar de provedor e registrar outra implementacao na factory, nao
+mudar o fluxo dos handlers.
 """
 from __future__ import annotations
 
