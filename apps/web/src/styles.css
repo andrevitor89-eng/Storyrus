@@ -55,6 +55,22 @@ body {
 }
 .auth form { text-align: left; }
 
+.upgrade-form {
+  margin-top: 1rem;
+  margin-bottom: 0;
+}
+.upgrade-form label {
+  display: block;
+  margin: 0.75rem 0 0.35rem;
+  font-size: 0.9rem;
+}
+.upgrade-form input {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  box-sizing: border-box;
+}
+
 /* Logo */
 .auth-logo {
   height: 96px;

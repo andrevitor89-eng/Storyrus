@@ -6,6 +6,14 @@ export type StudioCopy = {
   theme: string;
   credits: string;
   logout: string;
+  upgradeOpen: string;
+  upgradeTitle: string;
+  upgradeHint: string;
+  upgradeEmail: string;
+  upgradePassword: string;
+  upgradeSubmit: string;
+  upgradeSaving: string;
+  upgradeLater: string;
   demoBanner: string;
   demoCta: string;
   createTitle: string;
@@ -223,6 +231,15 @@ const pt: StudioCopy = {
   theme: "Tema",
   credits: "Créditos",
   logout: "Sair",
+  upgradeOpen: "Criar conta",
+  upgradeTitle: "Salvar esta sessão",
+  upgradeHint:
+    "Transforme o convidado em conta real. Seus projetos e créditos ficam no mesmo lugar.",
+  upgradeEmail: "E-mail",
+  upgradePassword: "Senha (mín. 8)",
+  upgradeSubmit: "Criar conta",
+  upgradeSaving: "Salvando…",
+  upgradeLater: "Agora não",
   demoBanner: "Você está vendo um exemplo pronto.",
   demoCta: "Criar a minha história",
   createTitle: "Crie a sua história",
@@ -360,6 +377,15 @@ const en: StudioCopy = {
   theme: "Theme",
   credits: "Credits",
   logout: "Log out",
+  upgradeOpen: "Create account",
+  upgradeTitle: "Save this session",
+  upgradeHint:
+    "Turn the guest into a real account. Your projects and credits stay in the same place.",
+  upgradeEmail: "Email",
+  upgradePassword: "Password (min. 8)",
+  upgradeSubmit: "Create account",
+  upgradeSaving: "Saving…",
+  upgradeLater: "Not now",
   demoBanner: "You are viewing a ready-made example.",
   demoCta: "Create my story",
   createTitle: "Create your story",
@@ -497,6 +523,15 @@ const es: StudioCopy = {
   theme: "Tema",
   credits: "Créditos",
   logout: "Salir",
+  upgradeOpen: "Crear cuenta",
+  upgradeTitle: "Guardar esta sesión",
+  upgradeHint:
+    "Convierte el invitado en una cuenta real. Tus proyectos y créditos se quedan en el mismo lugar.",
+  upgradeEmail: "Correo",
+  upgradePassword: "Contraseña (mín. 8)",
+  upgradeSubmit: "Crear cuenta",
+  upgradeSaving: "Guardando…",
+  upgradeLater: "Ahora no",
   demoBanner: "Estás viendo un ejemplo listo.",
   demoCta: "Crear mi historia",
   createTitle: "Crea tu historia",

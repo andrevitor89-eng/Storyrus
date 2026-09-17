@@ -32,8 +32,10 @@ export function AuthScreen({
 
   return (
     <View style={s.wrap}>
-      <Text style={s.title}>Entrar (opcional)</Text>
-      <Text style={s.muted}>O estúdio funciona como convidado. Conta só se quiser.</Text>
+      <Text style={s.title}>Salvar sessão (opcional)</Text>
+      <Text style={s.muted}>
+        Continua como convidado ou cria conta no mesmo lugar (projetos e créditos).
+      </Text>
 
       <TextInput
         style={s.input}

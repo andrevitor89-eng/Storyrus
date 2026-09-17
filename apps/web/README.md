@@ -1,7 +1,8 @@
 # Story R Us — Web (frontend)
 
 Vite + React + TypeScript. Fluxo **guest-first**: o estúdio pede um JWT de
-convidado (`POST /v1/auth/guest`) na primeira chamada à API → criar projeto →
+convidado (`POST /v1/auth/guest`) na primeira chamada à API → refresh/resume
+evitam órfãos → opcional `POST /v1/auth/upgrade` para conta real → criar projeto →
 upload de foto → disparar etapas (avatar/história/ebook/vídeo) com **progresso ao
 vivo** via polling dos jobs.
 

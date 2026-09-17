@@ -12,6 +12,8 @@ import type {
 
 const BASE = ""; // mesmo host (proxy do Vite cobre /v1)
 const TOKEN_KEY = "storyrus_token";
+/** Renova o JWT se faltar menos que isto para o `exp` (STO-26). */
+const REFRESH_SKEW_SEC = 60 * 60 * 2;
 
 function readStoredToken(): string | null {
   try {
@@ -23,6 +25,8 @@ function readStoredToken(): string | null {
 
 let token: string | null = readStoredToken();
 let guestPromise: Promise<void> | null = null;
+let refreshPromise: Promise<boolean> | null = null;
+let resumePromise: Promise<boolean> | null = null;
 
 export function setToken(t: string | null) {
   token = t;
@@ -37,23 +41,110 @@ export function getToken() {
   return token;
 }
 
-export async function ensureGuest(): Promise<void> {
-  if (token) return;
-  if (!guestPromise) {
-    guestPromise = (async () => {
-      const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
-      if (!resp.ok) {
-        let detail = resp.statusText;
-        try {
-          detail = (await resp.json()).detail ?? detail;
-        } catch {
-          /* corpo vazio */
-        }
-        throw new Error(`${resp.status}: ${detail}`);
-      }
-      const data = (await resp.json()) as { access_token: string };
-      setToken(data.access_token);
+/** Decodifica payload JWT (sem verificar assinatura — so para `exp` local). */
+export function readJwtPayload(t: string): { exp?: number; sub?: string } | null {
+  try {
+    const parts = t.split(".");
+    if (parts.length < 2) return null;
+    const b64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const json = atob(b64.padEnd(b64.length + ((4 - (b64.length % 4)) % 4), "="));
+    return JSON.parse(json) as { exp?: number; sub?: string };
+  } catch {
+    return null;
+  }
+}
+
+function tokenExpired(t: string, nowSec = Date.now() / 1000): boolean {
+  const payload = readJwtPayload(t);
+  if (!payload?.exp) return false;
+  return payload.exp <= nowSec;
+}
+
+function tokenExpiresSoon(t: string, skewSec = REFRESH_SKEW_SEC, nowSec = Date.now() / 1000): boolean {
+  const payload = readJwtPayload(t);
+  if (!payload?.exp) return false;
+  return payload.exp <= nowSec + skewSec;
+}
+
+async function postToken(
+  path: string,
+  init: RequestInit = {},
+): Promise<string | null> {
+  const resp = await fetch(`${BASE}${path}`, init);
+  if (!resp.ok) return null;
+  const data = (await resp.json()) as { access_token?: string };
+  return data.access_token ?? null;
+}
+
+/** Reemite JWT enquanto o atual ainda e aceito pela API. */
+export async function refreshSession(): Promise<boolean> {
+  if (!token) return false;
+  if (!refreshPromise) {
+    refreshPromise = (async () => {
+      const next = await postToken("/v1/auth/refresh", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!next) return false;
+      setToken(next);
+      return true;
     })().finally(() => {
+      refreshPromise = null;
+    });
+  }
+  return refreshPromise;
+}
+
+/** Recupera o mesmo user_id a partir de um JWT expirado (evita orfaos). */
+export async function resumeSession(oldToken: string): Promise<boolean> {
+  if (!resumePromise) {
+    resumePromise = (async () => {
+      const next = await postToken("/v1/auth/resume", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ access_token: oldToken }),
+      });
+      if (!next) return false;
+      setToken(next);
+      return true;
+    })().finally(() => {
+      resumePromise = null;
+    });
+  }
+  return resumePromise;
+}
+
+async function mintGuest(): Promise<void> {
+  const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
+  if (!resp.ok) {
+    let detail = resp.statusText;
+    try {
+      detail = (await resp.json()).detail ?? detail;
+    } catch {
+      /* corpo vazio */
+    }
+    throw new Error(`${resp.status}: ${detail}`);
+  }
+  const data = (await resp.json()) as { access_token: string };
+  setToken(data.access_token);
+}
+
+export async function ensureGuest(): Promise<void> {
+  if (token) {
+    if (tokenExpired(token)) {
+      const old = token;
+      const ok = await resumeSession(old);
+      if (ok) return;
+      setToken(null);
+    } else {
+      if (tokenExpiresSoon(token)) {
+        void refreshSession();
+      }
+      return;
+    }
+  }
+  if (!guestPromise) {
+    guestPromise = mintGuest().finally(() => {
       guestPromise = null;
     });
   }
@@ -97,16 +188,37 @@ export function resetStepIdempotencyState(): void {
   stepInFlight.clear();
 }
 
+async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> {
+  const headers = new Headers(init.headers);
+  if (!headers.has("Content-Type") && !(init.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
+  }
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return fetch(`${BASE}${path}`, { ...init, headers });
+}
+
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   const skipGuest =
     path.startsWith("/v1/auth/signup") ||
     path.startsWith("/v1/auth/login") ||
-    path.startsWith("/v1/auth/guest");
+    path.startsWith("/v1/auth/guest") ||
+    path.startsWith("/v1/auth/resume");
   if (!skipGuest) await ensureGuest();
-  const headers = new Headers(init.headers);
-  headers.set("Content-Type", "application/json");
-  if (token) headers.set("Authorization", `Bearer ${token}`);
-  const resp = await fetch(`${BASE}${path}`, { ...init, headers });
+
+  let resp = await reqOnce(path, init);
+  // Token morto: tenta resume do JWT antigo antes de mintar outro guest (STO-26).
+  if (resp.status === 401 && token && !path.startsWith("/v1/auth/")) {
+    const old = token;
+    const resumed = await resumeSession(old);
+    if (resumed) {
+      resp = await reqOnce(path, init);
+    } else {
+      setToken(null);
+      await ensureGuest();
+      resp = await reqOnce(path, init);
+    }
+  }
+
   if (!resp.ok) {
     let detail = resp.statusText;
     try {
@@ -135,6 +247,27 @@ export const api = {
     });
     setToken(out.access_token);
     return out;
+  },
+  /** Guest → conta real no mesmo user_id (mantem projetos). */
+  async upgrade(email: string, password: string) {
+    const out = await req<{ access_token: string }>("/v1/auth/upgrade", {
+      method: "POST",
+      body: JSON.stringify({ email, password }),
+    });
+    setToken(out.access_token);
+    return out;
+  },
+  async me() {
+    return req<{
+      id: string;
+      email: string;
+      credits: number;
+      created_at: string;
+      is_guest: boolean;
+    }>("/v1/auth/me");
+  },
+  async refresh() {
+    return refreshSession();
   },
   async credits() {
     return req<{ credits: number }>("/v1/credits");
