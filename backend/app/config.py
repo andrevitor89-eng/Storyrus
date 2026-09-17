@@ -110,6 +110,8 @@ class Settings(BaseSettings):
 
     # Webhooks
     webhook_signing_secret: str = "change-me-webhook"
+    # Janela anti-replay: |now - X-Timestamp| nao pode exceder isto (segundos).
+    webhook_max_age_s: float = 300.0
 
     # Provedores de IA
     gemini_api_key: str | None = None       # Nano Banana Pro (Gemini 3 Pro Image)

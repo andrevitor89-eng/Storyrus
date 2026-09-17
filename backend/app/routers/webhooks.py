@@ -1,10 +1,10 @@
 """Callbacks dos provedores lentos (video/3D).
 
 O worker registra o job como RUNNING e libera a thread; o provedor chama de
-volta aqui quando termina. A assinatura HMAC valida a autenticidade do callback.
+volta aqui quando termina. A assinatura HMAC (timestamp + nonce) valida a
+autenticidade e bloqueia replay.
 """
-import hashlib
-import hmac
+import json
 import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
@@ -13,30 +13,29 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus
+from app.services import webhook_auth
 
 router = APIRouter(prefix="/v1/webhooks", tags=["webhooks"])
-
-
-def _valid_signature(raw: bytes, signature: str | None) -> bool:
-    if not signature:
-        return False
-    expected = hmac.new(
-        settings.webhook_signing_secret.encode(), raw, hashlib.sha256
-    ).hexdigest()
-    return hmac.compare_digest(expected, signature)
 
 
 @router.post("/video", status_code=status.HTTP_200_OK)
 async def video_callback(
     request: Request,
     x_signature: str | None = Header(default=None, alias="X-Signature"),
+    x_timestamp: str | None = Header(default=None, alias="X-Timestamp"),
+    x_nonce: str | None = Header(default=None, alias="X-Nonce"),
     db: Session = Depends(get_db),
 ) -> dict:
     raw = await request.body()
-    if not _valid_signature(raw, x_signature):
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Assinatura invalida")
-
-    import json
+    err = webhook_auth.verify_signature(
+        secret=settings.webhook_signing_secret,
+        body=raw,
+        signature=x_signature,
+        timestamp=x_timestamp,
+        nonce=x_nonce,
+    )
+    if err:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, err)
 
     body = json.loads(raw or b"{}")
     job_id = body.get("job_id")

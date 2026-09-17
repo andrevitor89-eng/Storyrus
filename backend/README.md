@@ -78,7 +78,8 @@ pytest            # usa SQLite em memória; não chama provedores externos
 4. `POST /v1/projects/{id}/avatar|story|ebook|video` → **202 Accepted** com `job_id`.
    Envie `Idempotency-Key` para evitar duplicar custo.
 5. `GET /v1/jobs/{id}` → polling do estado. Vídeo conclui via `POST /v1/webhooks/video`
-   (callback assinado por HMAC).
+   (callback assinado por HMAC com anti-replay: `X-Timestamp` + `X-Nonce` +
+   `X-Signature` sobre `{timestamp}.{nonce}.{body}`; janela `WEBHOOK_MAX_AGE_S`).
 
 ## Decisões de engenharia
 
@@ -90,7 +91,8 @@ pytest            # usa SQLite em memória; não chama provedores externos
   (handlers em `app/errors.py`).
 - **Consistência de personagem**: `character_ref` é reutilizada em todas as cenas.
 - **Segurança/LGPD**: convidados recebem JWT isolado (`POST /v1/auth/guest`); chaves só no
-  backend, entregáveis via URL assinada de curta duração, callbacks validados por assinatura.
+  backend, entregáveis via URL assinada de curta duração, callbacks HMAC com janela de
+  tempo e nonce (anti-replay).
 - **Troca de provedor** sem reescrever o fluxo: tudo atrás de `ai_clients` (factory).
 
 ## Workers (pipeline)

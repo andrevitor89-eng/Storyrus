@@ -14,6 +14,7 @@ from app import rate_limit
 from app.config import settings
 from app.database import Base, get_db
 from app.main import app
+from app.services import webhook_auth
 
 
 @pytest.fixture(autouse=True)
@@ -22,6 +23,14 @@ def _reset_guest_rate_limit():
     rate_limit.reset()
     yield
     rate_limit.reset()
+
+
+@pytest.fixture(autouse=True)
+def _reset_webhook_nonces():
+    """Evita 401 de nonce reutilizado cruzado entre testes."""
+    webhook_auth.reset()
+    yield
+    webhook_auth.reset()
 
 
 @pytest.fixture(autouse=True)
