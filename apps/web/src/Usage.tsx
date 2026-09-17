@@ -138,10 +138,27 @@ export function Usage() {
 
       {error && <p className="error">{error}</p>}
 
+      {(data?.anomalies?.length ?? 0) > 0 && (
+        <section className="usage-anomalies" aria-live="polite">
+          <h2>Alertas de custo</h2>
+          <ul>
+            {data!.anomalies!.map((a) => (
+              <li key={`${a.kind}-${a.message}`} data-severity={a.severity}>
+                <strong>{a.severity === "critical" ? "Crítico" : a.severity === "warn" ? "Atenção" : "Info"}</strong>
+                <span>{a.message}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <section className="usage-cards">
         <article>
           <span>Hoje</span>
           <strong>{money(data?.today_usd)}</strong>
+          {data?.daily_spend_usd_ceiling != null && (
+            <small className="muted">teto {money(data.daily_spend_usd_ceiling)}</small>
+          )}
         </article>
         <article>
           <span>Mês</span>

@@ -69,6 +69,11 @@ services:
         sync: false
       - key: USAGE_DASHBOARD_PASSWORD
         sync: false
+      # STO-18: teto diario da plataforma (0 = desligado)
+      - key: DAILY_SPEND_USD_CEILING
+        value: "0"
+      - key: DAILY_CREDITS_CEILING
+        value: "0"
 
   # ---- Worker (processa os jobs: personagem, historia, ebook, video) ----
   - type: worker
@@ -121,3 +126,7 @@ services:
         sync: false
       - key: USAGE_DASHBOARD_PASSWORD
         sync: false
+      - key: DAILY_SPEND_USD_CEILING
+        value: "0"
+      - key: DAILY_CREDITS_CEILING
+        value: "0"

@@ -82,6 +82,12 @@ class Settings(BaseSettings):
 
     # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503).
     usage_dashboard_password: str | None = None
+    # Teto diario da plataforma (America/Sao_Paulo). 0 = desligado.
+    daily_spend_usd_ceiling: float = 0.0
+    daily_credits_ceiling: int = 0
+    # Alarmes no /gastos: razao do teto USD e piso absoluto opcional.
+    spend_anomaly_warn_ratio: float = 0.8
+    spend_anomaly_usd: float = 0.0
     price_gemini_image_usd: float = 0.039
     price_gemini_input_per_mtok: float = 0.30
     price_gemini_output_per_mtok: float = 30.0

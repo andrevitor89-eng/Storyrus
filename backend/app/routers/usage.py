@@ -14,7 +14,15 @@ from sqlalchemy.orm import Session
 from app.config import settings
 from app.database import get_db
 from app.models import Job, Project, UsageEvent
-from app.schemas import UsageBookOut, UsageBucketOut, UsageEventOut, UsageJobOut, UsageOut
+from app.schemas import (
+    UsageAnomalyOut,
+    UsageBookOut,
+    UsageBucketOut,
+    UsageEventOut,
+    UsageJobOut,
+    UsageOut,
+)
+from app.services import spend_guard
 
 router = APIRouter(prefix="/v1/usage", tags=["usage"])
 
@@ -216,6 +224,11 @@ def get_usage(
 
     event_rows = _event_rows(db, range_start, range_end, rows)
 
+    day = spend_guard.day_spend(db)
+    flags = spend_guard.anomalies(db, today_usd=today_usd)
+    usd_ceiling = float(settings.daily_spend_usd_ceiling or 0.0)
+    credits_ceiling = int(settings.daily_credits_ceiling or 0)
+
     return UsageOut(
         timezone="America/Sao_Paulo",
         from_at=range_start,
@@ -237,4 +250,12 @@ def get_usage(
         recent_jobs=recent,
         events=event_rows,
         events_count=len(event_rows),
+        daily_spend_usd_ceiling=usd_ceiling if usd_ceiling > 0 else None,
+        daily_credits_ceiling=credits_ceiling if credits_ceiling > 0 else None,
+        today_credits=day.credits_spent,
+        reserved_usd=round(day.reserved_usd, 4),
+        anomalies=[
+            UsageAnomalyOut(kind=a.kind, severity=a.severity, message=a.message)
+            for a in flags
+        ],
     )

@@ -150,6 +150,11 @@ export const handlers = [
         },
       ],
       events_count: 1,
+      daily_spend_usd_ceiling: null,
+      daily_credits_ceiling: null,
+      today_credits: 2,
+      reserved_usd: 0,
+      anomalies: [],
     });
   }),
 

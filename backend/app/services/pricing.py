@@ -59,3 +59,32 @@ def video_cost(duration_s: float | None) -> float:
 def add_usd(*values: float | None) -> float:
     """Soma custos parciais (None = 0)."""
     return round(sum(_f(v) for v in values), 6)
+
+
+def estimate_job_usd(job_type: str | Any) -> float:
+    """Estimativa local (sem rede) do burn USD de um job, para teto diario.
+
+    Conservadora o bastante para bloquear antes do vendor; nao e cobranca.
+    """
+    raw = getattr(job_type, "value", job_type)
+    t = str(raw or "").upper()
+    img = float(settings.price_gemini_image_usd)
+    fal = float(settings.price_fal_image_usd)
+
+    if t in ("AVATAR", "REALISTIC", "EXTRA_CHARACTER"):
+        # Gemini (+ eventual Fal/PuLID no caminho de identidade).
+        return round(img + fal, 6)
+    if t == "STORYBOARD":
+        return round(img * 2.0, 6)
+    if t == "STORY":
+        # Claude curto: ~ordem de alguns centavos.
+        return 0.05
+    if t == "EBOOK":
+        pages = max(int(settings.ebook_pages or 1), 1)
+        factor = 2.0 if (settings.ebook_face_match and settings.ebook_refine_scene) else 1.25
+        return round(pages * img * factor, 6)
+    if t == "VIDEO":
+        return video_cost(settings.default_video_duration_s)
+    if t == "NARRATED_VIDEO":
+        return round(video_cost(settings.default_video_duration_s) + 0.05, 6)
+    return round(img, 6)

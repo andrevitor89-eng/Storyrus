@@ -203,6 +203,12 @@ class UsageEventOut(BaseModel):
     created_at: datetime
 
 
+class UsageAnomalyOut(BaseModel):
+    kind: str
+    severity: str
+    message: str
+
+
 class UsageOut(BaseModel):
     timezone: str
     from_at: datetime
@@ -218,3 +224,9 @@ class UsageOut(BaseModel):
     recent_jobs: list[UsageJobOut]
     events: list[UsageEventOut] = []
     events_count: int = 0
+    # STO-18: tetos + anomalias (opcional; 0/None = desligado).
+    daily_spend_usd_ceiling: float | None = None
+    daily_credits_ceiling: int | None = None
+    today_credits: int = 0
+    reserved_usd: float = 0.0
+    anomalies: list[UsageAnomalyOut] = []

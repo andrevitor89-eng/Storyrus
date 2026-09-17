@@ -118,11 +118,20 @@ def claim_next(db: Session) -> Job | None:
 async def process_job(db: Session, job: Job) -> None:
     """Executa um job com retry/backoff. Importa handlers tardiamente (evita ciclo)."""
     from app.ai_clients.base import ProviderError
+    from app.services import spend_guard
     from app.workers.handlers import HANDLERS
 
     handler = HANDLERS.get(job.type)
     if handler is None:
         jobs_svc.mark_failed_and_refund(db, job, f"Sem handler para tipo {job.type}")
+        return
+
+    # STO-18: se o teto diario ja foi medido, falha sem chamar vendor.
+    try:
+        spend_guard.assert_vendor_allowed(db, job_type=job.type)
+    except spend_guard.SpendCeilingError as exc:
+        logger.warning("job %s bloqueado por teto de custo: %s", job.id, exc)
+        jobs_svc.mark_failed_and_refund(db, job, str(exc))
         return
 
     stop = asyncio.Event()

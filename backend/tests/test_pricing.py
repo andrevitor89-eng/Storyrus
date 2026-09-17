@@ -27,3 +27,8 @@ def test_video_cost_per_second():
 
 def test_add_usd_ignores_none():
     assert pricing.add_usd(0.039, None, 0.039) == 0.078
+
+
+def test_estimate_job_usd_video_and_avatar():
+    assert pricing.estimate_job_usd("VIDEO") == pricing.video_cost(5)
+    assert abs(pricing.estimate_job_usd("AVATAR") - (0.039 + 0.03)) < 1e-9
