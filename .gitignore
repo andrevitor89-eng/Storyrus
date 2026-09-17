@@ -5,6 +5,8 @@ backend/scripts/out/
 .venv/
 *.egg-info/
 dev.db
+.coverage
+htmlcov/
 
 # Node
 node_modules/
