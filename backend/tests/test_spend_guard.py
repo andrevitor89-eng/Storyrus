@@ -1,4 +1,5 @@
 """STO-18: teto diario + falha antes do vendor."""
+
 from datetime import UTC, datetime
 
 import pytest

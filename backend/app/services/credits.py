@@ -3,6 +3,7 @@
 Usa bloqueio de linha (SELECT ... FOR UPDATE) no Postgres para evitar corrida
 ao debitar/estornar. Em SQLite (testes) o lock e ignorado silenciosamente.
 """
+
 import uuid
 
 from sqlalchemy import select

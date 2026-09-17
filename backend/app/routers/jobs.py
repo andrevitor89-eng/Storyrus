@@ -1,4 +1,5 @@
 """Consulta de estado de um job (polling do front)."""
+
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status

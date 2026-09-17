@@ -1,4 +1,5 @@
 """Saldo e concessao de creditos (compra/bonus)."""
+
 import hmac
 
 from fastapi import APIRouter, Depends, Header, HTTPException, status

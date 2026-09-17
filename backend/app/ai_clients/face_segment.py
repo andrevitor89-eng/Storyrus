@@ -4,6 +4,7 @@ A caixa Gemini/InsightFace ja desambigua crianca vs adulto. O SAM so recorta
 a silhueta. Sem FAL_KEY, flag desligada ou mascara implausivel: None — o
 caller cai no oval em cream.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -50,9 +51,7 @@ def _rgb_foreground(im: Image.Image) -> Image.Image:
     return im.convert("L").point(lambda p: 255 if p >= _FG else 0)
 
 
-def mask_is_plausible(
-    mask: bytes, box: tuple[int, int, int, int], size: tuple[int, int]
-) -> bool:
+def mask_is_plausible(mask: bytes, box: tuple[int, int, int, int], size: tuple[int, int]) -> bool:
     """Rejeita mascara vazia, que pegou o adulto/cenario, ou que errou o rosto."""
     im = Image.open(BytesIO(mask)).convert("L")
     if im.size != size:
@@ -79,9 +78,7 @@ def mask_is_plausible(
     return n > 0 and (hit / n) >= _MIN_CENTER
 
 
-async def segment_head_mask(
-    photo: bytes, box: tuple[int, int, int, int]
-) -> bytes | None:
+async def segment_head_mask(photo: bytes, box: tuple[int, int, int, int]) -> bytes | None:
     """Mascara L da cabeca no tamanho da foto, ou None se nao der para confiar."""
     if not settings.face_segment or not settings.fal_key:
         return None

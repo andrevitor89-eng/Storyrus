@@ -1,4 +1,5 @@
 """DTOs de entrada/saida (Pydantic v2)."""
+
 import uuid
 from datetime import datetime
 
@@ -93,6 +94,7 @@ class UploadUrlOut(BaseModel):
 
 class VideoRequestIn(BaseModel):
     """Pedido de Animação (Kling image2video). Duração: 5 ou 10 segundos."""
+
     duration_s: int = Field(default=5, ge=5, le=10)
     provider: str | None = None
 
@@ -105,16 +107,19 @@ class NarratedVideoRequestIn(BaseModel):
 
 class StoryTextIn(BaseModel):
     """História fornecida pelo usuário (digitada ou colada de um arquivo)."""
+
     story_text: str = Field(min_length=1, max_length=20000)
 
 
 class StoryExtractOut(BaseModel):
     """Texto extraído de um arquivo enviado (PDF/DOCX/TXT)."""
+
     text: str
 
 
 class StoryTemplateOut(BaseModel):
     """Metadados de uma história pronta do catálogo (templates traduzidos)."""
+
     id: str
     titulo: str
     genero: str
@@ -126,6 +131,7 @@ class StoryTemplateOut(BaseModel):
 
 class StoryTemplateApplyIn(BaseModel):
     """Aplicar uma história pronta do catálogo ao projeto (sem IA, sem créditos)."""
+
     template_id: str = Field(min_length=1, max_length=64)
     gender: str | None = Field(default=None, max_length=16)
 
@@ -148,6 +154,7 @@ class JobOut(BaseModel):
 
 class JobAcceptedOut(BaseModel):
     """Resposta 202 padrao para etapas assincronas."""
+
     job_id: uuid.UUID
     status: str
     type: JobType

@@ -15,6 +15,7 @@ cliente mostrar mensagem previsível:
 
 `detail` permanece string (compatível com o front que lê `.detail`).
 """
+
 from __future__ import annotations
 
 from typing import Any

@@ -3,6 +3,7 @@
 Memoria em processo por padrao; se Redis estiver up, usa INCR+EXPIRE para
 compartilhar o contador entre instancias da API.
 """
+
 from __future__ import annotations
 
 import logging

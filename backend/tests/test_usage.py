@@ -1,4 +1,5 @@
 """API do painel de gastos: senha e agregacao de cost_usd."""
+
 from datetime import UTC, datetime
 
 from app.config import settings

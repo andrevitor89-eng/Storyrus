@@ -1,4 +1,5 @@
 """Testes da retomada dos scripts de livro exemplo (sem Gemini real)."""
+
 from __future__ import annotations
 
 import sys

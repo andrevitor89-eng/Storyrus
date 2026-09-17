@@ -1,4 +1,5 @@
 """STO-8: secrets fail-fast quando APP_ENV != dev."""
+
 import pytest
 from pydantic import ValidationError
 

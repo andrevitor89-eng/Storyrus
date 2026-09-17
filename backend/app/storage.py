@@ -4,6 +4,7 @@ Chaves nunca vao ao cliente: uploads e entregaveis sao acessados via URL
 assinada de curta duracao. Se as credenciais nao estiverem configuradas
 (dev/testes), cai num stub que devolve uma URL local previsivel.
 """
+
 import uuid
 from functools import lru_cache
 
@@ -82,9 +83,7 @@ def put_bytes(key: str, data: bytes, content_type: str = "application/octet-stre
     client = _internal_client()
     if client is None:
         raise StorageNotConfigured("Credenciais de storage ausentes (STORAGE_ACCESS_KEY/SECRET)")
-    client.put_object(
-        Bucket=settings.storage_bucket, Key=key, Body=data, ContentType=content_type
-    )
+    client.put_object(Bucket=settings.storage_bucket, Key=key, Body=data, ContentType=content_type)
     return key
 
 

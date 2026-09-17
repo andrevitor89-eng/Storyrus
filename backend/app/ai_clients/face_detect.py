@@ -7,6 +7,7 @@ crianca. Aqui a pergunta ja embute a desambiguacao.
 Best-effort por construcao: qualquer falha cai no recorte geometrico de
 `face_ref`, que e offline. Nenhum avatar deixa de sair por causa disto.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -63,9 +64,7 @@ def _pixels(box: list[int], size: tuple[int, int]) -> tuple[int, int, int, int] 
 _MIN_TIGHTEN_IOU = 0.25
 
 
-def box_iou(
-    a: tuple[int, int, int, int], b: tuple[int, int, int, int]
-) -> float:
+def box_iou(a: tuple[int, int, int, int], b: tuple[int, int, int, int]) -> float:
     """Intersecao sobre uniao de duas caixas (left, top, right, bottom)."""
     ax1, ay1, ax2, ay2 = a
     bx1, by1, bx2, by2 = b
@@ -80,9 +79,7 @@ def box_iou(
     return inter / union if union else 0.0
 
 
-def tighten_box(
-    photo: bytes, gemini_box: tuple[int, int, int, int]
-) -> tuple[int, int, int, int]:
+def tighten_box(photo: bytes, gemini_box: tuple[int, int, int, int]) -> tuple[int, int, int, int]:
     """Se o InsightFace achar um rosto DENTRO da caixa Gemini, usa a mais justa.
 
     Gemini desambigua crianca vs adulto; o detector local so afia o recorte.

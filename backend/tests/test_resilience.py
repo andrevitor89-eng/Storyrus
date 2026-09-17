@@ -1,4 +1,5 @@
 """Testes da espera paciente (retry_until) e da classificacao de queda."""
+
 from __future__ import annotations
 
 import httpx
@@ -29,9 +30,7 @@ def test_is_outage_follows_provider_classification():
     assert is_outage(ProviderError("Gemini 503", transient=True, status_code=503))
     assert is_outage(OutageError("fora", status_code=500))
     assert is_outage(httpx.ConnectError(""))
-    assert not is_outage(
-        ProviderError("creditos esgotados", transient=False, status_code=429)
-    )
+    assert not is_outage(ProviderError("creditos esgotados", transient=False, status_code=429))
     assert not is_outage(ProviderError("Gemini 400", transient=False, status_code=400))
     assert not is_outage(ValueError("prompt invalido"))
 

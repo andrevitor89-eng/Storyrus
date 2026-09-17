@@ -1,4 +1,5 @@
 """Lock de identidade: character_ref obrigatorio e juiz fail-closed."""
+
 import pytest
 
 from app.ai_clients.base import ProviderError
@@ -32,9 +33,7 @@ def test_require_character_ref_rejects_empty():
 def test_build_identity_lock_requires_character_ref():
     with pytest.raises(ProviderError, match="obrigatoria"):
         build_identity_lock(character_ref=None, face_crop=b"face")
-    lock = build_identity_lock(
-        character_ref=b"AVATAR", face_crop=b"CROP", photo=b"PHOTO"
-    )
+    lock = build_identity_lock(character_ref=b"AVATAR", face_crop=b"CROP", photo=b"PHOTO")
     assert lock.scene_kwargs() == {"character_ref": b"AVATAR", "photo": b"CROP"}
     assert lock.face_truth == b"CROP"
 

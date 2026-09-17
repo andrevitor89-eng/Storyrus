@@ -5,6 +5,7 @@ via Gemini API (generativelanguage).
 A consistencia de personagem vem de reutilizar a referencia (character_ref)
 como imagem de entrada em todas as cenas.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -105,9 +106,7 @@ class NanoBananaImageProvider:
             fallback = (settings.gemini_image_model_fallback or "").strip()
             if not fallback or fallback == self._model:
                 raise
-            logger.warning(
-                "Gemini %s indisponivel; caindo para %s", self._model, fallback
-            )
+            logger.warning("Gemini %s indisponivel; caindo para %s", self._model, fallback)
             result = await self._generate_with(fallback, parts, aspect_ratio=aspect_ratio)
             result.meta["fallback_from"] = self._model
             return result
@@ -316,9 +315,7 @@ class NanoBananaImageProvider:
         Ordem das imagens: (1) foto = verdade do rosto (geometria e realismo); (2) personagem a corrigir.
         """
         refine_prompt = (
-            REFINE_IDENTITY_AVATAR_PROMPT
-            if "CGI" in (style or "")
-            else REFINE_IDENTITY_PROMPT
+            REFINE_IDENTITY_AVATAR_PROMPT if "CGI" in (style or "") else REFINE_IDENTITY_PROMPT
         )
         parts: list[dict] = [
             {"text": refine_prompt},

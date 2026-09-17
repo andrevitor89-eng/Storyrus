@@ -39,9 +39,9 @@ def test_guest_is_isolated(client):
     assert me_a["email"].startswith("guest-")
     assert me_a["credits"] == 10
 
-    pid = client.post(
-        "/v1/projects", json={}, headers={"Authorization": f"Bearer {ta}"}
-    ).json()["id"]
+    pid = client.post("/v1/projects", json={}, headers={"Authorization": f"Bearer {ta}"}).json()[
+        "id"
+    ]
     listed_b = client.get("/v1/projects", headers={"Authorization": f"Bearer {tb}"}).json()
     assert listed_b == []
     other = client.get(f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {tb}"})
@@ -125,10 +125,24 @@ def test_backpressure_limit(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "anime"}).json()["id"]
     _add_photo(auth_client, pid)
     # MAX_CONCURRENT_JOBS_PER_USER default = 4
-    assert auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": "a"}).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/realistic", headers={"Idempotency-Key": "b"}).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "c"}).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/ebook", headers={"Idempotency-Key": "d"}).status_code == 202
+    assert (
+        auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": "a"}).status_code
+        == 202
+    )
+    assert (
+        auth_client.post(
+            f"/v1/projects/{pid}/realistic", headers={"Idempotency-Key": "b"}
+        ).status_code
+        == 202
+    )
+    assert (
+        auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "c"}).status_code
+        == 202
+    )
+    assert (
+        auth_client.post(f"/v1/projects/{pid}/ebook", headers={"Idempotency-Key": "d"}).status_code
+        == 202
+    )
     r5 = auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "e"})
     assert r5.status_code == 429
     body = r5.json()
@@ -154,12 +168,26 @@ def test_video_jobs_count_towards_backpressure(auth_client, monkeypatch):
         ).status_code
         == 200
     )
-    assert auth_client.post(
-        f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v1"}
-    ).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": "a"}).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/realistic", headers={"Idempotency-Key": "b"}).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "c"}).status_code == 202
+    assert (
+        auth_client.post(
+            f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v1"}
+        ).status_code
+        == 202
+    )
+    assert (
+        auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": "a"}).status_code
+        == 202
+    )
+    assert (
+        auth_client.post(
+            f"/v1/projects/{pid}/realistic", headers={"Idempotency-Key": "b"}
+        ).status_code
+        == 202
+    )
+    assert (
+        auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "c"}).status_code
+        == 202
+    )
     # 4 ativos (1 video + 3 outros) — o proximo deve bater no limite.
     r5 = auth_client.post(f"/v1/projects/{pid}/ebook", headers={"Idempotency-Key": "d"})
     assert r5.status_code == 429
@@ -200,11 +228,10 @@ def test_approve_and_print_require_preview(auth_client):
 def test_cannot_access_others_project(client):
     a = client.post("/v1/auth/guest").json()
     pid = client.post(
-        "/v1/projects", json={"style": "realistic"},
+        "/v1/projects",
+        json={"style": "realistic"},
         headers={"Authorization": f"Bearer {a['access_token']}"},
     ).json()["id"]
     b = client.post("/v1/auth/guest").json()
-    r = client.get(
-        f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"}
-    )
+    r = client.get(f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"})
     assert r.status_code == 404

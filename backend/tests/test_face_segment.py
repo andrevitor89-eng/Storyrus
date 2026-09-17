@@ -1,4 +1,5 @@
 """SAM no recorte: mascara e fallback, sem rede."""
+
 from io import BytesIO
 
 from PIL import Image

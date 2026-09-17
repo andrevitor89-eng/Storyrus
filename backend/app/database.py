@@ -1,4 +1,5 @@
 """Engine, sessao e Base do SQLAlchemy 2.0."""
+
 from collections.abc import Generator
 
 from sqlalchemy import create_engine
@@ -12,9 +13,9 @@ def _normalize_db_url(url: str) -> str:
     como 'postgres://' ou 'postgresql://' (sem o driver), o que faria o SQLAlchemy
     procurar o psycopg2 (ausente). Reescrevemos para 'postgresql+psycopg://'."""
     if url.startswith("postgres://"):
-        return "postgresql+psycopg://" + url[len("postgres://"):]
+        return "postgresql+psycopg://" + url[len("postgres://") :]
     if url.startswith("postgresql://"):
-        return "postgresql+psycopg://" + url[len("postgresql://"):]
+        return "postgresql+psycopg://" + url[len("postgresql://") :]
     return url
 
 

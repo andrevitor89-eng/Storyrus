@@ -1,4 +1,5 @@
 """Projetos e disparo das etapas do pipeline (respostas 202 assincronas)."""
+
 import uuid
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
@@ -54,9 +55,12 @@ def create_project(
     db: Session = Depends(get_db),
 ) -> Project:
     project = Project(
-        user_id=user.id, style=body.style.value, theme=body.theme,
+        user_id=user.id,
+        style=body.style.value,
+        theme=body.theme,
         extra_theme=(body.extra_theme or None),
-        child_name=(body.child_name or None), child_age=body.child_age,
+        child_name=(body.child_name or None),
+        child_age=body.child_age,
         dedication=(body.dedication or None),
         child_trait=(body.child_trait or None),
         child_interest=(body.child_interest or None),
@@ -121,8 +125,9 @@ def project_assets(
     realistic_url = url_for(realistic.storage_key) if realistic else None
 
     pages = db.scalars(
-        select(Asset)
-        .where(Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+        select(Asset).where(
+            Asset.project_id == project.id, Asset.kind == AssetKind.PAGE_IMAGE.value
+        )
     ).all()
     pages = sorted(pages, key=lambda a: ((a.meta or {}).get("page") or 0, str(a.created_at)))
     page_images = [url_for(a.storage_key) for a in pages]
@@ -165,13 +170,15 @@ def project_assets(
 
     # Personagens extras (URLs assinadas)
     extra_characters_out = []
-    for ec in (project.extra_characters or []):
+    for ec in project.extra_characters or []:
         char_key = ec.get("character_storage_key")
         if char_key:
-            extra_characters_out.append({
-                "name": ec.get("name", ""),
-                "url": url_for(char_key) or "",
-            })
+            extra_characters_out.append(
+                {
+                    "name": ec.get("name", ""),
+                    "url": url_for(char_key) or "",
+                }
+            )
 
     return {
         "character_url": character_url,
@@ -193,9 +200,7 @@ def list_jobs(
 ) -> list[Job]:
     _get_owned_project(db, user, project_id)
     return list(
-        db.scalars(
-            select(Job).where(Job.project_id == project_id).order_by(Job.created_at.asc())
-        )
+        db.scalars(select(Job).where(Job.project_id == project_id).order_by(Job.created_at.asc()))
     )
 
 
@@ -234,7 +239,9 @@ async def upload_photo(
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
     if len(data) > 10_000_000:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)")
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
+        )
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
     key = storage.new_key(project.id, AssetKind.PHOTO.value, ext)
     storage.put_bytes(key, data, file.content_type or "image/jpeg")
@@ -259,23 +266,31 @@ async def upload_extra_character(
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Arquivo vazio")
     if len(data) > 10_000_000:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)")
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
+        )
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
     key = storage.new_key(project.id, "extra_character", ext)
     storage.put_bytes(key, data, file.content_type or "image/jpeg")
 
     # Adiciona a lista de personagens extras no projeto
     extras = list(project.extra_characters or [])
-    extras.append({
-        "name": name.strip() or f"Personagem {len(extras) + 1}",
-        "storage_key": key,
-        "mime": file.content_type or "image/jpeg",
-    })
+    extras.append(
+        {
+            "name": name.strip() or f"Personagem {len(extras) + 1}",
+            "storage_key": key,
+            "mime": file.content_type or "image/jpeg",
+        }
+    )
     project.extra_characters = extras
     db.commit()
 
-    asset = Asset(project_id=project.id, kind="extra_character", storage_key=key,
-                  meta={"name": name.strip() or f"Personagem {len(extras)}"})
+    asset = Asset(
+        project_id=project.id,
+        kind="extra_character",
+        storage_key=key,
+        meta={"name": name.strip() or f"Personagem {len(extras)}"},
+    )
     db.add(asset)
     db.commit()
     db.refresh(asset)
@@ -454,7 +469,9 @@ async def extract_story(
     _get_owned_project(db, user, project_id)
     data = await file.read()
     if len(data) > 5_000_000:
-        raise HTTPException(status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Arquivo muito grande (máx. 5MB)")
+        raise HTTPException(
+            status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Arquivo muito grande (máx. 5MB)"
+        )
     try:
         text = story_import.extract_text(file.filename or "", data)
     except Exception as exc:  # noqa: BLE001
@@ -548,10 +565,15 @@ def start_extra_character(
     project = _get_owned_project(db, user, project_id)
     extras = project.extra_characters or []
     if not extras:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto de personagem extra")
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto de personagem extra"
+        )
     job = jobs_svc.enqueue_job(
-        db, user=user, project=project, job_type=JobType.EXTRA_CHARACTER,
-        idempotency_key=idempotency_key
+        db,
+        user=user,
+        project=project,
+        job_type=JobType.EXTRA_CHARACTER,
+        idempotency_key=idempotency_key,
     )
     return _accept(job)
 

@@ -3,6 +3,7 @@
 Cena (`generate_scene` / `refine_scene`) continua no Nano Banana. Este modulo
 so gera o retrato a partir da foto e cola o rosto na ilustracao.
 """
+
 from __future__ import annotations
 
 import asyncio
@@ -31,9 +32,8 @@ PULID_AVATAR_PROMPT = (
 
 def pulid_head_enabled() -> bool:
     """True quando o passe de cabeca/avatar deve ir para o Fal (chave presente)."""
-    return (
-        (settings.identity_head_provider or "").strip().lower() == "pulid"
-        and bool(settings.fal_key)
+    return (settings.identity_head_provider or "").strip().lower() == "pulid" and bool(
+        settings.fal_key
     )
 
 
@@ -136,9 +136,7 @@ async def _fal_image(endpoint: str, arguments: dict) -> ImageResult:
         raise
     except Exception as exc:  # noqa: BLE001
         msg = str(exc).lower()
-        transient = any(
-            tok in msg for tok in ("429", "503", "timeout", "timed out", "unavailable")
-        )
+        transient = any(tok in msg for tok in ("429", "503", "timeout", "timed out", "unavailable"))
         raise ProviderError(f"Fal {endpoint}: {exc}", transient=transient) from exc
     url = _result_image_url(raw)
     if not url:

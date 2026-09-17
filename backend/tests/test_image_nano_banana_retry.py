@@ -1,4 +1,5 @@
 """Testes de retry HTTP do NanoBananaImageProvider (sem Gemini real)."""
+
 from __future__ import annotations
 
 import base64
@@ -144,7 +145,12 @@ async def test_transient_error_carries_api_message(monkeypatch):
     _FakeAsyncClient.script = [
         _FakeResponse(
             503,
-            {"error": {"code": 503, "message": "This model is currently experiencing high demand."}},
+            {
+                "error": {
+                    "code": 503,
+                    "message": "This model is currently experiencing high demand.",
+                }
+            },
         )
     ]
     provider = nb.NanoBananaImageProvider(api_key="test-key")
@@ -179,7 +185,10 @@ async def test_falls_back_to_secondary_model_on_outage(monkeypatch):
 async def test_no_fallback_on_client_error(monkeypatch):
     """400 e erro nosso: repetir no fallback so gastaria dinheiro."""
     monkeypatch.setattr(nb.settings, "gemini_image_model_fallback", "gemini-3.1-flash-image")
-    _FakeAsyncClient.script = [_FakeResponse(400, text="bad request"), _FakeResponse(200, _ok_body())]
+    _FakeAsyncClient.script = [
+        _FakeResponse(400, text="bad request"),
+        _FakeResponse(200, _ok_body()),
+    ]
     provider = nb.NanoBananaImageProvider(api_key="test-key")
 
     with pytest.raises(ProviderError) as ei:

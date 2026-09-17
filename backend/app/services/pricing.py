@@ -2,6 +2,7 @@
 
 Valores default vêm de Settings (env). Sem rede: só aritmética local.
 """
+
 from __future__ import annotations
 
 from typing import Any
@@ -23,12 +24,8 @@ def image_cost(usage: dict | None = None) -> float:
     Senão, cobra o preço fixo por imagem.
     """
     usage = usage or {}
-    prompt = _f(
-        usage.get("promptTokenCount", usage.get("prompt_token_count"))
-    )
-    candidates = _f(
-        usage.get("candidatesTokenCount", usage.get("candidates_token_count"))
-    )
+    prompt = _f(usage.get("promptTokenCount", usage.get("prompt_token_count")))
+    candidates = _f(usage.get("candidatesTokenCount", usage.get("candidates_token_count")))
     if prompt or candidates:
         inp = prompt / 1_000_000 * settings.price_gemini_input_per_mtok
         out = candidates / 1_000_000 * settings.price_gemini_output_per_mtok

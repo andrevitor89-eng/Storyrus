@@ -1,4 +1,5 @@
 """Cadastro, login, convidado e perfil."""
+
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status

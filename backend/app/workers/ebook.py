@@ -11,6 +11,7 @@ build_pdf gera um PDF QUADRADO (formato dos livros personalizados impressos) com
 Usa reportlab (puro Python, sem deps de sistema).
 Fonte: Megifera Indica.
 """  # layout v3 — Megifera Indica + capa redesenhada + preview limitado
+
 from __future__ import annotations
 
 import base64
@@ -83,8 +84,7 @@ def _fonts() -> dict:
                 fonts["italic"] = "Andika"
             logger.info("Fonte do ebook: Andika (%s)", base)
         else:
-            logger.warning("Andika-Regular.ttf nao encontrada em %s; usando fontes fallback.",
-                           base)
+            logger.warning("Andika-Regular.ttf nao encontrada em %s; usando fontes fallback.", base)
         playfair = base / "PlayfairDisplay-Regular.ttf" if base else None
         fredoka = base / "Fredoka-Bold.ttf" if base else None
         if playfair and playfair.exists():
@@ -97,6 +97,7 @@ def _fonts() -> dict:
         logger.warning("Falha ao registrar fontes do ebook (%s); usando fontes fallback", exc)
     _fonts_cache = fonts
     return fonts
+
 
 CREAM = (1.0, 0.972, 0.936)
 SKY = (0.878, 0.933, 1.0)
@@ -131,9 +132,7 @@ _THEME_PALETTE = {
 _NAME_GLUE = {"e", "and", "y", "de"}
 
 
-def cover_palette_for(
-    template_id: str | None = None, theme: str | None = None
-) -> dict[str, str]:
+def cover_palette_for(template_id: str | None = None, theme: str | None = None) -> dict[str, str]:
     """Paleta da capa (nome / fill / stroke) a partir do template ou tema."""
     key = _TEMPLATE_PALETTE.get((template_id or "").strip())
     if not key:
@@ -145,7 +144,7 @@ def _hex_rgb(value: str) -> tuple[float, float, float]:
     raw = (value or "").lstrip("#")
     if len(raw) != 6:
         return NAVY
-    return tuple(int(raw[i:i + 2], 16) / 255.0 for i in (0, 2, 4))
+    return tuple(int(raw[i : i + 2], 16) / 255.0 for i in (0, 2, 4))
 
 
 def _luma(rgb: tuple[float, float, float]) -> float:
@@ -183,7 +182,7 @@ def split_cover_title(title: str, child_name: str | None) -> tuple[str, str]:
     if idx < 0:
         return name, _cap_first(raw_title)
     before = raw_title[:idx].strip(" ,-—–")
-    after = raw_title[idx + len(name):].strip(" ,-—–")
+    after = raw_title[idx + len(name) :].strip(" ,-—–")
     before_words = before.split()
     after_words = after.split()
     if not before_words:
@@ -192,12 +191,15 @@ def split_cover_title(title: str, child_name: str | None) -> tuple[str, str]:
         story = " ".join(_strip_name_glue(before_words, leading=False))
     else:
         story = " ".join(
-            part for part in (
+            part
+            for part in (
                 " ".join(_strip_name_glue(before_words, leading=False)),
                 after,
-            ) if part
+            )
+            if part
         )
     return name, _cap_first(story or raw_title)
+
 
 # Textos fixos por idioma (padrão dos livros de referência).
 STRINGS = {
@@ -331,11 +333,7 @@ def _name_page_parts(text: str) -> tuple[str, str, str, list[str]]:
 
     role = lines[1] if len(lines) > 1 else ""
     quality_blob = " ".join(lines[2:]).strip()
-    qualities = [
-        f"{part.strip()}."
-        for part in quality_blob.split(".")
-        if part.strip()
-    ]
+    qualities = [f"{part.strip()}." for part in quality_blob.split(".") if part.strip()]
     return heading, spelled, role, qualities
 
 
@@ -349,7 +347,7 @@ def _img_tag(image_bytes: bytes | None, mime: str = "image/png") -> str:
 def build_html(title: str, pages: list[dict]) -> str:
     blocks = [
         f'<section class="page">{_img_tag(p.get("image"), p.get("mime", "image/png"))}'
-        f'<p>{html.escape(p.get("text", ""))}</p></section>'
+        f"<p>{html.escape(p.get('text', ''))}</p></section>"
         for p in pages
     ]
     return (
@@ -409,8 +407,7 @@ def build_pdf(
         iw, ih = ir.getSize()
         s = max(W / iw, H / ih)
         dw, dh = iw * s, ih * s
-        c.drawImage(ir, (W - dw) / 2, (H - dh) / 2, dw, dh,
-                    preserveAspectRatio=False, mask="auto")
+        c.drawImage(ir, (W - dw) / 2, (H - dh) / 2, dw, dh, preserveAspectRatio=False, mask="auto")
 
     def star(cx, cy, r, color=GOLD, alpha=1.0):
         c.setFillAlpha(alpha)
@@ -429,8 +426,13 @@ def build_pdf(
         c.setFillColorRGB(*color)
         for i in range(5):
             ang = i * 2 * math.pi / 5 + math.pi / 2
-            c.circle(cx + r * 0.8 * math.cos(ang), cy + r * 0.8 * math.sin(ang), r * 0.55,
-                     fill=1, stroke=0)
+            c.circle(
+                cx + r * 0.8 * math.cos(ang),
+                cy + r * 0.8 * math.sin(ang),
+                r * 0.55,
+                fill=1,
+                stroke=0,
+            )
         c.setFillColorRGB(*GOLD)
         c.circle(cx, cy, r * 0.42, fill=1, stroke=0)
 
@@ -495,8 +497,14 @@ def build_pdf(
             x = cx - c.stringWidth(ln, font, size) / 2
             c.setFillColorRGB(*outline)
             for dx, dy in (
-                (-1.2, 0), (1.2, 0), (0, -1.2), (0, 1.2),
-                (-0.9, -0.9), (0.9, -0.9), (-0.9, 0.9), (0.9, 0.9),
+                (-1.2, 0),
+                (1.2, 0),
+                (0, -1.2),
+                (0, 1.2),
+                (-0.9, -0.9),
+                (0.9, -0.9),
+                (-0.9, 0.9),
+                (0.9, 0.9),
             ):
                 c.drawString(x + dx, y + dy, ln)
             c.setFillColorRGB(1, 1, 1)
@@ -516,8 +524,9 @@ def build_pdf(
         c.setFont(F["italic"], 10.5)
         c.drawCentredString(W / 2, y + 8, _win(tr["tagline"]))
 
-    def poem_panel(text, y_center, panel_w=W * 0.78, font=F["italic"], size=15.5,
-                   leading=24, framed=True):
+    def poem_panel(
+        text, y_center, panel_w=W * 0.78, font=F["italic"], size=15.5, leading=24, framed=True
+    ):
         """Poema centralizado num painel claro com moldura fina (estilo referencia)."""
         lines = split_lines(text, font, size, panel_w - 60)
         ph = len(lines) * leading + 56
@@ -664,9 +673,7 @@ def build_pdf(
             columns = 2 if len(qualities) > 1 else 1
             rows = math.ceil(len(qualities) / columns)
             gap_x, gap_y = 8.0, 9.0
-            card_w = (
-                (content_w - gap_x) / 2 if columns == 2 else content_w
-            )
+            card_w = (content_w - gap_x) / 2 if columns == 2 else content_w
             available_h = y - (y0 + 42)
             card_h = min(45.0, (available_h - gap_y * (rows - 1)) / rows)
             card_h = max(32.0, card_h)
@@ -695,9 +702,7 @@ def build_pdf(
                 c.drawCentredString(badge_x, card_cy - 3.1, _win(letter))
 
                 description = description.strip()
-                desc_size = fitted_size(
-                    description, F["body"], 10.5, 8.0, card_w - 37
-                )
+                desc_size = fitted_size(description, F["body"], 10.5, 8.0, card_w - 37)
                 c.setFillColorRGB(*INK)
                 c.setFont(F["body"], desc_size)
                 c.drawString(
@@ -723,8 +728,12 @@ def build_pdf(
     c.setFillColorRGB(*wash)
     c.rect(0, 0, W, H * 0.45, fill=1, stroke=0)
     for sx, sy, sr in (
-        (52, H - 58, 9), (W - 58, H - 72, 7), (W * 0.22, H - 120, 5),
-        (W * 0.78, H - 108, 6), (90, H - 180, 4), (W - 96, H - 190, 5),
+        (52, H - 58, 9),
+        (W - 58, H - 72, 7),
+        (W * 0.22, H - 120, 5),
+        (W * 0.78, H - 108, 6),
+        (90, H - 180, 4),
+        (W - 96, H - 190, 5),
     ):
         star(sx, sy, sr, GOLD, 0.85)
 
@@ -745,8 +754,9 @@ def build_pdf(
         iw, ih = pr_cov.getSize()
         s = max((2 * R) / iw, (2 * R) / ih)
         dw, dh = iw * s, ih * s
-        c.drawImage(pr_cov, cx - dw / 2, cy - dh / 2, dw, dh,
-                    preserveAspectRatio=False, mask="auto")
+        c.drawImage(
+            pr_cov, cx - dw / 2, cy - dh / 2, dw, dh, preserveAspectRatio=False, mask="auto"
+        )
         c.restoreState()
         c.setStrokeColorRGB(*stroke_rgb)
         c.setLineWidth(5)
@@ -787,9 +797,7 @@ def build_pdf(
 
     # -------------------------------------------- 2) POEMA DE ABERTURA
     # Catalogo com dedicatória própria (P1) substitui o poema genérico do México.
-    has_dedication_page = any(
-        (p.get("layout") or "") == "dedication" for p in (pages or [])
-    )
+    has_dedication_page = any((p.get("layout") or "") == "dedication" for p in (pages or []))
     if not has_dedication_page:
         bg(CREAM)
         corner_flourish(26, H - 120, 1, 1)
@@ -828,8 +836,9 @@ def build_pdf(
             iw, ih = pr.getSize()
             s = max((2 * R) / iw, (2 * R) / ih)
             dw, dh = iw * s, ih * s
-            c.drawImage(pr, cx - dw / 2, cy - dh / 2, dw, dh,
-                        preserveAspectRatio=False, mask="auto")
+            c.drawImage(
+                pr, cx - dw / 2, cy - dh / 2, dw, dh, preserveAspectRatio=False, mask="auto"
+            )
             c.restoreState()
             c.setStrokeColorRGB(*GOLD)
             c.setLineWidth(4)
@@ -861,8 +870,15 @@ def build_pdf(
                 eiw, eih = ec_reader.getSize()
                 es = max((2 * eR) / eiw, (2 * eR) / eih)
                 edw, edh = eiw * es, eih * es
-                c.drawImage(ec_reader, ecx - edw / 2, ecy - edh / 2, edw, edh,
-                            preserveAspectRatio=False, mask="auto")
+                c.drawImage(
+                    ec_reader,
+                    ecx - edw / 2,
+                    ecy - edh / 2,
+                    edw,
+                    edh,
+                    preserveAspectRatio=False,
+                    mask="auto",
+                )
                 c.restoreState()
                 c.setStrokeColorRGB(*CORAL)
                 c.setLineWidth(2.5)
@@ -951,7 +967,9 @@ def build_pdf(
         c.setFont(F["italic"], 15)
         preview_lines = split_lines(
             tr["preview_msg"].format(total=len(pages), shown=preview_pages),
-            F["italic"], 15, W * 0.65
+            F["italic"],
+            15,
+            W * 0.65,
         )
         y = H / 2
         for ln in preview_lines:

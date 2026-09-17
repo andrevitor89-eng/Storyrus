@@ -4,6 +4,7 @@ Unico provedor de video da plataforma. Autenticacao por JWT (HS256) assinado
 com AccessKey/SecretKey a cada chamada. Fluxo task-based: cria a tarefa e
 depois consulta o resultado (polling/callback).
 """
+
 from __future__ import annotations
 
 import base64
@@ -24,7 +25,9 @@ _CREATE = "/v1/videos/image2video"
 def _make_token(access_key: str, secret_key: str) -> str:
     now = int(time.time())
     payload = {"iss": access_key, "exp": now + 1800, "nbf": now - 5}
-    return jwt.encode(payload, secret_key, algorithm="HS256", headers={"alg": "HS256", "typ": "JWT"})
+    return jwt.encode(
+        payload, secret_key, algorithm="HS256", headers={"alg": "HS256", "typ": "JWT"}
+    )
 
 
 def _map_status(s: str) -> str:
@@ -84,9 +87,7 @@ class KlingVideoProvider:
         }
         try:
             async with httpx.AsyncClient(timeout=self._timeout) as client:
-                resp = await client.post(
-                    f"{_BASE}{_CREATE}", json=payload, headers=self._headers()
-                )
+                resp = await client.post(f"{_BASE}{_CREATE}", json=payload, headers=self._headers())
         except httpx.RequestError as exc:
             raise ProviderError(f"Falha de rede: {exc}", transient=True) from exc
 

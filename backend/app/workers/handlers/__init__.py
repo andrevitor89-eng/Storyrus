@@ -3,6 +3,7 @@
 Public API matches the former monolithic ``app.workers.handlers`` module:
 ``HANDLERS`` for the runner, plus helpers/scripts/tests import from here.
 """
+
 from __future__ import annotations
 
 from app import storage

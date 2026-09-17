@@ -1,4 +1,5 @@
 """Compositor: Gemini no avatar e na cena; PuLID so no passe de cabeca das paginas."""
+
 from __future__ import annotations
 
 from app.ai_clients.base import ImageResult
@@ -44,9 +45,7 @@ class HybridImageProvider:
     ) -> ImageResult:
         """Refine do avatar: sempre Gemini (mantem o CGI; nao cola foto)."""
         return self._tag_gemini(
-            await self._scene.refine_identity(
-                photo=photo, illustration=illustration, style=style
-            )
+            await self._scene.refine_identity(photo=photo, illustration=illustration, style=style)
         )
 
     async def refine_identity(

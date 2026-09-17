@@ -4,6 +4,7 @@ O contrato antigo ("o recorte e quadrado e menor que a foto") passava mesmo com
 a boca cortada fora, que era o bug real. Aqui o que se afirma e o conteudo: o
 recorte tem de CONTER a caixa do rosto.
 """
+
 from io import BytesIO
 from pathlib import Path
 

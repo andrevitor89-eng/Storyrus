@@ -4,6 +4,7 @@ O worker registra o job como RUNNING e libera a thread; o provedor chama de
 volta aqui quando termina. A assinatura HMAC (timestamp + nonce) valida a
 autenticidade e bloqueia replay.
 """
+
 import json
 import uuid
 

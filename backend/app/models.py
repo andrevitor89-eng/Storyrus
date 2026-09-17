@@ -3,6 +3,7 @@
 Espelha o schema do documento de arquitetura (users, projects, jobs, assets),
 com tipos portaveis (UUID/JSON) para rodar em Postgres (prod) e SQLite (testes).
 """
+
 from __future__ import annotations
 
 import enum
@@ -137,7 +138,9 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
     projects: Mapped[list[Project]] = relationship(back_populates="user")
-    voices: Mapped[list[UserVoice]] = relationship(back_populates="user", cascade="all, delete-orphan")
+    voices: Mapped[list[UserVoice]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
 
 
 class UserVoice(Base):

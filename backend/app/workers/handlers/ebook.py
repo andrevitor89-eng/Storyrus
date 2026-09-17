@@ -1,4 +1,5 @@
 """Ebook job handler."""
+
 from __future__ import annotations
 
 import asyncio
@@ -49,10 +50,13 @@ from .story import (
 
 logger = logging.getLogger("worker")
 
+
 def _pkg():
     """Package root — tests monkeypatch providers/score on app.workers.handlers."""
     from app.workers import handlers as pkg
+
     return pkg
+
 
 async def handle_ebook(db: Session, job: Job) -> None:
     project = _project(db, job)
@@ -66,9 +70,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     project.print_status = None
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
-    char_bytes = require_character_ref(
-        storage.get_bytes(project.character_ref["storage_key"])
-    )
+    char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))
     photo_bytes = await _project_photo_bytes(db, project)
     image_provider = _pkg().get_image_provider()
 
@@ -86,8 +88,13 @@ async def handle_ebook(db: Session, job: Job) -> None:
     # 1) Divide a historia em paginas (toda a historia, sem limite fixo).
     pages_text = _parse_pages(project.story_text)
     briefs = await ensure_page_briefs(
-        db, project, pages_text,
-        template_id=template_id, notes=notes, layouts=layouts, language=language,
+        db,
+        project,
+        pages_text,
+        template_id=template_id,
+        notes=notes,
+        layouts=layouts,
+        language=language,
     )
 
     # 2) Texto impresso por pagina. Historias geradas pelo pipeline ja vem como
@@ -123,7 +130,9 @@ async def handle_ebook(db: Session, job: Job) -> None:
     bible_lines: list[dict] = []
     if not settings.offline_fallback:
         bible, bible_cost = await _generate_character_bible(
-            db, project, image_provider,
+            db,
+            project,
+            image_provider,
             photo=photo_bytes,
             avatar=char_bytes,
             costume=_book_costume_line(briefs, template_id, project.theme),
@@ -176,9 +185,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         async def _one(item: tuple[int, str, dict, str]) -> tuple[int, ImageResult]:
             idx, caption, brief, layout = item
             page_extras = (
-                name_scene_extras_for_template(template_id)
-                if layout == "name"
-                else extras
+                name_scene_extras_for_template(template_id) if layout == "name" else extras
             )
             async with sem:
                 result = await _illustrate_page(
@@ -206,29 +213,34 @@ async def handle_ebook(db: Session, job: Job) -> None:
             pages.append({"text": caption, "image": None, "layout": "dedication"})
             continue
         scene = generated[idx]
-        pages.append({
-            "text": caption,
-            "image": scene.image_bytes,
-            "mime": scene.mime_type,
-            "layout": layout,
-        })
+        pages.append(
+            {
+                "text": caption,
+                "image": scene.image_bytes,
+                "mime": scene.mime_type,
+                "layout": layout,
+            }
+        )
 
     name = (project.child_name or "").strip()
     is_en = (language or "").lower().startswith("en")
     title = _parse_title(project.story_text) or (
-        (f"The Adventure of {name}" if name else "My Great Adventure") if is_en
+        (f"The Adventure of {name}" if name else "My Great Adventure")
+        if is_en
         else (f"A Grande Aventura de {name}" if name else "A Minha Grande Aventura")
     )
 
     extra_chars = []
-    for ec in (project.extra_characters or []):
+    for ec in project.extra_characters or []:
         char_key = ec.get("character_storage_key")
         if char_key:
             try:
-                extra_chars.append({
-                    "name": ec.get("name", ""),
-                    "image_bytes": storage.get_bytes(char_key),
-                })
+                extra_chars.append(
+                    {
+                        "name": ec.get("name", ""),
+                        "image_bytes": storage.get_bytes(char_key),
+                    }
+                )
             except Exception:  # noqa: BLE001
                 pass
 
@@ -246,8 +258,14 @@ async def handle_ebook(db: Session, job: Job) -> None:
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
     storage.put_bytes(ebook_key, blob, mime)
-    db.add(Asset(project_id=project.id, kind=AssetKind.EBOOK.value, storage_key=ebook_key,
-                 meta={"mime": mime}))
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.EBOOK.value,
+            storage_key=ebook_key,
+            meta={"mime": mime},
+        )
+    )
     project.ebook_url = ebook_key
     job.cost_usd = add_usd(
         summarize_cost,
@@ -259,5 +277,3 @@ async def handle_ebook(db: Session, job: Job) -> None:
         ebook_lines.extend(lines_of(scene))
     flush_usage(db, job, ebook_lines)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
-
-

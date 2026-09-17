@@ -4,6 +4,7 @@ Existe para que provider de imagem e deteccao de rosto nao dupliquem a regra de
 TLS: duas copias divergiriam e a maquina com antivirus reassinando o trafego
 voltaria a falhar em uma delas.
 """
+
 from __future__ import annotations
 
 import base64

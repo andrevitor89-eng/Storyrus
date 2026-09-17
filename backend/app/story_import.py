@@ -2,6 +2,7 @@
 
 Usado quando o usuário prefere enviar a própria história em vez de a IA inventar.
 """
+
 from __future__ import annotations
 
 import io
