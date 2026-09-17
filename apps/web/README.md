@@ -20,12 +20,22 @@ tema do estúdio em `styles.css`).
 
 ## Rodar
 
+Na raiz do monorepo (com a API já no ar via `make up`):
+
 ```bash
-npm install
-npm run dev        # http://localhost:5173 (proxy /v1 -> http://localhost:8000)
+make web           # npm install + vite em apps/web
 ```
 
-A API precisa estar de pé (`cd ../../backend && docker compose up --build`).
+Ou neste diretório:
+
+```bash
+npm install
+npm run dev        # http://localhost:5173 (proxy /v1 e /health → :8000)
+```
+
+A API precisa estar de pé (`make up` na raiz, ou
+`docker compose -f backend/docker-compose.yml up --build`). O Vite faz proxy de
+`/v1` e `/health` para `VITE_API_PROXY` (default `http://localhost:8000`).
 
 ## Testes
 

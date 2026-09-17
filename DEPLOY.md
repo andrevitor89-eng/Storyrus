@@ -133,19 +133,21 @@ Propagação: minutos na maioria dos casos; até 24–48 h se havia parking. Rev
 
 ## Desenvolvimento local (opcional)
 
-Backend (Postgres + Redis + API + worker) via `backend/docker-compose.yml`:
+Na raiz do repo:
 
 ```bash
-cp backend/.env.example backend/.env   # preencha STORAGE_* e chaves de IA
-cd backend && docker compose up -d --build
+make init    # backend/.env a partir do .env.example
+make up      # Postgres + Redis + API + worker (backend/docker-compose.yml)
+make web     # Vite em apps/web (host); proxy /v1 → :8000
+make down
 ```
 
 - API: http://localhost:8000/docs
-- Web (separado): `cd apps/web && npm install && npm run dev` → http://localhost:5173
+- Web: http://localhost:5173 (`make web` ou `cd apps/web && npm run dev`)
 - Storage: configure `STORAGE_*` em `backend/.env` (R2 ou S3-compatible). O compose
   **não** inclui MinIO nem o frontend.
 
-Detalhes: `README.md` (raiz) e `backend/README.md`.
+Detalhes: `README.md` (raiz), `Makefile`, `backend/README.md`.
 
 ---
 

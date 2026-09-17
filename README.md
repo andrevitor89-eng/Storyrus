@@ -23,33 +23,36 @@ apps/mobile/  # App Expo (React Native): mesmo fluxo no celular → apps/mobile/
 
 ## Rodar local
 
-O compose em `backend/docker-compose.yml` sobe **Postgres + Redis + API + worker**
-(não inclui frontend nem MinIO):
+Na raiz, o `Makefile` orquestra o stack real em `backend/docker-compose.yml`
+(**Postgres + Redis + API + worker**). Não sobe frontend nem MinIO.
 
 ```bash
-cp backend/.env.example backend/.env   # preencha as CHAVES depois
-cd backend && docker compose up --build
+make init          # copia backend/.env.example → backend/.env (se faltar)
+make up            # docker compose -f backend/docker-compose.yml up --build -d
 #  API: http://localhost:8000/docs
-```
-
-Popular dados e validar o fluxo da API:
-
-```bash
-cd backend
-docker compose run --rm api python scripts/seed.py
-# cria demo@forteshub.com / demo12345 (50 créditos)
-API_URL=http://localhost:8000 python scripts/demo_flow.py
-# exercita signup → projeto → upload → etapas → jobs
-```
-
-Frontend em modo dev (com a API já de pé):
-
-```bash
-cd apps/web && npm install && npm run dev   # proxy /v1 -> :8000 (VITE_API_PROXY)
+make web           # Vite em apps/web — proxy /v1 e /health → :8000
 #  Web: http://localhost:5173
+make down          # para o stack do backend
 ```
 
-Deploy em produção: `DEPLOY.md` (Vercel + Render). Detalhes da API: `backend/README.md`.
+Popular dados e validar o fluxo da API (com o stack no ar):
+
+```bash
+make seed          # demo@forteshub.com / demo12345 (50 créditos)
+make demo          # signup → projeto → upload → etapas → jobs
+```
+
+Sem `make`, os equivalentes são:
+
+```bash
+cp backend/.env.example backend/.env
+docker compose -f backend/docker-compose.yml up --build -d
+docker compose -f backend/docker-compose.yml run --rm api python scripts/seed.py
+cd apps/web && npm install && npm run dev   # VITE_API_PROXY default → localhost:8000
+```
+
+`make help` lista os alvos. Deploy em produção: `DEPLOY.md` (Vercel + Render).
+Detalhes da API: `backend/README.md`.
 
 ## Chaves a preencher (`backend/.env`)
 

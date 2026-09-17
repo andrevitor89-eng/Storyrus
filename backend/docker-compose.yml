@@ -23,6 +23,10 @@ services:
   api:
     build: .
     env_file: .env
+    # Hostnames inside the compose network (override localhost from .env.example).
+    environment:
+      DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy
@@ -37,6 +41,9 @@ services:
   worker:
     build: .
     env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
+      REDIS_URL: redis://redis:6379/0
     depends_on:
       db:
         condition: service_healthy
