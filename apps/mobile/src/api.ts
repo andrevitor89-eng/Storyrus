@@ -1,14 +1,82 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
 import type { Job, Project, UploadUrl } from "./types";
 
-// Base da API: use o IP da máquina ao testar em device físico (ex.: http://192.168.0.10:8000).
+const TOKEN_KEY = "storyrus_token";
+
+/**
+ * API base: production BFF at https://storyrus.ai (same-origin /v1 proxy).
+ * Local override (highest → lowest):
+ *   1. EXPO_PUBLIC_API_BASE env (e.g. EXPO_PUBLIC_API_BASE=http://10.0.2.2:8000 npx expo start)
+ *   2. expo.extra.apiBase in app.json
+ */
 const BASE: string =
-  (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ??
-  "http://localhost:8000";
+  (typeof process !== "undefined" && process.env?.EXPO_PUBLIC_API_BASE) ||
+  (Constants.expoConfig?.extra as { apiBase?: string } | undefined)?.apiBase ||
+  "https://storyrus.ai";
 
 let token: string | null = null;
+let guestPromise: Promise<void> | null = null;
+let hydratePromise: Promise<void> | null = null;
+
+export function getToken(): string | null {
+  return token;
+}
+
 export function setToken(t: string | null) {
   token = t;
+  void (t
+    ? AsyncStorage.setItem(TOKEN_KEY, t)
+    : AsyncStorage.removeItem(TOKEN_KEY)
+  ).catch(() => {
+    /* ignore persistence failures */
+  });
+}
+
+/** Load persisted JWT into memory. Call once at app boot before API use. */
+export function hydrateToken(): Promise<void> {
+  if (!hydratePromise) {
+    hydratePromise = (async () => {
+      try {
+        const stored = await AsyncStorage.getItem(TOKEN_KEY);
+        if (stored) token = stored;
+      } catch {
+        /* ignore */
+      }
+    })();
+  }
+  return hydratePromise;
+}
+
+/** Guest-first: mint an isolated JWT via POST /v1/auth/guest when none is stored. */
+export async function ensureGuest(): Promise<void> {
+  await hydrateToken();
+  if (token) return;
+  if (!guestPromise) {
+    guestPromise = (async () => {
+      const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
+      if (!resp.ok) {
+        let detail = resp.statusText;
+        try {
+          detail = (await resp.json()).detail ?? detail;
+        } catch {
+          /* corpo vazio */
+        }
+        throw new Error(`${resp.status}: ${detail}`);
+      }
+      const data = (await resp.json()) as { access_token: string };
+      setToken(data.access_token);
+    })().finally(() => {
+      guestPromise = null;
+    });
+  }
+  await guestPromise;
+}
+
+/** Clear session and mint a fresh guest (studio "Sair"). */
+export async function resetToGuest(): Promise<void> {
+  setToken(null);
+  await ensureGuest();
 }
 
 function uuid(): string {
@@ -46,6 +114,12 @@ function isHttpErrorMessage(message: string): boolean {
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const skipGuest =
+    path.startsWith("/v1/auth/signup") ||
+    path.startsWith("/v1/auth/login") ||
+    path.startsWith("/v1/auth/guest");
+  if (!skipGuest) await ensureGuest();
+
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(init.headers as Record<string, string>),
@@ -65,16 +139,24 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
 }
 
 export const api = {
-  signup: (email: string, password: string) =>
-    req<{ access_token: string }>("/v1/auth/signup", {
+  guest: () =>
+    req<{ access_token: string }>("/v1/auth/guest", { method: "POST" }),
+  signup: async (email: string, password: string) => {
+    const out = await req<{ access_token: string }>("/v1/auth/signup", {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    }),
-  login: (email: string, password: string) =>
-    req<{ access_token: string }>("/v1/auth/login", {
+    });
+    setToken(out.access_token);
+    return out;
+  },
+  login: async (email: string, password: string) => {
+    const out = await req<{ access_token: string }>("/v1/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    }),
+    });
+    setToken(out.access_token);
+    return out;
+  },
   credits: () => req<{ credits: number }>("/v1/credits"),
   createProject: () =>
     req<Project>("/v1/projects", { method: "POST", body: JSON.stringify({ style: "cgi_3d" }) }),

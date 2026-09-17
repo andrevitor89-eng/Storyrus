@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { api, setToken } from "./api";
+import { api } from "./api";
 
-export function AuthScreen({ onAuthed }: { onAuthed: () => void }) {
-  const [mode, setMode] = useState<"login" | "signup">("signup");
+/** Optional login/signup — studio is guest-first; this is not a wall. */
+export function AuthScreen({
+  onAuthed,
+  onSkip,
+}: {
+  onAuthed: () => void;
+  onSkip: () => void;
+}) {
+  const [mode, setMode] = useState<"login" | "signup">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -14,8 +21,7 @@ export function AuthScreen({ onAuthed }: { onAuthed: () => void }) {
     setError(null);
     try {
       const fn = mode === "signup" ? api.signup : api.login;
-      const { access_token } = await fn(email.trim(), password);
-      setToken(access_token);
+      await fn(email.trim(), password);
       onAuthed();
     } catch (e) {
       setError((e as Error).message);
@@ -26,8 +32,8 @@ export function AuthScreen({ onAuthed }: { onAuthed: () => void }) {
 
   return (
     <View style={s.wrap}>
-      <Text style={s.title}>Plataforma de Histórias</Text>
-      <Text style={s.muted}>Foto → personagem → ebook → vídeo</Text>
+      <Text style={s.title}>Entrar (opcional)</Text>
+      <Text style={s.muted}>O estúdio funciona como convidado. Conta só se quiser.</Text>
 
       <TextInput
         style={s.input}
@@ -59,6 +65,10 @@ export function AuthScreen({ onAuthed }: { onAuthed: () => void }) {
 
       <Pressable onPress={() => setMode(mode === "signup" ? "login" : "signup")}>
         <Text style={s.link}>{mode === "signup" ? "Já tenho conta" : "Criar uma conta"}</Text>
+      </Pressable>
+
+      <Pressable onPress={onSkip}>
+        <Text style={s.link}>Continuar como convidado</Text>
       </Pressable>
     </View>
   );
