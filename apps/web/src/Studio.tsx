@@ -4,12 +4,7 @@ import type { ExtraCharacter, Job, Project, StoryTemplate, Theme } from "./types
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import logo from "./assets/logo.png";
 import type { StudioAssets } from "./studio/assets";
-import {
-  ART_STYLE_LABEL,
-  HOW,
-  THEMES,
-  themeLabel,
-} from "./studio/constants";
+import { THEMES, resolveThemeName } from "./studio/constants";
 import { ProgressList } from "./studio/ProgressList";
 import { VoiceNarrationPanel } from "./studio/VoiceNarrationPanel";
 import { EbookStepButtons, VideoStepButtons } from "./studio/StepButtons";
@@ -18,22 +13,35 @@ import { useStudioPolling } from "./studio/useStudioPolling";
 import { useStudioVoices } from "./studio/useStudioVoices";
 import { useStudioSteps } from "./studio/useStudioSteps";
 import { useStudioApprovals } from "./studio/useStudioApprovals";
+import {
+  StudioLangProvider,
+  useStudioI18n,
+  useStudioLangState,
+} from "./studio/useStudioI18n";
 
 export { ProgressList } from "./studio/ProgressList";
 
 type StoryMode = "invent" | "write" | "file" | "catalog";
 
 export function Studio({ onLogout }: { onLogout?: () => void }) {
+  const langState = useStudioLangState();
+  return (
+    <StudioLangProvider value={langState}>
+      <StudioInner onLogout={onLogout} />
+    </StudioLangProvider>
+  );
+}
+
+function StudioInner({ onLogout }: { onLogout?: () => void }) {
+  const { lang, setLang, t, langs } = useStudioI18n();
   const [credits, setCredits] = useState<number | null>(null);
-  // Até 2 temas combinados na mesma história: o 1º é o principal (define
-  // vilão/cenário/arco), o 2º só soma um objetivo de aprendizado extra.
   const [selectedThemes, setSelectedThemes] = useState<Theme[]>(["adventure"]);
   const theme = selectedThemes[0] ?? "adventure";
   const extraTheme = selectedThemes[1];
   function toggleTheme(id: Theme) {
     setSelectedThemes((prev) => {
       if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 2) return [prev[1], id]; // troca o mais antigo pelo novo
+      if (prev.length >= 2) return [prev[1], id];
       return [...prev, id];
     });
   }
@@ -46,7 +54,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [extraCharName, setExtraCharName] = useState("");
   const [storyMode, setStoryMode] = useState<StoryMode>("invent");
   const [storyText, setStoryText] = useState("");
-  // Catálogo de histórias prontas (carregado ao abrir o modo "catalog").
   const [templates, setTemplates] = useState<StoryTemplate[] | null>(null);
   const [appliedTemplate, setAppliedTemplate] = useState<string | null>(null);
   const [childName, setChildName] = useState("");
@@ -58,22 +65,21 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   const [mediaConsent, setMediaConsent] = useState(false);
   const [busy, setBusy] = useState(false);
 
-  // aplica o tema (claro/escuro) salvo na landing
   useEffect(() => {
     try {
       const s = localStorage.getItem("theme");
       document.documentElement.setAttribute("data-theme", s === "light" ? "light" : "dark");
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
-  // pré-seleciona o tema da história vindo do catálogo (/app?tema=...)
   useEffect(() => {
     if (demoIdFromSearch()) return;
     const q = new URLSearchParams(window.location.search).get("tema");
     if (q && THEMES.some((x) => x.id === q)) setSelectedThemes([q as Theme]);
   }, []);
 
-  // Abre histórias prontas quando a landing manda /app?historia=alfabeto_amazonia
   useEffect(() => {
     if (demoIdFromSearch()) return;
     const h = new URLSearchParams(window.location.search).get("historia");
@@ -118,7 +124,13 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     voiceUploading,
     onVoiceFile,
     removeSelectedVoice,
-  } = useStudioVoices({ isDemo, mediaConsent, setError });
+  } = useStudioVoices({
+    isDemo,
+    mediaConsent,
+    setError,
+    consentError: t.errConsentVoice,
+    defaultVoiceName: t.defaultVoiceName,
+  });
 
   useStudioPolling({
     project,
@@ -178,7 +190,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
   async function upload() {
     if (!project || !photo || isDemo) return;
     if (!mediaConsent) {
-      setError("Marque o consentimento para enviar a foto.");
+      setError(t.errConsentPhoto);
       return;
     }
     setBusy(true);
@@ -186,7 +198,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     try {
       await api.uploadPhoto(project.id, photo);
       setPhotoUploaded(true);
-      // Gera o personagem automaticamente assim que a foto chega.
       await api.startStep(project.id, "avatar", {});
       const js = await api.listJobs(project.id);
       setJobs(js);
@@ -198,7 +209,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  // Salva a história escrita/colada pelo usuário (sem IA).
   async function saveStory() {
     if (!project || !storyText.trim() || isDemo) return;
     setBusy(true);
@@ -215,7 +225,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  // Abre o catálogo de histórias prontas (carrega uma vez).
   async function openCatalog() {
     setStoryMode("catalog");
     if (templates) return;
@@ -226,7 +235,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  // Aplica uma história pronta do catálogo (sem IA, sem créditos).
   async function applyTemplate(templateId: string) {
     if (!project || isDemo) return;
     setBusy(true);
@@ -244,7 +252,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  // Extrai o texto de um arquivo enviado e mostra para o usuário revisar.
   async function onStoryFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file || !project || isDemo) return;
@@ -253,7 +260,7 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     try {
       const { text } = await api.extractStory(project.id, file);
       setStoryText(text);
-      setStoryMode("write"); // mostra o texto extraído para revisar antes de salvar
+      setStoryMode("write");
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -261,11 +268,10 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  // Upload de personagem extra
   async function uploadExtraCharacter() {
     if (!project || !extraCharFile || isDemo) return;
     if (!mediaConsent) {
-      setError("Marque o consentimento para enviar a foto do personagem extra.");
+      setError(t.errConsentExtra);
       return;
     }
     setBusy(true);
@@ -284,7 +290,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  // Gera os personagens ilustrados para os extras
   async function generateExtraCharacters() {
     if (!project || isDemo) return;
     setBusy(true);
@@ -326,132 +331,160 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
     setAppliedTemplate(null);
   }
 
+  function themeChipLabel(id: Theme) {
+    return t.themes[id];
+  }
+
   return (
     <div className="studio">
       <header role="banner">
         <img className="hdr-logo" src={logo} alt="Story R Us" />
         <strong>Story R Us</strong>
         <span className="spacer" />
+        <div className="studio-lang" role="group" aria-label={t.langAria} data-testid="studio-lang">
+          {langs.map((code) => (
+            <button
+              key={code}
+              type="button"
+              className={`chip ${lang === code ? "on" : ""}`}
+              aria-pressed={lang === code}
+              onClick={() => setLang(code)}
+            >
+              {code.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className="chip"
           onClick={() => {
-            const cur = document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+            const cur =
+              document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
             document.documentElement.setAttribute("data-theme", cur);
-            try { localStorage.setItem("theme", cur); } catch { /* ignore */ }
+            try {
+              localStorage.setItem("theme", cur);
+            } catch {
+              /* ignore */
+            }
           }}
-          aria-label="Alternar tema claro/escuro"
+          aria-label={t.themeToggleAria}
         >
-          Tema
+          {t.theme}
         </button>
         <span className="credits" data-testid="studio-credits" aria-live="polite">
-          Créditos: {credits ?? "…"}
+          {t.credits}: {credits ?? "…"}
         </span>
         {onLogout && (
           <button type="button" className="link" onClick={onLogout}>
-            Sair
+            {t.logout}
           </button>
         )}
       </header>
 
       <main id="studio-main" aria-busy={busy || undefined}>
-      {isDemo && (
-        <div className="demo-banner" role="status" aria-live="polite">
-          <p>Você está vendo um exemplo pronto.</p>
-          <button type="button" onClick={exitDemo}>Criar a minha história</button>
-        </div>
-      )}
-
-      {error && (
-        <p className="error" role="alert">
-          {error}
-        </p>
-      )}
-
-      <section className="card" aria-labelledby="studio-create-heading">
-        <h2 id="studio-create-heading">Crie a sua história</h2>
-        {project ? (
-          <p className="muted">
-            ✓ Projeto criado — os campos abaixo ficam travados até você começar um novo projeto.
-          </p>
-        ) : (
-          <p className="slogan">Toda história merece um protagonista — e o protagonista é você.</p>
+        {isDemo && (
+          <div className="demo-banner" role="status" aria-live="polite">
+            <p>{t.demoBanner}</p>
+            <button type="button" onClick={exitDemo}>
+              {t.demoCta}
+            </button>
+          </div>
         )}
 
-          <h3 className="field-label" id="studio-themes-aventura">1 · Escolha até 2 temas para a aventura</h3>
-          <p className="muted">
-            O 1º escolhido é o tema principal (define vilão, cenário e arco); o 2º só soma
-            um aprendizado extra na mesma jornada.
+        {error && (
+          <p className="error" role="alert">
+            {error}
           </p>
+        )}
+
+        <section className="card" aria-labelledby="studio-create-heading">
+          <h2 id="studio-create-heading">{t.createTitle}</h2>
+          {project ? (
+            <p className="muted">{t.projectLocked}</p>
+          ) : (
+            <p className="slogan">{t.slogan}</p>
+          )}
+
+          <h3 className="field-label" id="studio-themes-aventura">
+            {t.pickThemes}
+          </h3>
+          <p className="muted">{t.pickThemesHint}</p>
           <div className="styles" role="group" aria-labelledby="studio-themes-aventura">
-            {THEMES.filter((t) => t.group === "aventura").map((t) => {
-              const order = selectedThemes.indexOf(t.id);
+            {THEMES.filter((x) => x.group === "aventura").map((x) => {
+              const order = selectedThemes.indexOf(x.id);
               return (
                 <button
-                  key={t.id}
+                  key={x.id}
                   type="button"
                   disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
                   aria-pressed={order >= 0}
-                  onClick={() => toggleTheme(t.id)}
+                  onClick={() => toggleTheme(x.id)}
                 >
-                  {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
+                  {x.emoji} {themeChipLabel(x.id)}
+                  {order >= 0 ? ` · ${order + 1}` : ""}
                 </button>
               );
             })}
           </div>
 
-          <h3 className="field-label" id="studio-themes-datas">Datas comemorativas</h3>
+          <h3 className="field-label" id="studio-themes-datas">
+            {t.groupDatas}
+          </h3>
           <div className="styles" role="group" aria-labelledby="studio-themes-datas">
-            {THEMES.filter((t) => t.group === "datas").map((t) => {
-              const order = selectedThemes.indexOf(t.id);
+            {THEMES.filter((x) => x.group === "datas").map((x) => {
+              const order = selectedThemes.indexOf(x.id);
               return (
                 <button
-                  key={t.id}
+                  key={x.id}
                   type="button"
                   disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
                   aria-pressed={order >= 0}
-                  onClick={() => toggleTheme(t.id)}
+                  onClick={() => toggleTheme(x.id)}
                 >
-                  {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
+                  {x.emoji} {themeChipLabel(x.id)}
+                  {order >= 0 ? ` · ${order + 1}` : ""}
                 </button>
               );
             })}
           </div>
 
-          <h3 className="field-label" id="studio-themes-educativo">Temas educativos</h3>
+          <h3 className="field-label" id="studio-themes-educativo">
+            {t.groupEducativo}
+          </h3>
           <div className="styles" role="group" aria-labelledby="studio-themes-educativo">
-            {THEMES.filter((t) => t.group === "educativo").map((t) => {
-              const order = selectedThemes.indexOf(t.id);
+            {THEMES.filter((x) => x.group === "educativo").map((x) => {
+              const order = selectedThemes.indexOf(x.id);
               return (
                 <button
-                  key={t.id}
+                  key={x.id}
                   type="button"
                   disabled={!!project}
                   className={`chip ${order >= 0 ? "on" : ""}`}
                   aria-pressed={order >= 0}
-                  onClick={() => toggleTheme(t.id)}
+                  onClick={() => toggleTheme(x.id)}
                 >
-                  {t.emoji} {t.label}{order >= 0 ? ` · ${order + 1}` : ""}
+                  {x.emoji} {themeChipLabel(x.id)}
+                  {order >= 0 ? ` · ${order + 1}` : ""}
                 </button>
               );
             })}
           </div>
 
-          <h3 className="field-label">2 · Nome, idade e dedicatória</h3>
+          <h3 className="field-label">{t.nameAgeDedication}</h3>
           <label>
-            Nome da criança
+            {t.childName}
             <input
               disabled={!!project}
               value={childName}
               onChange={(e) => setChildName(e.target.value)}
-              placeholder="Ex.: Lila"
+              placeholder={t.childNamePh}
               maxLength={80}
             />
           </label>
           <label>
-            Idade da criança (a história é adaptada ao tom e vocabulário da idade)
+            {t.childAge}
             <input
               disabled={!!project}
               type="number"
@@ -465,396 +498,438 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
                 const n = Math.max(0, Math.min(12, Math.floor(Number(v))));
                 setChildAge(Number.isNaN(n) ? "" : String(n));
               }}
-              placeholder="Ex.: 5"
+              placeholder={t.childAgePh}
             />
           </label>
           <label>
-            Dedicatória (aparece na 2ª página do livro)
+            {t.dedication}
             <input
               disabled={!!project}
               value={dedication}
               onChange={(e) => setDedication(e.target.value)}
-              placeholder="Ex.: Para a Lila, com todo o amor da mamãe."
+              placeholder={t.dedicationPh}
               maxLength={200}
             />
           </label>
 
           {!project && (
             <button type="button" disabled={locked} onClick={start} data-testid="studio-create-project">
-              Criar projeto
+              {t.createProject}
             </button>
           )}
 
           <div className="how" role="region" aria-labelledby="studio-how-heading">
-            <h3 className="field-label" id="studio-how-heading">Como funciona</h3>
+            <h3 className="field-label" id="studio-how-heading">
+              {t.howTitle}
+            </h3>
             <ol>
-              {HOW.map((h) => (
+              {t.how.map((h) => (
                 <li key={h}>{h}</li>
               ))}
             </ol>
           </div>
-      </section>
+        </section>
 
-      {project && (
-        <section
-          className="card"
-          data-testid="studio-project"
-          aria-labelledby="studio-project-heading"
-          aria-busy={busy || undefined}
-        >
-          <h2 id="studio-project-heading">Projeto</h2>
-          <p className="muted" role="status" aria-live="polite">
-            Tema: <b>{themeLabel(project.theme ?? theme)}</b>
-            {(project.extra_theme ?? extraTheme) && (
-              <> + <b>{themeLabel(project.extra_theme ?? extraTheme)}</b></>
-            )} · Estilo: <b>{ART_STYLE_LABEL[project.style ?? "cgi_3d"] ?? "Rosto realista"}</b> ·
-            Status: <b>{project.status}</b>
-          </p>
-
-          <label className="consent">
-            <input
-              type="checkbox"
-              checked={mediaConsent}
-              disabled={isDemo}
-              data-testid="studio-media-consent"
-              onChange={(e) => setMediaConsent(e.target.checked)}
-            />
-            Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.
-          </label>
-
-          <div className="upload" role="group" aria-label="Foto do protagonista">
-            <input
-              type="file"
-              accept="image/*"
-              disabled={isDemo}
-              data-testid="studio-photo-input"
-              aria-label="Selecionar foto do protagonista"
-              onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-            />
-            <button
-              type="button"
-              disabled={!photo || locked || !mediaConsent}
-              onClick={upload}
-              data-testid="studio-upload-photo"
-            >
-              {photoUploaded ? "Foto enviada ✓" : "Enviar foto"}
-            </button>
-          </div>
-          <p className="muted" style={{ marginTop: 6 }}>
-            Melhor resultado: foto nítida, bem iluminada, <b>um</b> rosto de
-            frente, testa e cabelo visíveis. Evite close de cima, de lado ou
-            rosto tapado. A arte é fotográfica, com a criança igual à foto — o mesmo
-            personagem nas páginas e no vídeo.
-          </p>
-
-          <h3 className="field-label" id="studio-extra-chars-heading">Personagens Extras (amigos, irmãos, etc.)</h3>
-          <div className="upload" role="group" aria-labelledby="studio-extra-chars-heading">
-            <input
-              type="file"
-              accept="image/*"
-              aria-label="Selecionar foto do personagem extra"
-              onChange={(e) => setExtraCharFile(e.target.files?.[0] ?? null)}
-            />
-            <input
-              value={extraCharName}
-              onChange={(e) => setExtraCharName(e.target.value)}
-              placeholder="Nome do personagem"
-              aria-label="Nome do personagem extra"
-              maxLength={40}
-              style={{ flex: 1, minWidth: 120 }}
-            />
-            <button
-              type="button"
-              disabled={!extraCharFile || locked || !mediaConsent}
-              onClick={uploadExtraCharacter}
-            >
-              Adicionar
-            </button>
-          </div>
-          {extraChars.length > 0 && (
-            <div style={{ margin: "8px 0" }} role="status" aria-live="polite">
-              <p className="muted">{extraChars.length} personagem(ns) extra(s) adicionado(s)</p>
-              <button type="button" disabled={locked} onClick={generateExtraCharacters}>
-                Gerar ilustrações dos extras <span className="muted">(1 crédito cada)</span>
-              </button>
-            </div>
-          )}
-
-          <h3 className="field-label" id="studio-story-mode-heading">História</h3>
-          <div
-            className="styles"
-            role="tablist"
-            aria-labelledby="studio-story-mode-heading"
+        {project && (
+          <section
+            className="card"
+            data-testid="studio-project"
+            aria-labelledby="studio-project-heading"
+            aria-busy={busy || undefined}
           >
-            <button
-              type="button"
-              role="tab"
-              id="studio-story-tab-invent"
-              aria-selected={storyMode === "invent"}
-              aria-controls="studio-story-panel"
-              className={`chip ${storyMode === "invent" ? "on" : ""}`}
-              onClick={() => setStoryMode("invent")}
-            >
-              ✨ Inventar com IA
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="studio-story-tab-write"
-              aria-selected={storyMode === "write"}
-              aria-controls="studio-story-panel"
-              className={`chip ${storyMode === "write" ? "on" : ""}`}
-              onClick={() => setStoryMode("write")}
-            >
-              ✍️ Escrever a minha
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="studio-story-tab-file"
-              aria-selected={storyMode === "file"}
-              aria-controls="studio-story-panel"
-              className={`chip ${storyMode === "file" ? "on" : ""}`}
-              onClick={() => setStoryMode("file")}
-            >
-              📄 Enviar arquivo
-            </button>
-            <button
-              type="button"
-              role="tab"
-              id="studio-story-tab-catalog"
-              aria-selected={storyMode === "catalog"}
-              aria-controls="studio-story-panel"
-              className={`chip ${storyMode === "catalog" ? "on" : ""}`}
-              onClick={openCatalog}
-            >
-              📚 Histórias prontas
-            </button>
-          </div>
+            <h2 id="studio-project-heading">{t.projectTitle}</h2>
+            <p className="muted" role="status" aria-live="polite">
+              {t.metaTheme}: <b>{resolveThemeName(project.theme ?? theme, t.themes)}</b>
+              {(project.extra_theme ?? extraTheme) && (
+                <>
+                  {" "}
+                  + <b>{resolveThemeName(project.extra_theme ?? extraTheme, t.themes)}</b>
+                </>
+              )}{" "}
+              · {t.styleLabel}: <b>{t.artStyleRealistic}</b> · {t.statusLabel}:{" "}
+              <b>{project.status}</b>
+            </p>
 
-          <div
-            id="studio-story-panel"
-            role="tabpanel"
-            aria-labelledby={`studio-story-tab-${storyMode}`}
-          >
-          {storyMode === "invent" && (
-            <button
-              type="button"
-              disabled={locked}
-              onClick={() => runStep("story")}
-              data-testid="studio-generate-story"
-            >
-              Gerar história com IA <span className="muted">(1 crédito)</span>
-            </button>
-          )}
+            <label className="consent">
+              <input
+                type="checkbox"
+                checked={mediaConsent}
+                disabled={isDemo}
+                data-testid="studio-media-consent"
+                onChange={(e) => setMediaConsent(e.target.checked)}
+              />
+              {t.consent}
+            </label>
 
-          {storyMode === "catalog" && (
-            <div className="story-catalog" role="list" aria-label="Catálogo de histórias prontas">
-              {!templates && (
-                <p className="muted" role="status" aria-live="polite">
-                  Carregando catálogo…
-                </p>
-              )}
-              {templates && !project?.child_name && (
-                <p className="muted">
-                  Defina o nome da criança ao criar o projeto — ele entra no título e no texto.
-                </p>
-              )}
-              {templates?.map((t) => (
-                <div
-                  key={t.id}
-                  className="catalog-item"
-                  role="listitem"
-                  style={{
-                    display: "flex", alignItems: "center", gap: 8,
-                    padding: "8px 0", borderBottom: "1px solid var(--border, #333)",
-                  }}
-                >
-                  <span style={{ fontSize: 22 }} aria-hidden="true">{t.emoji}</span>
-                  <div style={{ flex: 1 }}>
-                    <strong>
-                      {t.titulo.replace("{NOME}", project?.child_name || "{nome}")}
-                    </strong>
-                    <div className="muted" style={{ fontSize: 12 }}>
-                      {t.tematica} · {t.idade} anos · {t.paginas} páginas
-                      {t.genero !== "unissex" ? ` · ${t.genero}` : ""}
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    disabled={locked || !project}
-                    aria-pressed={appliedTemplate === t.id}
-                    onClick={() => applyTemplate(t.id)}
-                  >
-                    {appliedTemplate === t.id ? "✓ Aplicada" : "Usar"}
-                    {appliedTemplate !== t.id && <span className="muted"> (grátis)</span>}
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {storyMode === "file" && (
-            <div className="upload">
+            <div className="upload" role="group" aria-label={t.ariaPhotoGroup}>
               <input
                 type="file"
-                accept=".pdf,.doc,.docx,.txt"
-                aria-label="Enviar arquivo de história (PDF, DOCX ou TXT)"
-                onChange={onStoryFile}
+                accept="image/*"
+                disabled={isDemo}
+                data-testid="studio-photo-input"
+                aria-label={t.ariaSelectPhoto}
+                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
               />
-              <span className="muted">PDF, DOCX ou TXT (até 5MB)</span>
-            </div>
-          )}
-
-          {(storyMode === "write" || storyMode === "file") && (
-            <div className="story-write">
-              <textarea
-                className="story-input"
-                rows={8}
-                style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }}
-                placeholder="Escreva ou cole a sua história aqui. Dica: separe as páginas com 'Página 1:', 'Página 2:'..."
-                aria-label="Texto da história"
-                value={storyText}
-                onChange={(e) => setStoryText(e.target.value)}
-              />
-              <button type="button" disabled={locked || !storyText.trim()} onClick={saveStory}>
-                Salvar história
+              <button
+                type="button"
+                disabled={!photo || locked || !mediaConsent}
+                onClick={upload}
+                data-testid="studio-upload-photo"
+              >
+                {photoUploaded ? t.photoSent : t.sendPhoto}
               </button>
             </div>
-          )}
-          </div>
+            <p className="muted" style={{ marginTop: 6 }}>
+              {t.photoHint}
+            </p>
 
-          <VoiceNarrationPanel
-            customVoiceAvailable={customVoiceAvailable}
-            voiceName={voiceName}
-            setVoiceName={setVoiceName}
-            voiceUploading={voiceUploading}
-            locked={locked}
-            mediaConsent={mediaConsent}
-            onVoiceFile={onVoiceFile}
-            voices={voices}
-            selectedVoiceId={selectedVoiceId}
-            setSelectedVoiceId={setSelectedVoiceId}
-            removeSelectedVoice={removeSelectedVoice}
-          />
-
-          <EbookStepButtons locked={locked} canMountEbook={canMountEbook} runStep={runStep} />
-          {!characterApproved && photoUploaded && (
-            <p className="muted">Aprove o personagem para montar o e-book.</p>
-          )}
-
-          <ProgressList jobs={jobs} />
-
-          {/* Resultado de cada etapa */}
-          <div className="results" role="region" aria-label="Resultados do projeto">
-            {assets?.character_url && (
-              <CharacterApprovalBlock
-                characterUrl={assets.character_url}
-                characterApproved={characterApproved}
-                locked={locked}
-                onApprove={approveCharacter}
-                onRegenerate={() => runStep("avatar")}
+            <h3 className="field-label" id="studio-extra-chars-heading">
+              {t.extraCharsTitle}
+            </h3>
+            <div className="upload" role="group" aria-labelledby="studio-extra-chars-heading">
+              <input
+                type="file"
+                accept="image/*"
+                aria-label={t.ariaSelectExtraPhoto}
+                onChange={(e) => setExtraCharFile(e.target.files?.[0] ?? null)}
               />
+              <input
+                value={extraCharName}
+                onChange={(e) => setExtraCharName(e.target.value)}
+                placeholder={t.extraCharNamePh}
+                aria-label={t.ariaExtraCharName}
+                maxLength={40}
+                style={{ flex: 1, minWidth: 120 }}
+              />
+              <button
+                type="button"
+                disabled={!extraCharFile || locked || !mediaConsent}
+                onClick={uploadExtraCharacter}
+              >
+                {t.add}
+              </button>
+            </div>
+            {extraChars.length > 0 && (
+              <div style={{ margin: "8px 0" }} role="status" aria-live="polite">
+                <p className="muted">{t.extrasAdded(extraChars.length)}</p>
+                <button type="button" disabled={locked} onClick={generateExtraCharacters}>
+                  {t.generateExtras} <span className="muted">{t.creditEach}</span>
+                </button>
+              </div>
             )}
 
-            {assets?.extra_characters && assets.extra_characters.length > 0 && (
-              <div className="result-block" role="region" aria-labelledby="studio-extra-results-heading">
-                <h3 className="field-label" id="studio-extra-results-heading">Personagens Extras</h3>
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }} role="list">
-                  {assets.extra_characters.map((ec, i) => (
-                    <div key={i} style={{ textAlign: "center" }} role="listitem">
-                      <img
-                        src={ec.url}
-                        alt={ec.name}
-                        style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 50 }}
-                      />
-                      <p className="muted" style={{ margin: "4px 0 0" }}>{ec.name}</p>
+            <h3 className="field-label" id="studio-story-mode-heading">
+              {t.storyTitle}
+            </h3>
+            <div className="styles" role="tablist" aria-labelledby="studio-story-mode-heading">
+              <button
+                type="button"
+                role="tab"
+                id="studio-story-tab-invent"
+                aria-selected={storyMode === "invent"}
+                aria-controls="studio-story-panel"
+                className={`chip ${storyMode === "invent" ? "on" : ""}`}
+                onClick={() => setStoryMode("invent")}
+              >
+                {t.inventAi}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="studio-story-tab-write"
+                aria-selected={storyMode === "write"}
+                aria-controls="studio-story-panel"
+                className={`chip ${storyMode === "write" ? "on" : ""}`}
+                onClick={() => setStoryMode("write")}
+              >
+                {t.writeMine}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="studio-story-tab-file"
+                aria-selected={storyMode === "file"}
+                aria-controls="studio-story-panel"
+                className={`chip ${storyMode === "file" ? "on" : ""}`}
+                onClick={() => setStoryMode("file")}
+              >
+                {t.sendFile}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="studio-story-tab-catalog"
+                aria-selected={storyMode === "catalog"}
+                aria-controls="studio-story-panel"
+                className={`chip ${storyMode === "catalog" ? "on" : ""}`}
+                onClick={openCatalog}
+              >
+                {t.readyStories}
+              </button>
+            </div>
+
+            <div
+              id="studio-story-panel"
+              role="tabpanel"
+              aria-labelledby={`studio-story-tab-${storyMode}`}
+            >
+              {storyMode === "invent" && (
+                <button
+                  type="button"
+                  disabled={locked}
+                  onClick={() => runStep("story")}
+                  data-testid="studio-generate-story"
+                >
+                  {t.generateStory} <span className="muted">{t.oneCredit}</span>
+                </button>
+              )}
+
+              {storyMode === "catalog" && (
+                <div className="story-catalog" role="list" aria-label={t.ariaCatalog}>
+                  {!templates && (
+                    <p className="muted" role="status" aria-live="polite">
+                      {t.loadingCatalog}
+                    </p>
+                  )}
+                  {templates && !project?.child_name && (
+                    <p className="muted">{t.needChildName}</p>
+                  )}
+                  {templates?.map((tpl) => (
+                    <div
+                      key={tpl.id}
+                      className="catalog-item"
+                      role="listitem"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
+                        padding: "8px 0",
+                        borderBottom: "1px solid var(--border, #333)",
+                      }}
+                    >
+                      <span style={{ fontSize: 22 }} aria-hidden="true">
+                        {tpl.emoji}
+                      </span>
+                      <div style={{ flex: 1 }}>
+                        <strong>
+                          {tpl.titulo.replace("{NOME}", project?.child_name || "{nome}")}
+                        </strong>
+                        <div className="muted" style={{ fontSize: 12 }}>
+                          {t.catalogMeta(tpl.tematica, tpl.idade, tpl.paginas, tpl.genero)}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        disabled={locked || !project}
+                        aria-pressed={appliedTemplate === tpl.id}
+                        onClick={() => applyTemplate(tpl.id)}
+                      >
+                        {appliedTemplate === tpl.id ? t.applied : t.use}
+                        {appliedTemplate !== tpl.id && <span className="muted">{t.free}</span>}
+                      </button>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              )}
 
-            {project.story_text && (
-              <div
-                className="result-block"
-                data-testid="studio-story-result"
-                role="region"
-                aria-labelledby="studio-story-result-heading"
-              >
-                <h3 className="field-label" id="studio-story-result-heading">História</h3>
-                <pre className="story" style={{ whiteSpace: "pre-wrap" }} data-testid="studio-story-text">{project.story_text}</pre>
-              </div>
-            )}
-
-            {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0 || ebookRunning) && (
-              <BookApprovalBlock
-                pageImages={assets?.page_images ?? []}
-                ebookUrl={assets?.ebook_url ?? null}
-                bookApproved={bookApproved}
-                locked={locked}
-                canMountEbook={canMountEbook}
-                printRequested={printRequested}
-                onApprove={approveBook}
-                onRegenerate={() => runStep("ebook")}
-                onRequestPrint={requestPrint}
-              />
-            )}
-
-            {bookApproved && (
-              <div className="result-block" role="region" aria-labelledby="studio-video-heading">
-                <h3 className="field-label" id="studio-video-heading">Vídeo</h3>
-                <p className="muted">O clipe e o vídeo narrado usam o mesmo personagem 3D do livro.</p>
-                <VideoStepButtons locked={locked} canMakeVideo={canMakeVideo} runStep={runStep} />
-              </div>
-            )}
-
-            {assets?.video_url && (
-              <div className="result-block" role="region" aria-labelledby="studio-animation-heading">
-                <h3 className="field-label" id="studio-animation-heading">Animação</h3>
-                {assets.video_url.toLowerCase().includes(".gif") ? (
-                  <img
-                    src={assets.video_url}
-                    alt="Animação"
-                    style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
+              {storyMode === "file" && (
+                <div className="upload">
+                  <input
+                    type="file"
+                    accept=".pdf,.doc,.docx,.txt"
+                    aria-label={t.ariaStoryFile}
+                    onChange={onStoryFile}
                   />
-                ) : (
-                  <video
-                    src={assets.video_url}
-                    controls
-                    aria-label="Animação gerada"
-                    style={{ maxWidth: 360, width: "100%" }}
+                  <span className="muted">{t.fileHint}</span>
+                </div>
+              )}
+
+              {(storyMode === "write" || storyMode === "file") && (
+                <div className="story-write">
+                  <textarea
+                    className="story-input"
+                    rows={8}
+                    style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }}
+                    placeholder={t.storyPlaceholder}
+                    aria-label={t.ariaStoryText}
+                    value={storyText}
+                    onChange={(e) => setStoryText(e.target.value)}
                   />
-                )}
-              </div>
+                  <button
+                    type="button"
+                    disabled={locked || !storyText.trim()}
+                    onClick={saveStory}
+                  >
+                    {t.saveStory}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <VoiceNarrationPanel
+              customVoiceAvailable={customVoiceAvailable}
+              voiceName={voiceName}
+              setVoiceName={setVoiceName}
+              voiceUploading={voiceUploading}
+              locked={locked}
+              mediaConsent={mediaConsent}
+              onVoiceFile={onVoiceFile}
+              voices={voices}
+              selectedVoiceId={selectedVoiceId}
+              setSelectedVoiceId={setSelectedVoiceId}
+              removeSelectedVoice={removeSelectedVoice}
+            />
+
+            <EbookStepButtons locked={locked} canMountEbook={canMountEbook} runStep={runStep} />
+            {!characterApproved && photoUploaded && (
+              <p className="muted">{t.approveCharacterFirst}</p>
             )}
 
-            {assets?.narrated_video_url && (
-              <div className="result-block" role="region" aria-labelledby="studio-narrated-heading">
-                <h3 className="field-label" id="studio-narrated-heading">Vídeo narrado</h3>
-                {assets.narrated_video_url.toLowerCase().includes(".gif") ? (
-                  <img
-                    src={assets.narrated_video_url}
-                    alt="Vídeo narrado"
-                    style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
-                  />
-                ) : (
-                  <video
-                    src={assets.narrated_video_url}
-                    controls
-                    aria-label="Vídeo narrado gerado"
-                    style={{ maxWidth: 360, width: "100%" }}
-                  />
-                )}
-              </div>
-            )}
-          </div>
+            <ProgressList jobs={jobs} />
 
-          <button type="button" className="link" onClick={() => (isDemo ? exitDemo() : setProject(null))}>
-            {isDemo ? "← Criar a minha história" : "← Novo projeto"}
-          </button>
-        </section>
-      )}
+            <div className="results" role="region" aria-label={t.ariaResults}>
+              {assets?.character_url && (
+                <CharacterApprovalBlock
+                  characterUrl={assets.character_url}
+                  characterApproved={characterApproved}
+                  locked={locked}
+                  onApprove={approveCharacter}
+                  onRegenerate={() => runStep("avatar")}
+                />
+              )}
+
+              {assets?.extra_characters && assets.extra_characters.length > 0 && (
+                <div
+                  className="result-block"
+                  role="region"
+                  aria-labelledby="studio-extra-results-heading"
+                >
+                  <h3 className="field-label" id="studio-extra-results-heading">
+                    {t.extrasResult}
+                  </h3>
+                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }} role="list">
+                    {assets.extra_characters.map((ec, i) => (
+                      <div key={i} style={{ textAlign: "center" }} role="listitem">
+                        <img
+                          src={ec.url}
+                          alt={ec.name}
+                          style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 50 }}
+                        />
+                        <p className="muted" style={{ margin: "4px 0 0" }}>
+                          {ec.name}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {project.story_text && (
+                <div
+                  className="result-block"
+                  data-testid="studio-story-result"
+                  role="region"
+                  aria-labelledby="studio-story-result-heading"
+                >
+                  <h3 className="field-label" id="studio-story-result-heading">
+                    {t.storyTitle}
+                  </h3>
+                  <pre
+                    className="story"
+                    style={{ whiteSpace: "pre-wrap" }}
+                    data-testid="studio-story-text"
+                  >
+                    {project.story_text}
+                  </pre>
+                </div>
+              )}
+
+              {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0 || ebookRunning) && (
+                <BookApprovalBlock
+                  pageImages={assets?.page_images ?? []}
+                  ebookUrl={assets?.ebook_url ?? null}
+                  bookApproved={bookApproved}
+                  locked={locked}
+                  canMountEbook={canMountEbook}
+                  printRequested={printRequested}
+                  onApprove={approveBook}
+                  onRegenerate={() => runStep("ebook")}
+                  onRequestPrint={requestPrint}
+                />
+              )}
+
+              {bookApproved && (
+                <div className="result-block" role="region" aria-labelledby="studio-video-heading">
+                  <h3 className="field-label" id="studio-video-heading">
+                    {t.videoTitle}
+                  </h3>
+                  <p className="muted">{t.videoHint}</p>
+                  <VideoStepButtons locked={locked} canMakeVideo={canMakeVideo} runStep={runStep} />
+                </div>
+              )}
+
+              {assets?.video_url && (
+                <div
+                  className="result-block"
+                  role="region"
+                  aria-labelledby="studio-animation-heading"
+                >
+                  <h3 className="field-label" id="studio-animation-heading">
+                    {t.animationTitle}
+                  </h3>
+                  {assets.video_url.toLowerCase().includes(".gif") ? (
+                    <img
+                      src={assets.video_url}
+                      alt={t.animationTitle}
+                      style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
+                    />
+                  ) : (
+                    <video
+                      src={assets.video_url}
+                      controls
+                      aria-label={t.ariaAnimationGenerated}
+                      style={{ maxWidth: 360, width: "100%" }}
+                    />
+                  )}
+                </div>
+              )}
+
+              {assets?.narrated_video_url && (
+                <div
+                  className="result-block"
+                  role="region"
+                  aria-labelledby="studio-narrated-heading"
+                >
+                  <h3 className="field-label" id="studio-narrated-heading">
+                    {t.narratedTitle}
+                  </h3>
+                  {assets.narrated_video_url.toLowerCase().includes(".gif") ? (
+                    <img
+                      src={assets.narrated_video_url}
+                      alt={t.narratedTitle}
+                      style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
+                    />
+                  ) : (
+                    <video
+                      src={assets.narrated_video_url}
+                      controls
+                      aria-label={t.ariaNarratedGenerated}
+                      style={{ maxWidth: 360, width: "100%" }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
+
+            <button
+              type="button"
+              className="link"
+              onClick={() => (isDemo ? exitDemo() : setProject(null))}
+            >
+              {isDemo ? t.createMyStory : t.newProject}
+            </button>
+          </section>
+        )}
       </main>
     </div>
   );

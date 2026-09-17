@@ -1,3 +1,5 @@
+import { useStudioI18n } from "./useStudioI18n";
+
 type CharacterProps = {
   characterUrl: string;
   characterApproved: boolean;
@@ -13,30 +15,33 @@ export function CharacterApprovalBlock({
   onApprove,
   onRegenerate,
 }: CharacterProps) {
+  const { t } = useStudioI18n();
   return (
     <div className="result-block" role="region" aria-labelledby="studio-character-heading">
-      <h3 className="field-label" id="studio-character-heading">Personagem</h3>
+      <h3 className="field-label" id="studio-character-heading">
+        {t.character}
+      </h3>
       <img
         src={characterUrl}
-        alt="Personagem gerado"
+        alt={t.characterAlt}
         style={{ maxWidth: 280, width: "100%", borderRadius: 12 }}
       />
       <div
         style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}
         role="group"
-        aria-label="Ações do personagem"
+        aria-label={t.ariaCharacterActions}
       >
         {characterApproved ? (
           <p className="muted" role="status">
-            Personagem aprovado. Pode montar o livro.
+            {t.characterApproved}
           </p>
         ) : (
           <button type="button" disabled={locked} onClick={onApprove}>
-            Aprovar personagem
+            {t.approveCharacter}
           </button>
         )}
         <button type="button" disabled={locked} onClick={onRegenerate}>
-          Regenerar personagem <span className="muted">(1 crédito)</span>
+          {t.regenerateCharacter} <span className="muted">{t.oneCredit}</span>
         </button>
       </div>
     </div>
@@ -66,19 +71,23 @@ export function BookApprovalBlock({
   onRegenerate,
   onRequestPrint,
 }: BookProps) {
+  const { t } = useStudioI18n();
   return (
     <div className="result-block" role="region" aria-labelledby="studio-ebook-heading">
-      <h3 className="field-label" id="studio-ebook-heading">E-book</h3>
+      <h3 className="field-label" id="studio-ebook-heading">
+        {t.ebook}
+      </h3>
       {pageImages.length > 0 && (
         <div
           style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 10 }}
-          aria-label="Páginas do e-book"
+          role="list"
+          aria-label={t.ariaEbookPages}
         >
           {pageImages.map((u, i) => (
             <img
               key={i}
               src={u}
-              alt={`Página ${i + 1}`}
+              alt={t.pageAlt(i + 1)}
               loading="lazy"
               style={{ width: 120, height: 120, objectFit: "cover", borderRadius: 8 }}
             />
@@ -87,37 +96,39 @@ export function BookApprovalBlock({
       )}
       {ebookUrl && (
         <a href={ebookUrl} target="_blank" rel="noreferrer" className="btn">
-          📖 Abrir e-book
+          {t.openEbook}
         </a>
       )}
       <div
         style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}
         role="group"
-        aria-label="Ações do livro"
+        aria-label={t.ariaBookActions}
       >
         {bookApproved ? (
           <p className="muted" role="status">
-            Livro aprovado. PDF, impressão e vídeo liberados.
+            {t.bookApproved}
           </p>
         ) : (
           <button type="button" disabled={locked || !ebookUrl} onClick={onApprove}>
-            Aprovar livro
+            {t.approveBook}
           </button>
         )}
         <button type="button" disabled={locked || !canMountEbook} onClick={onRegenerate}>
-          Regenerar páginas <span className="muted">(1 crédito)</span>
+          {t.regeneratePages} <span className="muted">{t.oneCredit}</span>
         </button>
       </div>
       {bookApproved && (
         <div style={{ marginTop: 12 }} role="region" aria-labelledby="studio-print-heading">
-          <h3 className="field-label" id="studio-print-heading">Livro impresso</h3>
+          <h3 className="field-label" id="studio-print-heading">
+            {t.printTitle}
+          </h3>
           {printRequested ? (
             <p className="muted" role="status">
-              Pedido registrado — em até 24h enviamos a cotação e o prazo.
+              {t.printRequested}
             </p>
           ) : (
             <button type="button" disabled={locked} onClick={onRequestPrint}>
-              Pedir livro impresso
+              {t.requestPrint}
             </button>
           )}
         </div>

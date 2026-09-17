@@ -1,5 +1,6 @@
-import { STEPS } from "./constants";
+import { studioSteps } from "./constants";
 import type { StudioStep } from "./useStudioSteps";
+import { useStudioI18n } from "./useStudioI18n";
 
 type EbookStepsProps = {
   locked: boolean;
@@ -8,21 +9,25 @@ type EbookStepsProps = {
 };
 
 export function EbookStepButtons({ locked, canMountEbook, runStep }: EbookStepsProps) {
+  const { t } = useStudioI18n();
+  const steps = studioSteps(t);
   return (
-    <div className="steps" role="group" aria-label="Etapa do e-book">
-      {STEPS.filter((s) => s.key === "ebook").map((s) => (
-        <button
-          key={s.key}
-          type="button"
-          title={s.hint}
-          aria-label={`${s.label} (${s.cost}). ${s.hint}`}
-          disabled={locked || !canMountEbook}
-          onClick={() => runStep(s.key)}
-          data-testid="studio-mount-ebook"
-        >
-          {s.label} <span className="muted">({s.cost})</span>
-        </button>
-      ))}
+    <div className="steps" role="group" aria-label={t.ariaEbookStep}>
+      {steps
+        .filter((s) => s.key === "ebook")
+        .map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            title={s.hint}
+            aria-label={`${s.label} (${s.cost}). ${s.hint}`}
+            disabled={locked || !canMountEbook}
+            onClick={() => runStep(s.key)}
+            data-testid="studio-mount-ebook"
+          >
+            {s.label} <span className="muted">({s.cost})</span>
+          </button>
+        ))}
     </div>
   );
 }
@@ -34,21 +39,25 @@ type VideoStepsProps = {
 };
 
 export function VideoStepButtons({ locked, canMakeVideo, runStep }: VideoStepsProps) {
+  const { t } = useStudioI18n();
+  const steps = studioSteps(t);
   return (
-    <div className="steps" role="group" aria-label="Etapas de vídeo">
-      {STEPS.filter((s) => s.key !== "ebook").map((s) => (
-        <button
-          key={s.key}
-          type="button"
-          title={s.hint}
-          aria-label={`${s.label} (${s.cost}). ${s.hint}`}
-          disabled={locked || !canMakeVideo}
-          onClick={() => runStep(s.key)}
-          data-testid={`studio-step-${s.key}`}
-        >
-          {s.label} <span className="muted">({s.cost})</span>
-        </button>
-      ))}
+    <div className="steps" role="group" aria-label={t.ariaVideoSteps}>
+      {steps
+        .filter((s) => s.key !== "ebook")
+        .map((s) => (
+          <button
+            key={s.key}
+            type="button"
+            title={s.hint}
+            aria-label={`${s.label} (${s.cost}). ${s.hint}`}
+            disabled={locked || !canMakeVideo}
+            onClick={() => runStep(s.key)}
+            data-testid={`studio-step-${s.key}`}
+          >
+            {s.label} <span className="muted">({s.cost})</span>
+          </button>
+        ))}
     </div>
   );
 }
