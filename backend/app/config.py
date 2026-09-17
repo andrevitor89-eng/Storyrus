@@ -39,6 +39,9 @@ class Settings(BaseSettings):
     app_env: Literal["dev", "staging", "prod"] = "dev"
     app_name: str = "stories-api"
     log_level: str = "INFO"
+    # text = legivel local; json = uma linha JSON (prod / Render). Vazio = auto
+    # (json fora de dev).
+    log_format: Literal["text", "json", "auto"] = "auto"
 
     # Banco / fila
     database_url: str = "sqlite+pysqlite:///./dev.db"
@@ -191,6 +194,12 @@ class Settings(BaseSettings):
     opik_project_name: str = "storyrus"
     opik_url_override: str | None = None
     opik_eval_story: bool = True
+
+    def resolved_log_format(self) -> Literal["text", "json"]:
+        """JSON em staging/prod por padrao; texto em dev (sobrescrevivel)."""
+        if self.log_format == "auto":
+            return "text" if self.app_env == "dev" else "json"
+        return self.log_format
 
     @model_validator(mode="after")
     def _refuse_insecure_defaults_outside_dev(self) -> Self:

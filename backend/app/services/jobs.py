@@ -7,6 +7,7 @@ Regras (do documento de arquitetura):
 - Em SQLite/dev nao ha broker; expomos `enqueue_fn` para o worker real (RQ/Celery/Temporal).
 """
 
+import logging
 import uuid
 from collections.abc import Callable
 
@@ -16,7 +17,10 @@ from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.models import Job, JobStatus, JobType, Project, User
+from app.observability.context import get_request_id
 from app.services import credits, spend_guard
+
+logger = logging.getLogger(__name__)
 
 # Custo (em creditos) por tipo de etapa.
 COST_BY_TYPE: dict[JobType, int] = {
@@ -102,19 +106,28 @@ def enqueue_job(
     except credits.InsufficientCreditsError as exc:
         raise HTTPException(status.HTTP_402_PAYMENT_REQUIRED, str(exc))
 
-    # 5) Persiste o job PENDING.
+    # 5) Persiste o job PENDING (request_id da request HTTP para correlacao).
+    request_id = get_request_id()
     job = Job(
         project_id=project.id,
         type=job_type.value,
         status=JobStatus.PENDING.value,
         provider=PROVIDER_BY_TYPE.get(job_type),
         idempotency_key=idempotency_key,
+        request_id=request_id,
         cost_credits=cost,
         result={"payload": payload} if payload else None,
     )
     db.add(job)
     db.commit()
     db.refresh(job)
+
+    logger.info(
+        "enqueued job_type=%s job_id=%s project_id=%s",
+        job.type,
+        job.id,
+        project.id,
+    )
 
     # 6) Sinaliza o broker (best-effort).
     try:

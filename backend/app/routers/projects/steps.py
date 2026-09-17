@@ -23,6 +23,7 @@ from app.models import (
     User,
     UserVoice,
 )
+from app.observability.context import get_request_id
 from app.schemas import (
     JobAcceptedOut,
     NarratedVideoRequestIn,
