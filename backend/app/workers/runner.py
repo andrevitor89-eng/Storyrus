@@ -10,11 +10,14 @@ Desenho:
 - Cada job e idempotente; reprocessar nao duplica efeito (handlers checam estado).
 - Video e assincrono: o handler dispara e faz polling ate concluir (ou timeout),
   podendo tambem ser finalizado pelo webhook.
+- Jobs RUNNING sem heartbeat (worker morto) voltam a PENDING (STO-9).
 """
 from __future__ import annotations
 
 import asyncio
 import logging
+import uuid
+from datetime import UTC, datetime, timedelta
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -33,6 +36,64 @@ def backoff_delay(attempt: int) -> float:
     return min(raw, settings.retry_backoff_max_s)
 
 
+def reclaim_stale_jobs(db: Session) -> int:
+    """RUNNING sem heartbeat recente -> PENDING (retryavel)."""
+    timeout = float(settings.job_stale_timeout_s)
+    if timeout <= 0:
+        return 0
+    cutoff = datetime.now(UTC) - timedelta(seconds=timeout)
+    stmt = select(Job).where(
+        Job.status == JobStatus.RUNNING.value,
+        Job.updated_at < cutoff,
+    )
+    if db.bind.dialect.name == "postgresql":
+        stmt = stmt.with_for_update(skip_locked=True)
+
+    stale = list(db.scalars(stmt).all())
+    for job in stale:
+        job.status = JobStatus.PENDING.value
+        # Preserva result (progresso); so anota o reclaim. Handlers sao idempotentes.
+        meta = dict(job.result or {})
+        meta["reclaimed_at"] = datetime.now(UTC).isoformat()
+        job.result = meta
+        logger.warning(
+            "job %s (%s) stale RUNNING -> PENDING (updated_at=%s)",
+            job.id,
+            job.type,
+            job.updated_at,
+        )
+    if stale:
+        db.commit()
+    return len(stale)
+
+
+def _touch_heartbeat(job_id: uuid.UUID) -> None:
+    db = SessionLocal()
+    try:
+        job = db.get(Job, job_id)
+        if job is None or job.status != JobStatus.RUNNING.value:
+            return
+        job.updated_at = datetime.now(UTC)
+        db.commit()
+    except Exception:  # noqa: BLE001 - heartbeat best-effort
+        logger.exception("heartbeat falhou para job %s", job_id)
+        db.rollback()
+    finally:
+        db.close()
+
+
+async def _heartbeat_loop(job_id: uuid.UUID, stop: asyncio.Event) -> None:
+    interval = float(settings.job_heartbeat_interval_s)
+    if interval <= 0:
+        return
+    while not stop.is_set():
+        try:
+            await asyncio.wait_for(stop.wait(), timeout=interval)
+            return
+        except TimeoutError:
+            await asyncio.to_thread(_touch_heartbeat, job_id)
+
+
 def claim_next(db: Session) -> Job | None:
     """Pega o proximo job PENDING e marca como RUNNING (atomico)."""
     stmt = (
@@ -48,6 +109,7 @@ def claim_next(db: Session) -> Job | None:
     if job is None:
         return None
     job.status = JobStatus.RUNNING.value
+    job.updated_at = datetime.now(UTC)
     db.commit()
     db.refresh(job)
     return job
@@ -63,33 +125,41 @@ async def process_job(db: Session, job: Job) -> None:
         jobs_svc.mark_failed_and_refund(db, job, f"Sem handler para tipo {job.type}")
         return
 
-    while True:
-        job.attempts += 1
-        db.commit()
-        try:
-            await handler(db, job)
-            job.status = JobStatus.DONE.value
+    stop = asyncio.Event()
+    hb = asyncio.create_task(_heartbeat_loop(job.id, stop))
+    try:
+        while True:
+            job.attempts += 1
+            job.updated_at = datetime.now(UTC)
             db.commit()
-            logger.info("job %s (%s) DONE", job.id, job.type)
-            return
-        except ProviderError as exc:
-            retriable = exc.transient and job.attempts < settings.job_max_attempts
-            logger.warning(
-                "job %s falhou (tentativa %s): %s [transient=%s]",
-                job.id, job.attempts, exc, exc.transient,
-            )
-            if not retriable:
-                jobs_svc.mark_failed_and_refund(db, job, str(exc))
+            try:
+                await handler(db, job)
+                job.status = JobStatus.DONE.value
+                db.commit()
+                logger.info("job %s (%s) DONE", job.id, job.type)
                 return
-            await asyncio.sleep(backoff_delay(job.attempts))
-        except Exception as exc:
-            logger.exception("job %s erro inesperado", job.id)
-            jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
-            return
+            except ProviderError as exc:
+                retriable = exc.transient and job.attempts < settings.job_max_attempts
+                logger.warning(
+                    "job %s falhou (tentativa %s): %s [transient=%s]",
+                    job.id, job.attempts, exc, exc.transient,
+                )
+                if not retriable:
+                    jobs_svc.mark_failed_and_refund(db, job, str(exc))
+                    return
+                await asyncio.sleep(backoff_delay(job.attempts))
+            except Exception as exc:
+                logger.exception("job %s erro inesperado", job.id)
+                jobs_svc.mark_failed_and_refund(db, job, f"{type(exc).__name__}: {exc}")
+                return
+    finally:
+        stop.set()
+        await hb
 
 
 async def run_once(db: Session) -> int:
     """Processa ate `worker_batch_size` jobs. Retorna quantos processou."""
+    reclaim_stale_jobs(db)
     processed = 0
     for _ in range(settings.worker_batch_size):
         job = claim_next(db)
@@ -103,7 +173,11 @@ async def run_once(db: Session) -> int:
 async def run_forever() -> None:
     from app import queue
 
-    logger.info("worker iniciado (poll=%ss)", settings.worker_poll_interval_s)
+    logger.info(
+        "worker iniciado (poll=%ss, stale=%ss)",
+        settings.worker_poll_interval_s,
+        settings.job_stale_timeout_s,
+    )
     while True:
         db = SessionLocal()
         try:
@@ -119,6 +193,8 @@ async def run_forever() -> None:
 
 def main() -> None:
     logging.basicConfig(level=settings.log_level)
+    # settings ja validou secrets no import (STO-8); log explicito ajuda ops.
+    logger.info("APP_ENV=%s — secrets ok", settings.app_env)
     asyncio.run(run_forever())
 
 

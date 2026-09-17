@@ -1,10 +1,11 @@
 """Cadastro, login, convidado e perfil."""
 import uuid
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app import rate_limit
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
@@ -31,8 +32,13 @@ def signup(body: SignupIn, db: Session = Depends(get_db)) -> TokenOut:
 
 
 @router.post("/guest", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
-def guest(db: Session = Depends(get_db)) -> TokenOut:
-    """Cria um usuario isolado por sessao (sem e-mail real) e devolve JWT."""
+def guest(request: Request, db: Session = Depends(get_db)) -> TokenOut:
+    """Cria um usuario isolado por sessao (sem e-mail real) e devolve JWT.
+
+    Rate limit por IP (e fingerprint, se o cliente enviar) evita farming de
+    creditos gratis (STO-6).
+    """
+    rate_limit.check_guest(request)
     uid = uuid.uuid4()
     user = User(
         email=f"guest-{uid}@storyrus.app",

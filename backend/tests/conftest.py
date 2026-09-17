@@ -10,9 +10,18 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app import rate_limit
 from app.config import settings
 from app.database import Base, get_db
 from app.main import app
+
+
+@pytest.fixture(autouse=True)
+def _reset_guest_rate_limit():
+    """Evita 429 cruzado entre testes (mesmo IP do TestClient)."""
+    rate_limit.reset()
+    yield
+    rate_limit.reset()
 
 
 @pytest.fixture(autouse=True)

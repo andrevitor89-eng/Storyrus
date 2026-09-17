@@ -99,6 +99,59 @@ def test_backoff_is_exponential_and_capped():
     assert runner.backoff_delay(50) <= 60.0  # teto
 
 
+def test_reclaim_stale_running_jobs(db, monkeypatch):
+    """STO-9: RUNNING sem heartbeat recente volta a PENDING."""
+    from datetime import datetime, timedelta
+
+    monkeypatch.setattr(runner.settings, "job_stale_timeout_s", 60.0)
+    monkeypatch.setattr(runner.settings, "job_heartbeat_interval_s", 0.0)
+    _, p = _seed(db)
+    j = _job(db, p, "STORY")
+    j.status = JobStatus.RUNNING.value
+    j.updated_at = datetime.now(UTC) - timedelta(seconds=120)
+    db.commit()
+
+    n = runner.reclaim_stale_jobs(db)
+    db.refresh(j)
+    assert n == 1
+    assert j.status == JobStatus.PENDING.value
+    assert j.result and "reclaimed_at" in j.result
+
+
+def test_reclaim_skips_fresh_running_jobs(db, monkeypatch):
+    from datetime import datetime
+
+    monkeypatch.setattr(runner.settings, "job_stale_timeout_s", 60.0)
+    _, p = _seed(db)
+    j = _job(db, p, "STORY")
+    j.status = JobStatus.RUNNING.value
+    j.updated_at = datetime.now(UTC)
+    db.commit()
+
+    assert runner.reclaim_stale_jobs(db) == 0
+    db.refresh(j)
+    assert j.status == JobStatus.RUNNING.value
+
+
+async def test_run_once_reclaims_then_processes(db, mem_storage, monkeypatch):
+    from datetime import datetime, timedelta
+
+    monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
+    monkeypatch.setattr(runner.settings, "job_stale_timeout_s", 30.0)
+    monkeypatch.setattr(runner.settings, "job_heartbeat_interval_s", 0.0)
+    monkeypatch.setattr(runner.settings, "worker_batch_size", 5)
+    _, p = _seed(db)
+    j = _job(db, p, "STORY")
+    j.status = JobStatus.RUNNING.value
+    j.updated_at = datetime.now(UTC) - timedelta(seconds=120)
+    db.commit()
+
+    n = await runner.run_once(db)
+    db.refresh(j)
+    assert n >= 1
+    assert j.status == JobStatus.DONE.value
+
+
 async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     async def high_score(_photo, _scene, **_k):
         return 0.91
