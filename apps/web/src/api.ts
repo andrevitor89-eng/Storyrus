@@ -188,7 +188,7 @@ export function resetStepIdempotencyState(): void {
   stepInFlight.clear();
 }
 
-async function reqOnce<T>(path: string, init: RequestInit = {}): Promise<Response> {
+async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   if (!headers.has("Content-Type") && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
