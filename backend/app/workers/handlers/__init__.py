@@ -12,6 +12,7 @@ from app.ai_clients.face_match import score_face_match
 from app.config import settings
 
 from .avatar import (
+    AVATAR_FACE_JUDGE_ERROR,
     _lock_avatar_identity,
     _refine_identity,
     _refine_scene,
@@ -73,6 +74,7 @@ __all__ = [
     "_refine_identity",
     "_refine_scene",
     "_lock_avatar_identity",
+    "AVATAR_FACE_JUDGE_ERROR",
     "_clamp_kling_duration",
     "_use_video_offline",
     "get_image_provider",

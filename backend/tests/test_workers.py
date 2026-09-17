@@ -329,6 +329,118 @@ async def test_avatar_low_face_retries_fal_swap(db, mem_storage, monkeypatch):
     assert mem_storage[p.character_ref["storage_key"]] == b"SWAP2"
 
 
+async def test_avatar_face_judge_none_retries_then_fails(db, mem_storage, monkeypatch):
+    """STO-37: juiz sem nota nao soft-skip — retenta Fal e falha visivel."""
+    heads: list[int] = []
+    score_calls: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return await super().refine_identity(**kw)
+
+    async def no_score(_photo, _scene, **_k):
+        score_calls.append(1)
+        return None
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "score_face_match", no_score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
+    monkeypatch.setattr(handlers.settings, "gemini_face_retries", 2)
+    monkeypatch.setattr(handlers.settings, "job_max_attempts", 1)
+    monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR")
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    assert "juiz de rosto" in (j.error or "")
+    assert heads == [1, 1]
+    # 2 passes x 2 retries de scoring
+    assert len(score_calls) == 4
+
+
+async def test_avatar_face_judge_exception_retries_then_succeeds(db, mem_storage, monkeypatch):
+    """STO-37: falha transitória do juiz retenta e segue se a nota voltar."""
+    score_calls: list[int] = []
+
+    async def flaky_then_high(_photo, _scene, **_k):
+        score_calls.append(1)
+        if len(score_calls) < 2:
+            raise RuntimeError("juiz offline")
+        return 0.91
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr(handlers, "score_face_match", flaky_then_high)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
+    monkeypatch.setattr(handlers.settings, "gemini_face_retries", 3)
+    monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    j = _job(db, p, "AVATAR")
+
+    await runner.process_job(db, j)
+
+    db.refresh(j)
+    db.refresh(p)
+    assert j.status == JobStatus.DONE.value
+    assert p.status == ProjectStatus.AVATAR_READY.value
+    assert len(score_calls) == 2
+
+
+async def test_avatar_face_judge_recovers_on_second_fal(db, mem_storage, monkeypatch):
+    """STO-37: sem nota no 1º passe → segundo Fal; nota boa no 2º → aceita."""
+    heads: list[int] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            heads.append(1)
+            return ImageResult(
+                image_bytes=f"PASS{len(heads)}".encode(),
+                mime_type="image/png",
+                cost_usd=0.03,
+            )
+
+    async def score(_photo, scene, **_k):
+        if scene == b"PASS2":
+            return 0.91
+        return None
+
+    async def no_sleep(_delay):
+        return None
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
+    monkeypatch.setattr(handlers, "score_face_match", score)
+    monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
+    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
+    monkeypatch.setattr(handlers.settings, "gemini_face_retries", 1)
+    monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
+    _, p = _seed(db)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    await runner.process_job(db, _job(db, p, "AVATAR"))
+    db.refresh(p)
+    assert heads == [1, 1]
+    assert mem_storage[p.character_ref["storage_key"]] == b"PASS2"
+
+
 async def test_story_then_ebook_flow(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())

@@ -1123,13 +1123,37 @@ def _scene_extra_refs(
 async def _score_page_face(
     probe: bytes | None, scene: bytes, *, domain: str = "photo"
 ) -> float | None:
+    """Nota do juiz da pagina, com retry. None so apos esgotar (STO-37).
+
+    Caller usa None para disparar Fal; o portao fail-closed (`_judge_page`)
+    recusa a pagina se a nota continuar ausente.
+    """
     if not settings.ebook_face_match or not probe or not scene:
         return None
-    try:
-        return await _pkg().score_face_match(probe, scene, domain=domain)
-    except Exception:  # noqa: BLE001 - refine segue; o portao fail-closed julga depois
-        logger.warning("Juiz de rosto falhou; pagina segue sem refine")
-        return None
+    attempts = max(1, settings.gemini_face_retries)
+    for attempt in range(1, attempts + 1):
+        try:
+            score = await _pkg().score_face_match(probe, scene, domain=domain)
+        except Exception as exc:  # noqa: BLE001 - retenta; portao fail-closed depois
+            logger.warning(
+                "Juiz de rosto da pagina falhou (tentativa %s/%s): %s",
+                attempt,
+                attempts,
+                exc,
+            )
+            score = None
+        else:
+            if score is not None:
+                return score
+            logger.warning(
+                "Juiz de rosto da pagina sem nota (tentativa %s/%s)",
+                attempt,
+                attempts,
+            )
+        if attempt < attempts:
+            await asyncio.sleep(min(4.0, 0.8 * attempt))
+    logger.warning("Juiz de rosto da pagina sem nota apos retry; segue para Fal/portao")
+    return None
 
 
 async def _judge_page(lock: IdentityLock, scene: bytes, *, avatar: bytes | None):
@@ -1175,7 +1199,7 @@ async def lock_page_identity(
                     line["label"] = f"Página {page_idx} — refine avatar"
         last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
 
-    # None/0: juiz nao achou a cara (wide) ou falhou. Fal cola mesmo assim.
+    # None/0 apos retry do juiz: Fal cola. Portao `_judge_page` falha se continuar.
     needs_fal = photo and (_below(last_score) or last_score is None or last_score == 0.0)
     if not needs_fal:
         return headed, last_score
