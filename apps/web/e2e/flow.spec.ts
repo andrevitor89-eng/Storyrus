@@ -22,6 +22,17 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   const id = () => `id-${++state.seq}`;
 
   await page.route("**/v1/auth/guest", (r) => json(r, { access_token: "e2e-token" }, 201));
+  await page.route("**/v1/auth/refresh", (r) => json(r, { access_token: "e2e-token-refreshed" }));
+  await page.route("**/v1/auth/resume", (r) => json(r, { access_token: "e2e-token-resumed" }));
+  await page.route("**/v1/auth/me", (r) =>
+    json(r, {
+      id: "e2e-user",
+      email: "guest-e2e@storyrus.app",
+      credits: state.credits,
+      created_at: "now",
+      is_guest: true,
+    }),
+  );
   await page.route("**/v1/credits", (r) => json(r, { credits: state.credits }));
   await page.route("**/v1/voices", (r) => json(r, { items: [], custom_voice_available: false }));
 

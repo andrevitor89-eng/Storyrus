@@ -127,7 +127,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   useEffect(() => {
     void refreshMe();
-  }, [refreshMe]);
+    void refreshCredits();
+  }, [refreshMe, refreshCredits]);
 
   async function submitUpgrade(e: FormEvent) {
     e.preventDefault();
