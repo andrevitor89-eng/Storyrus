@@ -66,9 +66,7 @@ class Settings(BaseSettings):
     storage_signing_ttl: int = 600  # segundos
 
     # Politica de negocio
-    # VIDEO nao conta neste limite (ver services/jobs._active_jobs): fica RUNNING por
-    # muito tempo (poll de ate video_poll_timeout_s por tentativa, ate job_max_attempts
-    # tentativas) e travava outras acoes do usuario com 429 falso-positivo.
+    # Limite de jobs PENDING/RUNNING por usuario (inclui VIDEO / NARRATED_VIDEO).
     max_concurrent_jobs_per_user: int = 4
     # Kling image2video aceita só 5s ou 10s; default alinhado ao provedor.
     default_video_duration_s: int = 5

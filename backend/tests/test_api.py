@@ -124,40 +124,62 @@ def test_full_flow_debits_credits_and_is_idempotent(auth_client):
 def test_backpressure_limit(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "anime"}).json()["id"]
     _add_photo(auth_client, pid)
-    # MAX_CONCURRENT_JOBS_PER_USER default = 4 (VIDEO nao entra nessa contagem)
+    # MAX_CONCURRENT_JOBS_PER_USER default = 4
     assert auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": "a"}).status_code == 202
     assert auth_client.post(f"/v1/projects/{pid}/realistic", headers={"Idempotency-Key": "b"}).status_code == 202
     assert auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "c"}).status_code == 202
     assert auth_client.post(f"/v1/projects/{pid}/ebook", headers={"Idempotency-Key": "d"}).status_code == 202
     r5 = auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "e"})
     assert r5.status_code == 429
+    body = r5.json()
+    assert "Limite" in body["detail"]
+    assert body["error"]["code"] == "too_many_requests"
+    assert body["error"]["status"] == 429
+    assert body["error"]["message"] == body["detail"]
 
 
-def test_video_jobs_do_not_count_towards_backpressure(auth_client):
+def test_video_jobs_count_towards_backpressure(auth_client, monkeypatch):
+    """VIDEO / NARRATED_VIDEO entram no mesmo teto de concorrência (STO-17)."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "credit_grant_secret", "test-grant-secret")
     pid = auth_client.post("/v1/projects", json={"style": "anime"}).json()["id"]
     _add_photo(auth_client, pid)
-    # Video fica RUNNING por muito tempo (polling + retries); nao deve consumir
-    # vaga do limite de backpressure junto com os outros tipos de job.
+    # Creditos extras: video custa 5; precisamos de varios jobs ativos.
+    assert (
+        auth_client.post(
+            "/v1/credits/grant",
+            json={"amount": 50},
+            headers={"X-Admin-Secret": "test-grant-secret"},
+        ).status_code
+        == 200
+    )
     assert auth_client.post(
         f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v1"}
     ).status_code == 202
-    # MAX_CONCURRENT_JOBS_PER_USER default = 4 -- os 4 abaixo devem passar mesmo
-    # com o video acima ainda ativo (se video contasse, o 4o falharia com 429).
     assert auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": "a"}).status_code == 202
     assert auth_client.post(f"/v1/projects/{pid}/realistic", headers={"Idempotency-Key": "b"}).status_code == 202
     assert auth_client.post(f"/v1/projects/{pid}/story", headers={"Idempotency-Key": "c"}).status_code == 202
-    assert auth_client.post(f"/v1/projects/{pid}/ebook", headers={"Idempotency-Key": "d"}).status_code == 202
+    # 4 ativos (1 video + 3 outros) — o proximo deve bater no limite.
+    r5 = auth_client.post(f"/v1/projects/{pid}/ebook", headers={"Idempotency-Key": "d"})
+    assert r5.status_code == 429
+    assert r5.json()["error"]["code"] == "too_many_requests"
 
 
 def test_insufficient_credits(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
     _add_photo(auth_client, pid)
-    # Video custa 5; usuario tem 10. Video nao conta para o limite de backpressure,
-    # entao 2 videos batem exatamente no teto de creditos.
+    # Video custa 5; usuario tem 10. Dois videos cabem no teto de concorrencia (4)
+    # e esgotam exatamente os creditos.
     r1 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v1"})
     r2 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v2"})
     assert r1.status_code == 202 and r2.status_code == 202
     assert auth_client.get("/v1/credits").json()["credits"] == 0
+    r3 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v3"})
+    assert r3.status_code == 402
+    body = r3.json()
+    assert body["error"]["code"] == "payment_required"
+    assert body["detail"] == body["error"]["message"]
 
 
 def test_create_defaults_to_cgi_3d(auth_client):

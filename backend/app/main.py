@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app import queue
 from app.config import settings
+from app.errors import register_exception_handlers
 from app.routers import auth, credits, jobs, projects, usage, voices, webhooks
 from app.services import jobs as jobs_svc
 
@@ -19,6 +20,8 @@ app = FastAPI(
     version="0.1.0",
     description="Foto -> personagem -> ebook -> video. Pipeline assincrono com creditos.",
 )
+
+register_exception_handlers(app)
 
 app.add_middleware(
     CORSMiddleware,
