@@ -1,8 +1,16 @@
 """Testes do fluxo: auth, creditos, idempotencia, backpressure, ownership."""
 
 
-def test_health(client):
-    assert client.get("/health").json()["status"] == "ok"
+def test_health(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "elevenlabs_api_key", "sk-test-eleven")
+    body = client.get("/health").json()
+    assert body["status"] == "ok"
+    assert "env" in body
+    # STO-28: /health nao deve vazar se ElevenLabs (ou outros vendors) estao ligados.
+    assert "has_elevenlabs" not in body
+    assert "elevenlabs" not in body
 
 
 def test_signup_gives_bonus_credits(client):

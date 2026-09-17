@@ -42,6 +42,24 @@ describe("Painel /gastos", () => {
     expect(screen.getByRole("heading", { name: /extrato/i })).toBeInTheDocument();
   });
 
+  it("mostra alerta de lockout quando a API devolve 429", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server } = await import("./test/server");
+    server.use(
+      http.get("*/v1/usage", () =>
+        HttpResponse.json(
+          { detail: "Muitas tentativas; tente mais tarde" },
+          { status: 429 },
+        ),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<Usage />);
+    await user.type(screen.getByLabelText(/senha/i), "qualquer");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByText(/muitas tentativas/i)).toBeInTheDocument();
+  });
+
   it("mostra alertas de custo quando a API devolve anomalies", async () => {
     const { http, HttpResponse } = await import("msw");
     const { server } = await import("./test/server");

@@ -41,18 +41,68 @@ def _seed_job(client, *, cost_usd, job_type="EBOOK", child="Matteo"):
 
 def test_usage_without_password_configured_is_503(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", None)
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     r = client.get("/v1/usage")
     assert r.status_code == 503
 
 
 def test_usage_wrong_password_is_401(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "usage_lockout_max_attempts", 10)
     r = client.get("/v1/usage", headers={"X-Usage-Password": "errada"})
     assert r.status_code == 401
 
 
+def test_usage_accepts_previous_password_during_rotation(client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "nova")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", "antiga")
+    monkeypatch.setattr(settings, "usage_lockout_max_attempts", 10)
+    r = client.get("/v1/usage", headers={"X-Usage-Password": "antiga"})
+    assert r.status_code == 200, r.text
+
+
+def test_usage_lockout_after_failed_attempts(client, monkeypatch):
+    from app import rate_limit
+
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "usage_lockout_max_attempts", 3)
+    monkeypatch.setattr(settings, "usage_lockout_window_s", 900)
+    rate_limit.reset()
+
+    for _ in range(3):
+        r = client.get("/v1/usage", headers={"X-Usage-Password": "errada"})
+        assert r.status_code in (401, 429)
+    locked = client.get("/v1/usage", headers={"X-Usage-Password": "errada"})
+    assert locked.status_code == 429
+    # Mesmo senha correta fica bloqueada ate a janela passar / clear.
+    still = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert still.status_code == 429
+
+
+def test_usage_success_clears_lockout_counter(client, monkeypatch):
+    from app import rate_limit
+
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "usage_lockout_max_attempts", 3)
+    monkeypatch.setattr(settings, "usage_lockout_window_s", 900)
+    rate_limit.reset()
+
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    ok = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert ok.status_code == 200, ok.text
+    # Contador zerado: mais 2 falhas nao devem lockar ainda.
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "errada"}).status_code == 401
+    assert client.get("/v1/usage", headers={"X-Usage-Password": "segredo"}).status_code == 200
+
+
 def test_usage_sums_seeded_jobs(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     _seed_job(auth_client, cost_usd=1.25, job_type="EBOOK")
     _seed_job(auth_client, cost_usd=0.25, job_type="STORY")
     _seed_job(auth_client, cost_usd=None, job_type="AVATAR")
@@ -77,6 +127,7 @@ def test_usage_sums_seeded_jobs(auth_client, monkeypatch):
 
 def test_usage_lists_named_image_events(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     project_id = _seed_job(auth_client, cost_usd=0.078, job_type="EBOOK")
     db = _session(auth_client)
     try:

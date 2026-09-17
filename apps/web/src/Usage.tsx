@@ -61,6 +61,11 @@ export function Usage() {
         setPassword("");
         setData(null);
         setError("Senha inválida.");
+      } else if (status === 429) {
+        sessionStorage.removeItem(STORAGE_KEY);
+        setPassword("");
+        setData(null);
+        setError("Muitas tentativas. Aguarde e tente de novo.");
       } else if (status === 503) {
         setError("Painel ainda não configurado no servidor.");
       } else {

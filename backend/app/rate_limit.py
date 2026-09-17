@@ -72,6 +72,63 @@ def allow(key: str, limit: int, window_s: float) -> bool:
     return _allow_memory(key, limit, window_s)
 
 
+def _blocked_memory(key: str, limit: int, window_s: float) -> bool:
+    if limit <= 0:
+        return False
+    now = time.monotonic()
+    with _lock:
+        bucket = _windows[key]
+        _prune(bucket, now, window_s)
+        return len(bucket) >= limit
+
+
+def _blocked_redis(key: str, limit: int) -> bool | None:
+    """True/False se Redis respondeu; None se indisponivel."""
+    if limit <= 0:
+        return False
+    try:
+        from app import queue
+
+        client = queue._redis()
+        if client is None:
+            return None
+        raw = client.get(f"stories:rl:{key}")
+        if raw is None:
+            return False
+        return int(raw) >= limit
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("rate limit Redis peek falhou (%s); usando memoria", exc)
+        return None
+
+
+def blocked(key: str, limit: int, window_s: float) -> bool:
+    """True se o bucket ja esta no limite (sem consumir)."""
+    redis_ok = _blocked_redis(key, limit)
+    if redis_ok is not None:
+        return redis_ok
+    return _blocked_memory(key, limit, window_s)
+
+
+def hit(key: str, window_s: float) -> None:
+    """Registra 1 evento na janela (ex. falha de senha)."""
+    # limit alto: so queremos INCR/append, nao rejeitar aqui.
+    allow(key, limit=10**9, window_s=window_s)
+
+
+def clear_key(key: str) -> None:
+    """Zera o bucket (ex. senha correta apos tentativas)."""
+    try:
+        from app import queue
+
+        client = queue._redis()
+        if client is not None:
+            client.delete(f"stories:rl:{key}")
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("rate limit Redis clear falhou (%s)", exc)
+    with _lock:
+        _windows.pop(key, None)
+
+
 def client_ip(request) -> str:
     """IP efetivo: X-Forwarded-For (primeiro) ou peer do socket."""
     forwarded = request.headers.get("x-forwarded-for") or ""
