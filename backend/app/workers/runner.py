@@ -95,7 +95,11 @@ async def _heartbeat_loop(job_id: uuid.UUID, stop: asyncio.Event) -> None:
 
 
 def claim_next(db: Session) -> Job | None:
-    """Pega o proximo job PENDING e marca como RUNNING (atomico)."""
+    """Pega o proximo job PENDING e marca como RUNNING (atomico).
+
+    Ordena por `created_at` ASC (FIFO). Em Postgres o scan usa
+    `ix_jobs_status_created_at` (status, created_at) — ver migration 0013.
+    """
     stmt = (
         select(Job)
         .where(Job.status == JobStatus.PENDING.value)
