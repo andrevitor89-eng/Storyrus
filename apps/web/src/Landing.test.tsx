@@ -81,10 +81,12 @@ describe("Landing — tema", () => {
     renderLanding();
 
     await screen.findByTestId("landing-hero-cta");
+    expect(screen.getByRole("button", { name: /alternar tema/i })).toHaveTextContent(/claro/i);
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
 
     await user.click(screen.getByRole("button", { name: /alternar tema/i }));
+    expect(screen.getByRole("button", { name: /alternar tema/i })).toHaveTextContent(/escuro/i);
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(localStorage.getItem("theme")).toBe("light");
 
@@ -98,6 +100,19 @@ describe("Landing — tema", () => {
 
     await screen.findByTestId("landing-hero-cta");
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+  });
+});
+
+describe("Landing — promessa", () => {
+  it("destaca presente no título e usa a nova copy em PT", async () => {
+    renderLanding();
+
+    await screen.findByTestId("landing-hero-cta");
+    const heading = screen.getByRole("heading", { name: /um presente personalizado para eternizar momentos inesquecíveis/i });
+    expect(within(heading).getByText(/^presente$/i)).toHaveClass("promise-mark");
+    expect(
+      screen.getByText(/da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida\./i),
+    ).toBeInTheDocument();
   });
 });
 
