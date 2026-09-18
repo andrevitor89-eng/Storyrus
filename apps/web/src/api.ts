@@ -3,7 +3,6 @@ import type {
   JobAccepted,
   Project,
   StoryTemplate,
-  Theme,
   UploadUrl,
   UsageReport,
   UserVoice,
@@ -272,18 +271,21 @@ export const api = {
   async credits() {
     return req<{ credits: number }>("/v1/credits");
   },
-  async createProject(
-    theme?: Theme, extraTheme?: Theme, childName?: string, dedication?: string,
-    childAge?: number,
-  ) {
+  async createProject(input: {
+    theme?: string;
+    childName?: string;
+    dedication?: string;
+    childAge?: number;
+  } = {}) {
+    const theme = input.theme?.trim().slice(0, 32) || undefined;
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
-        style: "cgi_3d", theme,
-        extra_theme: extraTheme || undefined,
-        child_name: childName?.trim() || undefined,
-        child_age: childAge ?? undefined,
-        dedication: dedication?.trim() || undefined,
+        style: "cgi_3d",
+        theme,
+        child_name: input.childName?.trim() || undefined,
+        child_age: input.childAge ?? undefined,
+        dedication: input.dedication?.trim() || undefined,
       }),
     });
   },

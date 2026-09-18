@@ -50,16 +50,22 @@ describe("Studio a11y", () => {
     expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveAttribute("id", "studio-main");
     expect(screen.getByRole("heading", { name: /crie a sua história/i })).toBeInTheDocument();
+    expect(screen.getByLabelText(/nome da criança/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/título do livro/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/tema da história/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
 
-    const adventure = screen.getByRole("button", { name: /aventura/i });
-    expect(adventure).toHaveAttribute("aria-pressed", "true");
-
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/idade/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/tema da história/i), "Aventura no espaço");
+    const fileInput = screen.getByTestId("studio-photo-input");
+    await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /criar projeto/i }));
 
-    const inventTab = await screen.findByRole("tab", { name: /inventar com ia/i });
-    expect(inventTab).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tabpanel")).toBeInTheDocument();
-    expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
+    expect(await screen.findByTestId("studio-project")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
   });
 });
 
@@ -70,6 +76,12 @@ describe("Polling do estúdio", () => {
     const user = userEvent.setup();
     render(<App />);
 
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/idade/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/tema da história/i), "Aventura no espaço");
+    await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(await screen.findByRole("button", { name: /criar projeto/i }));
     await user.click(screen.getByRole("button", { name: /gerar história com ia/i }));
     expect(await screen.findByText("STORY")).toBeInTheDocument();

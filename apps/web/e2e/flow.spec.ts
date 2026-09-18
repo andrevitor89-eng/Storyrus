@@ -131,18 +131,19 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
 
   await expect(page.getByTestId("studio-credits")).toContainText(/créditos:\s*10/i);
 
-  await page.getByTestId("studio-create-project").click();
-  await expect(page.getByTestId("studio-project")).toBeVisible();
-  await expect(page.getByTestId("studio-project").getByRole("heading", { level: 2 })).toBeVisible();
-
+  await page.getByLabel("Nome da criança").fill("Lila");
+  await page.getByLabel("Idade").fill("5");
+  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
+  await page.getByLabel("Tema da história").fill("Aventura no espaço");
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
     buffer: Buffer.from("x"),
   });
-  await expect(page.getByTestId("studio-upload-photo")).toBeDisabled();
   await page.getByTestId("studio-media-consent").check();
-  await page.getByTestId("studio-upload-photo").click();
+  await page.getByTestId("studio-create-project").click();
+  await expect(page.getByTestId("studio-project")).toBeVisible();
+  await expect(page.getByTestId("studio-project").getByRole("heading", { level: 2 })).toBeVisible();
   // Job rows use stable test ids (avoids colliding with AVATAR_READY / STORY_READY status text).
   await expect(page.getByTestId("studio-job-type-AVATAR")).toBeVisible();
   await expect(page.getByTestId("studio-job-AVATAR")).toHaveAttribute("data-job-status", "DONE", {
@@ -161,6 +162,16 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await mockApi(page, state);
   await page.goto("/app");
 
+  await page.getByLabel("Nome da criança").fill("Lila");
+  await page.getByLabel("Idade").fill("5");
+  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
+  await page.getByLabel("Tema da história").fill("Aventura no espaço");
+  await page.getByTestId("studio-photo-input").setInputFiles({
+    name: "foto.jpg",
+    mimeType: "image/jpeg",
+    buffer: Buffer.from("x"),
+  });
+  await page.getByTestId("studio-media-consent").check();
   await page.getByTestId("studio-create-project").click();
   await expect(page.getByTestId("studio-mount-ebook")).toBeDisabled();
 });
