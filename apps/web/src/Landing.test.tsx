@@ -116,6 +116,20 @@ describe("Landing — promessa", () => {
   });
 });
 
+describe("Landing — avaliações", () => {
+  it("mostra capas quadradas com só o nome da criança", async () => {
+    renderLanding();
+
+    const reviews = (await screen.findByRole("heading", { name: /o que as famílias dizem/i })).closest("section") as HTMLElement;
+    expect(within(reviews).getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("capa-martin-goleiro.jpg"));
+    expect(within(reviews).getByTestId("landing-review-cover-1")).toHaveAttribute("src", expect.stringContaining("capa-emilia-bailarina.jpg"));
+    expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
+    expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Emilia$/);
+    expect(within(reviews).getByTestId("landing-review-name-3")).toHaveTextContent(/^Maria Jesus$/);
+    expect(within(reviews).queryByText(/o Grande Goleiro do Chile/i)).not.toBeInTheDocument();
+  });
+});
+
 describe("Landing — FAQ", () => {
   it("abre e fecha item; só um fica expandido por vez", async () => {
     const user = userEvent.setup();
