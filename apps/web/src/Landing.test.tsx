@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "./Landing";
@@ -142,6 +142,27 @@ describe("Landing — FAQ", () => {
 });
 
 describe("Landing — menu mobile e abas do hero", () => {
+  it("fecha dropdown desktop com clique fora e Escape", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    await screen.findByTestId("landing-hero-cta");
+    const catButtons = screen.getAllByRole("button").filter((button) => button.getAttribute("aria-haspopup") === "true");
+    expect(catButtons.length).toBeGreaterThan(0);
+
+    fireEvent.mouseEnter(catButtons[0].parentElement as HTMLElement);
+    expect(catButtons[0]).toHaveAttribute("aria-expanded", "true");
+
+    await user.click(document.body);
+    expect(catButtons[0]).toHaveAttribute("aria-expanded", "false");
+
+    fireEvent.mouseEnter(catButtons[0].parentElement as HTMLElement);
+    expect(catButtons[0]).toHaveAttribute("aria-expanded", "true");
+
+    await user.keyboard("{Escape}");
+    expect(catButtons[0]).toHaveAttribute("aria-expanded", "false");
+  });
+
   it("abre/fecha o menu e Escape fecha", async () => {
     const user = userEvent.setup();
     renderLanding();
@@ -158,6 +179,27 @@ describe("Landing — menu mobile e abas do hero", () => {
     await user.keyboard("{Escape}");
     expect(menuBtn).toHaveAttribute("aria-expanded", "false");
     expect(siteMenu).not.toHaveClass("open");
+  });
+
+  it("organiza o menu mobile com categorias e acessos rapidos", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const menuBtn = await screen.findByTestId("landing-menu");
+    const siteMenu = screen.getByTestId("landing-site-menu");
+
+    await user.click(menuBtn);
+
+    expect(within(siteMenu).getByText(/categorias/i)).toBeInTheDocument();
+    expect(within(siteMenu).getByText(/acessos r[aá]pidos/i)).toBeInTheDocument();
+
+    const mobileCatButtons = within(siteMenu).getAllByRole("button");
+    expect(mobileCatButtons.length).toBeGreaterThan(0);
+    expect(mobileCatButtons[0]).toHaveAttribute("aria-expanded", "false");
+
+    await user.click(mobileCatButtons[0]);
+    expect(mobileCatButtons[0]).toHaveAttribute("aria-expanded", "true");
+    expect(within(siteMenu).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/app");
   });
 
   it("troca o livro de exemplo no hero via tabs", async () => {
