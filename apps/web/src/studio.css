@@ -1,0 +1,191 @@
+/* Estúdio (/app) — mesma superfície visual da landing (.kid), sem alterar landing.css */
+
+.studio-app.kid {
+  padding-top: var(--khead-h);
+}
+
+.studio-app .studio-page {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 28px var(--page-gutter) 64px;
+  box-sizing: border-box;
+}
+
+.studio-app .studio-card {
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(31, 53, 104, 0.1);
+  border-radius: 22px;
+  padding: 1.75rem 1.6rem;
+  box-shadow: 0 18px 48px rgba(31, 53, 104, 0.1);
+  margin-bottom: 1.25rem;
+}
+
+.studio-app .studio-card h2 {
+  margin: 0 0 0.35rem;
+  font-size: 1.55rem;
+  color: var(--ink);
+}
+
+.studio-app .studio-slogan {
+  margin: 0 0 1.25rem;
+  color: #5a6a8f;
+  font-size: 1.02rem;
+  line-height: 1.5;
+}
+
+.studio-app .studio-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (min-width: 640px) {
+  .studio-app .studio-grid.two {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.studio-app label.studio-field {
+  display: block;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: #4a5880;
+}
+
+.studio-app label.studio-field input,
+.studio-app label.studio-field textarea {
+  display: block;
+  width: 100%;
+  margin-top: 0.35rem;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid rgba(31, 53, 104, 0.14);
+  border-radius: 14px;
+  background: #fffdf8;
+  color: var(--ink);
+  font: inherit;
+  box-sizing: border-box;
+}
+
+.studio-app label.studio-field textarea {
+  resize: vertical;
+  min-height: 88px;
+}
+
+.studio-app label.studio-field input:focus,
+.studio-app label.studio-field textarea:focus {
+  outline: none;
+  border-color: var(--mint);
+  box-shadow: 0 0 0 3px rgba(63, 143, 125, 0.18);
+}
+
+.studio-app .studio-upload-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.studio-app .studio-upload-row input[type="file"] {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 0.55rem;
+  border-radius: 12px;
+  border: 1.5px dashed rgba(31, 53, 104, 0.2);
+  background: #fff;
+}
+
+.studio-app .studio-consent {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin: 1rem 0 0.5rem;
+  font-size: 0.9rem;
+  color: #4a5880;
+  font-weight: 600;
+}
+
+.studio-app .studio-consent input {
+  margin-top: 0.2rem;
+  width: auto;
+}
+
+.studio-app .studio-meta {
+  margin: 0 0 1rem;
+  font-size: 0.92rem;
+  color: #5a6a8f;
+}
+
+.studio-app .studio-meta b {
+  color: var(--ink);
+}
+
+.studio-app .studio-actions {
+  margin-top: 1.25rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.studio-app .studio-credits-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: #182343;
+  color: #e9eefb;
+  font-weight: 800;
+  font-size: 0.92rem;
+}
+
+.studio-app .studio-error {
+  color: #c44d3f;
+  font-weight: 700;
+  margin: 0 0 1rem;
+}
+
+.studio-app .demo-banner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(127, 178, 227, 0.25), rgba(244, 183, 64, 0.2));
+  margin-bottom: 1rem;
+}
+
+.studio-app .upgrade-form label {
+  display: block;
+  margin: 0.75rem 0 0.35rem;
+}
+
+.studio-app .upgrade-form input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Reuso de utilitários globais do app dentro da landing */
+.studio-app .story,
+.studio-app .story-input {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.studio-app .results .result-block {
+  margin-top: 1.25rem;
+}
+
+.studio-app button.link {
+  background: none;
+  box-shadow: none;
+  color: var(--purple);
+  padding: 0.35rem 0;
+}
+
+[data-theme="light"] .studio-app .studio-card {
+  background: #fff;
+}

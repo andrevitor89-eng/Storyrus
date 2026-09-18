@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { api } from "./api";
-import type { ExtraCharacter, Job, Project, StoryTemplate, Theme } from "./types";
+import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import logo from "./assets/logo.png";
 import type { StudioAssets } from "./studio/assets";
-import { THEMES, resolveThemeName } from "./studio/constants";
+import { resolveThemeName } from "./studio/constants";
 import { ProgressList } from "./studio/ProgressList";
 import { VoiceNarrationPanel } from "./studio/VoiceNarrationPanel";
 import { EbookStepButtons, VideoStepButtons } from "./studio/StepButtons";
@@ -18,10 +18,10 @@ import {
   useStudioI18n,
   useStudioLangState,
 } from "./studio/useStudioI18n";
+import "./landing.css";
+import "./studio.css";
 
 export { ProgressList } from "./studio/ProgressList";
-
-type StoryMode = "invent" | "write" | "file" | "catalog";
 
 export function Studio({ onLogout }: { onLogout?: () => void }) {
   const langState = useStudioLangState();
@@ -40,29 +40,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [upgradeEmail, setUpgradeEmail] = useState("");
   const [upgradePassword, setUpgradePassword] = useState("");
   const [upgradeBusy, setUpgradeBusy] = useState(false);
-  const [selectedThemes, setSelectedThemes] = useState<Theme[]>(["adventure"]);
-  const theme = selectedThemes[0] ?? "adventure";
-  const extraTheme = selectedThemes[1];
-  function toggleTheme(id: Theme) {
-    setSelectedThemes((prev) => {
-      if (prev.includes(id)) return prev.filter((x) => x !== id);
-      if (prev.length >= 2) return [prev[1], id];
-      return [...prev, id];
-    });
-  }
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoUploaded, setPhotoUploaded] = useState(false);
-  const [extraChars, setExtraChars] = useState<ExtraCharacter[]>([]);
-  const [extraCharFile, setExtraCharFile] = useState<File | null>(null);
-  const [extraCharName, setExtraCharName] = useState("");
-  const [storyMode, setStoryMode] = useState<StoryMode>("invent");
-  const [storyText, setStoryText] = useState("");
-  const [templates, setTemplates] = useState<StoryTemplate[] | null>(null);
-  const [appliedTemplate, setAppliedTemplate] = useState<string | null>(null);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
+  const [bookTitle, setBookTitle] = useState("");
+  const [themeText, setThemeText] = useState("");
   const [dedication, setDedication] = useState("");
   const [assets, setAssets] = useState<StudioAssets | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -80,27 +65,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (demoIdFromSearch()) return;
-    const q = new URLSearchParams(window.location.search).get("tema");
-    if (q && THEMES.some((x) => x.id === q)) setSelectedThemes([q as Theme]);
-  }, []);
-
-  useEffect(() => {
-    if (demoIdFromSearch()) return;
-    const h = new URLSearchParams(window.location.search).get("historia");
-    if (!h) return;
-    setStoryMode("catalog");
-    api.storyTemplates().then(setTemplates).catch((e) => setError((e as Error).message));
-  }, []);
-
-  useEffect(() => {
     if (!isDemo) return;
     const demo = getDemoExample();
-    setSelectedThemes(demo.themes);
     setChildName(demo.childName);
     setChildAge(demo.childAge);
+    setBookTitle(demo.bookTitle);
+    setThemeText(demo.themeText);
     setDedication(demo.dedication);
-    setStoryText(demo.project.story_text ?? "");
     setProject(demo.project);
     setAssets(demo.assets);
     setPhotoUploaded(true);
@@ -129,6 +100,31 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     void refreshMe();
     void refreshCredits();
   }, [refreshMe, refreshCredits]);
+
+  const getStoryBrief = useCallback(() => {
+    const name = childName.trim();
+    const title = bookTitle.trim();
+    const theme = themeText.trim();
+    if (lang === "en") {
+      return (
+        `Invent an original children's story. The book title must be: "${title}". ` +
+        `Theme and ideas from the guardian: ${theme}. ` +
+        (name ? `The hero's name is ${name}.` : "")
+      );
+    }
+    if (lang === "es") {
+      return (
+        `Inventa una historia infantil original. El título del libro debe ser: "${title}". ` +
+        `Tema e ideas del responsable: ${theme}. ` +
+        (name ? `El protagonista se llama ${name}.` : "")
+      );
+    }
+    return (
+      `Invente uma história infantil original. O título do livro deve ser: "${title}". ` +
+      `Tema e ideias do responsável: ${theme}. ` +
+      (name ? `O protagonista se chama ${name}.` : "")
+    );
+  }, [bookTitle, childName, lang, themeText]);
 
   async function submitUpgrade(e: FormEvent) {
     e.preventDefault();
@@ -179,6 +175,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     project,
     isDemo,
     selectedVoiceId,
+    getStoryBrief,
     setBusy,
     setError,
     setJobs,
@@ -202,26 +199,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   async function start() {
     if (isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const age = childAge.trim() === "" ? undefined : Number(childAge);
-      const p = await api.createProject(theme, extraTheme, childName, dedication, age);
-      setProject(p);
-      setJobs([]);
-      setPhotoUploaded(false);
-      setAssets(null);
-      setStoryText("");
-      setMediaConsent(false);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
+    if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "") {
+      setError(t.errMissingFields);
+      return;
     }
-  }
-
-  async function upload() {
-    if (!project || !photo || isDemo) return;
+    if (!photo) {
+      setError(t.errPhotoRequired);
+      return;
+    }
     if (!mediaConsent) {
       setError(t.errConsentPhoto);
       return;
@@ -229,107 +214,21 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setBusy(true);
     setError(null);
     try {
-      await api.uploadPhoto(project.id, photo);
+      const age = Number(childAge);
+      const p = await api.createProject({
+        theme: themeText.trim(),
+        childName,
+        dedication,
+        childAge: Number.isNaN(age) ? undefined : age,
+      });
+      setProject(p);
+      setJobs([]);
+      setAssets(null);
+      setMediaConsent(true);
+      await api.uploadPhoto(p.id, photo);
       setPhotoUploaded(true);
-      await api.startStep(project.id, "avatar", {});
-      const js = await api.listJobs(project.id);
-      setJobs(js);
-      refreshCredits();
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function saveStory() {
-    if (!project || !storyText.trim() || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const p = await api.setStoryText(project.id, storyText);
-      setProject(p);
-      const js = await api.listJobs(project.id);
-      setJobs(js);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function openCatalog() {
-    setStoryMode("catalog");
-    if (templates) return;
-    try {
-      setTemplates(await api.storyTemplates());
-    } catch (e) {
-      setError((e as Error).message);
-    }
-  }
-
-  async function applyTemplate(templateId: string) {
-    if (!project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const p = await api.applyStoryTemplate(project.id, templateId);
-      setProject(p);
-      setAppliedTemplate(templateId);
-      const js = await api.listJobs(project.id);
-      setJobs(js);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onStoryFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file || !project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      const { text } = await api.extractStory(project.id, file);
-      setStoryText(text);
-      setStoryMode("write");
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function uploadExtraCharacter() {
-    if (!project || !extraCharFile || isDemo) return;
-    if (!mediaConsent) {
-      setError(t.errConsentExtra);
-      return;
-    }
-    setBusy(true);
-    setError(null);
-    try {
-      await api.uploadExtraCharacter(project.id, extraCharFile, extraCharName);
-      const p = await api.getProject(project.id);
-      setProject(p);
-      setExtraChars(p.extra_characters || []);
-      setExtraCharFile(null);
-      setExtraCharName("");
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function generateExtraCharacters() {
-    if (!project || isDemo) return;
-    setBusy(true);
-    setError(null);
-    try {
-      await api.startStep(project.id, "extra-character", {});
-      const js = await api.listJobs(project.id);
+      await api.startStep(p.id, "avatar", {});
+      const js = await api.listJobs(p.id);
       setJobs(js);
       refreshCredits();
     } catch (e) {
@@ -358,79 +257,94 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setMediaConsent(false);
     setChildName("");
     setChildAge("");
+    setBookTitle("");
+    setThemeText("");
     setDedication("");
-    setStoryText("");
     setJobs([]);
-    setAppliedTemplate(null);
   }
 
-  function themeChipLabel(id: Theme) {
-    return t.themes[id];
+  function toggleColorTheme() {
+    const cur =
+      document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
+    document.documentElement.setAttribute("data-theme", cur);
+    try {
+      localStorage.setItem("theme", cur);
+    } catch {
+      /* ignore */
+    }
   }
+
+  const fieldsLocked = !!project;
 
   return (
-    <div className="studio">
-      <header role="banner">
-        <img className="hdr-logo" src={logo} alt="Story R Us" />
-        <strong>Story R Us</strong>
-        <span className="spacer" />
-        <div className="studio-lang" role="group" aria-label={t.langAria} data-testid="studio-lang">
-          {langs.map((code) => (
-            <button
-              key={code}
-              type="button"
-              className={`chip ${lang === code ? "on" : ""}`}
-              aria-pressed={lang === code}
-              onClick={() => setLang(code)}
-            >
-              {code.toUpperCase()}
-            </button>
-          ))}
+    <div className="kid studio-app">
+      <header className="khead" role="banner">
+        <div className="khead-inner">
+          <a href="/" className="kbrand" aria-label="Story R Us">
+            <img className="hdr-logo" src={logo} alt="Story R Us" />
+          </a>
+          <div className="khead-main">
+            <div className="khead-top">
+              <div className="khead-top-inner">
+                <div className="khead-utils">
+                  <div
+                    className="lang"
+                    role="group"
+                    aria-label={t.langAria}
+                    data-testid="studio-lang"
+                  >
+                    {langs.map((code) => (
+                      <button
+                        key={code}
+                        type="button"
+                        className={lang === code ? "on" : ""}
+                        aria-pressed={lang === code}
+                        onClick={() => setLang(code)}
+                      >
+                        {code.toUpperCase()}
+                      </button>
+                    ))}
+                  </div>
+                  <button
+                    type="button"
+                    className="kutil"
+                    onClick={toggleColorTheme}
+                    aria-label={t.themeToggleAria}
+                  >
+                    {t.theme}
+                  </button>
+                  <span className="studio-credits-pill" data-testid="studio-credits" aria-live="polite">
+                    {t.credits}: {credits ?? "…"}
+                  </span>
+                  {isGuest && (
+                    <button
+                      type="button"
+                      className="kutil"
+                      data-testid="studio-upgrade-open"
+                      aria-expanded={showUpgrade}
+                      aria-controls="studio-upgrade-form"
+                      onClick={() => setShowUpgrade((v) => !v)}
+                    >
+                      {t.upgradeOpen}
+                    </button>
+                  )}
+                  {onLogout && (
+                    <button type="button" className="kutil link" onClick={onLogout}>
+                      {t.logout}
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
-        <button
-          type="button"
-          className="chip"
-          onClick={() => {
-            const cur =
-              document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
-            document.documentElement.setAttribute("data-theme", cur);
-            try {
-              localStorage.setItem("theme", cur);
-            } catch {
-              /* ignore */
-            }
-          }}
-          aria-label={t.themeToggleAria}
-        >
-          {t.theme}
-        </button>
-        <span className="credits" data-testid="studio-credits" aria-live="polite">
-          {t.credits}: {credits ?? "…"}
-        </span>
-        {isGuest && (
-          <button
-            type="button"
-            className="chip"
-            data-testid="studio-upgrade-open"
-            aria-expanded={showUpgrade}
-            aria-controls="studio-upgrade-form"
-            onClick={() => setShowUpgrade((v) => !v)}
-          >
-            {t.upgradeOpen}
-          </button>
-        )}
-        {onLogout && (
-          <button type="button" className="link" onClick={onLogout}>
-            {t.logout}
-          </button>
-        )}
       </header>
 
-      <main id="studio-main" aria-busy={busy || undefined}>
+      <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
         {showUpgrade && isGuest && (
           <form
             id="studio-upgrade-form"
-            className="card upgrade-form"
+            className="studio-card upgrade-form"
             onSubmit={submitUpgrade}
             data-testid="studio-upgrade-form"
           >
@@ -459,8 +373,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 onChange={(e) => setUpgradePassword(e.target.value)}
               />
             </label>
-            <div className="upload">
-              <button type="submit" disabled={upgradeBusy} data-testid="studio-upgrade-submit">
+            <div className="studio-actions">
+              <button type="submit" className="kbtn kbtn-primary" disabled={upgradeBusy} data-testid="studio-upgrade-submit">
                 {upgradeBusy ? t.upgradeSaving : t.upgradeSubmit}
               </button>
               <button type="button" className="link" onClick={() => setShowUpgrade(false)}>
@@ -473,126 +387,84 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         {isDemo && (
           <div className="demo-banner" role="status" aria-live="polite">
             <p>{t.demoBanner}</p>
-            <button type="button" onClick={exitDemo}>
+            <button type="button" className="kbtn kbtn-soft" onClick={exitDemo}>
               {t.demoCta}
             </button>
           </div>
         )}
 
         {error && (
-          <p className="error" role="alert">
+          <p className="studio-error" role="alert">
             {error}
           </p>
         )}
 
-        <section className="card" aria-labelledby="studio-create-heading">
+        <section className="studio-card" aria-labelledby="studio-create-heading">
           <h2 id="studio-create-heading">{t.createTitle}</h2>
           {project ? (
-            <p className="muted">{t.projectLocked}</p>
+            <p className="studio-meta">{t.projectLocked}</p>
           ) : (
-            <p className="slogan">{t.slogan}</p>
+            <p className="studio-slogan">{t.slogan}</p>
           )}
 
-          <h3 className="field-label" id="studio-themes-aventura">
-            {t.pickThemes}
-          </h3>
-          <p className="muted">{t.pickThemesHint}</p>
-          <div className="styles" role="group" aria-labelledby="studio-themes-aventura">
-            {THEMES.filter((x) => x.group === "aventura").map((x) => {
-              const order = selectedThemes.indexOf(x.id);
-              return (
-                <button
-                  key={x.id}
-                  type="button"
-                  disabled={!!project}
-                  className={`chip ${order >= 0 ? "on" : ""}`}
-                  aria-pressed={order >= 0}
-                  onClick={() => toggleTheme(x.id)}
-                >
-                  {x.emoji} {themeChipLabel(x.id)}
-                  {order >= 0 ? ` · ${order + 1}` : ""}
-                </button>
-              );
-            })}
+          <div className="studio-grid two">
+            <label className="studio-field">
+              {t.childName}
+              <input
+                disabled={fieldsLocked}
+                value={childName}
+                onChange={(e) => setChildName(e.target.value)}
+                placeholder={t.childNamePh}
+                maxLength={80}
+              />
+            </label>
+            <label className="studio-field">
+              {t.childAge}
+              <input
+                disabled={fieldsLocked}
+                type="number"
+                inputMode="numeric"
+                min={0}
+                max={12}
+                value={childAge}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  if (v === "") return setChildAge("");
+                  const n = Math.max(0, Math.min(12, Math.floor(Number(v))));
+                  setChildAge(Number.isNaN(n) ? "" : String(n));
+                }}
+                placeholder={t.childAgePh}
+              />
+            </label>
           </div>
 
-          <h3 className="field-label" id="studio-themes-datas">
-            {t.groupDatas}
-          </h3>
-          <div className="styles" role="group" aria-labelledby="studio-themes-datas">
-            {THEMES.filter((x) => x.group === "datas").map((x) => {
-              const order = selectedThemes.indexOf(x.id);
-              return (
-                <button
-                  key={x.id}
-                  type="button"
-                  disabled={!!project}
-                  className={`chip ${order >= 0 ? "on" : ""}`}
-                  aria-pressed={order >= 0}
-                  onClick={() => toggleTheme(x.id)}
-                >
-                  {x.emoji} {themeChipLabel(x.id)}
-                  {order >= 0 ? ` · ${order + 1}` : ""}
-                </button>
-              );
-            })}
-          </div>
-
-          <h3 className="field-label" id="studio-themes-educativo">
-            {t.groupEducativo}
-          </h3>
-          <div className="styles" role="group" aria-labelledby="studio-themes-educativo">
-            {THEMES.filter((x) => x.group === "educativo").map((x) => {
-              const order = selectedThemes.indexOf(x.id);
-              return (
-                <button
-                  key={x.id}
-                  type="button"
-                  disabled={!!project}
-                  className={`chip ${order >= 0 ? "on" : ""}`}
-                  aria-pressed={order >= 0}
-                  onClick={() => toggleTheme(x.id)}
-                >
-                  {x.emoji} {themeChipLabel(x.id)}
-                  {order >= 0 ? ` · ${order + 1}` : ""}
-                </button>
-              );
-            })}
-          </div>
-
-          <h3 className="field-label">{t.nameAgeDedication}</h3>
-          <label>
-            {t.childName}
+          <label className="studio-field">
+            {t.bookTitle}
             <input
-              disabled={!!project}
-              value={childName}
-              onChange={(e) => setChildName(e.target.value)}
-              placeholder={t.childNamePh}
-              maxLength={80}
+              disabled={fieldsLocked}
+              value={bookTitle}
+              onChange={(e) => setBookTitle(e.target.value)}
+              placeholder={t.bookTitlePh}
+              maxLength={120}
             />
           </label>
-          <label>
-            {t.childAge}
-            <input
-              disabled={!!project}
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={12}
-              value={childAge}
-              onChange={(e) => {
-                const v = e.target.value;
-                if (v === "") return setChildAge("");
-                const n = Math.max(0, Math.min(12, Math.floor(Number(v))));
-                setChildAge(Number.isNaN(n) ? "" : String(n));
-              }}
-              placeholder={t.childAgePh}
+
+          <label className="studio-field">
+            {t.themeFree}
+            <textarea
+              disabled={fieldsLocked}
+              value={themeText}
+              onChange={(e) => setThemeText(e.target.value)}
+              placeholder={t.themeFreePh}
+              maxLength={500}
+              rows={3}
             />
           </label>
-          <label>
+
+          <label className="studio-field">
             {t.dedication}
             <input
-              disabled={!!project}
+              disabled={fieldsLocked}
               value={dedication}
               onChange={(e) => setDedication(e.target.value)}
               placeholder={t.dedicationPh}
@@ -600,10 +472,41 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             />
           </label>
 
-          {!project && (
-            <button type="button" disabled={locked} onClick={start} data-testid="studio-create-project">
-              {t.createProject}
-            </button>
+          {!fieldsLocked && (
+            <>
+              <p className="studio-field" style={{ marginTop: "1rem" }}>{t.photoField}</p>
+              <div className="studio-upload-row" role="group" aria-label={t.ariaPhotoGroup}>
+                <input
+                  type="file"
+                  accept="image/*"
+                  disabled={isDemo}
+                  data-testid="studio-photo-input"
+                  aria-label={t.ariaSelectPhoto}
+                  onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                />
+              </div>
+              <label className="studio-consent">
+                <input
+                  type="checkbox"
+                  checked={mediaConsent}
+                  disabled={isDemo}
+                  data-testid="studio-media-consent"
+                  onChange={(e) => setMediaConsent(e.target.checked)}
+                />
+                {t.consent}
+              </label>
+              <div className="studio-actions">
+                <button
+                  type="button"
+                  className="kbtn kbtn-go"
+                  disabled={locked}
+                  onClick={start}
+                  data-testid="studio-create-project"
+                >
+                  {t.createProject}
+                </button>
+              </div>
+            </>
           )}
 
           <div className="how" role="region" aria-labelledby="studio-how-heading">
@@ -620,238 +523,34 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
         {project && (
           <section
-            className="card"
+            className="studio-card"
             data-testid="studio-project"
             aria-labelledby="studio-project-heading"
             aria-busy={busy || undefined}
           >
             <h2 id="studio-project-heading">{t.projectTitle}</h2>
-            <p className="muted" role="status" aria-live="polite">
-              {t.metaTheme}: <b>{resolveThemeName(project.theme ?? theme, t.themes)}</b>
-              {(project.extra_theme ?? extraTheme) && (
-                <>
-                  {" "}
-                  + <b>{resolveThemeName(project.extra_theme ?? extraTheme, t.themes)}</b>
-                </>
-              )}{" "}
-              · {t.styleLabel}: <b>{t.artStyleRealistic}</b> · {t.statusLabel}:{" "}
+            <p className="studio-meta" role="status" aria-live="polite">
+              {t.metaBookTitle}: <b>{bookTitle || "—"}</b> · {t.metaTheme}:{" "}
+              <b>{resolveThemeName(project.theme ?? themeText, t.themes)}</b> · {t.statusLabel}:{" "}
               <b>{project.status}</b>
             </p>
 
-            <label className="consent">
-              <input
-                type="checkbox"
-                checked={mediaConsent}
-                disabled={isDemo}
-                data-testid="studio-media-consent"
-                onChange={(e) => setMediaConsent(e.target.checked)}
-              />
-              {t.consent}
-            </label>
-
-            <div className="upload" role="group" aria-label={t.ariaPhotoGroup}>
-              <input
-                type="file"
-                accept="image/*"
-                disabled={isDemo}
-                data-testid="studio-photo-input"
-                aria-label={t.ariaSelectPhoto}
-                onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
-              />
-              <button
-                type="button"
-                disabled={!photo || locked || !mediaConsent}
-                onClick={upload}
-                data-testid="studio-upload-photo"
-              >
-                {photoUploaded ? t.photoSent : t.sendPhoto}
-              </button>
-            </div>
-            <p className="muted" style={{ marginTop: 6 }}>
-              {t.photoHint}
-            </p>
-
-            <h3 className="field-label" id="studio-extra-chars-heading">
-              {t.extraCharsTitle}
-            </h3>
-            <div className="upload" role="group" aria-labelledby="studio-extra-chars-heading">
-              <input
-                type="file"
-                accept="image/*"
-                aria-label={t.ariaSelectExtraPhoto}
-                onChange={(e) => setExtraCharFile(e.target.files?.[0] ?? null)}
-              />
-              <input
-                value={extraCharName}
-                onChange={(e) => setExtraCharName(e.target.value)}
-                placeholder={t.extraCharNamePh}
-                aria-label={t.ariaExtraCharName}
-                maxLength={40}
-                style={{ flex: 1, minWidth: 120 }}
-              />
-              <button
-                type="button"
-                disabled={!extraCharFile || locked || !mediaConsent}
-                onClick={uploadExtraCharacter}
-              >
-                {t.add}
-              </button>
-            </div>
-            {extraChars.length > 0 && (
-              <div style={{ margin: "8px 0" }} role="status" aria-live="polite">
-                <p className="muted">{t.extrasAdded(extraChars.length)}</p>
-                <button type="button" disabled={locked} onClick={generateExtraCharacters}>
-                  {t.generateExtras} <span className="muted">{t.creditEach}</span>
-                </button>
-              </div>
+            {photoUploaded && (
+              <p className="muted" role="status">
+                {t.photoSent}
+              </p>
             )}
 
-            <h3 className="field-label" id="studio-story-mode-heading">
-              {t.storyTitle}
-            </h3>
-            <div className="styles" role="tablist" aria-labelledby="studio-story-mode-heading">
+            <div className="studio-actions">
               <button
                 type="button"
-                role="tab"
-                id="studio-story-tab-invent"
-                aria-selected={storyMode === "invent"}
-                aria-controls="studio-story-panel"
-                className={`chip ${storyMode === "invent" ? "on" : ""}`}
-                onClick={() => setStoryMode("invent")}
+                className="kbtn kbtn-primary"
+                disabled={locked || !photoUploaded}
+                onClick={() => runStep("story")}
+                data-testid="studio-generate-story"
               >
-                {t.inventAi}
+                {t.generateStory} <span className="muted">{t.oneCredit}</span>
               </button>
-              <button
-                type="button"
-                role="tab"
-                id="studio-story-tab-write"
-                aria-selected={storyMode === "write"}
-                aria-controls="studio-story-panel"
-                className={`chip ${storyMode === "write" ? "on" : ""}`}
-                onClick={() => setStoryMode("write")}
-              >
-                {t.writeMine}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                id="studio-story-tab-file"
-                aria-selected={storyMode === "file"}
-                aria-controls="studio-story-panel"
-                className={`chip ${storyMode === "file" ? "on" : ""}`}
-                onClick={() => setStoryMode("file")}
-              >
-                {t.sendFile}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                id="studio-story-tab-catalog"
-                aria-selected={storyMode === "catalog"}
-                aria-controls="studio-story-panel"
-                className={`chip ${storyMode === "catalog" ? "on" : ""}`}
-                onClick={openCatalog}
-              >
-                {t.readyStories}
-              </button>
-            </div>
-
-            <div
-              id="studio-story-panel"
-              role="tabpanel"
-              aria-labelledby={`studio-story-tab-${storyMode}`}
-            >
-              {storyMode === "invent" && (
-                <button
-                  type="button"
-                  disabled={locked}
-                  onClick={() => runStep("story")}
-                  data-testid="studio-generate-story"
-                >
-                  {t.generateStory} <span className="muted">{t.oneCredit}</span>
-                </button>
-              )}
-
-              {storyMode === "catalog" && (
-                <div className="story-catalog" role="list" aria-label={t.ariaCatalog}>
-                  {!templates && (
-                    <p className="muted" role="status" aria-live="polite">
-                      {t.loadingCatalog}
-                    </p>
-                  )}
-                  {templates && !project?.child_name && (
-                    <p className="muted">{t.needChildName}</p>
-                  )}
-                  {templates?.map((tpl) => (
-                    <div
-                      key={tpl.id}
-                      className="catalog-item"
-                      role="listitem"
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "8px 0",
-                        borderBottom: "1px solid var(--border, #333)",
-                      }}
-                    >
-                      <span style={{ fontSize: 22 }} aria-hidden="true">
-                        {tpl.emoji}
-                      </span>
-                      <div style={{ flex: 1 }}>
-                        <strong>
-                          {tpl.titulo.replace("{NOME}", project?.child_name || "{nome}")}
-                        </strong>
-                        <div className="muted" style={{ fontSize: 12 }}>
-                          {t.catalogMeta(tpl.tematica, tpl.idade, tpl.paginas, tpl.genero)}
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        disabled={locked || !project}
-                        aria-pressed={appliedTemplate === tpl.id}
-                        onClick={() => applyTemplate(tpl.id)}
-                      >
-                        {appliedTemplate === tpl.id ? t.applied : t.use}
-                        {appliedTemplate !== tpl.id && <span className="muted">{t.free}</span>}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-
-              {storyMode === "file" && (
-                <div className="upload">
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx,.txt"
-                    aria-label={t.ariaStoryFile}
-                    onChange={onStoryFile}
-                  />
-                  <span className="muted">{t.fileHint}</span>
-                </div>
-              )}
-
-              {(storyMode === "write" || storyMode === "file") && (
-                <div className="story-write">
-                  <textarea
-                    className="story-input"
-                    rows={8}
-                    style={{ width: "100%", boxSizing: "border-box", resize: "vertical" }}
-                    placeholder={t.storyPlaceholder}
-                    aria-label={t.ariaStoryText}
-                    value={storyText}
-                    onChange={(e) => setStoryText(e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    disabled={locked || !storyText.trim()}
-                    onClick={saveStory}
-                  >
-                    {t.saveStory}
-                  </button>
-                </div>
-              )}
             </div>
 
             <VoiceNarrationPanel
@@ -884,32 +583,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   onApprove={approveCharacter}
                   onRegenerate={() => runStep("avatar")}
                 />
-              )}
-
-              {assets?.extra_characters && assets.extra_characters.length > 0 && (
-                <div
-                  className="result-block"
-                  role="region"
-                  aria-labelledby="studio-extra-results-heading"
-                >
-                  <h3 className="field-label" id="studio-extra-results-heading">
-                    {t.extrasResult}
-                  </h3>
-                  <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }} role="list">
-                    {assets.extra_characters.map((ec, i) => (
-                      <div key={i} style={{ textAlign: "center" }} role="listitem">
-                        <img
-                          src={ec.url}
-                          alt={ec.name}
-                          style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 50 }}
-                        />
-                        <p className="muted" style={{ margin: "4px 0 0" }}>
-                          {ec.name}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
               )}
 
               {project.story_text && (

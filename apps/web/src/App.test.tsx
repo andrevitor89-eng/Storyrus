@@ -19,18 +19,16 @@ describe("Fluxo E2E (sem login)", () => {
     // o estúdio carrega direto, sem tela de login
     expect(await screen.findByText(/créditos: 10/i)).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
-    expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
-
-    // envia a foto -> personagem é gerado automaticamente
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/idade/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/tema da história/i), "Aventura no espaço");
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
     await user.upload(fileInput, file);
-    const sendPhoto = screen.getByRole("button", { name: /enviar foto/i });
-    expect(sendPhoto).toBeDisabled();
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    expect(sendPhoto).toBeEnabled();
-    await user.click(sendPhoto);
+    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+    expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
     expect(await screen.findByText("AVATAR")).toBeInTheDocument();
 
     // gera a história (modo "inventar com IA")
@@ -49,17 +47,17 @@ describe("Fluxo E2E (sem login)", () => {
     const { container } = render(<App />);
 
     await screen.findByText(/créditos: 10/i);
-    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
-
-    // sem foto/história, o botão de ebook fica desabilitado
-    const ebookBtn = await screen.findByRole("button", { name: /montar ebook/i });
-    expect(ebookBtn).toBeDisabled();
-
-    // envia foto (gera personagem) e a história
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/idade/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/tema da história/i), "Aventura no espaço");
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /enviar foto/i }));
+    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+
+    const ebookBtn = await screen.findByRole("button", { name: /montar ebook/i });
+    expect(ebookBtn).toBeDisabled();
     await user.click(screen.getByRole("button", { name: /gerar história com ia/i }));
     await screen.findByText(/pagina 1: ola/i, undefined, { timeout: 9000 });
 

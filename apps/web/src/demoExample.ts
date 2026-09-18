@@ -1,4 +1,4 @@
-import type { Project, Theme } from "./types";
+import type { Project } from "./types";
 
 const ex = (file: string) => `${import.meta.env.BASE_URL}exemplos/${file}`;
 
@@ -29,7 +29,8 @@ export type DemoExample = {
   childName: string;
   childAge: string;
   dedication: string;
-  themes: Theme[];
+  bookTitle: string;
+  themeText: string;
 };
 
 export function demoIdFromSearch(search = window.location.search): string | null {
@@ -43,7 +44,8 @@ export function getDemoExample(): DemoExample {
     childName: "Matteo",
     childAge: "5",
     dedication: "Para o Matteo, com amor.",
-    themes: ["dinosaurs"],
+    bookTitle: "Matteo e o vale dos dinossauros",
+    themeText: "Aventura com dinossauros amigáveis e coragem",
     project: {
       id: "demo-dinosaurs",
       status: "VIDEO_READY",
