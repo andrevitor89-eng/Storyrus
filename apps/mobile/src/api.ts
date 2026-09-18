@@ -1,6 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Constants from "expo-constants";
-import type { Job, Project, UploadUrl } from "./types";
+import type {
+  Job,
+  Project,
+  ProjectAssets,
+  StudioStep,
+  Theme,
+  UploadUrl,
+  UserVoice,
+  VoiceList,
+} from "./types";
 
 const TOKEN_KEY = "storyrus_token";
 
@@ -274,9 +283,26 @@ export const api = {
   me: () =>
     req<{ id: string; email: string; credits: number; is_guest: boolean }>("/v1/auth/me"),
   credits: () => req<{ credits: number }>("/v1/credits"),
-  createProject: () =>
-    req<Project>("/v1/projects", { method: "POST", body: JSON.stringify({ style: "cgi_3d" }) }),
+  createProject: (
+    theme?: Theme,
+    extraTheme?: Theme,
+    childName?: string,
+    dedication?: string,
+    childAge?: number,
+  ) =>
+    req<Project>("/v1/projects", {
+      method: "POST",
+      body: JSON.stringify({
+        style: "cgi_3d",
+        theme,
+        extra_theme: extraTheme || undefined,
+        child_name: childName?.trim() || undefined,
+        child_age: childAge ?? undefined,
+        dedication: dedication?.trim() || undefined,
+      }),
+    }),
   getProject: (id: string) => req<Project>(`/v1/projects/${id}`),
+  getAssets: (id: string) => req<ProjectAssets>(`/v1/projects/${id}/assets`),
   listJobs: (id: string) => req<Job[]>(`/v1/projects/${id}/jobs`),
   requestPhotoUpload: (id: string, contentType: string, ext: string) =>
     req<UploadUrl>(`/v1/projects/${id}/photos`, {
@@ -291,7 +317,7 @@ export const api = {
       /* storage stub em dev */
     }
   },
-  startStep(id: string, step: "avatar" | "story" | "ebook" | "video", body: object = {}) {
+  startStep(id: string, step: StudioStep, body: object = {}) {
     // Clique duplo / retry em voo: mesma promise + mesma Idempotency-Key.
     const cacheKey = stepCacheKey(id, step);
     const inFlight = stepInFlight.get(cacheKey);
@@ -326,4 +352,37 @@ export const api = {
     stepInFlight.set(cacheKey, promise);
     return promise;
   },
+  listVoices: () => req<VoiceList>("/v1/voices"),
+  async uploadVoice(uri: string, name: string, mimeType: string, makeDefault = false) {
+    await ensureGuest();
+    const ext = uri.split(".").pop()?.split("?")[0] || "m4a";
+    const fd = new FormData();
+    fd.append("file", {
+      uri,
+      name: `voice.${ext}`,
+      type: mimeType || "audio/mp4",
+    } as unknown as Blob);
+    fd.append("name", name);
+    fd.append("make_default", makeDefault ? "true" : "false");
+    const headers: Record<string, string> = {};
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const resp = await fetch(`${BASE}/v1/voices`, { method: "POST", body: fd, headers });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      throw new Error(`${resp.status}: ${detail}`);
+    }
+    return (await resp.json()) as UserVoice;
+  },
+  deleteVoice: (id: string) => req<void>(`/v1/voices/${id}`, { method: "DELETE" }),
+  approveCharacter: (id: string) =>
+    req<Project>(`/v1/projects/${id}/avatar/approve`, { method: "POST" }),
+  approveBook: (id: string) =>
+    req<Project>(`/v1/projects/${id}/book/approve`, { method: "POST" }),
+  requestPrint: (id: string) =>
+    req<Project>(`/v1/projects/${id}/print-request`, { method: "POST" }),
 };
