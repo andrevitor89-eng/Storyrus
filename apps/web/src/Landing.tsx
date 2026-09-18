@@ -1005,32 +1005,32 @@ export function Landing() {
                   {t.reviews_link}
                 </a>
               </nav>
-              <div className="khead-actions">
-                <div className="khead-utils">
-                  <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
-                    {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
-                    <span className="theme-toggle-label">{theme === "dark" ? t.theme_to_light : t.theme_to_dark}</span>
-                  </button>
-                  <div className="lang" role="group" aria-label="Idioma / Language / Idioma" data-testid="landing-lang">
-                    <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")} data-testid="landing-lang-pt">PT</button>
-                    <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
-                    <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
-                  </div>
-                  <div className="khead-links">
-                    <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
-                  </div>
-                </div>
-                <button
-                  className="khamb"
-                  aria-label={t.a11y_menu}
-                  aria-expanded={navOpen}
-                  aria-controls="site-menu"
-                  data-testid="landing-menu"
-                  onClick={() => setNavOpen((v) => !v)}
-                >☰</button>
-              </div>
             </div>
           </div>
+        </div>
+        <div className="khead-actions">
+          <div className="khead-utils">
+            <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
+              {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+              <span className="theme-toggle-label">{theme === "dark" ? t.theme_to_light : t.theme_to_dark}</span>
+            </button>
+            <div className="lang" role="group" aria-label="Idioma / Language / Idioma" data-testid="landing-lang">
+              <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")} data-testid="landing-lang-pt">PT</button>
+              <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
+              <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
+            </div>
+            <div className="khead-links">
+              <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
+            </div>
+          </div>
+          <button
+            className="khamb"
+            aria-label={t.a11y_menu}
+            aria-expanded={navOpen}
+            aria-controls="site-menu"
+            data-testid="landing-menu"
+            onClick={() => setNavOpen((v) => !v)}
+          >☰</button>
         </div>
         <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`} data-testid="landing-site-menu">
           <div className="kmobile-section">
