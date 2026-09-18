@@ -58,11 +58,11 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
 ];
 /** Hero FlipBook: only lifestyle books (child holding the book) from landing/ */
 const HERO_BOOKS = [
-  { tab: "foto-martin-goleiro.jpg", cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg" },
-  { tab: "foto-emilia-bailarina.jpg", cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg" },
-  { tab: "foto-antonio-bicicleta.jpg", cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg" },
-  { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg" },
-  { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg" },
+  { tab: "foto-martin-goleiro.jpg", cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", name: "Martin" },
+  { tab: "foto-emilia-bailarina.jpg", cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", name: "Emilia" },
+  { tab: "foto-antonio-bicicleta.jpg", cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", name: "Antonio" },
+  { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", name: "Maria Jesus" },
+  { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg", name: "Facundo" },
 ] as const;
 const CATALOG_IMGS = [
   "capa-martin-goleiro.jpg",
@@ -870,6 +870,7 @@ export function Landing() {
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const exampleBooks = HERO_BOOKS.map((b, i) => ({
     title: t.hero_books[i],
+    name: b.name,
     tab: b.tab,
     cover: b.cover,
     pages: [b.cover, b.page, b.tab],
@@ -1221,10 +1222,10 @@ export function Landing() {
         <h2 className="ktitle reveal">{t.rev_title}</h2>
         <p className="ksub reveal">{t.rev_sub}</p>
         <div className="rev-photos reveal" aria-label={t.rev_title}>
-          {exampleBooks.map((b) => (
-            <figure className="rev-photo" key={b.tab}>
-              <img src={exUrl(b.tab)} alt={b.title} loading="lazy" />
-              <figcaption>{b.title}</figcaption>
+          {exampleBooks.map((b, i) => (
+            <figure className="rev-photo" key={b.cover}>
+              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" data-testid={`landing-review-cover-${i}`} />
+              <figcaption data-testid={`landing-review-name-${i}`}>{b.name}</figcaption>
             </figure>
           ))}
         </div>
@@ -1287,25 +1288,27 @@ export function Landing() {
 
       {/* FOOTER */}
       <footer className="kfoot">
-        <div className="kfoot-nav">
-          {t.nav.map((label, i) => { const Icon = FOOT_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
-        </div>
-        <div className="kfoot-contacts">
-          <a href={`mailto:${CONTACT_EMAIL}`} className="kfoot-contact">
-            <IcMail className="ni" />
-            <span>{CONTACT_EMAIL}</span>
-          </a>
-          <a
-            href={`https://instagram.com/${CONTACT_INSTA}`}
-            className="kfoot-contact"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <IcInstagram className="ni" />
-            <span>@{CONTACT_INSTA}</span>
-          </a>
-          <Link to="/privacidade" className="kfoot-contact">{t.privacy_link}</Link>
-          <Link to="/termos" className="kfoot-contact">{t.terms_link}</Link>
+        <div className="kfoot-links">
+          <div className="kfoot-nav">
+            {t.nav.map((label, i) => { const Icon = FOOT_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
+          </div>
+          <div className="kfoot-contacts">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="kfoot-contact">
+              <IcMail className="ni" />
+              <span>{CONTACT_EMAIL}</span>
+            </a>
+            <a
+              href={`https://instagram.com/${CONTACT_INSTA}`}
+              className="kfoot-contact"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IcInstagram className="ni" />
+              <span>@{CONTACT_INSTA}</span>
+            </a>
+            <Link to="/privacidade" className="kfoot-contact">{t.privacy_link}</Link>
+            <Link to="/termos" className="kfoot-contact">{t.terms_link}</Link>
+          </div>
         </div>
         <p className="kfoot-tag"><IcHeart className="ci" /> {t.tagline}</p>
         <p className="kfoot-copy">{t.foot_copy}</p>
