@@ -421,6 +421,7 @@ const I18N = {
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
     cats_label: "Categorias",
+    quick_links: "Acessos rápidos",
     font_label: "Fonte do título",
     explore: "Explorar agora",
     eyebrow: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -562,6 +563,7 @@ const I18N = {
     see_all_books: "See all books",
     view_all: "View all",
     cats_label: "Categories",
+    quick_links: "Quick links",
     font_label: "Cover font",
     explore: "Explore now",
     eyebrow: "Preserve moments. Gift your family an unforgettable story.",
@@ -703,6 +705,7 @@ const I18N = {
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
     cats_label: "Categorías",
+    quick_links: "Accesos rápidos",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
     eyebrow: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
@@ -840,6 +843,7 @@ const I18N = {
 
 export function Landing() {
   const rootRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLElement>(null);
   const [navOpen, setNavOpen] = useState(false);
   const [openCat, setOpenCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
@@ -908,16 +912,30 @@ export function Landing() {
   }, [coverFont]);
 
   useEffect(() => {
-    if (!navOpen) return;
+    if (!navOpen && openCat === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNavOpen(false);
         setMobileCat(null);
+        setOpenCat(null);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navOpen]);
+  }, [navOpen, openCat]);
+
+  useEffect(() => {
+    if (openCat === null && !navOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      const target = e.target as Node | null;
+      if (target && headerRef.current?.contains(target)) return;
+      setOpenCat(null);
+      setNavOpen(false);
+      setMobileCat(null);
+    };
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => window.removeEventListener("pointerdown", onPointerDown);
+  }, [navOpen, openCat]);
 
   const closeNav = () => {
     setNavOpen(false);
@@ -933,7 +951,7 @@ export function Landing() {
         <svg className="dmoon m2" viewBox="0 0 24 24" aria-hidden><path d="M17 15A8 8 0 1 1 9 4a7 7 0 0 0 8 11z" fill="#7fb2e3" /></svg>
       </div>
 
-      <header className="khead">
+      <header className="khead" ref={headerRef}>
         <div className="khead-inner">
         <a href="#top" className="kbrand" data-testid="landing-brand"><img src={logo} alt="Story.R.Us" /></a>
         <div className="khead-main">
@@ -952,12 +970,13 @@ export function Landing() {
                       className="kcat-btn"
                       aria-expanded={openCat === i}
                       aria-haspopup="true"
+                      aria-controls={`cat-panel-${i}`}
                       onClick={() => setOpenCat(openCat === i ? null : i)}
                     >
                       <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 10px ${cat.color}` }} />
                       {cat.name}
                     </button>
-                    <div className="kcat-panel">
+                    <div className="kcat-panel" id={`cat-panel-${i}`}>
                       <ul className="kcat-subs">
                         {cat.subs.map((sub) => (
                           <li key={sub.label}><Link to={sub.href} onClick={closeNav}>{sub.label}</Link></li>
@@ -988,21 +1007,17 @@ export function Landing() {
               </nav>
               <div className="khead-actions">
                 <div className="khead-utils">
-                  <div className="khead-controls-row">
-                    <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
-                      {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
-                      <span className="theme-toggle-label">{theme === "dark" ? t.theme_to_light : t.theme_to_dark}</span>
-                    </button>
-                    <div className="lang" role="group" aria-label="Idioma / Language / Idioma" data-testid="landing-lang">
-                      <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")} data-testid="landing-lang-pt">PT</button>
-                      <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
-                      <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
-                    </div>
+                  <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
+                    {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+                    <span className="theme-toggle-label">{theme === "dark" ? t.theme_to_light : t.theme_to_dark}</span>
+                  </button>
+                  <div className="lang" role="group" aria-label="Idioma / Language / Idioma" data-testid="landing-lang">
+                    <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")} data-testid="landing-lang-pt">PT</button>
+                    <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
+                    <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
                   </div>
-                  <div className="khead-cta-row">
-                    <div className="khead-links">
-                      <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
-                    </div>
+                  <div className="khead-links">
+                    <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
                   </div>
                 </div>
                 <button
@@ -1018,32 +1033,40 @@ export function Landing() {
           </div>
         </div>
         <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`} data-testid="landing-site-menu">
-          {navCats.map((cat, i) => (
-            <div key={cat.name} className={`kmobile-cat${mobileCat === i ? " open" : ""}`}>
-              <button
-                type="button"
-                className="kmobile-cat-btn"
-                aria-expanded={mobileCat === i}
-                onClick={() => setMobileCat(mobileCat === i ? null : i)}
-              >
-                <span className="kcat-dot" style={{ background: cat.color }} />
-                {cat.name}
-                <IcChevron className="faq-chev" />
-              </button>
-              <div className="kmobile-subs">
-                <div className="kmobile-subs-inner">
-                  {cat.subs.map((sub) => (
-                    <Link key={sub.label} to={sub.href} onClick={closeNav}>{sub.label}</Link>
-                  ))}
+          <div className="kmobile-section">
+            <p className="kmobile-label">{t.cats_label}</p>
+            {navCats.map((cat, i) => (
+              <div key={cat.name} className={`kmobile-cat${mobileCat === i ? " open" : ""}`}>
+                <button
+                  type="button"
+                  className="kmobile-cat-btn"
+                  aria-expanded={mobileCat === i}
+                  aria-controls={`mobile-cat-${i}`}
+                  onClick={() => setMobileCat(mobileCat === i ? null : i)}
+                >
+                  <span className="kcat-dot" style={{ background: cat.color }} />
+                  {cat.name}
+                  <IcChevron className="faq-chev" />
+                </button>
+                <div className="kmobile-subs" id={`mobile-cat-${i}`}>
+                  <div className="kmobile-subs-inner">
+                    {cat.subs.map((sub) => (
+                      <Link key={sub.label} to={sub.href} onClick={closeNav}>{sub.label}</Link>
+                    ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-          <a href="#promessa" onClick={closeNav}>{t.our_story}</a>
-          <a href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-          {t.nav.map((label, i) => (
-            <a key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
-          ))}
+            ))}
+            <Link to="/app" className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
+          </div>
+          <div className="kmobile-section">
+            <p className="kmobile-label">{t.quick_links}</p>
+            <a className="kmobile-link" href="#promessa" onClick={closeNav}>{t.our_story}</a>
+            <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
+            {t.nav.map((label, i) => (
+              <a className="kmobile-link" key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
+            ))}
+          </div>
           <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
         </div>
