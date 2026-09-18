@@ -1373,24 +1373,30 @@ img.ex-tab-cover {
 
 /* footer */
 .kfoot { position: relative; z-index: 1; text-align: center; max-width: var(--page-max); margin: 0 auto; padding: 40px var(--page-gutter) 60px; }
-.kfoot-nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-bottom: 16px; }
+.kfoot-links {
+  display: flex; flex-wrap: nowrap; justify-content: center; align-items: center;
+  gap: 8px; margin: 0 0 18px;
+}
+.kfoot-nav { display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center; margin: 0; }
 .kfoot-nav a {
-  display: inline-flex; align-items: center; gap: 7px; text-decoration: none; color: var(--ink);
-  font-weight: 700; background: #fff; padding: 8px 14px; border-radius: 999px;
+  display: inline-flex; align-items: center; gap: 6px; text-decoration: none; color: var(--ink);
+  font-weight: 700; font-size: .92rem; background: #fff; padding: 8px 12px; border-radius: 999px;
   box-shadow: 0 6px 14px rgba(0,0,0,.05); transition: transform .15s ease;
+  white-space: nowrap;
 }
 .kfoot-nav a:hover { transform: translateY(-2px) scale(1.05); }
 .kfoot-nav .ni { width: 17px; height: 17px; color: var(--purple); }
 .kfoot-contacts {
-  display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;
-  margin: 0 0 18px;
+  display: flex; flex-wrap: nowrap; gap: 8px; justify-content: center;
+  margin: 0;
 }
 .kfoot-contact {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 16px; border-radius: 999px; text-decoration: none;
-  background: #fff; color: var(--ink); font-weight: 700; font-size: .98rem;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 12px; border-radius: 999px; text-decoration: none;
+  background: #fff; color: var(--ink); font-weight: 700; font-size: .92rem;
   box-shadow: 0 6px 14px rgba(0,0,0,.05);
   transition: transform .15s ease, color .15s ease;
+  white-space: nowrap;
 }
 .kfoot-contact:hover { transform: translateY(-2px) scale(1.04); color: var(--coral); }
 .kfoot-contact .ni { width: 18px; height: 18px; color: var(--purple); flex: none; }
@@ -1509,6 +1515,9 @@ img.ex-tab-cover {
   [data-theme="light"] .kid .klinks {
     background: #fff;
   }
+  .kfoot-links,
+  .kfoot-nav,
+  .kfoot-contacts { flex-wrap: wrap; }
 }
 @media (max-width: 520px) {
   .featurebar { grid-template-columns: 1fr; }

@@ -1288,25 +1288,27 @@ export function Landing() {
 
       {/* FOOTER */}
       <footer className="kfoot">
-        <div className="kfoot-nav">
-          {t.nav.map((label, i) => { const Icon = FOOT_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
-        </div>
-        <div className="kfoot-contacts">
-          <a href={`mailto:${CONTACT_EMAIL}`} className="kfoot-contact">
-            <IcMail className="ni" />
-            <span>{CONTACT_EMAIL}</span>
-          </a>
-          <a
-            href={`https://instagram.com/${CONTACT_INSTA}`}
-            className="kfoot-contact"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <IcInstagram className="ni" />
-            <span>@{CONTACT_INSTA}</span>
-          </a>
-          <Link to="/privacidade" className="kfoot-contact">{t.privacy_link}</Link>
-          <Link to="/termos" className="kfoot-contact">{t.terms_link}</Link>
+        <div className="kfoot-links">
+          <div className="kfoot-nav">
+            {t.nav.map((label, i) => { const Icon = FOOT_ICONS[i]; return (<a key={label} href={navHrefs[i]}><Icon className="ni" />{label}</a>); })}
+          </div>
+          <div className="kfoot-contacts">
+            <a href={`mailto:${CONTACT_EMAIL}`} className="kfoot-contact">
+              <IcMail className="ni" />
+              <span>{CONTACT_EMAIL}</span>
+            </a>
+            <a
+              href={`https://instagram.com/${CONTACT_INSTA}`}
+              className="kfoot-contact"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <IcInstagram className="ni" />
+              <span>@{CONTACT_INSTA}</span>
+            </a>
+            <Link to="/privacidade" className="kfoot-contact">{t.privacy_link}</Link>
+            <Link to="/termos" className="kfoot-contact">{t.terms_link}</Link>
+          </div>
         </div>
         <p className="kfoot-tag"><IcHeart className="ci" /> {t.tagline}</p>
         <p className="kfoot-copy">{t.foot_copy}</p>
