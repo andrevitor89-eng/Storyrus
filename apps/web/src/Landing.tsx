@@ -333,7 +333,7 @@ function FlipBook({
 }: {
   pages: string[];
   compact?: boolean;
-  labels?: { prev: string; next: string; turn: string; cover: string };
+  labels?: { prev: string; next: string; turn: string; cover: string; photo: string };
 }) {
   const [i, setI] = useState(0);
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
@@ -371,8 +371,13 @@ function FlipBook({
   const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
   const underIdx = anim === "next" ? target : i;
   const leafIdx = anim === "next" ? i : (anim === "prev" ? target : i);
-  const pageKind = (idx: number) => (idx === 0 ? "fb-page--cover" : "fb-page--spread");
-  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa" };
+  const pageKind = (idx: number) => (
+    idx === 0 ? "fb-page--cover" : idx === 1 ? "fb-page--spread" : "fb-page--photo"
+  );
+  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa", photo: "Na mão" };
+  const pageLabel = (idx: number) => (
+    idx === 0 ? L.cover : idx >= 2 ? L.photo : `${idx} / ${Math.max(pages.length - 1, 1)}`
+  );
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
@@ -397,10 +402,10 @@ function FlipBook({
         <span className="fb-spine" />
         <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
         <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
-          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={i === 0 ? L.cover : `${i} / ${pages.length - 1}`} />
+          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(i)} />
           <span className="fb-leaf-shade" aria-hidden />
         </div>
-        <span className="fb-count">{i === 0 ? L.cover : `${i} / ${pages.length - 1}`}</span>
+        <span className="fb-count">{pageLabel(i)}</span>
       </div>
       {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
     </div>
@@ -505,6 +510,9 @@ const I18N = {
     fb_next: "Próxima página",
     fb_turn: "Virar página",
     fb_cover: "Capa",
+    fb_photo: "Na mão",
+    theme_to_light: "Claro",
+    theme_to_dark: "Escuro",
     privacy_link: "Privacidade",
     terms_link: "Termos",
     catalog: [
@@ -643,6 +651,9 @@ const I18N = {
     fb_next: "Next page",
     fb_turn: "Turn page",
     fb_cover: "Cover",
+    fb_photo: "In hand",
+    theme_to_light: "Light",
+    theme_to_dark: "Dark",
     privacy_link: "Privacy",
     terms_link: "Terms",
     catalog: [
@@ -781,6 +792,9 @@ const I18N = {
     fb_next: "Página siguiente",
     fb_turn: "Pasar página",
     fb_cover: "Portada",
+    fb_photo: "En manos",
+    theme_to_light: "Claro",
+    theme_to_dark: "Oscuro",
     privacy_link: "Privacidad",
     terms_link: "Términos",
     catalog: [
@@ -854,9 +868,9 @@ export function Landing() {
     title: t.hero_books[i],
     tab: b.tab,
     cover: b.cover,
-    pages: [b.cover, b.page],
+    pages: [b.cover, b.page, b.tab],
   }));
-  const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover };
+  const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
     color: NAV_CAT_META[i].color,
@@ -975,6 +989,7 @@ export function Landing() {
               <div className="khead-utils">
                 <button className="theme-toggle" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label={t.a11y_theme}>
                   {theme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+                  <span className="theme-toggle-label">{theme === "dark" ? t.theme_to_light : t.theme_to_dark}</span>
                 </button>
                 <div className="lang" role="group" aria-label="Idioma / Language / Idioma" data-testid="landing-lang">
                   <button className={lang === "pt" ? "on" : ""} onClick={() => setLang("pt")} data-testid="landing-lang-pt">PT</button>
@@ -1176,6 +1191,14 @@ export function Landing() {
       <section className="ksection" id="reviews">
         <h2 className="ktitle reveal">{t.rev_title}</h2>
         <p className="ksub reveal">{t.rev_sub}</p>
+        <div className="rev-photos reveal" aria-label={t.rev_title}>
+          {exampleBooks.map((b) => (
+            <figure className="rev-photo" key={b.tab}>
+              <img src={exUrl(b.tab)} alt={b.title} loading="lazy" />
+              <figcaption>{b.title}</figcaption>
+            </figure>
+          ))}
+        </div>
         <div className="rev-grid">
           {t.reviews.map((r) => (
             <figure className="rev-card reveal" key={r.name}>
