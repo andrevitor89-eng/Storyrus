@@ -165,6 +165,8 @@ describe("Landing — menu mobile e abas do hero", () => {
     renderLanding();
 
     const tabs = await screen.findAllByRole("tab");
+    expect(screen.getByTestId("landing-hero-tab-cover-0")).toHaveAttribute("src", expect.stringContaining("capa-martin-goleiro.jpg"));
+    expect(screen.getByTestId("landing-hero-tab-cover-1")).toHaveAttribute("src", expect.stringContaining("capa-emilia-bailarina.jpg"));
     expect(tabs.length).toBeGreaterThanOrEqual(2);
     expect(tabs[0]).toHaveAttribute("aria-selected", "true");
     expect(tabs[1]).toHaveAttribute("aria-selected", "false");
