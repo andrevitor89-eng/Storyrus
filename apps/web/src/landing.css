@@ -1125,10 +1125,9 @@ img.ex-tab-cover {
   max-width: none;
   margin-left: 0;
   margin-right: 0;
-  text-align: justify;
-  text-align-last: left;
-  text-wrap: unset;
+  text-align: center;
 }
+#reviews .ktitle { text-wrap: balance; }
 .rev-photos {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -1211,17 +1210,14 @@ img.ex-tab-cover {
   margin: 0 0 30px;
   font-size: clamp(.98rem, 1.6vw, 1.08rem);
   line-height: 1.5;
-  text-align: justify;
-  text-align-last: left;
-  text-wrap: unset;
+  text-align: center;
 }
 .promise-heading {
   width: 100%;
   max-width: none;
   margin-inline: 0;
-  text-align: justify;
-  text-align-last: left;
-  text-wrap: unset;
+  text-align: center;
+  text-wrap: balance;
 }
 .promise-mark {
   color: var(--mint);
