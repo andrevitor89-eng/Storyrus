@@ -524,7 +524,7 @@ const I18N = {
       { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
-    promise_sub: "Da foto à prévia final, cada detalhe é preparado para transformar o livro em um presente inesquecível.",
+    promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
     promise: [
       { t: "Privacidade da foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
       { t: "Impressão pensada como presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
@@ -1211,8 +1211,14 @@ export function Landing() {
       </section>
 
       {/* NOSSA PROMESSA */}
-      <section className="ksection" id="promessa">
-        <h2 className="ktitle reveal">{t.promise_title}</h2>
+      <section className="ksection promise-section" id="promessa">
+        <h2 className="ktitle reveal promise-heading">
+          {lang === "pt" ? (
+            <>
+              Um <span className="promise-mark">presente</span> personalizado para eternizar momentos inesquecíveis.
+            </>
+          ) : t.promise_title}
+        </h2>
         <p className="ksub reveal">{t.promise_sub}</p>
         <div className="promise-grid">
           {t.promise.map((pr, i) => {
