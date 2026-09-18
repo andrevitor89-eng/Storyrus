@@ -217,6 +217,17 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(tabs[0]).toHaveAttribute("aria-selected", "false");
     expect(tabs[1]).toHaveAttribute("aria-selected", "true");
   });
+
+  it("coloca o texto Uma foto abaixo do titulo Transforme", async () => {
+    renderLanding();
+
+    const heading = await screen.findByRole("heading", { level: 1 });
+    const intro = heading.closest(".khero-intro") as HTMLElement;
+    expect(intro).toBeTruthy();
+    expect(intro.firstElementChild).toBe(heading);
+    expect(intro).toHaveTextContent(/uma foto\. uma história\. uma memória eterna/i);
+    expect(heading.nextElementSibling).toHaveTextContent(/uma foto/i);
+  });
 });
 
 describe("Landing — CTAs e links", () => {
