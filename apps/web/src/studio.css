@@ -2,6 +2,18 @@
 
 .studio-app.kid {
   padding-top: var(--khead-h);
+  --studio-surface: #172140;
+  --studio-surface-border: #26315a;
+  --studio-input-bg: #101a34;
+  --studio-input-border: #34467d;
+  --studio-muted: #9fabce;
+  --studio-label: #bcc6e6;
+  --studio-focus-ring: rgba(63, 143, 125, 0.35);
+  background:
+    radial-gradient(920px 480px at 50% -120px, rgba(127, 178, 227, 0.14) 0%, transparent 68%),
+    radial-gradient(640px 400px at 92% 8%, rgba(244, 183, 64, 0.07) 0%, transparent 58%),
+    radial-gradient(520px 360px at 4% 24%, rgba(58, 95, 174, 0.12) 0%, transparent 55%),
+    #0b1226;
 }
 
 .studio-app .studio-page {
@@ -12,11 +24,11 @@
 }
 
 .studio-app .studio-card {
-  background: rgba(255, 255, 255, 0.92);
-  border: 1px solid rgba(31, 53, 104, 0.1);
+  background: var(--studio-surface);
+  border: 1px solid var(--studio-surface-border);
   border-radius: 22px;
   padding: 1.75rem 1.6rem;
-  box-shadow: 0 18px 48px rgba(31, 53, 104, 0.1);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.04);
   margin-bottom: 1.25rem;
 }
 
@@ -28,7 +40,7 @@
 
 .studio-app .studio-slogan {
   margin: 0 0 1.25rem;
-  color: #5a6a8f;
+  color: var(--studio-muted);
   font-size: 1.02rem;
   line-height: 1.5;
 }
@@ -49,7 +61,7 @@
   margin: 0;
   font-size: 0.88rem;
   font-weight: 700;
-  color: #4a5880;
+  color: var(--studio-label);
 }
 
 .studio-app label.studio-field input,
@@ -58,12 +70,19 @@
   width: 100%;
   margin-top: 0.35rem;
   padding: 0.7rem 0.85rem;
-  border: 1.5px solid rgba(31, 53, 104, 0.14);
+  border: 1.5px solid var(--studio-input-border);
   border-radius: 14px;
-  background: #fffdf8;
+  background: var(--studio-input-bg);
   color: var(--ink);
   font: inherit;
   box-sizing: border-box;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.studio-app label.studio-field input::placeholder,
+.studio-app label.studio-field textarea::placeholder {
+  color: #6f7da8;
+  opacity: 1;
 }
 
 .studio-app label.studio-field textarea {
@@ -75,7 +94,15 @@
 .studio-app label.studio-field textarea:focus {
   outline: none;
   border-color: var(--mint);
-  box-shadow: 0 0 0 3px rgba(63, 143, 125, 0.18);
+  box-shadow:
+    inset 0 2px 8px rgba(0, 0, 0, 0.22),
+    0 0 0 3px var(--studio-focus-ring);
+}
+
+.studio-app label.studio-field input:disabled,
+.studio-app label.studio-field textarea:disabled {
+  opacity: 0.72;
+  cursor: not-allowed;
 }
 
 .studio-app .studio-upload-row {
@@ -91,8 +118,9 @@
   min-width: 0;
   padding: 0.55rem;
   border-radius: 12px;
-  border: 1.5px dashed rgba(31, 53, 104, 0.2);
-  background: #fff;
+  border: 1.5px dashed var(--studio-input-border);
+  background: var(--studio-input-bg);
+  color: var(--studio-muted);
 }
 
 .studio-app .studio-consent {
@@ -101,7 +129,7 @@
   align-items: flex-start;
   margin: 1rem 0 0.5rem;
   font-size: 0.9rem;
-  color: #4a5880;
+  color: var(--studio-muted);
   font-weight: 600;
 }
 
@@ -113,7 +141,7 @@
 .studio-app .studio-meta {
   margin: 0 0 1rem;
   font-size: 0.92rem;
-  color: #5a6a8f;
+  color: var(--studio-muted);
 }
 
 .studio-app .studio-meta b {
@@ -138,10 +166,11 @@
   color: #e9eefb;
   font-weight: 800;
   font-size: 0.92rem;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .studio-app .studio-error {
-  color: #c44d3f;
+  color: #ff9a8f;
   font-weight: 700;
   margin: 0 0 1rem;
 }
@@ -154,18 +183,41 @@
   justify-content: space-between;
   padding: 14px 16px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(127, 178, 227, 0.25), rgba(244, 183, 64, 0.2));
+  border: 1px solid var(--studio-surface-border);
+  background: linear-gradient(
+    135deg,
+    rgba(39, 51, 95, 0.95) 0%,
+    rgba(23, 33, 64, 0.98) 55%,
+    rgba(20, 29, 58, 1) 100%
+  );
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.4);
   margin-bottom: 1rem;
+  color: var(--studio-muted);
 }
 
 .studio-app .upgrade-form label {
   display: block;
   margin: 0.75rem 0 0.35rem;
+  color: var(--studio-label);
+  font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .studio-app .upgrade-form input {
   width: 100%;
   box-sizing: border-box;
+  margin-top: 0.35rem;
+  padding: 0.7rem 0.85rem;
+  border: 1.5px solid var(--studio-input-border);
+  border-radius: 14px;
+  background: var(--studio-input-bg);
+  color: var(--ink);
+  font: inherit;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.22);
+}
+
+.studio-app .upgrade-form .muted {
+  color: var(--studio-muted);
 }
 
 /* Reuso de utilitários globais do app dentro da landing */
@@ -182,10 +234,56 @@
 .studio-app button.link {
   background: none;
   box-shadow: none;
-  color: var(--purple);
+  color: #9cc4ff;
   padding: 0.35rem 0;
 }
 
+.studio-app button.link:hover {
+  color: var(--yellow);
+}
+
+/* Tema claro — cartões claros como antes do restyle escuro */
+[data-theme="light"] .studio-app.kid {
+  --studio-surface: #fff;
+  --studio-surface-border: rgba(31, 53, 104, 0.1);
+  --studio-input-bg: #fffdf8;
+  --studio-input-border: rgba(31, 53, 104, 0.14);
+  --studio-muted: #5a6a8f;
+  --studio-label: #4a5880;
+  --studio-focus-ring: rgba(63, 143, 125, 0.18);
+  background:
+    radial-gradient(1200px 520px at 50% -140px, #dcecfb 0%, transparent 70%),
+    linear-gradient(180deg, #f3f8ff 0%, #fff7ec 55%, #fff2db 100%);
+}
+
 [data-theme="light"] .studio-app .studio-card {
+  background: var(--studio-surface);
+  box-shadow: 0 18px 48px rgba(31, 53, 104, 0.1);
+}
+
+[data-theme="light"] .studio-app label.studio-field input,
+[data-theme="light"] .studio-app label.studio-field textarea,
+[data-theme="light"] .studio-app .upgrade-form input {
+  box-shadow: none;
+}
+
+[data-theme="light"] .studio-app .studio-upload-row input[type="file"] {
   background: #fff;
+  border-color: rgba(31, 53, 104, 0.2);
+  color: inherit;
+}
+
+[data-theme="light"] .studio-app .demo-banner {
+  background: linear-gradient(135deg, rgba(127, 178, 227, 0.25), rgba(244, 183, 64, 0.2));
+  border: none;
+  box-shadow: none;
+  color: #4a5880;
+}
+
+[data-theme="light"] .studio-app .studio-error {
+  color: #c44d3f;
+}
+
+[data-theme="light"] .studio-app button.link {
+  color: var(--purple);
 }
