@@ -1075,8 +1075,8 @@ export function Landing() {
       {/* HERO — proposta de valor + flipbook */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
-          <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
+          <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
         <div className="khero-flip">
           <div className="ex-tabs khero-tabs" role="tablist" aria-label={t.story_title}>
@@ -1088,11 +1088,11 @@ export function Landing() {
                 onClick={() => setExBook(i)}
                 role="tab"
                 id={`ex-tab-${i}`}
+                aria-label={b.title}
                 aria-selected={i === exBook}
                 aria-controls="ex-book-panel"
               >
                 <img className="ex-tab-cover" src={exUrl(b.cover)} alt="" data-testid={`landing-hero-tab-cover-${i}`} />
-                <span>{b.title}</span>
               </button>
             ))}
           </div>
