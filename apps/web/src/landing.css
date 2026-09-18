@@ -1097,7 +1097,7 @@ img.ex-tab-cover {
 [data-theme="light"] .kid .ex-tab.on > span:last-child { color: var(--ink); }
 
 /* ---------- Formatos (3 colunas) ---------- */
-.fmt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 1000px; margin: 0 auto; }
+.fmt-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; max-width: 100%; margin: 0 auto; }
 .fmt-card { position: relative; display: flex; flex-direction: column; background: #172140; border-radius: 26px;
   padding: 32px 24px 26px; text-align: center; border: 2px solid #26315a; box-shadow: 0 16px 34px rgba(0,0,0,.45);
   transition: transform .18s ease, border-color .2s; }
@@ -1132,7 +1132,7 @@ img.ex-tab-cover {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 18px;
-  max-width: 980px;
+  max-width: 100%;
   width: 100%;
   margin: 8px auto 30px;
   overflow: visible;
@@ -1170,7 +1170,7 @@ img.ex-tab-cover {
   max-width: 100%;
   min-height: 0;
 }
-.rev-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 900px; margin: 0 auto; align-items: stretch; }
+.rev-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .rev-card { display: flex; flex-direction: column; margin: 0; background: #172140; border-radius: 22px; padding: 24px; text-align: left;
   box-shadow: 0 14px 30px rgba(0,0,0,.4); border: 1px solid #26315a; }
 .rev-stars { color: var(--yellow); letter-spacing: 2px; margin-bottom: 8px; }
@@ -1234,7 +1234,7 @@ img.ex-tab-cover {
 [data-theme="light"] .kid .promise-card p { color: #6b6890; }
 
 /* ---------- FAQ (accordion) ---------- */
-.faq { max-width: 780px; margin: 0 auto; text-align: left; }
+.faq { max-width: 100%; margin: 0 auto; text-align: left; }
 .faq-item { background: #172140; border: 1px solid #26315a; border-radius: 16px; margin-bottom: 12px; overflow: hidden; }
 .faq-q { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: none; border: none; cursor: pointer; padding: 18px 20px; text-align: left; color: #e9eefb; font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 1.08rem; }
 .faq-chev { width: 22px; height: 22px; color: var(--yellow); transition: transform .2s ease; flex: none; }
@@ -1257,13 +1257,13 @@ img.ex-tab-cover {
 @media (max-width: 900px) {
   .howex { grid-template-columns: 1fr; justify-items: stretch; }
   .howex-arrow { transform: rotate(90deg); justify-self: center; }
-  .fmt-grid { grid-template-columns: 1fr; max-width: 430px; }
+  .fmt-grid { grid-template-columns: 1fr; max-width: 100%; }
   .khero-tabs,
   .ex-tabs.khero-tabs { max-width: min(760px, 100%); gap: 12px; }
   .ex-tab-cover,
   img.ex-tab-cover { width: 100%; padding: 0; }
-  .rev-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 620px; gap: 14px; }
-  .rev-grid { grid-template-columns: 1fr; max-width: 460px; }
+  .rev-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 100%; gap: 14px; }
+  .rev-grid { grid-template-columns: 1fr; max-width: 100%; }
   .featured-book .fb-stage { width: min(320px, 86vw); }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }
