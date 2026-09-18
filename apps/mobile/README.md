@@ -1,8 +1,9 @@
 # Story R Us — Mobile (Expo)
 
-App React Native (Expo) que espelha o fluxo do web: **guest-first** → criar
-projeto → enviar foto → disparar etapas (avatar/história/ebook/vídeo) com
-progresso ao vivo. Login/signup é opcional (botão "Entrar" no estúdio).
+App React Native (Expo) que espelha o fluxo do web: **guest-first** → temas /
+nome → criar projeto → consentimento + foto → etapas (avatar, história, ebook,
+vídeo, **vídeo narrado**) → vozes, aprovações e pedido de impressão. Login/signup
+é opcional (botão "Entrar" no estúdio).
 
 ## Rodar
 
@@ -37,9 +38,14 @@ O JWT (guest ou conta) é persistido em AsyncStorage (`storyrus_token`).
 App.tsx              # boot guest → Studio; Auth opcional
 src/api.ts           # client REST + ensureGuest + AsyncStorage
 src/types.ts
+src/themes.ts        # catálogo de temas (paridade web)
 src/AuthScreen.tsx   # login/signup opcional
-src/StudioScreen.tsx # projeto, expo-image-picker, etapas, progresso
+src/StudioScreen.tsx # temas, etapas, aprovações, assets
+src/VoicePanel.tsx   # clone / seleção de voz (narrated-video)
 ```
+
+Ainda fora desta fatia (follow-ups): personagens extras, templates de história,
+i18n do estúdio mobile, galeria rica de páginas.
 
 ## Typecheck
 
