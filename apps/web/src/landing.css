@@ -355,7 +355,7 @@ a.kcat-btn:active {
   margin: 0 auto;
   width: 100%;
   max-width: 100%;
-  gap: 16px;
+  gap: 26px;
   overflow: visible;
 }
 .khero-tabs .ex-tab {
@@ -1047,7 +1047,7 @@ a.kcat-btn:active {
   justify-content: center;
   flex-wrap: nowrap;
   max-width: 100%;
-  gap: 16px;
+  gap: 26px;
   margin: 0 auto;
   overflow: visible;
 }
