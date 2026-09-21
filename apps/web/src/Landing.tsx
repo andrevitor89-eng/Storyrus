@@ -408,7 +408,6 @@ function FlipBook({
           <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(i)} />
           <span className="fb-leaf-shade" aria-hidden />
         </div>
-        <span className="fb-count">{pageLabel(i)}</span>
       </div>
       {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
     </div>
