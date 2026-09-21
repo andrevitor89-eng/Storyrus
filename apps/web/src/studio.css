@@ -81,6 +81,12 @@
   margin-top: 1.5rem;
 }
 
+/* Campos lado a lado (ex.: Nome da criança / Idade) devem ficar alinhados na mesma linha,
+   sem o espaçamento vertical pensado para campos empilhados. */
+.studio-app .studio-grid.two label.studio-field + label.studio-field {
+  margin-top: 0;
+}
+
 .studio-app .field-hint {
   margin: 0.45rem 0 0;
   font-size: 0.85rem;
