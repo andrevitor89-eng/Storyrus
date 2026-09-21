@@ -175,7 +175,7 @@
   overflow: visible; flex-wrap: nowrap;
 }
 .kcats {
-  display: flex; align-items: center; justify-content: flex-start;
+  display: flex; align-items: center; justify-content: center;
   gap: 6px; flex: 1; min-width: 0; flex-wrap: nowrap;
 }
 .kcat {
