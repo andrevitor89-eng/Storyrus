@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 
-const CONTACT = "Storyrus@outlook.com";
+const CONTACT = "info@storyrus.ai";
 
 export function Legal({ kind }: { kind: "privacy" | "terms" }) {
   const privacy = kind === "privacy";

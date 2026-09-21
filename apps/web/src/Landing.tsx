@@ -39,7 +39,7 @@ const IcInstagram = ({ className }: IconProps) => (
 );
 
 const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
-const CONTACT_EMAIL = "Storyrus@outlook.com";
+const CONTACT_EMAIL = "info@storyrus.ai";
 const CONTACT_INSTA = "storyrusbr";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 const FLIP_MS = 600;
@@ -71,6 +71,7 @@ const CATALOG_IMGS = [
   "capa-sofia-alfabeto.jpg",
   "capa-bruno-animais.jpg",
   "capa-cristobal-esporte.jpg",
+  "capa-nicolas-maefilho.jpg",
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -79,6 +80,7 @@ const CATALOG_THEMES = [
   "alfabetizacao_inicial",
   "animais_sons",
   "adventure",
+  "mothers_day",
 ];
 const BOOK3D = [
   { bg: "#efe4c4" },
@@ -87,6 +89,7 @@ const BOOK3D = [
   { bg: "#f0e4f4" },
   { bg: "#e8f4e4" },
   { bg: "#e4eef8" },
+  { bg: "#f8e6d8" },
 ];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -123,7 +126,7 @@ const NAV_CAT_META = [
     feats: [
       { href: "/app?tema=christmas", img: "capa-martin-goleiro.jpg", catalogI: 0 },
       { href: "/app?tema=birthday", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-      { href: "/app?tema=mothers_day", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
       { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
     ],
   },
@@ -136,7 +139,7 @@ const NAV_CAT_META = [
       { href: "/app" },
     ],
     feats: [
-      { href: "/app?tema=mothers_day", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
       { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
       { href: "/app", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
       { href: "/app", img: "capa-martin-goleiro.jpg", catalogI: 0 },
@@ -523,6 +526,7 @@ const I18N = {
       { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras e descobertas na floresta, alfabetizar brincando.", cover: "Soft", size: "M", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
       { t: "Bruno em uma aventura animal", p: "Conhecer animais e cuidar da natureza numa jornada gentil.", cover: "Soft", size: "M", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
       { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
+      { t: "Nicolas, Meu Primeiro Amor", p: "Um momento de carinho eterno entre mamãe e filho, cheio de ternura para guardar para sempre.", cover: "Soft", size: "M", tag: "Amor de mãe", quote: "Primeiro filho, eterno amor!" },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -665,6 +669,7 @@ const I18N = {
       { t: "Learning the Alphabet with Sofia", p: "Letters and forest discoveries — literacy through play.", cover: "Soft", size: "M", tag: "Literacy through play", quote: "Every letter opens a new world." },
       { t: "Bruno on an Animal Adventure", p: "Meet animals and care for nature on a gentle journey.", cover: "Soft", size: "M", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
       { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for the river.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Small paddles, big victories." },
+      { t: "Nicolas, My First Love", p: "A tender, eternal moment between mom and son, full of warmth to treasure forever.", cover: "Soft", size: "M", tag: "A mother's love", quote: "First child, eternal love!" },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -807,6 +812,7 @@ const I18N = {
       { t: "Aprendiendo el alfabeto con Sofia", p: "Letras y descubrimientos en el bosque, alfabetizar jugando.", cover: "Soft", size: "M", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
       { t: "Bruno en una aventura animal", p: "Conocer animales y cuidar la naturaleza en una jornada gentil.", cover: "Soft", size: "M", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
       { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por el río.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
+      { t: "Nicolas, Mi Primer Amor", p: "Un momento de cariño eterno entre mamá e hijo, lleno de ternura para guardar para siempre.", cover: "Soft", size: "M", tag: "Amor de madre", quote: "¡Primer hijo, amor eterno!" },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
