@@ -34,7 +34,7 @@ describe("Studio i18n", () => {
     render(<App />);
 
     expect(await screen.findByRole("heading", { name: /create your story/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /create project/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /create book/i })).toBeInTheDocument();
     expect(screen.getByText(/credits:/i)).toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en");
   });

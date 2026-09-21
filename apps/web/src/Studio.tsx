@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { api } from "./api";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
@@ -22,6 +22,35 @@ import "./landing.css";
 import "./studio.css";
 
 export { ProgressList } from "./studio/ProgressList";
+
+/* ---------------- ícones (SVG, sem emojis) ---------------- */
+type IconProps = { className?: string };
+const ICON_STROKE = 2.2;
+const Svg = ({ className, children }: { className?: string; children: ReactNode }) => (
+  <svg
+    className={className}
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth={ICON_STROKE}
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden
+  >
+    {children}
+  </svg>
+);
+const IcSun = ({ className }: IconProps) => (
+  <Svg className={className}>
+    <circle cx="12" cy="12" r="4.2" />
+    <path d="M12 2.5v2.4M12 19.1v2.4M4.6 4.6l1.7 1.7M17.7 17.7l1.7 1.7M2.5 12h2.4M19.1 12h2.4M4.6 19.4l1.7-1.7M17.7 6.3l1.7-1.7" />
+  </Svg>
+);
+const IcMoon = ({ className }: IconProps) => (
+  <Svg className={className}>
+    <path d="M20 15A8 8 0 1 1 10 4a6.5 6.5 0 0 0 10 11z" />
+  </Svg>
+);
 
 export function Studio({ onLogout }: { onLogout?: () => void }) {
   const langState = useStudioLangState();
@@ -54,15 +83,19 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
   const [mediaConsent, setMediaConsent] = useState(false);
   const [busy, setBusy] = useState(false);
-
-  useEffect(() => {
+  const [colorTheme, setColorTheme] = useState<"light" | "dark">(() => {
     try {
       const s = localStorage.getItem("theme");
-      document.documentElement.setAttribute("data-theme", s === "light" ? "light" : "dark");
+      if (s === "light" || s === "dark") return s;
     } catch {
       /* ignore */
     }
-  }, []);
+    return "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", colorTheme);
+  }, [colorTheme]);
 
   useEffect(() => {
     if (!isDemo) return;
@@ -264,14 +297,15 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   function toggleColorTheme() {
-    const cur =
-      document.documentElement.getAttribute("data-theme") === "light" ? "dark" : "light";
-    document.documentElement.setAttribute("data-theme", cur);
-    try {
-      localStorage.setItem("theme", cur);
-    } catch {
-      /* ignore */
-    }
+    setColorTheme((cur) => {
+      const next = cur === "light" ? "dark" : "light";
+      try {
+        localStorage.setItem("theme", next);
+      } catch {
+        /* ignore */
+      }
+      return next;
+    });
   }
 
   const fieldsLocked = !!project;
@@ -307,11 +341,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   </div>
                   <button
                     type="button"
-                    className="kutil"
+                    className="theme-toggle"
                     onClick={toggleColorTheme}
                     aria-label={t.themeToggleAria}
                   >
-                    {t.theme}
+                    {colorTheme === "dark" ? <IcSun className="ti" /> : <IcMoon className="ti" />}
+                    <span className="theme-toggle-label">
+                      {colorTheme === "dark" ? t.themeToLight : t.themeToDark}
+                    </span>
                   </button>
                   <span className="studio-credits-pill" data-testid="studio-credits" aria-live="polite">
                     {t.credits}: {credits ?? "…"}
@@ -407,6 +444,17 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <p className="studio-slogan">{t.slogan}</p>
           )}
 
+          <div className="how" role="region" aria-labelledby="studio-how-heading">
+            <h3 className="field-label" id="studio-how-heading">
+              {t.howTitle}
+            </h3>
+            <ol>
+              {t.how.map((h) => (
+                <li key={h}>{h}</li>
+              ))}
+            </ol>
+          </div>
+
           <div className="studio-grid two">
             <label className="studio-field">
               {t.childName}
@@ -460,6 +508,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               rows={3}
             />
           </label>
+          <p className="muted field-hint">{t.themeHint}</p>
 
           <label className="studio-field">
             {t.dedication}
@@ -474,7 +523,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
-              <p className="studio-field" style={{ marginTop: "1rem" }}>{t.photoField}</p>
+              <p className="studio-field">{t.photoField}</p>
+              <p className="muted field-hint">{t.photoFieldHint}</p>
               <div className="studio-upload-row" role="group" aria-label={t.ariaPhotoGroup}>
                 <input
                   type="file"
@@ -508,17 +558,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               </div>
             </>
           )}
-
-          <div className="how" role="region" aria-labelledby="studio-how-heading">
-            <h3 className="field-label" id="studio-how-heading">
-              {t.howTitle}
-            </h3>
-            <ol>
-              {t.how.map((h) => (
-                <li key={h}>{h}</li>
-              ))}
-            </ol>
-          </div>
         </section>
 
         {project && (
