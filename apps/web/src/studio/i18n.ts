@@ -4,6 +4,8 @@ import type { Lang } from "../i18n/lang";
 export type StudioCopy = {
   themeToggleAria: string;
   theme: string;
+  themeToLight: string;
+  themeToDark: string;
   credits: string;
   logout: string;
   upgradeOpen: string;
@@ -32,7 +34,9 @@ export type StudioCopy = {
   bookTitlePh: string;
   themeFree: string;
   themeFreePh: string;
+  themeHint: string;
   photoField: string;
+  photoFieldHint: string;
   dedication: string;
   dedicationPh: string;
   createProject: string;
@@ -237,6 +241,8 @@ const THEMES_ES: Record<Theme, string> = {
 const pt: StudioCopy = {
   themeToggleAria: "Alternar tema claro/escuro",
   theme: "Tema",
+  themeToLight: "Claro",
+  themeToDark: "Escuro",
   credits: "Créditos",
   logout: "Sair",
   upgradeOpen: "Criar conta",
@@ -264,12 +270,15 @@ const pt: StudioCopy = {
   childAgePh: "Ex.: 5",
   bookTitle: "Título do livro",
   bookTitlePh: "Ex.: A Lila e o dragão das estrelas",
-  themeFree: "Tema da história",
-  themeFreePh: "Ex.: viagem ao espaço com o cachorro da família",
+  themeFree: "Insira o tema desejado",
+  themeFreePh: "Ex.: Matteo e seu Herói Favorito",
+  themeHint:
+    "Quer incluir mais alguém na história (papai, mamãe, irmãos, o pet da família)? Descreva aqui e envie, no campo de foto abaixo, uma imagem que mostre essas pessoas ou animais.",
   photoField: "Foto do protagonista",
+  photoFieldHint: "Insira a foto desejada, baseada na história que deseja contar.",
   dedication: "Dedicatória (2ª página do livro)",
   dedicationPh: "Ex.: Para a Lila, com todo o amor da mamãe.",
-  createProject: "Criar projeto",
+  createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
   metaBookTitle: "Título",
@@ -389,6 +398,8 @@ const pt: StudioCopy = {
 const en: StudioCopy = {
   themeToggleAria: "Toggle light/dark theme",
   theme: "Theme",
+  themeToLight: "Light",
+  themeToDark: "Dark",
   credits: "Credits",
   logout: "Log out",
   upgradeOpen: "Create account",
@@ -416,12 +427,15 @@ const en: StudioCopy = {
   childAgePh: "e.g. 5",
   bookTitle: "Book title",
   bookTitlePh: "e.g. Lila and the star dragon",
-  themeFree: "Story theme",
-  themeFreePh: "e.g. a space trip with the family dog",
+  themeFree: "Enter the desired theme",
+  themeFreePh: "e.g. Matteo and his Favorite Hero",
+  themeHint:
+    "Want to include someone else in the story (dad, mom, siblings, the family pet)? Describe it here and upload a photo below that shows them.",
   photoField: "Hero photo",
+  photoFieldHint: "Upload the photo you want, based on the story you want to tell.",
   dedication: "Dedication (book page 2)",
   dedicationPh: "e.g. For Lila, with all of Mom's love.",
-  createProject: "Create project",
+  createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
   metaBookTitle: "Title",
@@ -541,6 +555,8 @@ const en: StudioCopy = {
 const es: StudioCopy = {
   themeToggleAria: "Alternar tema claro/oscuro",
   theme: "Tema",
+  themeToLight: "Claro",
+  themeToDark: "Oscuro",
   credits: "Créditos",
   logout: "Salir",
   upgradeOpen: "Crear cuenta",
@@ -568,12 +584,15 @@ const es: StudioCopy = {
   childAgePh: "Ej.: 5",
   bookTitle: "Título del libro",
   bookTitlePh: "Ej.: Lila y el dragón de las estrellas",
-  themeFree: "Tema de la historia",
-  themeFreePh: "Ej.: viaje al espacio con el perro de la familia",
+  themeFree: "Ingresa el tema deseado",
+  themeFreePh: "Ej.: Matteo y su Héroe Favorito",
+  themeHint:
+    "¿Quieres incluir a alguien más en la historia (papá, mamá, hermanos, la mascota)? Descríbelo aquí y sube abajo una foto que los muestre.",
   photoField: "Foto del protagonista",
+  photoFieldHint: "Sube la foto que quieras, según la historia que deseas contar.",
   dedication: "Dedicatoria (2.ª página del libro)",
   dedicationPh: "Ej.: Para Lila, con todo el amor de mamá.",
-  createProject: "Crear proyecto",
+  createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
   metaBookTitle: "Título",

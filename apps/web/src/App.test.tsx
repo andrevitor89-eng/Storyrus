@@ -22,12 +22,12 @@ describe("Fluxo E2E (sem login)", () => {
     await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
     await user.type(screen.getByLabelText(/idade/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
-    await user.type(screen.getByLabelText(/tema da história/i), "Aventura no espaço");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
     await user.upload(fileInput, file);
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+    await user.click(screen.getByRole("button", { name: /criar livro/i }));
     expect(await screen.findByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
     expect(await screen.findByText("AVATAR")).toBeInTheDocument();
 
@@ -50,11 +50,11 @@ describe("Fluxo E2E (sem login)", () => {
     await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
     await user.type(screen.getByLabelText(/idade/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
-    await user.type(screen.getByLabelText(/tema da história/i), "Aventura no espaço");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /criar projeto/i }));
+    await user.click(screen.getByRole("button", { name: /criar livro/i }));
 
     const ebookBtn = await screen.findByRole("button", { name: /montar ebook/i });
     expect(ebookBtn).toBeDisabled();
