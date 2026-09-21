@@ -4,7 +4,7 @@ import { MemoryRouter } from "react-router-dom";
 import { Legal } from "./Legal";
 import { AppRoutes } from "./Root";
 
-const CONTACT = "Storyrus@outlook.com";
+const CONTACT = "info@storyrus.ai";
 
 describe("Legal", () => {
   it("mostra política de privacidade com seções e contato", () => {
