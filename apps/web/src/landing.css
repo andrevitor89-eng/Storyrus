@@ -338,7 +338,7 @@ a.kcat-btn:active {
 }
 .khero-intro {
   text-align: center; width: 100%; max-width: 70rem;
-  display: flex; flex-direction: column; align-items: center; gap: 22px;
+  display: flex; flex-direction: column; align-items: center; gap: 26px;
 }
 .khero-intro h1 { font-size: clamp(1.75rem, 3.1vw, 2.9rem); line-height: 1.2; margin: 0; text-wrap: balance; }
 .khero-intro .keyebrow { margin: 0; }
