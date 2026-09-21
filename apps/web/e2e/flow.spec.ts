@@ -134,7 +134,7 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await page.getByLabel("Nome da criança").fill("Lila");
   await page.getByLabel("Idade").fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
-  await page.getByLabel("Tema da história").fill("Aventura no espaço");
+  await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
@@ -165,7 +165,7 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await page.getByLabel("Nome da criança").fill("Lila");
   await page.getByLabel("Idade").fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
-  await page.getByLabel("Tema da história").fill("Aventura no espaço");
+  await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
