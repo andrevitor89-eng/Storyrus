@@ -354,7 +354,7 @@ a.kcat-btn:active {
   justify-content: center;
   margin: 0 auto;
   width: 100%;
-  max-width: min(980px, 100%);
+  max-width: 100%;
   gap: 16px;
   overflow: visible;
 }
@@ -1046,7 +1046,7 @@ a.kcat-btn:active {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   justify-content: center;
   flex-wrap: nowrap;
-  max-width: min(980px, 100%);
+  max-width: 100%;
   gap: 16px;
   margin: 0 auto;
   overflow: visible;
