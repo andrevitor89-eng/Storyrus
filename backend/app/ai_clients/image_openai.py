@@ -93,9 +93,7 @@ class OpenAIImageProvider:
         }
 
     @track(name="openai_generate", type="llm", capture_input=False, capture_output=False)
-    async def _generate_text(
-        self, prompt: str, *, size: str, aspect_hint: str = ""
-    ) -> ImageResult:
+    async def _generate_text(self, prompt: str, *, size: str, aspect_hint: str = "") -> ImageResult:
         body = {
             "model": self._model,
             "prompt": prompt,
@@ -283,9 +281,7 @@ class OpenAIImageProvider:
             "cabelo, idade e proporcoes). NAO copie a roupa dele. "
         )
         if extras:
-            identity += (
-                "As imagens seguintes sao referencias de figurino, ficha ou estilo. "
-            )
+            identity += "As imagens seguintes sao referencias de figurino, ficha ou estilo. "
         text = (
             f"{SCENE_GEN_PREFIX}{identity}"
             f"Ilustre no estilo '{style}', identico ao estilo da referencia. "
