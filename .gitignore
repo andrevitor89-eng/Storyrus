@@ -166,3 +166,4 @@ apps/web/public/exemplos/*
 
 .vercel
 .env*
+.local-storage/

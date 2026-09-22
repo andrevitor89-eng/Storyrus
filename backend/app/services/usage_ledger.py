@@ -15,7 +15,7 @@ def usage_line(
     action: str,
     label: str,
     cost_usd: float | None,
-    provider: str = "gemini",
+    provider: str = "openai",
     kind: str = "image",
     meta: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -53,7 +53,8 @@ def lines_of(result: Any) -> list[dict[str, Any]]:
 
 def image_provider_name(result: Any, fallback: str | None = None) -> str:
     meta = getattr(result, "meta", None) or {}
-    raw = meta.get("provider") or meta.get("head_provider") or fallback or "gemini"
+    raw = meta.get("provider") or meta.get("head_provider") or fallback or "openai"
+    # Aliases legados (rows antigas no extrato).
     if raw in ("nano-banana", "gemini"):
         return "gemini"
     if raw in ("openai", "gpt-image-1"):
@@ -94,7 +95,7 @@ def flush_usage(db: Session, job: Job, lines: list[dict[str, Any]] | None) -> No
             db,
             job=job,
             kind=str(line.get("kind") or "image"),
-            provider=str(line.get("provider") or "gemini"),
+            provider=str(line.get("provider") or "openai"),
             action=str(line.get("action") or "generate"),
             label=str(line.get("label") or "Geração"),
             cost_usd=line.get("cost_usd"),

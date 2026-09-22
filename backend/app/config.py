@@ -71,6 +71,8 @@ class Settings(BaseSettings):
     storage_access_key: str | None = None
     storage_secret_key: str | None = None
     storage_signing_ttl: int = 600  # segundos
+    # Sem STORAGE_ACCESS_KEY/SECRET: disco local (dev/host sem R2).
+    storage_local_dir: str = ".local-storage"
 
     # Politica de negocio
     # Limite de jobs PENDING/RUNNING por usuario (inclui VIDEO / NARRATED_VIDEO).
@@ -100,26 +102,10 @@ class Settings(BaseSettings):
     # Alarmes no /gastos: razao do teto USD e piso absoluto opcional.
     spend_anomaly_warn_ratio: float = 0.8
     spend_anomaly_usd: float = 0.0
-    price_gemini_image_usd: float = 0.039
-    price_gemini_input_per_mtok: float = 0.30
-    price_gemini_output_per_mtok: float = 30.0
     price_claude_input_per_mtok: float = 15.0
     price_claude_output_per_mtok: float = 75.0
     price_kling_per_second_usd: float = 0.10
-    price_fal_image_usd: float = 0.03
     price_openai_image_usd: float = 0.04
-    fal_key: str | None = None
-    identity_head_provider: str = "pulid"
-    face_match_backend: str = "insightface"
-    fal_timeout_s: float = 120.0
-    fal_swap_timeout_s: float = 300.0
-    fal_safety_checker: bool = True
-    fal_pulid_endpoint: str = "fal-ai/flux-pulid"
-    fal_refine_endpoint: str = "easel-ai/advanced-face-swap"
-    # SAM 2 no recorte de identidade (silhueta da cabeca). Sem chave, oval.
-    face_segment: bool = True
-    fal_sam_endpoint: str = "fal-ai/sam2/image"
-    fal_sam_timeout_s: float = 45.0
 
     # Webhooks
     webhook_signing_secret: str = "change-me-webhook"
@@ -127,36 +113,12 @@ class Settings(BaseSettings):
     webhook_max_age_s: float = 300.0
 
     # Provedores de IA
-    gemini_api_key: str | None = None  # Nano Banana Pro (Gemini 3 Pro Image)
-    gemini_image_model: str = "gemini-3-pro-image"
-    # So Nano Banana Pro nas imagens. A lane devolve 503 ("high demand") em picos;
-    # sem fallback o job falha e estorna depois dos retries. Vazio desliga a
-    # queda. O modelo usado vai em `meta`.
-    gemini_image_model_fallback: str = ""
-    # 1K | 2K | 4K. A pagina do PDF e quadrada de 8,5" => 2K ~ 241 DPI (1K ~ 120 DPI).
-    # Vazio desliga o campo: `gemini-2.5-flash-image` rejeita `imageSize`.
-    gemini_image_size: str = "2K"
-    # Nano Banana Pro pensa antes de gerar: bem mais lento que o 2.5 Flash.
-    gemini_timeout_s: float = 240.0
-    # true | system | false. `system` usa a loja de certificados do SO, necessario
-    # quando antivirus/proxy reassina o TLS (o httpx fixa o bundle do certifi).
-    gemini_ssl_verify: str = "true"
-    # Localiza o rosto da crianca para o recorte de identidade. Modelo de texto:
-    # custa ~1200 tokens por foto, nao gera imagem.
-    gemini_face_model: str = "gemini-3.1-flash-lite"
-    gemini_face_timeout_s: float = 60.0
-    # Insistencia curta: e pre-processamento, nao pode dominar o tempo do avatar.
-    gemini_face_retries: int = 3
-    # Retries HTTP no Nano Banana (503/429/rede): tentativas totais com backoff+jitter
-    gemini_max_retries: int = 5
-    gemini_retry_base_s: float = 2.0
-    gemini_retry_max_s: float = 60.0
     anthropic_api_key: str | None = None  # historia (Claude)
     kling_access_key: str | None = None  # video (image2video) — unico provedor
     kling_secret_key: str | None = None
     elevenlabs_api_key: str | None = None  # TTS video narrado
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
-    openai_api_key: str | None = None  # GPT Image (avatar, cena, ebook)
+    openai_api_key: str | None = None  # GPT Image + juiz de historia
     openai_image_model: str = "gpt-image-1"
     openai_image_size_portrait: str = "1024x1536"
     openai_image_size_square: str = "1024x1024"
@@ -164,6 +126,11 @@ class Settings(BaseSettings):
     openai_max_retries: int = 3
     openai_retry_base_s: float = 2.0
     openai_retry_max_s: float = 60.0
+    openai_story_judge_model: str = "gpt-4o-mini"
+    # Retries do juiz de rosto (InsightFace) no avatar/paginas.
+    face_match_retries: int = 3
+    # TLS do cliente Opik: true | system | false
+    opik_ssl_verify: str = "true"
 
     # Selecao de provedores por etapa
     image_provider: str = "openai"
@@ -189,11 +156,11 @@ class Settings(BaseSettings):
     # Paginas ilustradas em paralelo (writes no banco ficam em serie, depois).
     ebook_page_concurrency: int = 3
     # Gemini/InsightFace comparam recorte/avatar x cena; abaixo do limiar roda
-    # refine + Fal. Depois de 2 tentativas, score baixo/None recusa o job.
+    # refine. Depois de 2 tentativas, score baixo/None recusa o job.
     ebook_face_match: bool = False
     ebook_face_match_min: float = 0.72
     # Avatar x cena (mesmo estilo). Acima do limiar foto x ilustracao, senao
-    # um loiro generico passa. Abaixo disto: refine_scene e Fal.
+    # um loiro generico passa. Abaixo disto: refine_scene OpenAI.
     ebook_avatar_match_min: float = 0.75
     avatar_face_match_min: float = 0.80
     # Close que infla o olho (fracao do rosto) acima disto recusa a pagina.
@@ -231,7 +198,9 @@ class Settings(BaseSettings):
             bad.append("STORAGE_ACCESS_KEY")
         if self.storage_secret_key is not None and _is_unsafe_secret(self.storage_secret_key):
             bad.append("STORAGE_SECRET_KEY")
-        if self.image_provider == "openai" and not (self.openai_api_key or "").strip():
+        if self.image_provider != "openai":
+            bad.append("IMAGE_PROVIDER")
+        if not (self.openai_api_key or "").strip():
             bad.append("OPENAI_API_KEY")
         if bad:
             raise ValueError(

@@ -141,13 +141,8 @@ def verdict_reason(score: FaceScore, *, min_match: float, max_eye_inflate: float
 
 
 def judge_configured() -> bool:
-    """Juiz ligado: InsightFace local, ou Gemini com chave e modelo."""
-    if not settings.ebook_face_match:
-        return False
-    backend = (settings.face_match_backend or "").strip().lower()
-    if backend == "insightface":
-        return True
-    return bool(settings.gemini_api_key and settings.gemini_face_model)
+    """Juiz ligado quando ebook_face_match esta on (InsightFace local)."""
+    return bool(settings.ebook_face_match)
 
 
 def prefer_verdict(new: FaceVerdict, old: FaceVerdict, threshold: float) -> bool:

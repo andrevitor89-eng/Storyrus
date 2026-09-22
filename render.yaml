@@ -33,16 +33,10 @@ services:
         generateValue: true
       - key: WEBHOOK_SIGNING_SECRET
         generateValue: true
-      - key: GEMINI_API_KEY
-        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: IMAGE_PROVIDER
         value: openai
-      - key: FAL_KEY
-        sync: false
-      - key: IDENTITY_HEAD_PROVIDER
-        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: KLING_ACCESS_KEY
@@ -100,16 +94,10 @@ services:
         fromDatabase:
           name: storyrus-db
           property: connectionString
-      - key: GEMINI_API_KEY
-        sync: false
       - key: OPENAI_API_KEY
         sync: false
       - key: IMAGE_PROVIDER
         value: openai
-      - key: FAL_KEY
-        sync: false
-      - key: IDENTITY_HEAD_PROVIDER
-        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: KLING_ACCESS_KEY

@@ -362,7 +362,7 @@ async def test_only_regenerates_the_requested_page(spec):
     assert result.exit_code == common.EXIT_OK
     assert common.page_path(spec, 2).read_bytes() == page2
     assert common.page_path(spec, 3).read_bytes() == provider.refine
-    assert provider.calls == ["scene", "refine_scene", "refine_identity"]
+    assert provider.calls == ["scene", "refine_scene"]
 
 
 @pytest.mark.asyncio
@@ -381,7 +381,7 @@ async def test_kept_pages_are_never_touched(spec):
 
 
 @pytest.mark.asyncio
-async def test_ensure_page_fals_when_avatar_score_low(spec, monkeypatch):
+async def test_ensure_page_refines_when_avatar_score_low(spec, monkeypatch):
     async def low(*_a, **_k):
         return 0.4
 
@@ -403,12 +403,12 @@ async def test_ensure_page_fals_when_avatar_score_low(spec, monkeypatch):
         photo=photo,
     )
 
-    assert provider.calls == ["scene", "refine_scene", "refine_identity"]
+    assert provider.calls == ["scene", "refine_scene"]
     assert common.page_path(spec, 3).read_bytes() == provider.refine
 
 
 @pytest.mark.asyncio
-async def test_ensure_page_skips_fal_when_avatar_score_high(spec, monkeypatch):
+async def test_ensure_page_skips_refine_when_avatar_score_high(spec, monkeypatch):
     async def high(*_a, **_k):
         return 0.91
 

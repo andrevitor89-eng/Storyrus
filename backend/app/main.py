@@ -9,7 +9,7 @@ from app.errors import register_exception_handlers
 from app.middleware.request_id import RequestIdMiddleware
 from app.observability import opik_trace
 from app.observability.logging_setup import configure_logging
-from app.routers import auth, credits, jobs, projects, usage, voices, webhooks
+from app.routers import auth, credits, jobs, local_storage, projects, usage, voices, webhooks
 from app.services import jobs as jobs_svc
 
 configure_logging(
@@ -49,6 +49,7 @@ app.include_router(jobs.router)
 app.include_router(voices.router)
 app.include_router(webhooks.router)
 app.include_router(usage.router)
+app.include_router(local_storage.router)
 
 
 @app.get("/health", tags=["meta"])

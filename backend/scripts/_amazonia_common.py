@@ -745,12 +745,12 @@ def run(spec: BookSpec, args: argparse.Namespace, provider_factory: Callable[[],
         if spec.plates_dir is None or not spec.plates_dir.is_dir():
             spec.log(f"chapas nao encontradas: {spec.plates_dir}")
             return EXIT_FAIL
-        if not settings.fal_key and not settings.gemini_api_key:
-            spec.log("FAL_KEY e GEMINI_API_KEY ausentes")
+        if not settings.openai_api_key:
+            spec.log("OPENAI_API_KEY ausente")
             return EXIT_FAIL
     else:
-        if not settings.gemini_api_key:
-            spec.log("GEMINI_API_KEY ausente")
+        if not settings.openai_api_key:
+            spec.log("OPENAI_API_KEY ausente")
             return EXIT_FAIL
         if not spec.skip_identity and (spec.photo is None or not spec.photo.exists()):
             spec.log(f"foto nao encontrada: {spec.photo}")

@@ -24,25 +24,12 @@ def openai_image_cost(usage: dict | None = None) -> float:
 
 
 def _unit_image_usd() -> float:
-    if settings.image_provider == "openai":
-        return float(settings.price_openai_image_usd)
-    return float(settings.price_gemini_image_usd)
+    return float(settings.price_openai_image_usd)
 
 
 def image_cost(usage: dict | None = None) -> float:
-    """Custo de uma geração Gemini (Nano Banana).
-
-    Se a API devolver usageMetadata com tokens, usa as taxas por milhão.
-    Senão, cobra o preço fixo por imagem.
-    """
-    usage = usage or {}
-    prompt = _f(usage.get("promptTokenCount", usage.get("prompt_token_count")))
-    candidates = _f(usage.get("candidatesTokenCount", usage.get("candidates_token_count")))
-    if prompt or candidates:
-        inp = prompt / 1_000_000 * settings.price_gemini_input_per_mtok
-        out = candidates / 1_000_000 * settings.price_gemini_output_per_mtok
-        return round(inp + out, 6)
-    return round(settings.price_gemini_image_usd, 6)
+    """Compat: custo de imagem = GPT Image flat (usage ignorado)."""
+    return openai_image_cost(usage)
 
 
 def text_cost(usage: dict | None = None) -> float:
@@ -74,14 +61,14 @@ def estimate_job_usd(job_type: str | Any) -> float:
     """Estimativa local (sem rede) do burn USD de um job, para teto diario.
 
     Conservadora o bastante para bloquear antes do vendor; nao e cobranca.
+    Avatar/cena incluem 1 geracao + 1 refine tipico.
     """
     raw = getattr(job_type, "value", job_type)
     t = str(raw or "").upper()
     img = _unit_image_usd()
-    fal = 0.0 if settings.image_provider == "openai" else float(settings.price_fal_image_usd)
 
     if t in ("AVATAR", "REALISTIC", "EXTRA_CHARACTER"):
-        return round(img + fal, 6)
+        return round(img * 2.0, 6)
     if t == "STORYBOARD":
         return round(img * 2.0, 6)
     if t == "STORY":

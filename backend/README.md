@@ -1,8 +1,7 @@
 # Story R Us — API (núcleo)
 
 MVP do backend: **foto → personagem → ebook → vídeo animado**. Pipeline assíncrono com
-créditos, jobs idempotentes, moderação/segurança e clients reais de IA (Nano Banana Pro —
-Gemini 3 Pro Image, Claude, Kling). FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
+créditos, jobs idempotentes, moderação/segurança e clients reais de IA (OpenAI GPT Image, Claude, Kling). FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
 
 ## Estrutura
 
@@ -23,7 +22,7 @@ backend/
       auth.py credits.py projects.py jobs.py webhooks.py
     ai_clients/
       base.py            # interfaces ImageProvider/TextProvider/VideoProvider
-      image_nano_banana.py  text_anthropic.py  video_kling.py  factory.py
+      image_openai.py  text_anthropic.py  video_kling.py  factory.py
     workers/
       runner.py          # loop: claim + retry/backoff + estorno
       handlers.py        # AVATAR/STORY/EBOOK/STORYBOARD/VIDEO

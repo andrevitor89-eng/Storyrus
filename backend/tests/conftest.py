@@ -4,7 +4,7 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET", "test-secret")
-os.environ.setdefault("IMAGE_PROVIDER", "nano-banana")
+os.environ.setdefault("IMAGE_PROVIDER", "openai")
 
 import pytest
 from fastapi.testclient import TestClient
@@ -36,17 +36,20 @@ def _reset_webhook_nonces():
 
 
 @pytest.fixture(autouse=True)
-def _no_face_detection_network(monkeypatch):
-    """Teste nao chama a API para detectar rosto.
+def _no_insightface_in_suite(monkeypatch):
+    """Suite nao carrega buffalo_l / InsightFace em PNG fake.
 
-    A deteccao entrou no caminho do avatar E no de toda pagina do livro; sem
-    isto a suite passa a depender de rede (e de cota) sem avisar. Modelo vazio
-    faz `detect_face_box` devolver None e cair no recorte geometrico offline.
+    Detect devolve lista vazia → recorte geometrico. Faces vazias → score None.
+    Testes que precisam de InsightFace fazem monkeypatch de `_faces_in`.
     """
-    monkeypatch.setattr(settings, "gemini_face_model", "")
-    monkeypatch.setattr(settings, "face_segment", False)
-    # Sem modelo Gemini o juiz some; evita InsightFace em PNG fake da suite.
-    monkeypatch.setattr(settings, "face_match_backend", "gemini")
+    monkeypatch.setattr(
+        "app.ai_clients.face_detect.face_boxes",
+        lambda _photo: [],
+    )
+    monkeypatch.setattr(
+        "app.ai_clients.face_match._faces_in",
+        lambda _data: [],
+    )
 
 
 @pytest.fixture(autouse=True)

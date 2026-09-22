@@ -45,16 +45,25 @@ def enabled() -> bool:
 
 
 def _install_ssl_hook() -> None:
-    """Faz o HTTP do Opik usar o mesmo TLS do Gemini (loja do SO se `system`).
+    """Ajusta TLS do Opik quando `OPIK_SSL_VERIFY=system|false`.
 
     Nesta maquina o antivirus reassina o trafego; o certifi do httpx falha.
     """
     global _ssl_hook_installed
     if _ssl_hook_installed:
         return
-    from app.ai_clients.gemini_api import ssl_verify
+    verify = True
+    raw = (getattr(settings, "opik_ssl_verify", None) or "true").strip().lower()
+    if raw in ("false", "0", "no"):
+        verify = False
+    elif raw == "system":
+        import ssl
+        import certifi
 
-    verify = ssl_verify()
+        try:
+            verify = ssl.create_default_context()
+        except Exception:  # noqa: BLE001
+            verify = certifi.where()
     if verify is True:
         _ssl_hook_installed = True
         return

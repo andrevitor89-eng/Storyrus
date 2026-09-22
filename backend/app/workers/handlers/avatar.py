@@ -18,7 +18,6 @@ from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
 )
 from app.ai_clients.face_detect import identity_images
-from app.ai_clients.image_pulid_fal import pulid_head_enabled
 from app.config import settings
 from app.models import Asset, AssetKind, Job, ProjectStatus
 from app.observability.opik_trace import (
@@ -79,7 +78,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
             cost_usd=0.0,
         )
     else:
-        # Gemini gera o corpo CGI; Fal cola o rosto (sem chave: refine Gemini).
+        # GPT Image gera o corpo CGI; refine_identity trava o rosto.
         provider = _pkg().get_image_provider(job.provider)
         style = AVATAR_STYLE
         gen_refs = (await identity_images(refs[0])) + refs[1:]
@@ -132,7 +131,7 @@ async def _refine_identity(
     Best-effort: se o provider nao tiver o metodo ou falhar, retorna o resultado original.
     `passes` = correcoes em sequencia (avatar Fal = 1 + retry do juiz).
     `retries` = tentativas extras apos falha em cada passe.
-    `method` = refine_identity (Fal no avatar/paginas); refine_character sem FAL_KEY.
+    `method` = refine_identity (OpenAI edits no avatar/paginas).
     """
     refine = getattr(provider, method, None) or getattr(provider, "refine_identity", None)
     if refine is None or not photo_bytes:
@@ -168,7 +167,7 @@ async def _score_avatar_face(photo: bytes | None, scene: bytes) -> float | None:
     """Nota do juiz, com retry. None so depois de esgotar tentativas (STO-37)."""
     if not photo or not scene:
         return None
-    attempts = max(1, settings.gemini_face_retries)
+    attempts = max(1, settings.face_match_retries)
     for attempt in range(1, attempts + 1):
         try:
             score = await _pkg().score_face_match(photo, scene)
@@ -194,17 +193,15 @@ async def _score_avatar_face(photo: bytes | None, scene: bytes) -> float | None:
 
 
 async def _lock_avatar_identity(provider, face: bytes, result, style):
-    """Gemini gera o corpo; Fal cola o rosto sempre (1x). Sem FAL_KEY: refine Gemini.
+    """Gera o corpo; refine_identity cola o rosto (OpenAI edits).
 
-    Nota alta nao pula o Fal — o retrato e a ancora das 12 paginas. Segundo
-    passe se a nota ficar abaixo de `avatar_face_match_min` **ou** se o juiz
-    nao devolver nota apos retry. Sem nota nos dois passes → falha visivel
-    (STO-37), sem soft-skip silencioso.
+    Sempre 1 passe de refine. Segundo passe se a nota ficar abaixo de
+    `avatar_face_match_min` **ou** se o juiz nao devolver nota apos retry.
+    Sem nota nos dois passes → falha visivel (STO-37), sem soft-skip.
     """
-    method = "refine_identity" if pulid_head_enabled() else "refine_character"
-    first = await _refine_identity(provider, face, result, style, passes=1, method=method)
-    if not pulid_head_enabled():
-        return first
+    first = await _refine_identity(
+        provider, face, result, style, passes=1, method="refine_identity"
+    )
     threshold = settings.avatar_face_match_min
     score = await _score_avatar_face(face, first.image_bytes)
     if score is not None and score >= threshold:
@@ -218,7 +215,6 @@ async def _lock_avatar_identity(provider, face: bytes, result, style):
     if score is None and score2 is None:
         raise ProviderError(AVATAR_FACE_JUDGE_ERROR, transient=True)
     if score2 is None:
-        # Segundo juiz falhou; fica com o primeiro (nota conhecida).
         log_feedback("face_score", score, reason="avatar identity (kept first; judge retry failed)")
         return first
     if score is not None and score2 < score:

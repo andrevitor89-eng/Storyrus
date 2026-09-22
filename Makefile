@@ -1,6 +1,12 @@
 # Story R Us local DX — backend stack via backend/docker-compose.yml;
 # Vite web runs on the host (proxy /v1 → :8000). No MinIO.
-COMPOSE := docker compose -f backend/docker-compose.yml
+#
+# Cloud Agent / broken Docker bridge: make up HOST_GATEWAY=1
+COMPOSE_FILES := -f backend/docker-compose.yml
+ifeq ($(HOST_GATEWAY),1)
+COMPOSE_FILES += -f backend/docker-compose.host-gateway.yml
+endif
+COMPOSE := docker compose $(COMPOSE_FILES)
 BACKEND_ENV := backend/.env
 API_URL ?= http://localhost:8000
 
