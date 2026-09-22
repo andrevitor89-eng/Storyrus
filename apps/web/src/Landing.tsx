@@ -74,6 +74,7 @@ const CATALOG_IMGS = [
   "capa-nicolas-maefilho.jpg",
   "capa-amordemae.jpg",
   "capa-mamaepapaimatteo.jpg",
+  "capa-amordebisavo.jpg",
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -85,6 +86,7 @@ const CATALOG_THEMES = [
   "mothers_day",
   "mothers_day",
   "family_love",
+  "grandparents_love",
 ];
 const BOOK3D = [
   { bg: "#efe4c4" },
@@ -96,6 +98,7 @@ const BOOK3D = [
   { bg: "#f8e6d8" },
   { bg: "#f0e6d2" },
   { bg: "#e6ded0" },
+  { bg: "#dcedf2" },
 ];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -534,6 +537,7 @@ const I18N = {
       { t: "Nicolas, Meu Primeiro Amor", p: "Um momento de carinho eterno entre mamãe e filho, cheio de ternura para guardar para sempre.", cover: "Soft", size: "M", tag: "Amor de mãe", quote: "Primeiro filho, eterno amor!" },
       { t: "O Amor de Mãe", p: "Pequenas histórias de um grande amor: a ternura da mamãe em cada página, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de mãe", quote: "No colo da mamãe, encontro meu lugar." },
       { t: "Mamãe, Papai e Matteo", p: "Uma celebração da família: o carinho de mamãe e papai unidos em uma história só deles.", cover: "Hard", size: "M", tag: "Amor de família", quote: "Juntos, fazemos do amor o nosso lar." },
+      { t: "Amor de Bisavó", p: "Uma homenagem à bisavó: colo, carinho e histórias que atravessam gerações, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor entre gerações", quote: "Bisavó tem abraço que acolhe e guarda todo o meu carinho." },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -679,6 +683,7 @@ const I18N = {
       { t: "Nicolas, My First Love", p: "A tender, eternal moment between mom and son, full of warmth to treasure forever.", cover: "Soft", size: "M", tag: "A mother's love", quote: "First child, eternal love!" },
       { t: "A Mother's Love", p: "Small stories of a big love: mom's tenderness on every page, to treasure forever.", cover: "Hard", size: "M", tag: "A mother's love", quote: "In mom's arms, I find my place." },
       { t: "Mom, Dad and Matteo", p: "A celebration of family: mom and dad's love coming together in a story all their own.", cover: "Hard", size: "M", tag: "Family love", quote: "Together, we make love our home." },
+      { t: "Great-Grandma's Love", p: "A tribute to great-grandma: hugs, warmth and stories that cross generations, to treasure forever.", cover: "Hard", size: "M", tag: "Love across generations", quote: "Great-grandma's hug holds all my love." },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -824,6 +829,7 @@ const I18N = {
       { t: "Nicolas, Mi Primer Amor", p: "Un momento de cariño eterno entre mamá e hijo, lleno de ternura para guardar para siempre.", cover: "Soft", size: "M", tag: "Amor de madre", quote: "¡Primer hijo, amor eterno!" },
       { t: "El Amor de Mamá", p: "Pequeñas historias de un gran amor: la ternura de mamá en cada página, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de madre", quote: "En los brazos de mamá, encuentro mi lugar." },
       { t: "Mamá, Papá y Matteo", p: "Una celebración de la familia: el cariño de mamá y papá unidos en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Amor de familia", quote: "Juntos, hacemos del amor nuestro hogar." },
+      { t: "El Amor de la Bisabuela", p: "Un homenaje a la bisabuela: abrazos, cariño e historias que atraviesan generaciones, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor entre generaciones", quote: "El abrazo de la bisabuela guarda todo mi cariño." },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
