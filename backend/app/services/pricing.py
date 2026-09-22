@@ -17,6 +17,18 @@ def _f(value: Any, default: float = 0.0) -> float:
         return default
 
 
+def openai_image_cost(usage: dict | None = None) -> float:
+    """Custo de uma geracao GPT Image (flat; usage reservado para tabela futura)."""
+    _ = usage
+    return round(settings.price_openai_image_usd, 6)
+
+
+def _unit_image_usd() -> float:
+    if settings.image_provider == "openai":
+        return float(settings.price_openai_image_usd)
+    return float(settings.price_gemini_image_usd)
+
+
 def image_cost(usage: dict | None = None) -> float:
     """Custo de uma geração Gemini (Nano Banana).
 
@@ -65,11 +77,10 @@ def estimate_job_usd(job_type: str | Any) -> float:
     """
     raw = getattr(job_type, "value", job_type)
     t = str(raw or "").upper()
-    img = float(settings.price_gemini_image_usd)
-    fal = float(settings.price_fal_image_usd)
+    img = _unit_image_usd()
+    fal = 0.0 if settings.image_provider == "openai" else float(settings.price_fal_image_usd)
 
     if t in ("AVATAR", "REALISTIC", "EXTRA_CHARACTER"):
-        # Gemini (+ eventual Fal/PuLID no caminho de identidade).
         return round(img + fal, 6)
     if t == "STORYBOARD":
         return round(img * 2.0, 6)

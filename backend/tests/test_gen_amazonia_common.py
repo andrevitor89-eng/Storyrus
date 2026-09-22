@@ -64,6 +64,15 @@ class FakeProvider:
 
 
 @pytest.fixture(autouse=True)
+def _script_book_flags(monkeypatch):
+    """Scripts de livro exemplo assumem refine de cena ligado (pre-2C)."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "ebook_refine_scene", True)
+    monkeypatch.setattr(settings, "ebook_face_match", True)
+
+
+@pytest.fixture(autouse=True)
 def _no_sleep(monkeypatch):
     async def fake_sleep(_delay: float) -> None:
         return None

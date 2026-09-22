@@ -35,6 +35,10 @@ services:
         generateValue: true
       - key: GEMINI_API_KEY
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: IMAGE_PROVIDER
+        value: openai
       - key: FAL_KEY
         sync: false
       - key: IDENTITY_HEAD_PROVIDER
@@ -98,6 +102,10 @@ services:
           property: connectionString
       - key: GEMINI_API_KEY
         sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: IMAGE_PROVIDER
+        value: openai
       - key: FAL_KEY
         sync: false
       - key: IDENTITY_HEAD_PROVIDER

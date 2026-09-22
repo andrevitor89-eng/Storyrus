@@ -989,6 +989,7 @@ async def test_ebook_generate_scene_receives_costume_extra_refs(db, mem_storage,
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: TaggedImage())
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_character_bible", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola feliz.\nPagina 2: fim."
@@ -1026,6 +1027,7 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
     monkeypatch.setattr(handlers, "score_face_match", low_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
@@ -1115,6 +1117,7 @@ async def test_ebook_bible_uses_avatar_not_photo(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers.settings, "ebook_character_bible", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
@@ -1150,6 +1153,7 @@ async def test_ebook_face_match_refine_scene_skips_fal(db, mem_storage, monkeypa
     monkeypatch.setattr(handlers, "score_face_match", score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
@@ -1273,6 +1277,7 @@ async def test_ebook_bible_expression_and_costume_overlap(db, mem_storage, monke
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: SlowBible())
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
+    monkeypatch.setattr(handlers.settings, "ebook_character_bible", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."

@@ -4,6 +4,7 @@ import os
 
 os.environ.setdefault("DATABASE_URL", "sqlite+pysqlite:///:memory:")
 os.environ.setdefault("JWT_SECRET", "test-secret")
+os.environ.setdefault("IMAGE_PROVIDER", "nano-banana")
 
 import pytest
 from fastapi.testclient import TestClient
