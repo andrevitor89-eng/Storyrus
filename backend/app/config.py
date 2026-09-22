@@ -71,6 +71,8 @@ class Settings(BaseSettings):
     storage_access_key: str | None = None
     storage_secret_key: str | None = None
     storage_signing_ttl: int = 600  # segundos
+    # Sem STORAGE_ACCESS_KEY/SECRET: disco local (dev/host sem R2).
+    storage_local_dir: str = ".local-storage"
 
     # Politica de negocio
     # Limite de jobs PENDING/RUNNING por usuario (inclui VIDEO / NARRATED_VIDEO).

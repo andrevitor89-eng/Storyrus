@@ -1,12 +1,15 @@
-"""Storage com URLs assinadas (S3/R2).
+"""Storage com URLs assinadas (S3/R2) ou disco local em dev.
 
 Chaves nunca vao ao cliente: uploads e entregaveis sao acessados via URL
-assinada de curta duracao. Se as credenciais nao estiverem configuradas
-(dev/testes), cai num stub que devolve uma URL local previsivel.
+assinada de curta duracao. Sem STORAGE_ACCESS_KEY/SECRET, usa disco local
+(`STORAGE_LOCAL_DIR`, default `.local-storage`) e URLs `/v1/local-storage/...`.
 """
+
+from __future__ import annotations
 
 import uuid
 from functools import lru_cache
+from pathlib import Path
 
 from app.config import settings
 
@@ -43,15 +46,33 @@ def _public_client():
     return _client(settings.storage_public_endpoint_url or settings.storage_endpoint_url)
 
 
+def local_root() -> Path:
+    raw = (getattr(settings, "storage_local_dir", None) or ".local-storage").strip()
+    path = Path(raw)
+    if not path.is_absolute():
+        path = Path.cwd() / path
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+def uses_local_disk() -> bool:
+    return _internal_client() is None
+
+
 def new_key(project_id: uuid.UUID, kind: str, ext: str) -> str:
     return f"projects/{project_id}/{kind}/{uuid.uuid4().hex}.{ext.lstrip('.')}"
+
+
+def local_object_url(key: str) -> str:
+    """Path relativo servido pela API (proxy Vite encaminha /v1)."""
+    return f"/v1/local-storage/{key.lstrip('/')}"
 
 
 def presign_put(key: str, content_type: str) -> str:
     """URL assinada para upload (PUT)."""
     client = _public_client()
     if client is None:
-        return f"https://storage.local/{settings.storage_bucket}/{key}?op=put"
+        return local_object_url(key)
     return client.generate_presigned_url(
         "put_object",
         Params={"Bucket": settings.storage_bucket, "Key": key, "ContentType": content_type},
@@ -63,7 +84,7 @@ def presign_get(key: str) -> str:
     """URL assinada para download (GET)."""
     client = _public_client()
     if client is None:
-        return f"https://storage.local/{settings.storage_bucket}/{key}?op=get"
+        return local_object_url(key)
     return client.generate_presigned_url(
         "get_object",
         Params={"Bucket": settings.storage_bucket, "Key": key},
@@ -78,11 +99,23 @@ class StorageNotConfigured(Exception):
     pass
 
 
+def _local_path(key: str) -> Path:
+    root = local_root().resolve()
+    path = (root / key.lstrip("/")).resolve()
+    if not str(path).startswith(str(root)):
+        raise StorageNotConfigured(f"chave invalida: {key}")
+    return path
+
+
 def put_bytes(key: str, data: bytes, content_type: str = "application/octet-stream") -> str:
     """Sobe bytes diretamente (worker). Retorna a chave."""
+    _ = content_type
     client = _internal_client()
     if client is None:
-        raise StorageNotConfigured("Credenciais de storage ausentes (STORAGE_ACCESS_KEY/SECRET)")
+        path = _local_path(key)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_bytes(data)
+        return key
     client.put_object(Bucket=settings.storage_bucket, Key=key, Body=data, ContentType=content_type)
     return key
 
@@ -91,6 +124,9 @@ def get_bytes(key: str) -> bytes:
     """Baixa bytes de um asset (worker)."""
     client = _internal_client()
     if client is None:
-        raise StorageNotConfigured("Credenciais de storage ausentes (STORAGE_ACCESS_KEY/SECRET)")
+        path = _local_path(key)
+        if not path.is_file():
+            raise FileNotFoundError(key)
+        return path.read_bytes()
     obj = client.get_object(Bucket=settings.storage_bucket, Key=key)
     return obj["Body"].read()
