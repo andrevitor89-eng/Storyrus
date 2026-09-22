@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from app.ai_clients.base import ImageProvider, TextProvider, VideoProvider
 from app.ai_clients.hybrid import HybridImageProvider
+from app.ai_clients.image_openai import OpenAIImageProvider
 from app.ai_clients.text_anthropic import AnthropicTextProvider
 from app.ai_clients.video_kling import KlingVideoProvider
 from app.config import settings
@@ -19,6 +20,8 @@ _VIDEO = {"kling": KlingVideoProvider}
 
 def get_image_provider(name: str | None = None) -> ImageProvider:
     key = name or settings.image_provider
+    if key == "openai":
+        return HybridImageProvider(scene=OpenAIImageProvider())
     try:
         return _IMAGE[key]()
     except KeyError:

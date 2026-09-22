@@ -85,13 +85,19 @@ describe("Landing — tema", () => {
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
     expect(localStorage.getItem("theme")).toBe("dark");
 
+    const brand = screen.getByTestId("landing-brand");
+    const logoImg = within(brand).getByRole("img", { name: /story\.r\.us/i });
+    expect(logoImg.getAttribute("src") ?? "").not.toMatch(/logo-light/i);
+
     await user.click(screen.getByRole("button", { name: /alternar tema/i }));
     expect(screen.getByRole("button", { name: /alternar tema/i })).toHaveTextContent(/escuro/i);
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
     expect(localStorage.getItem("theme")).toBe("light");
+    expect(logoImg.getAttribute("src") ?? "").toMatch(/logo-light/i);
 
     await user.click(screen.getByRole("button", { name: /alternar tema/i }));
     expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+    expect(logoImg.getAttribute("src") ?? "").not.toMatch(/logo-light/i);
   });
 
   it("restaura tema claro do localStorage", async () => {
@@ -100,6 +106,8 @@ describe("Landing — tema", () => {
 
     await screen.findByTestId("landing-hero-cta");
     expect(document.documentElement.getAttribute("data-theme")).toBe("light");
+    const brand = screen.getByTestId("landing-brand");
+    expect(within(brand).getByRole("img").getAttribute("src") ?? "").toMatch(/logo-light/i);
   });
 });
 

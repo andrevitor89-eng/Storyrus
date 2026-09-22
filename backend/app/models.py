@@ -112,6 +112,8 @@ class AssetKind(str, enum.Enum):
     COSTUME_LOCK = "costume_lock"
     PAGE_IMAGE = "page_image"
     EBOOK = "ebook"
+    PRINT_INTERIOR = "print_interior"
+    PRINT_COVERS = "print_covers"
     STORYBOARD = "storyboard"
     VIDEO = "video"
     NARRATED_VIDEO = "narrated_video"

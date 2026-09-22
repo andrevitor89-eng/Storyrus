@@ -49,8 +49,9 @@ from app.services.pricing import add_usd
 from app.services.usage_ledger import (
     lines_of,
 )
+from app.story_templates import page_expressions
 
-from .avatar import _refine_identity, _refine_scene
+from .avatar import _refine_identity, _refine_scene, _restore_expression_after_swap
 from .common import (
     _ext,
     _parse_pages,
@@ -890,17 +891,21 @@ def _fallback_page_briefs(
     notes: list[str] | None = None,
     costume: str = "",
     layouts: list[str] | None = None,
+    expressions: list[str] | None = None,
 ) -> list[dict]:
     briefs = []
     for i, page in enumerate(pages):
         note = notes[i] if notes and i < len(notes) else ""
         scene = (note or page).strip()
         layout = layouts[i] if layouts and i < len(layouts) else "story"
+        authored = (expressions[i] if expressions and i < len(expressions) else "").strip()
         briefs.append(
             {
                 "n": i + 1,
                 "scene": scene,
-                "expression": infer_expression(page, note),
+                "expression": (
+                    normalize_expression(authored) if authored else infer_expression(page, note)
+                ),
                 "shot": identity_shot(None, layout=layout),
                 "costume": costume,
                 "text_band": "left" if layout == "name" else ("top" if i % 2 == 0 else "bottom"),
@@ -998,7 +1003,13 @@ async def ensure_page_briefs(
         else costume_extras_for_theme(project.theme)
     )
     if template_id:
-        briefs = _fallback_page_briefs(pages, notes=notes, costume=costume, layouts=layouts)
+        briefs = _fallback_page_briefs(
+            pages,
+            notes=notes,
+            costume=costume,
+            layouts=layouts,
+            expressions=page_expressions(template_id),
+        )
         for i, brief in enumerate(briefs):
             if i < len(notes) and (notes[i] or "").strip():
                 brief["scene"] = notes[i].strip()
@@ -1204,11 +1215,20 @@ async def lock_page_identity(
     if not needs_fal:
         return headed, last_score
 
+    pre_fal = headed.image_bytes
     headed = await _refine_identity(provider, photo, headed, style)
     if page_idx is not None:
         for line in lines_of(headed):
             if line.get("action") == "refine_identity":
                 line["label"] = f"Página {page_idx} — cabeça Fal"
+    headed = await _restore_expression_after_swap(
+        provider,
+        avatar or photo or b"",
+        headed,
+        pre_fal,
+        style,
+        page_idx=page_idx,
+    )
     last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
     # ArcFace em cara pequena mente; nao desfaz o Fal.
     return headed, last_score

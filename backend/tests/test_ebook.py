@@ -9,6 +9,7 @@ from app.workers.ebook import (
     _name_page_parts,
     _split_story_caption,
     build_pdf,
+    build_print_pdfs,
     cover_palette_for,
     split_cover_title,
 )
@@ -201,3 +202,48 @@ def test_story_caption_honors_top_text_band():
     page.extract_text(visitor_text=collect)
     assert ys
     assert min(ys) > 310
+
+
+def _cm(pt: float) -> float:
+    return float(pt) * 2.54 / 72.0
+
+
+def _assert_cm(pt: float, cm: float) -> None:
+    assert abs(_cm(pt) - cm) < 0.05, f"{_cm(pt):.3f} cm != {cm} cm"
+
+
+def test_reader_pdf_is_20cm_square():
+    blob = build_pdf(
+        title="Matteo",
+        pages=[{"text": "Uma pagina.", "image": _image_bytes()}],
+        child_name="Matteo",
+        preview_pages=None,
+    )
+    page = PdfReader(BytesIO(blob)).pages[0]
+    _assert_cm(page.mediabox.width, 20)
+    _assert_cm(page.mediabox.height, 20)
+
+
+def test_print_sheets_match_printstore_bases():
+    interior, covers = build_print_pdfs(
+        title="Matteo",
+        pages=[{"text": "Uma pagina.", "image": _image_bytes()}],
+        child_name="Matteo",
+    )
+    sheets = PdfReader(BytesIO(interior)).pages
+    assert sheets
+    for page in sheets:
+        _assert_cm(page.mediabox.width, 41)
+        _assert_cm(page.mediabox.height, 21)
+        # Folha dupla: duas páginas de 20 cm mais a sangria.
+        _assert_cm(page.trimbox.width, 40)
+        _assert_cm(page.trimbox.height, 20)
+
+    cover_pages = PdfReader(BytesIO(covers)).pages
+    assert len(cover_pages) == 2
+    _assert_cm(cover_pages[0].mediabox.width, 41)
+    _assert_cm(cover_pages[0].mediabox.height, 21)
+    _assert_cm(cover_pages[1].mediabox.width, 42.3)
+    _assert_cm(cover_pages[1].mediabox.height, 21.5)
+    _assert_cm(cover_pages[1].trimbox.width, 41.3)
+    _assert_cm(cover_pages[1].trimbox.height, 20.5)

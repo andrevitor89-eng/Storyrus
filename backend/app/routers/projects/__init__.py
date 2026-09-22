@@ -111,6 +111,17 @@ def project_assets(
 
     ebook_url = url_for(project.ebook_url) if project.ebook_url else None
 
+    def latest_url(kind: str) -> str | None:
+        asset = db.scalar(
+            select(Asset)
+            .where(Asset.project_id == project.id, Asset.kind == kind)
+            .order_by(Asset.created_at.desc())
+        )
+        return url_for(asset.storage_key) if asset else None
+
+    print_interior_url = latest_url(AssetKind.PRINT_INTERIOR.value)
+    print_covers_url = latest_url(AssetKind.PRINT_COVERS.value)
+
     storyboard = db.scalar(
         select(Asset)
         .where(Asset.project_id == project.id, Asset.kind == AssetKind.STORYBOARD.value)
@@ -163,6 +174,8 @@ def project_assets(
         "extra_characters": extra_characters_out,
         "page_images": page_images,
         "ebook_url": ebook_url,
+        "print_interior_url": print_interior_url,
+        "print_covers_url": print_covers_url,
         "storyboard_url": storyboard_url,
         "video_url": video_url,
         "narrated_video_url": narrated_video_url,

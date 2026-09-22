@@ -14,11 +14,10 @@ class HybridImageProvider:
     das paginas tambem cai no Nano Banana.
     """
 
-    name = "nano-banana"
-
     def __init__(self, *, scene=None, head=None):
         self._scene = scene or NanoBananaImageProvider()
         self._head = head or PulidFalProvider()
+        self.name = getattr(self._scene, "name", None) or "nano-banana"
 
     def _head_provider(self):
         return self._head if pulid_head_enabled() else self._scene
@@ -89,6 +88,7 @@ class HybridImageProvider:
         scene: bytes,
         style: str = "realistic",
         photo: bytes | None = None,
+        expression_ref: bytes | None = None,
     ) -> ImageResult:
         """Passe Gemini: cabeca = avatar. Fal fica so em refine_identity."""
         return self._tag_gemini(
@@ -97,5 +97,6 @@ class HybridImageProvider:
                 scene=scene,
                 style=style,
                 photo=photo,
+                expression_ref=expression_ref,
             )
         )

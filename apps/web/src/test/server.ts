@@ -226,6 +226,8 @@ export const handlers = [
       extra_characters: [],
       page_images: p?.ebook_url ? ["https://cdn.test/page1.png"] : [],
       ebook_url: p?.ebook_url ?? null,
+      print_interior_url: p?.ebook_url ? "https://cdn.test/miolo.pdf" : null,
+      print_covers_url: p?.ebook_url ? "https://cdn.test/capas.pdf" : null,
       video_url: p?.video_url ?? null,
       narrated_video_url: p?.narrated_video_url ?? null,
     });

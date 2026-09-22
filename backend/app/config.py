@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     price_claude_output_per_mtok: float = 75.0
     price_kling_per_second_usd: float = 0.10
     price_fal_image_usd: float = 0.03
+    price_openai_image_usd: float = 0.04
     fal_key: str | None = None
     identity_head_provider: str = "pulid"
     face_match_backend: str = "insightface"
@@ -151,6 +152,12 @@ class Settings(BaseSettings):
     gemini_retry_base_s: float = 2.0
     gemini_retry_max_s: float = 60.0
     anthropic_api_key: str | None = None  # historia (Claude)
+    openai_api_key: str | None = None  # GPT Image (gpt-image-2)
+    openai_image_model: str = "gpt-image-2"
+    openai_image_quality: str = "medium"
+    openai_image_size: str = "1024x1024"
+    openai_avatar_size: str = "1024x1536"
+    openai_timeout_s: float = 180.0
     kling_access_key: str | None = None  # video (image2video) — unico provedor
     kling_secret_key: str | None = None
     elevenlabs_api_key: str | None = None  # TTS video narrado

@@ -31,14 +31,16 @@ def _blob(tag: bytes) -> bytes:
 class FakeProvider:
     """Provider roteirizado: cada metodo devolve bytes ou levanta o erro dado."""
 
-    def __init__(self, *, character=None, scene=None, refine=None):
+    def __init__(self, *, character=None, scene=None, refine=None, fal=None):
         self.character = character or _blob(b"char-novo")
         self.scene = scene or _blob(b"scene")
         self.refine = refine if refine is not None else _blob(b"refinada")
+        self.fal = fal if fal is not None else _blob(b"fal-rosto")
         self.calls: list[str] = []
         self.prompts: list[str] = []
         self.extra_refs: list = []
         self.photos: list = []
+        self.expression_refs: list = []
 
     async def _answer(self, kind: str, value):
         self.calls.append(kind)
@@ -56,10 +58,13 @@ class FakeProvider:
         return await self._answer("scene", self.scene)
 
     async def refine_identity(self, *, photo, illustration, style="realistic"):
-        return await self._answer("refine_identity", self.refine)
+        return await self._answer("refine_identity", self.fal)
 
-    async def refine_scene(self, *, character_ref, scene, style="realistic", photo=None):
+    async def refine_scene(
+        self, *, character_ref, scene, style="realistic", photo=None, expression_ref=None
+    ):
         self.photos.append(photo)
+        self.expression_refs.append(expression_ref)
         return await self._answer("refine_scene", self.refine)
 
 
@@ -191,6 +196,29 @@ async def test_story_page_uses_medium_shot(spec):
 
 
 @pytest.mark.asyncio
+async def test_ensure_page_uses_authored_expression(spec):
+    spec.out_dir.mkdir(parents=True)
+    provider = FakeProvider()
+
+    await common.ensure_page(
+        provider,
+        spec,
+        common.Budget(60),
+        idx=4,
+        caption="Ela brinca feliz na festa.",
+        note="Sofia na canoa.",
+        layout="story",
+        char=_blob(b"char"),
+        photo=None,
+        expression="curiosidade",
+    )
+
+    assert provider.prompts
+    assert "curiosidade" in provider.prompts[0]
+    assert "alegria" not in provider.prompts[0].split("EXPRESSAO FACIAL OBRIGATORIA")[1][:80]
+
+
+@pytest.mark.asyncio
 async def test_scene_passes_avatar_and_previous_good_page_as_extra_refs(spec):
     spec.out_dir.mkdir(parents=True)
     char = _blob(b"char")
@@ -239,7 +267,7 @@ async def test_lock_to_avatar_skips_photo_and_extra_refs(spec):
     )
 
     assert provider.extra_refs == [None]
-    assert provider.photos == [None, None]
+    assert provider.photos == [None, None, None]
 
 
 @pytest.mark.asyncio
@@ -353,7 +381,7 @@ async def test_only_regenerates_the_requested_page(spec):
     assert result.exit_code == common.EXIT_OK
     assert common.page_path(spec, 2).read_bytes() == page2
     assert common.page_path(spec, 3).read_bytes() == provider.refine
-    assert provider.calls == ["scene", "refine_scene", "refine_identity"]
+    assert provider.calls == ["scene", "refine_scene", "refine_identity", "refine_scene"]
 
 
 @pytest.mark.asyncio
@@ -394,7 +422,8 @@ async def test_ensure_page_fals_when_avatar_score_low(spec, monkeypatch):
         photo=photo,
     )
 
-    assert provider.calls == ["scene", "refine_scene", "refine_identity"]
+    assert provider.calls == ["scene", "refine_scene", "refine_identity", "refine_scene"]
+    assert provider.expression_refs[-1]
     assert common.page_path(spec, 3).read_bytes() == provider.refine
 
 
@@ -478,7 +507,7 @@ async def test_fit_faces_swaps_plate_without_generating_scene(spec, tmp_path):
     assert result.exit_code == common.EXIT_OK
     assert "scene" not in provider.calls
     assert provider.calls.count("refine_identity") == 2
-    assert common.page_path(spec, 3).read_bytes() == provider.refine
+    assert common.page_path(spec, 3).read_bytes() == provider.fal
     assert (spec.out_dir / "livro.pdf").exists()
 
 

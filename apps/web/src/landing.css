@@ -157,6 +157,9 @@
   transform-origin: center center;
   filter: saturate(0.75) brightness(0.92);
 }
+[data-theme="light"] .khead .kbrand img {
+  filter: none;
+}
 .khead .theme-toggle {
   width: auto; height: 34px; min-height: 34px;
   display: inline-flex; align-items: center; gap: 8px;

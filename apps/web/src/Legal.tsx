@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import logo from "./assets/logo.png";
+import { BrandLogo } from "./BrandLogo";
 import "./landing.css";
 
 const CONTACT = "info@storyrus.ai";
@@ -9,7 +9,7 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
   return (
     <div className="kid legal-page">
       <header className="knav">
-        <Link to="/" className="kbrand"><img src={logo} alt="Story R Us" /></Link>
+        <Link to="/" className="kbrand"><BrandLogo /></Link>
         <nav className="klinks">
           <Link to="/" className="kbtn kbtn-go">Início</Link>
         </nav>

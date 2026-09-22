@@ -244,6 +244,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
             except Exception:  # noqa: BLE001
                 pass
 
+    palette = ebook_builder.cover_palette_for(template_id, project.theme)
     blob = ebook_builder.build_pdf(
         title=title,
         pages=pages,
@@ -253,7 +254,17 @@ async def handle_ebook(db: Session, job: Job) -> None:
         language=language,
         extra_characters=extra_chars or None,
         preview_pages=3,
-        cover_palette=ebook_builder.cover_palette_for(template_id, project.theme),
+        cover_palette=palette,
+    )
+    interior_blob, covers_blob = ebook_builder.build_print_pdfs(
+        title=title,
+        pages=pages,
+        dedication=(project.dedication or None),
+        portrait=char_bytes,
+        child_name=(name or None),
+        language=language,
+        extra_characters=extra_chars or None,
+        cover_palette=palette,
     )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
@@ -266,6 +277,20 @@ async def handle_ebook(db: Session, job: Job) -> None:
             meta={"mime": mime},
         )
     )
+    for kind, print_blob in (
+        (AssetKind.PRINT_INTERIOR.value, interior_blob),
+        (AssetKind.PRINT_COVERS.value, covers_blob),
+    ):
+        print_key = storage.new_key(project.id, kind, "pdf")
+        storage.put_bytes(print_key, print_blob, mime)
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind=kind,
+                storage_key=print_key,
+                meta={"mime": mime},
+            )
+        )
     project.ebook_url = ebook_key
     job.cost_usd = add_usd(
         summarize_cost,

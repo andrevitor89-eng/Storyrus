@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import logo from "./assets/logo.png";
+import { BrandLogo } from "./BrandLogo";
 import "./landing.css";
 
 type Lang = "pt" | "en" | "es";
@@ -971,7 +971,7 @@ export function Landing() {
 
       <header className="khead" ref={headerRef}>
         <div className="khead-inner">
-        <a href="#top" className="kbrand" data-testid="landing-brand"><img src={logo} alt="Story.R.Us" /></a>
+        <a href="#top" className="kbrand" data-testid="landing-brand"><BrandLogo alt="Story.R.Us" theme={theme} /></a>
         <div className="khead-main">
           <div className="khead-bar">
             <div className="khead-bar-inner">

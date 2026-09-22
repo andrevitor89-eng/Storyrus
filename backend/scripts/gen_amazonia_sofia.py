@@ -18,6 +18,8 @@ sys.path.insert(0, str(BACKEND))
 sys.path.insert(0, str(BACKEND / "scripts"))
 os.chdir(BACKEND)
 os.environ.setdefault("GEMINI_SSL_VERIFY", "system")
+# Recorte geometrico se o Gemini Face estiver sem credito.
+os.environ.setdefault("GEMINI_FACE_MODEL", "")
 
 from _amazonia_common import BookSpec, add_common_args, run  # noqa: E402
 
@@ -29,14 +31,19 @@ SPEC = BookSpec(
     gender="girl",
     out_dir=BACKEND / "scripts" / "out" / "amazonia-sofia",
     photo=REPO / "apps" / "web" / "public" / "exemplos" / "foto-sofia.png",
-    pdf_name="livro-sofia-amazonia-p3.pdf",
-    max_page=4,
+    pdf_name="livro-sofia-amazonia.pdf",
+    max_page=20,
     log_prefix="amazonia-sofia",
 )
+
+
+def _provider():
+    """Forca GPT Image (OpenAI); Gemini ficou sem credito prepay."""
+    return get_image_provider("openai")
 
 
 if __name__ == "__main__":
     parser = add_common_args(
         argparse.ArgumentParser(description="Gera paginas Amazonia/Sofia")
     )
-    raise SystemExit(run(SPEC, parser.parse_args(), get_image_provider))
+    raise SystemExit(run(SPEC, parser.parse_args(), _provider))

@@ -292,9 +292,8 @@ _FACE_FIDELITY = (
     "PELE: microtextura NATURAL da foto, acabamento pictorico leve (nao "
     "porcelana, nao airbrush pesado, nao filtro de beleza, nao pele plastica lisa). "
     "Sem poros grotescos de close extremo. "
-    "BOCA: copie a BOCA e o TIPO de sorriso da foto (se for sorriso pequeno/"
-    "candido, mantenha pequeno). PROIBIDO sorriso largo de banco de imagens "
-    "e sorriso fechado de desenho. "
+    "BOCA: copie a ESTRUTURA da boca (labios, espessura, formato) da foto. "
+    "NAO copie o sorriso nem a expressao — isso muda por pagina. "
     "ACESSORIOS DE IDENTIDADE: preserve brinco, oculos ou outro acessorio do "
     "ROSTO visivel na foto; NAO invente o que nao estiver la. "
     "NAO embeleze, NAO 'corrija' tracos atipicos, assimetria ou estrutura "
@@ -340,6 +339,13 @@ _WATERMARK_LOCK = (
     "do rosto, logos e captions. Nunca copie texto da foto para a ilustracao."
 )
 
+_AVATAR_SMILE_LOCK = (
+    "BOCA DO AVATAR: copie a BOCA e o TIPO de sorriso da foto (se for sorriso "
+    "pequeno/candido, mantenha pequeno). PROIBIDO sorriso largo de banco de "
+    "imagens e sorriso fechado de desenho. Este retrato e so o rosto-padrao; "
+    "nas paginas a emocao da historia vence."
+)
+
 AVATAR_PROMPT = (
     "TAREFA: gere UM retrato-base (avatar) da pessoa da foto, para ser a UNICA "
     "referencia de IDENTIDADE (rosto, cabelo, corpo) em todas as paginas de um "
@@ -358,6 +364,7 @@ AVATAR_PROMPT = (
     f"{_SUBJECT_LOCK}\n\n"
     f"{_GENERIC_FACE_LOCK}\n\n"
     f"{_FACE_FIDELITY}\n\n"
+    f"{_AVATAR_SMILE_LOCK}\n\n"
     f"{_HEAD_PROPORTION}\n\n"
     f"{_HAIR_LOCK}\n\n"
     f"{_CGI_AVATAR_STYLE}\n\n"
@@ -433,6 +440,8 @@ SCENE_GEN_PREFIX = (
     "aumente. PROIBIDO bobblehead, cabeca de chibi ou close de rosto que "
     "faca a cabeca ocupar o quadro. Os olhos ficam na mesma fracao do "
     "ROSTO do avatar — nao infle o olho para compensar a cabeca menor. "
+    "BOCA NAS CENAS: geometria da boca da referencia; o sorriso, a abertura "
+    "e os cantos seguem a emocao desta pagina — NAO o sorriso do avatar/foto. "
     "EXPRESSAO: o avatar-base tem expressao NEUTRA — NAO a copie. A emocao "
     "desta pagina VENCE o avatar: rosto e pose dinamicos alinhados ao "
     "sentimento (alegria, surpresa, determinacao, etc.). Mude sobrancelhas, "
@@ -512,6 +521,25 @@ REFINE_SCENE_PROMPT = (
     "no flat cel-shading, no text, no watermarks."
 )
 
+_KEEP_SCENE_EXPRESSION = (
+    "EXPRESSAO: preserve a emocao da ilustracao (boca, sobrancelhas, olhar e "
+    "tensao dos labios). Copie SO a geometria da foto/avatar. "
+    "PROIBIDO resetar para o sorriso da foto, cara neutra ou expressao do avatar. "
+    "Do not reset to a neutral face."
+)
+
+RESTORE_EXPRESSION_PROMPT = (
+    "[TASK] Restore the page's emotional facial expression after a face-swap. "
+    "Image order: (1) Avatar — MANDATORY identity for face geometry, hair, "
+    "age and proportions; (2) Current page after the swap — keep this "
+    "composition, pose, costume and background; (3) Pre-swap scene — "
+    "MANDATORY source of emotional facial expression (mouth, brows, gaze). "
+    "Keep 1:1 identity from the Avatar. Restore mouth, brows, eyelids and "
+    "gaze from Image 3. Do not copy Image 3's weaker identity. "
+    "Do not reset to the photo smile or a neutral face. "
+    "Do not change costume, pose, framing or background from Image 2."
+)
+
 REFINE_IDENTITY_PROMPT = (
     "TAREFA CIRURGICA: voce recebe DUAS imagens em ordem. "
     "(1) o RECORTE do rosto da FOTO — unica fonte de verdade dos olhos, nariz, "
@@ -521,6 +549,7 @@ REFINE_IDENTITY_PROMPT = (
     "para o rosto (deve parecer uma foto, com tracos leves de desenho). Preserve corpo e "
     "roupa DESENHADOS, pose, enquadramento (meio corpo) e fundo. "
     f"{_SUBJECT_LOCK} {_GENERIC_FACE_LOCK} {_FACE_FIDELITY} {_HAIR_LOCK} {_WATERMARK_LOCK} "
+    f"{_KEEP_SCENE_EXPRESSION} "
     "Os olhos costumam estar maiores que na foto; REDUZA ate a "
     "mesma fracao do rosto. Se hesitar, diminua. NUNCA aumente. "
     "Se o rosto estiver mais gordo/cheio que a foto, REDUZA o volume das "
@@ -541,6 +570,7 @@ REFINE_IDENTITY_AVATAR_PROMPT = (
     "Preserve CORPO CGI 3D de filme infantil, roupa ilustrada, pose, "
     "enquadramento (meio corpo) e fundo. "
     f"{_SUBJECT_LOCK} {_GENERIC_FACE_LOCK} {_FACE_FIDELITY} {_HAIR_LOCK} {_WATERMARK_LOCK} "
+    f"{_KEEP_SCENE_EXPRESSION} "
     "Os olhos costumam estar maiores que na foto; REDUZA ate a "
     "mesma fracao do rosto. Se hesitar, diminua. NUNCA aumente. "
     "Se o rosto estiver mais gordo/cheio que a foto, REDUZA o volume das "

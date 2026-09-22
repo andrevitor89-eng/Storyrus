@@ -51,6 +51,8 @@ export function CharacterApprovalBlock({
 type BookProps = {
   pageImages: string[];
   ebookUrl: string | null;
+  printInteriorUrl?: string | null;
+  printCoversUrl?: string | null;
   bookApproved: boolean;
   locked: boolean;
   canMountEbook: boolean;
@@ -63,6 +65,8 @@ type BookProps = {
 export function BookApprovalBlock({
   pageImages,
   ebookUrl,
+  printInteriorUrl = null,
+  printCoversUrl = null,
   bookApproved,
   locked,
   canMountEbook,
@@ -94,11 +98,23 @@ export function BookApprovalBlock({
           ))}
         </div>
       )}
-      {ebookUrl && (
-        <a href={ebookUrl} target="_blank" rel="noreferrer" className="btn">
-          {t.openEbook}
-        </a>
-      )}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        {ebookUrl && (
+          <a href={ebookUrl} target="_blank" rel="noreferrer" className="btn">
+            {t.openEbook}
+          </a>
+        )}
+        {printInteriorUrl && (
+          <a href={printInteriorUrl} target="_blank" rel="noreferrer" className="btn">
+            {t.openPrintInterior}
+          </a>
+        )}
+        {printCoversUrl && (
+          <a href={printCoversUrl} target="_blank" rel="noreferrer" className="btn">
+            {t.openPrintCovers}
+          </a>
+        )}
+      </div>
       <div
         style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}
         role="group"

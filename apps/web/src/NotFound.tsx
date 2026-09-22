@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import logo from "./assets/logo.png";
+import { BrandLogo } from "./BrandLogo";
 import "./landing.css";
 
 export function NotFound() {
   return (
     <div className="kid legal-page">
       <header className="knav">
-        <Link to="/" className="kbrand"><img src={logo} alt="Story R Us" /></Link>
+        <Link to="/" className="kbrand"><BrandLogo /></Link>
       </header>
       <main className="ksection" style={{ textAlign: "center" }}>
         <h1 className="ktitle" data-testid="not-found-title">Página não encontrada</h1>

@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
 import { ProgressList, Studio } from "./Studio";
+import { BookApprovalBlock } from "./studio/ApprovalBlocks";
 import type { Job } from "./types";
 import { state } from "./test/server";
 
@@ -38,6 +39,40 @@ describe("ProgressList", () => {
     const status = screen.getByRole("status", { name: /progresso das etapas/i });
     expect(status).toHaveAttribute("aria-live", "polite");
     expect(within(status).getByText("EBOOK")).toBeInTheDocument();
+  });
+});
+
+describe("Livro impresso", () => {
+  it("mostra miolo e capas ao lado do e-book, sem preço", () => {
+    render(
+      <BookApprovalBlock
+        pageImages={[]}
+        ebookUrl="https://cdn.test/livro.pdf"
+        printInteriorUrl="https://cdn.test/miolo.pdf"
+        printCoversUrl="https://cdn.test/capas.pdf"
+        bookApproved={false}
+        locked={false}
+        canMountEbook
+        printRequested={false}
+        onApprove={() => undefined}
+        onRegenerate={() => undefined}
+        onRequestPrint={() => undefined}
+      />,
+    );
+
+    expect(screen.getByRole("link", { name: /abrir e-book/i })).toHaveAttribute(
+      "href",
+      "https://cdn.test/livro.pdf",
+    );
+    expect(screen.getByRole("link", { name: /miolo para gráfica/i })).toHaveAttribute(
+      "href",
+      "https://cdn.test/miolo.pdf",
+    );
+    expect(screen.getByRole("link", { name: /capas para gráfica/i })).toHaveAttribute(
+      "href",
+      "https://cdn.test/capas.pdf",
+    );
+    expect(screen.queryByText(/R\$/)).not.toBeInTheDocument();
   });
 });
 

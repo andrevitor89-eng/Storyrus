@@ -485,6 +485,7 @@ def _load_json_templates() -> dict[str, dict]:
                     "texto": p.get("text") or "",
                     "nota": p.get("illustration_note") or "",
                     "layout": p.get("layout") or "story",
+                    "expression": p.get("expression") or "",
                 }
             )
         out[tid] = {
@@ -507,9 +508,10 @@ def _page_dict(item: tuple | dict) -> dict:
             "texto": item.get("texto") or item.get("text") or "",
             "nota": item.get("nota") or item.get("illustration_note") or "",
             "layout": item.get("layout") or "story",
+            "expression": item.get("expression") or "",
         }
     texto, nota = item
-    return {"texto": texto, "nota": nota, "layout": "story"}
+    return {"texto": texto, "nota": nota, "layout": "story", "expression": ""}
 
 
 def name_letters(child_name: str) -> list[str]:
@@ -575,6 +577,14 @@ def illustration_notes(template_id: str, child_name: str) -> list[str]:
         page = _page_dict(item)
         notes.append(page["nota"].replace(PLACEHOLDER, name) if name else page["nota"])
     return notes
+
+
+def page_expressions(template_id: str) -> list[str]:
+    """Emoção facial por página do catálogo (vazia = inferir do texto)."""
+    template = STORY_TEMPLATES.get(template_id)
+    if template is None:
+        return []
+    return [_page_dict(item).get("expression") or "" for item in template["paginas"]]
 
 
 def page_layouts(template_id: str) -> list[str]:

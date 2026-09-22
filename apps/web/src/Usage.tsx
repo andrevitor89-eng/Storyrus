@@ -1,5 +1,5 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
-import logo from "./assets/logo.png";
+import { BrandLogo } from "./BrandLogo";
 import { api } from "./api";
 import type { UsageEvent, UsageReport } from "./types";
 import "./usage.css";
@@ -96,7 +96,7 @@ export function Usage() {
     return (
       <div className="usage">
         <div className="usage-gate card auth">
-          <img className="auth-logo" src={logo} alt="Story R Us" />
+          <BrandLogo className="auth-logo" />
           <h1>Gastos da plataforma</h1>
           <p className="muted">Página privada. Digite a senha combinada.</p>
           <form onSubmit={onSubmit}>
@@ -122,7 +122,7 @@ export function Usage() {
   return (
     <div className="usage">
       <header className="usage-head">
-        <img className="hdr-logo" src={logo} alt="Story R Us" />
+        <BrandLogo className="hdr-logo" />
         <div>
           <h1>Gastos da plataforma</h1>
           <p className="muted">Atualiza a cada 20s · fuso de Brasília · extrato de setembro/2026</p>

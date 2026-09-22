@@ -1,6 +1,6 @@
 """Montagem do ebook como livro infantil ilustrado premium (estilo WonderWraps).
 
-build_pdf gera um PDF QUADRADO (formato dos livros personalizados impressos) com:
+build_pdf gera um PDF QUADRADO de 20 x 20 cm (corte da impressão) com:
   1. capa em sangria total com o titulo (nome da crianca em destaque) + selo da marca;
   2. pagina-poema de abertura ("Para todos os pequenos aventureiros...");
   3. pagina "Feito especialmente para {NOME}" com retrato do personagem em moldura;
@@ -24,6 +24,22 @@ import unicodedata
 from pathlib import Path
 
 logger = logging.getLogger("ebook")
+
+# Corte PrintStore: página 20×20 cm, sangria de 5 mm nas folhas de gráfica.
+# A capa dura mede 41,3×20,5 cm (lombada de 13 mm e 2,5 mm de sobra em cima e embaixo).
+PT_PER_CM = 72.0 / 2.54
+TRIM_PT = 20.0 * PT_PER_CM
+BLEED_PT = 0.5 * PT_PER_CM
+HARD_TRIM_W_PT = 41.3 * PT_PER_CM
+HARD_TRIM_H_PT = 20.5 * PT_PER_CM
+SPINE_PT = HARD_TRIM_W_PT - 2 * TRIM_PT
+OVERHANG_PT = (HARD_TRIM_H_PT - TRIM_PT) / 2
+# Sangria desenhada cobre a sobra da capa dura e encontra a lombada no centro.
+DRAW_BLEED_PT = BLEED_PT + OVERHANG_PT
+SOFT_SHEET_W_PT = 2 * TRIM_PT + 2 * BLEED_PT
+SOFT_SHEET_H_PT = TRIM_PT + 2 * BLEED_PT
+HARD_SHEET_W_PT = HARD_TRIM_W_PT + 2 * BLEED_PT
+HARD_SHEET_H_PT = HARD_TRIM_H_PT + 2 * BLEED_PT
 
 # ------------------------------------------------------------------- fontes
 # Fonte oficial do ebook: Megifera Indica (Risma Type).
@@ -378,6 +394,8 @@ def build_pdf(
     extra_characters: list[dict] | None = None,
     preview_pages: int | None = 3,
     cover_palette: dict[str, str] | None = None,
+    bleed: float = 0.0,
+    roles: list[str] | None = None,
 ) -> bytes:
     from reportlab.lib.utils import ImageReader, simpleSplit
     from reportlab.pdfgen import canvas
@@ -386,15 +404,26 @@ def build_pdf(
     name = (child_name or "").strip()
     F = _fonts()  # Raleway Light 300 (fallback: fontes base do PDF)
 
-    # Formato QUADRADO, como os livros personalizados impressos (~21,6 x 21,6 cm).
-    W = H = 612.0
+    # Corte 20×20 cm. Com sangria, a página do PDF é maior e o desenho
+    # continua no quadro de corte (a origem é deslocada em `bleed`).
+    W = H = TRIM_PT
+    page_w, page_h = W + 2 * bleed, H + 2 * bleed
     buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=(W, H))
+    c = canvas.Canvas(buf, pagesize=(page_w, page_h))
 
     # ------------------------------------------------------------------ utils
+    def begin_page() -> None:
+        if bleed:
+            c.translate(bleed, bleed)
+
+    def end_page(role: str) -> None:
+        if roles is not None:
+            roles.append(role)
+        c.showPage()
+
     def bg(color):
         c.setFillColorRGB(*color)
-        c.rect(0, 0, W, H, fill=1, stroke=0)
+        c.rect(-bleed, -bleed, W + 2 * bleed, H + 2 * bleed, fill=1, stroke=0)
 
     def reader(b):
         try:
@@ -403,11 +432,20 @@ def build_pdf(
             return None
 
     def full_bleed(ir):
-        """Imagem cobrindo a pagina inteira (sangria), cortando o excesso."""
+        """Imagem cobrindo o corte e a sangria, cortando o excesso."""
         iw, ih = ir.getSize()
-        s = max(W / iw, H / ih)
+        tw, th = W + 2 * bleed, H + 2 * bleed
+        s = max(tw / iw, th / ih)
         dw, dh = iw * s, ih * s
-        c.drawImage(ir, (W - dw) / 2, (H - dh) / 2, dw, dh, preserveAspectRatio=False, mask="auto")
+        c.drawImage(
+            ir,
+            -bleed + (tw - dw) / 2,
+            -bleed + (th - dh) / 2,
+            dw,
+            dh,
+            preserveAspectRatio=False,
+            mask="auto",
+        )
 
     def star(cx, cy, r, color=GOLD, alpha=1.0):
         c.setFillAlpha(alpha)
@@ -712,6 +750,7 @@ def build_pdf(
                 )
 
     # ------------------------------------------------------------- 1) CAPA ESTILIZADA
+    begin_page()
     palette = cover_palette or cover_palette_for()
     stroke_rgb = _hex_rgb(palette.get("stroke") or "#2a3d6b")
     fill_rgb = _hex_rgb(palette.get("fill") or _COVER_FILL)
@@ -793,12 +832,13 @@ def build_pdf(
             y -= leading
 
     brand_badge(y=12)
-    c.showPage()
+    end_page("cover")
 
     # -------------------------------------------- 2) POEMA DE ABERTURA
     # Catalogo com dedicatória própria (P1) substitui o poema genérico do México.
     has_dedication_page = any((p.get("layout") or "") == "dedication" for p in (pages or []))
     if not has_dedication_page:
+        begin_page()
         bg(CREAM)
         corner_flourish(26, H - 120, 1, 1)
         corner_flourish(W - 26, 120, -1, -1)
@@ -809,10 +849,11 @@ def build_pdf(
         for ln in lines:
             c.drawCentredString(W / 2, y, ln)
             y -= 28
-        c.showPage()
+        end_page("interior")
 
     # ------------------------- 3) FEITO ESPECIALMENTE PARA {NOME}
     if name or portrait:
+        begin_page()
         bg(CREAM)
         corner_flourish(26, H - 120, 1, 1)
         corner_flourish(W - 26, 120, -1, -1)
@@ -891,10 +932,11 @@ def build_pdf(
         for ln in split_lines(tr["blessing"], F["italic"], 13.5, W * 0.62):
             c.drawCentredString(W / 2, y, ln)
             y -= 20
-        c.showPage()
+        end_page("interior")
 
     # --------------------------------------- 4) DEDICATORIA DOS PAIS
     if dedication and dedication.strip():
+        begin_page()
         bg(CREAM)
         c.setStrokeColorRGB(*GOLD)
         c.setLineWidth(2)
@@ -910,7 +952,7 @@ def build_pdf(
         c.setFillColorRGB(*CORAL)
         c.setFont(F["italic"], 13)
         c.drawCentredString(W / 2, H * 0.32, _win(tr["with_love"]))
-        c.showPage()
+        end_page("interior")
 
     # ------ 5) PAGINAS (arte em sangria + estrofe mesclada, sem numeracao)
     # Se preview_pages estiver definido, limita as paginas da historia
@@ -920,6 +962,7 @@ def build_pdf(
     for p in visible_pages:
         layout = (p.get("layout") or "story").strip()
         text = p.get("text", "")
+        begin_page()
         if layout == "dedication":
             bg(CREAM)
             corner_flourish(26, H - 120, 1, 1)
@@ -944,7 +987,7 @@ def build_pdf(
                     c.setFont(font, size)
                     c.drawCentredString(W / 2, y - size * 0.75, _win(ln))
                 y -= leading
-            c.showPage()
+            end_page("interior")
             continue
         bg(CREAM)
         ir = reader(p.get("image"))
@@ -955,10 +998,11 @@ def build_pdf(
         else:
             band = (p.get("text_band") or "bottom").strip().lower()
             story_caption(text, "top" if band == "top" else "bottom")
-        c.showPage()
+        end_page("interior")
 
     # Pagina de preview: aviso de que o livro completo esta disponivel
     if is_preview:
+        begin_page()
         bg(CREAM)
         c.setFillColorRGB(*NAVY)
         c.setFont(F["body"], 22)
@@ -978,25 +1022,27 @@ def build_pdf(
         star(W / 2 - 60, H / 2 - 60, 8, GOLD)
         star(W / 2 + 60, H / 2 - 60, 8, CORAL)
         brand_badge(y=H * 0.28)
-        c.showPage()
+        end_page("interior")
 
     # --------------------- 6) CONTRACAPA: POEMA DE ENCERRAMENTO
+    begin_page()
     bg(SKY)
     last = reader(pages[-1].get("image")) if pages and pages[-1].get("image") else None
     if last:
         full_bleed(last)
         c.setFillColorRGB(1, 1, 1)
         c.setFillAlpha(0.25)
-        c.rect(0, 0, W, H, fill=1, stroke=0)
+        c.rect(-bleed, -bleed, W + 2 * bleed, H + 2 * bleed, fill=1, stroke=0)
         c.setFillAlpha(1)
     closing = tr["closing_named"].format(name=_win(name)) if name else tr["closing"]
     poem_panel(closing, H * 0.62)
     brand_badge(y=H * 0.24)
     star(60, H - 70, 10, GOLD)
     star(W - 64, H - 96, 8, CORAL)
-    c.showPage()
+    end_page("back")
 
     # ----------------------------------------- 7) OBRIGADO / THANK YOU
+    begin_page()
     bg(CREAM)
     corner_flourish(26, H - 120, 1, 1)
     corner_flourish(W - 26, 120, -1, -1)
@@ -1026,7 +1072,161 @@ def build_pdf(
     c.setFillColorRGB(*NAVY)
     c.setFont(F["brand"], 12)
     c.drawCentredString(W / 2, 46, "Story R Us")
-    c.showPage()
+    end_page("interior")
 
     c.save()
     return buf.getvalue()
+
+
+def build_print_pdfs(
+    title: str,
+    pages: list[dict],
+    cover: bytes | None = None,
+    dedication: str | None = None,
+    portrait: bytes | None = None,
+    child_name: str | None = None,
+    language: str | None = "pt-BR",
+    extra_characters: list[dict] | None = None,
+    cover_palette: dict[str, str] | None = None,
+) -> tuple[bytes, bytes]:
+    """Miolo em folhas 41×21 cm e capas (mole 41×21, dura 42,3×21,5).
+
+    O livro inteiro entra aqui, sem o preview de 3 páginas. A capa fica à
+    direita e a contracapa à esquerda. No miolo, a primeira página é ímpar
+    (direita).
+    """
+    roles: list[str] = []
+    singles = build_pdf(
+        title=title,
+        pages=pages,
+        cover=cover,
+        dedication=dedication,
+        portrait=portrait,
+        child_name=child_name,
+        language=language,
+        extra_characters=extra_characters,
+        preview_pages=None,
+        cover_palette=cover_palette,
+        bleed=DRAW_BLEED_PT,
+        roles=roles,
+    )
+    return _impose_interior(singles, roles), _impose_covers(singles, roles)
+
+
+def _copy_page(page):
+    from pypdf import PdfReader, PdfWriter
+
+    writer = PdfWriter()
+    writer.add_page(page)
+    buf = io.BytesIO()
+    writer.write(buf)
+    return PdfReader(buf).pages[0]
+
+
+def _blank_sheet(width: float, height: float, trim: tuple[float, float, float, float]):
+    from pypdf import PageObject
+    from pypdf.generic import RectangleObject
+
+    page = PageObject.create_blank_page(width=width, height=height)
+    full = RectangleObject((0, 0, width, height))
+    page.mediabox = full
+    page.cropbox = full
+    page.bleedbox = full
+    page.trimbox = RectangleObject(trim)
+    return page
+
+
+def _stamp(dest, src, tx: float, ty: float, crop: tuple[float, float, float, float] | None):
+    from pypdf.generic import RectangleObject
+
+    page = _copy_page(src)
+    if crop is not None:
+        page.cropbox = RectangleObject(crop)
+    dest.merge_translated_page(page, tx, ty, expand=False)
+
+
+def _reading_spreads(indexes: list[int]) -> list[tuple[int | None, int | None]]:
+    """Ímpares à direita: (vazio, p1), (p2, p3), (p4, p5), ..."""
+    if not indexes:
+        return []
+    pairs: list[tuple[int | None, int | None]] = [(None, indexes[0])]
+    rest = indexes[1:]
+    for i in range(0, len(rest), 2):
+        right = rest[i + 1] if i + 1 < len(rest) else None
+        pairs.append((rest[i], right))
+    return pairs
+
+
+def _place_soft_spread(reader, left: int | None, right: int | None):
+    """Folha 41×21 cm. A sangria desenhada (7,5 mm) é cortada para 5 mm nas bordas."""
+    sheet = _blank_sheet(
+        SOFT_SHEET_W_PT,
+        SOFT_SHEET_H_PT,
+        (BLEED_PT, BLEED_PT, BLEED_PT + 2 * TRIM_PT, BLEED_PT + TRIM_PT),
+    )
+    source = TRIM_PT + 2 * DRAW_BLEED_PT
+    outer = DRAW_BLEED_PT - BLEED_PT
+    if left is not None:
+        _stamp(
+            sheet,
+            reader.pages[left],
+            -outer,
+            -outer,
+            (outer, outer, DRAW_BLEED_PT + TRIM_PT, source - outer),
+        )
+    if right is not None:
+        _stamp(
+            sheet,
+            reader.pages[right],
+            (TRIM_PT + BLEED_PT) - DRAW_BLEED_PT,
+            -outer,
+            (DRAW_BLEED_PT, outer, source - outer, source - outer),
+        )
+    return sheet
+
+
+def _place_hard_spread(reader, left: int | None, right: int | None):
+    """Folha da capa dura: corte 41,3×20,5 cm mais 5 mm de sangria."""
+    sheet = _blank_sheet(
+        HARD_SHEET_W_PT,
+        HARD_SHEET_H_PT,
+        (BLEED_PT, BLEED_PT, BLEED_PT + HARD_TRIM_W_PT, BLEED_PT + HARD_TRIM_H_PT),
+    )
+    if left is not None:
+        _stamp(sheet, reader.pages[left], -OVERHANG_PT, 0.0, None)
+    if right is not None:
+        _stamp(
+            sheet,
+            reader.pages[right],
+            BLEED_PT + TRIM_PT + SPINE_PT - DRAW_BLEED_PT,
+            0.0,
+            None,
+        )
+    return sheet
+
+
+def _impose_interior(singles: bytes, roles: list[str]) -> bytes:
+    from pypdf import PdfReader, PdfWriter
+
+    reader = PdfReader(io.BytesIO(singles))
+    interior = [i for i, role in enumerate(roles) if role == "interior"]
+    writer = PdfWriter()
+    for left, right in _reading_spreads(interior):
+        writer.add_page(_place_soft_spread(reader, left, right))
+    out = io.BytesIO()
+    writer.write(out)
+    return out.getvalue()
+
+
+def _impose_covers(singles: bytes, roles: list[str]) -> bytes:
+    from pypdf import PdfReader, PdfWriter
+
+    reader = PdfReader(io.BytesIO(singles))
+    cover = roles.index("cover") if "cover" in roles else None
+    back = roles.index("back") if "back" in roles else None
+    writer = PdfWriter()
+    writer.add_page(_place_soft_spread(reader, back, cover))
+    writer.add_page(_place_hard_spread(reader, back, cover))
+    out = io.BytesIO()
+    writer.write(out)
+    return out.getvalue()

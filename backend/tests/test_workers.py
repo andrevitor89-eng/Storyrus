@@ -837,6 +837,13 @@ async def test_ebook_catalog_uses_illustration_notes(db, mem_storage, monkeypatc
     assert "arara" in arara.lower()
     assert "Pagina de alfabeto" in arara
     assert "NUNCA texto legivel" in arara
+    assert "alegria" in arara
+    boto = prompts[2]
+    assert "curiosidade" in boto
+    jacare = prompts[10]
+    assert "medo_gentil" in jacare
+    raia = prompts[18]
+    assert "calma" in raia
     macaco = prompts[13]
     assert "pulando de galho em galho" in macaco
     assert "letra grande abstrata M" in macaco
@@ -1159,6 +1166,39 @@ async def test_ebook_face_match_refine_scene_skips_fal(db, mem_storage, monkeypa
     await runner.process_job(db, _job(db, p, "EBOOK"))
     assert scene_refines == [1, 1]
     assert heads == []
+
+
+async def test_lock_page_identity_restores_expression_after_fal(monkeypatch):
+    seen: list[dict] = []
+
+    class Counting(FakeImage):
+        async def refine_identity(self, **kw):
+            return ImageResult(image_bytes=b"FAL_FACE", mime_type="image/png", cost_usd=0.03)
+
+        async def refine_scene(self, **kw):
+            seen.append(kw)
+            return ImageResult(image_bytes=b"RESTORED", mime_type="image/png", cost_usd=0.03)
+
+    async def low(_photo, _scene, **_k):
+        return 0.2
+
+    monkeypatch.setattr(handlers, "score_face_match", low)
+    monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+
+    headed = ImageResult(image_bytes=b"SCENE_PRE", mime_type="image/png")
+    out, _score = await handlers.lock_page_identity(
+        Counting(),
+        headed=headed,
+        avatar=b"AVATAR",
+        photo=b"PHOTO",
+        style="style",
+        refine_first=False,
+        page_idx=4,
+    )
+    assert out.image_bytes == b"RESTORED"
+    assert seen
+    assert seen[-1].get("expression_ref") == b"SCENE_PRE"
+    assert seen[-1].get("scene") == b"FAL_FACE"
 
 
 async def test_ebook_face_match_none_runs_fal(db, mem_storage, monkeypatch):

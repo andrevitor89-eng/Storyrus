@@ -94,6 +94,7 @@ class ImageProvider(Protocol):
         scene: bytes,
         style: str = "realistic",
         photo: bytes | None = None,
+        expression_ref: bytes | None = None,
     ) -> ImageResult:
         """Segundo passe de cena: corrige o protagonista para bater com o personagem (opcional)."""
 

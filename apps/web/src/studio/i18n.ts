@@ -125,6 +125,8 @@ export type StudioCopy = {
   ebook: string;
   pageAlt: (n: number) => string;
   openEbook: string;
+  openPrintInterior: string;
+  openPrintCovers: string;
   bookApproved: string;
   approveBook: string;
   regeneratePages: string;
@@ -375,6 +377,8 @@ const pt: StudioCopy = {
   ebook: "E-book",
   pageAlt: (n) => `Página ${n}`,
   openEbook: "📖 Abrir e-book",
+  openPrintInterior: "Miolo para gráfica",
+  openPrintCovers: "Capas para gráfica",
   bookApproved: "Livro aprovado. PDF, impressão e vídeo liberados.",
   approveBook: "Aprovar livro",
   regeneratePages: "Regenerar páginas",
@@ -532,6 +536,8 @@ const en: StudioCopy = {
   ebook: "E-book",
   pageAlt: (n) => `Page ${n}`,
   openEbook: "📖 Open e-book",
+  openPrintInterior: "Interior for print",
+  openPrintCovers: "Covers for print",
   bookApproved: "Book approved. PDF, print, and video unlocked.",
   approveBook: "Approve book",
   regeneratePages: "Regenerate pages",
@@ -689,6 +695,8 @@ const es: StudioCopy = {
   ebook: "E-book",
   pageAlt: (n) => `Página ${n}`,
   openEbook: "📖 Abrir e-book",
+  openPrintInterior: "Interior para imprenta",
+  openPrintCovers: "Tapas para imprenta",
   bookApproved: "Libro aprobado. PDF, impresión y video liberados.",
   approveBook: "Aprobar libro",
   regeneratePages: "Regenerar páginas",

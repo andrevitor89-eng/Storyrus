@@ -272,6 +272,55 @@ async def _refine_scene(provider, character_ref, result, style, *, photo: bytes 
     return result
 
 
+async def _restore_expression_after_swap(
+    provider,
+    character_ref: bytes,
+    headed: ImageResult,
+    pre_swap: bytes,
+    style: str,
+    *,
+    page_idx: int | None = None,
+) -> ImageResult:
+    """Depois do Fal: devolve boca/sobrancelhas da cena pre-swap.
+
+    Nao respeita `ebook_refine_scene` — sem este passe o swap cola o sorriso
+    da foto e congela a emocao da pagina.
+    """
+    if not character_ref or not pre_swap or headed.image_bytes == pre_swap:
+        return headed
+    refine = getattr(provider, "refine_scene", None)
+    if refine is None:
+        return headed
+    try:
+        refined = await refine(
+            character_ref=character_ref,
+            scene=headed.image_bytes,
+            style=style,
+            expression_ref=pre_swap,
+        )
+    except TypeError:
+        try:
+            refined = await refine(
+                character_ref=character_ref, scene=pre_swap, style=style
+            )
+        except Exception:  # noqa: BLE001
+            return headed
+    except Exception:  # noqa: BLE001
+        return headed
+    if not refined or not getattr(refined, "image_bytes", None):
+        return headed
+    own = refined.cost_usd
+    label = (
+        f"Página {page_idx} — restore expressão"
+        if page_idx is not None
+        else "Página — restore expressão"
+    )
+    _tag_image(refined, action="refine_scene", label=label)
+    merge_usage(headed, refined)
+    refined.cost_usd = add_usd(headed.cost_usd, own)
+    return refined
+
+
 async def handle_extra_character(db: Session, job: Job) -> None:
     """Gera o personagem ilustrado para cada foto de personagem extra enviada."""
     project = _project(db, job)

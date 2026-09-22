@@ -19,6 +19,8 @@ export type DemoAssets = {
   extra_characters: { name: string; url: string }[];
   page_images: string[];
   ebook_url: string | null;
+  print_interior_url?: string | null;
+  print_covers_url?: string | null;
   video_url: string | null;
   narrated_video_url: string | null;
 };

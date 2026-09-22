@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from
 import { api } from "./api";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
-import logo from "./assets/logo.png";
+import { BrandLogo } from "./BrandLogo";
 import type { StudioAssets } from "./studio/assets";
 import { resolveThemeName } from "./studio/constants";
 import { ProgressList } from "./studio/ProgressList";
@@ -315,7 +315,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       <header className="khead" role="banner">
         <div className="khead-inner">
           <a href="/" className="kbrand" aria-label="Story R Us">
-            <img className="hdr-logo" src={logo} alt="Story R Us" />
+            <BrandLogo className="hdr-logo" theme={colorTheme} />
           </a>
           <div className="khead-main">
             <div className="khead-top">
@@ -648,6 +648,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 <BookApprovalBlock
                   pageImages={assets?.page_images ?? []}
                   ebookUrl={assets?.ebook_url ?? null}
+                  printInteriorUrl={assets?.print_interior_url ?? null}
+                  printCoversUrl={assets?.print_covers_url ?? null}
                   bookApproved={bookApproved}
                   locked={locked}
                   canMountEbook={canMountEbook}

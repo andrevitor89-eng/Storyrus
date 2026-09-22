@@ -32,13 +32,14 @@ from app.ai_clients.book_prompts import (
     build_scene_prompt,
     identity_shot,
     infer_expression,
+    normalize_expression,
     name_scene_extras_for_template,
     scene_extras_for_template,
 )
 from app.ai_clients.book_prompts import STYLE as BOOK_STYLE
 from app.ai_clients.face_detect import face_reference, identity_images
 from app.ai_clients.resilience import OutageError, retry_until
-from app.story_templates import illustration_notes, page_layouts, render_template
+from app.story_templates import illustration_notes, page_expressions, page_layouts, render_template
 from app.workers.ebook import build_pdf, cover_palette_for
 from app.workers.handlers import _parse_pages, _parse_title, _refine_identity, lock_page_identity
 
@@ -357,6 +358,7 @@ async def ensure_page(
     char: bytes,
     photo: bytes | None,
     regen: bool = False,
+    expression: str = "",
 ) -> None:
     if layout == "dedication":
         spec.log(f"pagina {idx:02d} dedicatoria - sem ilustracao")
@@ -391,7 +393,11 @@ async def ensure_page(
         extras = spec.name_extras or name_scene_extras_for_template(spec.template_id)
     else:
         extras = spec.scene_extras or scene_extras_for_template(spec.template_id)
-    expr = infer_expression(caption, note)
+    expr = (
+        normalize_expression(expression)
+        if (expression or "").strip()
+        else infer_expression(caption, note)
+    )
     spec.log(f"ilustrando pagina {idx:02d} ({layout}, {expr})...")
 
     async def gen():
@@ -437,16 +443,17 @@ async def ensure_page(
 # --------------------------------------------------------------------------- #
 # Run completo
 # --------------------------------------------------------------------------- #
-def _story_parts(spec: BookSpec) -> tuple[str, list[str], list[str], list[str]]:
+def _story_parts(spec: BookSpec) -> tuple[str, list[str], list[str], list[str], list[str]]:
     story = render_template(spec.template_id, spec.child_name, gender=spec.gender)
     limit = spec.max_page
     pages = _parse_pages(story)[:limit] if limit else _parse_pages(story)
     notes = illustration_notes(spec.template_id, spec.child_name)
     layouts = page_layouts(spec.template_id)
+    expressions = page_expressions(spec.template_id)
     if limit:
-        notes, layouts = notes[:limit], layouts[:limit]
+        notes, layouts, expressions = notes[:limit], layouts[:limit], expressions[:limit]
     title = _parse_title(story) or f"{spec.child_name} na Amazonia"
-    return title, pages, notes, layouts
+    return title, pages, notes, layouts, expressions
 
 
 def _layout_of(layouts: list[str], idx: int) -> str:
@@ -507,7 +514,7 @@ async def _generate_fitted_book(
     """Livro-base + um recorte: so cola o rosto. Nao gera cena."""
     spec.out_dir.mkdir(parents=True, exist_ok=True)
     budget = Budget(budget_s)
-    title, pages_text, notes, layouts = _story_parts(spec)
+    title, pages_text, notes, layouts, _expressions = _story_parts(spec)
     forced = set(regen or []) | set(only or [])
     scope = [i for i in range(1, len(pages_text) + 1) if not only or i in set(only)]
     scope = [i for i in scope if i not in spec.keep]
@@ -602,7 +609,7 @@ async def generate_book(
         )
     spec.out_dir.mkdir(parents=True, exist_ok=True)
     budget = Budget(budget_s)
-    title, pages_text, notes, layouts = _story_parts(spec)
+    title, pages_text, notes, layouts, expressions = _story_parts(spec)
 
     # `--only N` sempre refaz a pagina pedida: e o comando de "tenta de novo".
     forced = set(regen or []) | set(only or [])
@@ -635,6 +642,7 @@ async def generate_book(
                 char=char,
                 photo=crop,
                 regen=idx in forced,
+                expression=expressions[idx - 1] if idx - 1 < len(expressions) else "",
             )
         except OutageError as exc:
             outage = outage or str(exc)
@@ -749,8 +757,8 @@ def run(spec: BookSpec, args: argparse.Namespace, provider_factory: Callable[[],
             spec.log("FAL_KEY e GEMINI_API_KEY ausentes")
             return EXIT_FAIL
     else:
-        if not settings.gemini_api_key:
-            spec.log("GEMINI_API_KEY ausente")
+        if not settings.gemini_api_key and not settings.openai_api_key:
+            spec.log("GEMINI_API_KEY ou OPENAI_API_KEY ausente")
             return EXIT_FAIL
         if not spec.skip_identity and (spec.photo is None or not spec.photo.exists()):
             spec.log(f"foto nao encontrada: {spec.photo}")

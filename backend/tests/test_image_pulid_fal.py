@@ -54,6 +54,15 @@ def test_get_image_provider_returns_hybrid():
     assert provider.name == "nano-banana"
 
 
+def test_get_image_provider_openai_uses_openai_scene():
+    from app.ai_clients.image_openai import OpenAIImageProvider
+
+    provider = get_image_provider("openai")
+    assert isinstance(provider, HybridImageProvider)
+    assert provider.name == "openai"
+    assert isinstance(provider._scene, OpenAIImageProvider)
+
+
 async def test_generate_character_calls_flux_pulid(monkeypatch):
     captured: dict = {}
 

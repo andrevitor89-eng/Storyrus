@@ -83,6 +83,8 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
       extra_characters: [],
       page_images: [],
       ebook_url: state.project?.ebook_url ?? null,
+      print_interior_url: null,
+      print_covers_url: null,
       video_url: null,
       narrated_video_url: null,
     });

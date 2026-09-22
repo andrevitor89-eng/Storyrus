@@ -20,6 +20,7 @@ from app.ai_clients.book_prompts import (
     REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
     REFINE_SCENE_PROMPT,
+    RESTORE_EXPRESSION_PROMPT,
     SCENE_GEN_PREFIX,
 )
 from app.ai_clients.gemini_api import BASE as _BASE
@@ -293,18 +294,24 @@ class NanoBananaImageProvider:
         scene: bytes,
         style: str = "realistic",
         photo: bytes | None = None,
+        expression_ref: bytes | None = None,
     ) -> ImageResult:
         """Segundo passe de cena: cabeca = avatar; figurino fica o da cena.
 
         Ordem: (1) avatar, (2) cena. `photo` e ignorado neste passe — a foto
         real vale no lock do avatar (`refine_identity`), nao na pagina.
+        Com `expression_ref`, a 3a imagem restaura boca/sobrancelhas da cena
+        anterior ao face-swap.
         """
         _ = photo
+        prompt = RESTORE_EXPRESSION_PROMPT if expression_ref else REFINE_SCENE_PROMPT
         parts: list[dict] = [
-            {"text": REFINE_SCENE_PROMPT},
+            {"text": prompt},
             _inline(character_ref),
             _inline(scene),
         ]
+        if expression_ref:
+            parts.append(_inline(expression_ref))
         return await self._generate(parts, aspect_ratio="1:1")
 
     async def refine_identity(

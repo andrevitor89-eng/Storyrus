@@ -5,6 +5,7 @@ from app.story_templates import (
     build_name_rhyme,
     illustration_notes,
     list_templates,
+    page_expressions,
     render_template,
 )
 
@@ -120,6 +121,19 @@ def test_amazonia_notes_keep_child_and_letter():
     joined = " ".join(notes).lower()
     for banned in ("koala", "wombat", "iaque", "zebra", "paisagem fria"):
         assert banned not in joined
+
+
+def test_amazonia_page_expressions_follow_the_explorer():
+    exprs = page_expressions("alfabeto_amazonia")
+    assert len(exprs) == 29
+    assert exprs[0] == ""
+    assert exprs[1] == "alegria"
+    assert exprs[3] == "curiosidade"
+    assert exprs[11] == "medo_gentil"
+    assert exprs[19] == "calma"
+    assert "curiosidade" in exprs
+    assert "medo_gentil" in exprs
+    assert page_expressions("alfabeto_frutas")[3] == ""
 
 
 def test_list_endpoint(auth_client):

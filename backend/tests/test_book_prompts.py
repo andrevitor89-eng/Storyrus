@@ -12,6 +12,7 @@ from app.ai_clients.book_prompts import (
     REFINE_IDENTITY_AVATAR_PROMPT,
     REFINE_IDENTITY_PROMPT,
     REFINE_SCENE_PROMPT,
+    RESTORE_EXPRESSION_PROMPT,
     SCENE_GEN_PREFIX,
     build_scene_prompt,
     costume_extras_for_template,
@@ -208,8 +209,17 @@ def test_scene_keeps_emotion_separate_from_identity():
     assert "expressao NEUTRA" in SCENE_GEN_PREFIX or "NAO a copie" in SCENE_GEN_PREFIX
     assert "VENCE o avatar" in SCENE_GEN_PREFIX
     assert "pose dinamicos" in SCENE_GEN_PREFIX
+    assert "BOCA NAS CENAS" in SCENE_GEN_PREFIX
+    assert "TIPO de sorriso da foto" not in SCENE_GEN_PREFIX
     assert "emotional facial expression" in REFINE_SCENE_PROMPT
     assert "Do not reset to a neutral face" in REFINE_SCENE_PROMPT
+    assert "preserve a emocao da ilustracao" in REFINE_IDENTITY_PROMPT
+    assert "sorriso da foto" in REFINE_IDENTITY_PROMPT
+    assert "preserve a emocao da ilustracao" in REFINE_IDENTITY_AVATAR_PROMPT
+    assert "TIPO de sorriso da foto" in AVATAR_PROMPT
+    assert "TIPO de sorriso da foto" not in REFINE_IDENTITY_PROMPT
+    assert "Pre-swap scene" in RESTORE_EXPRESSION_PROMPT
+    assert "emotional facial expression" in RESTORE_EXPRESSION_PROMPT
 
 
 def test_alphabet_extras_forbid_readable_text():
