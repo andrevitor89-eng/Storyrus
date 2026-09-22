@@ -58,5 +58,31 @@ def test_non_dev_accepts_strong_secrets(env):
         webhook_signing_secret="a-strong-webhook-secret-value",
         storage_access_key=None,
         storage_secret_key=None,
+        openai_api_key="sk-openai-test-key",
     )
     assert s.app_env == env
+
+
+@pytest.mark.parametrize("env", ["staging", "prod"])
+def test_non_dev_openai_provider_requires_api_key(env):
+    with pytest.raises(ValidationError) as exc:
+        Settings(
+            app_env=env,
+            jwt_secret="a-strong-jwt-secret-value",
+            webhook_signing_secret="a-strong-webhook-secret-value",
+            image_provider="openai",
+            openai_api_key="",
+        )
+    assert "OPENAI_API_KEY" in str(exc.value)
+
+
+@pytest.mark.parametrize("env", ["staging", "prod"])
+def test_non_dev_nano_banana_does_not_require_openai_key(env):
+    s = Settings(
+        app_env=env,
+        jwt_secret="a-strong-jwt-secret-value",
+        webhook_signing_secret="a-strong-webhook-secret-value",
+        image_provider="nano-banana",
+        openai_api_key=None,
+    )
+    assert s.image_provider == "nano-banana"

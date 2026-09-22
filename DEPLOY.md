@@ -24,7 +24,7 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
   endpoint S3-compatible que você configure à parte).
 - **Redis**: opcional. Sem ele, o worker faz *polling* do banco e tudo funciona.
 
-> As chaves (Gemini, Anthropic, Kling, ElevenLabs, R2) **nunca** ficam no repositório — só em variáveis de ambiente. O `.env` está no `.gitignore`.
+> As chaves (OpenAI GPT Image, Gemini, Anthropic, Kling, ElevenLabs, R2) **nunca** ficam no repositório — só em variáveis de ambiente. O `.env` está no `.gitignore`.
 >
 > O worker precisa de **ffmpeg** no PATH para o vídeo narrado (já instalado na imagem Docker do backend). Sem ffmpeg, o fallback gera um GIF slideshow.
 
@@ -35,9 +35,10 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
 1. Acesse **render.com** → **New → Blueprint** → conecte o repositório `Storyrus`.
 2. O Render lê o `render.yaml` e cria 3 recursos: **storyrus-api** (web), **storyrus-worker** (worker) e **storyrus-db** (Postgres).
 3. Em cada serviço (api e worker), preencha as variáveis marcadas como *secret* em **Environment**:
-   - `GEMINI_API_KEY` — chave do Gemini no formato `AIza...`
+   - `OPENAI_API_KEY` — GPT Image (`gpt-image-1`); obrigatório com `IMAGE_PROVIDER=openai` (default do Blueprint)
+   - `GEMINI_API_KEY` — chave do Gemini no formato `AIza...` (face detect / juiz; ou `IMAGE_PROVIDER=nano-banana` para rollback)
    - `ANTHROPIC_API_KEY` — `sk-ant-...`
-   - `FAL_KEY` — Fal.ai (avatar / face-swap / SAM)
+   - `FAL_KEY` — Fal.ai (só no caminho `nano-banana` / PuLID; opcional com OpenAI)
    - `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` — (só se for usar vídeo)
    - `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` — TTS narrado (opcional; sem chave usa edge-tts)
    - `CREDIT_GRANT_SECRET` — só a API; vazio = `POST /v1/credits/grant` recusa. **Nunca** no frontend

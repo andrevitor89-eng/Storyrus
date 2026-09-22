@@ -56,6 +56,8 @@ def image_provider_name(result: Any, fallback: str | None = None) -> str:
     raw = meta.get("provider") or meta.get("head_provider") or fallback or "gemini"
     if raw in ("nano-banana", "gemini"):
         return "gemini"
+    if raw in ("openai", "gpt-image-1"):
+        return "openai"
     if raw in ("pulid", "pulid-fal", "fal"):
         return "fal"
     return str(raw)

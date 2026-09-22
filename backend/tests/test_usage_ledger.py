@@ -31,3 +31,5 @@ def test_image_provider_name_maps_aliases():
     assert image_provider_name(r) == "fal"
     r2 = ImageResult(image_bytes=b"y", meta={"provider": "nano-banana"})
     assert image_provider_name(r2) == "gemini"
+    r3 = ImageResult(image_bytes=b"z", meta={"provider": "openai"})
+    assert image_provider_name(r3) == "openai"

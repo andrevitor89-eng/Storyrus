@@ -1,0 +1,128 @@
+"""OpenAI GPT Image provider (sem API real)."""
+
+from __future__ import annotations
+
+import base64
+
+import httpx
+import pytest
+
+from app.ai_clients import image_openai as oai
+from app.ai_clients.base import ProviderError
+
+
+def _ok_payload(image: bytes = b"png-bytes") -> dict:
+    return {
+        "data": [{"b64_json": base64.b64encode(image).decode()}],
+        "usage": {},
+    }
+
+
+class _FakeResponse:
+    def __init__(self, status_code: int, json_data: dict | None = None, text: str = ""):
+        self.status_code = status_code
+        self._json = json_data or {}
+        self.text = text or f"status {status_code}"
+        self.headers = {}
+
+    def json(self):
+        return self._json
+
+
+class _FakeAsyncClient:
+    script: list = []
+    calls: list[dict] = []
+
+    def __init__(self, *args, **kwargs):
+        pass
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        return False
+
+    async def post(self, url, **kwargs):
+        _FakeAsyncClient.calls.append({"url": url, **kwargs})
+        idx = len(_FakeAsyncClient.calls) - 1
+        item = _FakeAsyncClient.script[idx] if idx < len(_FakeAsyncClient.script) else _FakeAsyncClient.script[-1]
+        if isinstance(item, Exception):
+            raise item
+        return item
+
+
+@pytest.fixture(autouse=True)
+def _reset(monkeypatch):
+    _FakeAsyncClient.script = []
+    _FakeAsyncClient.calls = []
+    monkeypatch.setattr(oai.httpx, "AsyncClient", _FakeAsyncClient)
+    monkeypatch.setattr(oai.settings, "openai_api_key", "test-key")
+    monkeypatch.setattr(oai.settings, "openai_max_retries", 2)
+    monkeypatch.setattr(oai.settings, "openai_retry_base_s", 0.0)
+    monkeypatch.setattr(oai.settings, "openai_retry_max_s", 0.0)
+    async def _noop_sleep(*_a, **_k):
+        return None
+
+    monkeypatch.setattr(oai.asyncio, "sleep", _noop_sleep)
+    yield
+
+
+@pytest.mark.asyncio
+async def test_generate_character_uses_generations_when_no_refs():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"char"))]
+    provider = oai.OpenAIImageProvider()
+    result = await provider.generate_character(prompt="hero", reference_images=[], style="cgi")
+    assert result.image_bytes == b"char"
+    assert result.cost_usd == oai.settings.price_openai_image_usd
+    assert "/images/generations" in _FakeAsyncClient.calls[0]["url"]
+
+
+@pytest.mark.asyncio
+async def test_generate_scene_uses_edits_with_avatar():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"scene"))]
+    provider = oai.OpenAIImageProvider()
+    result = await provider.generate_scene(
+        prompt="forest",
+        character_ref=b"avatar",
+        style="cgi",
+    )
+    assert result.image_bytes == b"scene"
+    call = _FakeAsyncClient.calls[0]
+    assert "/images/edits" in call["url"]
+    assert call.get("files")
+
+
+@pytest.mark.asyncio
+async def test_refine_identity_is_noop():
+    provider = oai.OpenAIImageProvider()
+    result = await provider.refine_identity(photo=b"p", illustration=b"ill", style="cgi")
+    assert result.image_bytes == b"ill"
+    assert result.cost_usd == 0.0
+    assert not _FakeAsyncClient.calls
+
+
+@pytest.mark.asyncio
+async def test_transient_503_retries_then_ok():
+    _FakeAsyncClient.script = [
+        _FakeResponse(503, text="busy"),
+        _FakeResponse(200, _ok_payload(b"ok")),
+    ]
+    provider = oai.OpenAIImageProvider()
+    result = await provider.generate_character(prompt="x", reference_images=[], style="s")
+    assert result.image_bytes == b"ok"
+    assert len(_FakeAsyncClient.calls) == 2
+
+
+@pytest.mark.asyncio
+async def test_missing_api_key_raises(monkeypatch):
+    monkeypatch.setattr(oai.settings, "openai_api_key", None)
+    provider = oai.OpenAIImageProvider(api_key="")
+    with pytest.raises(ProviderError, match="OPENAI_API_KEY"):
+        await provider.generate_character(prompt="x", reference_images=[], style="s")
+
+
+def test_factory_registers_openai():
+    from app.ai_clients.factory import get_image_provider
+
+    provider = get_image_provider("openai")
+    assert provider.name == "openai"

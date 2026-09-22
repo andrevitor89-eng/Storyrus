@@ -30,6 +30,16 @@ def test_add_usd_ignores_none():
     assert pricing.add_usd(0.039, None, 0.039) == 0.078
 
 
-def test_estimate_job_usd_video_and_avatar():
+def test_openai_image_cost_flat():
+    assert pricing.openai_image_cost(None) == pricing.settings.price_openai_image_usd
+
+
+def test_estimate_job_usd_video_and_avatar(monkeypatch):
+    monkeypatch.setattr(pricing.settings, "image_provider", "openai")
     assert pricing.estimate_job_usd("VIDEO") == pricing.video_cost(5)
+    assert abs(pricing.estimate_job_usd("AVATAR") - pricing.openai_image_cost(None)) < 1e-9
+
+
+def test_estimate_job_usd_avatar_nano_banana_includes_fal(monkeypatch):
+    monkeypatch.setattr(pricing.settings, "image_provider", "nano-banana")
     assert abs(pricing.estimate_job_usd("AVATAR") - (0.039 + 0.03)) < 1e-9

@@ -107,6 +107,7 @@ class Settings(BaseSettings):
     price_claude_output_per_mtok: float = 75.0
     price_kling_per_second_usd: float = 0.10
     price_fal_image_usd: float = 0.03
+    price_openai_image_usd: float = 0.04
     fal_key: str | None = None
     identity_head_provider: str = "pulid"
     face_match_backend: str = "insightface"
@@ -155,9 +156,17 @@ class Settings(BaseSettings):
     kling_secret_key: str | None = None
     elevenlabs_api_key: str | None = None  # TTS video narrado
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)
+    openai_api_key: str | None = None  # GPT Image (avatar, cena, ebook)
+    openai_image_model: str = "gpt-image-1"
+    openai_image_size_portrait: str = "1024x1536"
+    openai_image_size_square: str = "1024x1024"
+    openai_timeout_s: float = 120.0
+    openai_max_retries: int = 3
+    openai_retry_base_s: float = 2.0
+    openai_retry_max_s: float = 60.0
 
     # Selecao de provedores por etapa
-    image_provider: str = "nano-banana"
+    image_provider: str = "openai"
     text_provider: str = "claude"
     # Unico VideoProvider registrado: Kling. Outros nomes falham na factory.
     video_provider: str = "kling"
@@ -171,15 +180,17 @@ class Settings(BaseSettings):
     # Sem heartbeat por este tempo => RUNNING volta a PENDING (worker morreu).
     job_stale_timeout_s: float = 900.0
     job_heartbeat_interval_s: float = 30.0
-    ebook_pages: int = 12
+    ebook_pages: int = 6
+    # Fichas turnaround/expressao/figurino antes das paginas (custo extra).
+    ebook_character_bible: bool = False
     # True = refine de cena permitido. Quem dispara e o juiz de rosto
     # (`ebook_face_match`); false nunca refina (corte de custo).
-    ebook_refine_scene: bool = True
+    ebook_refine_scene: bool = False
     # Paginas ilustradas em paralelo (writes no banco ficam em serie, depois).
     ebook_page_concurrency: int = 3
     # Gemini/InsightFace comparam recorte/avatar x cena; abaixo do limiar roda
     # refine + Fal. Depois de 2 tentativas, score baixo/None recusa o job.
-    ebook_face_match: bool = True
+    ebook_face_match: bool = False
     ebook_face_match_min: float = 0.72
     # Avatar x cena (mesmo estilo). Acima do limiar foto x ilustracao, senao
     # um loiro generico passa. Abaixo disto: refine_scene e Fal.
@@ -220,6 +231,8 @@ class Settings(BaseSettings):
             bad.append("STORAGE_ACCESS_KEY")
         if self.storage_secret_key is not None and _is_unsafe_secret(self.storage_secret_key):
             bad.append("STORAGE_SECRET_KEY")
+        if self.image_provider == "openai" and not (self.openai_api_key or "").strip():
+            bad.append("OPENAI_API_KEY")
         if bad:
             raise ValueError(
                 f"APP_ENV={self.app_env}: recusando secrets inseguros/default em "

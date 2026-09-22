@@ -61,6 +61,7 @@ def test_estimate_ebook_uses_pages_and_refine(monkeypatch):
 def test_enqueue_blocked_by_daily_usd_ceiling(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "daily_spend_usd_ceiling", 1.0)
     monkeypatch.setattr(settings, "daily_credits_ceiling", 0)
+    monkeypatch.setattr(settings, "price_openai_image_usd", 0.10)
     _seed_measured(auth_client, cost_usd=0.95)
 
     r = auth_client.post("/v1/projects", json={"child_name": "Ana"})

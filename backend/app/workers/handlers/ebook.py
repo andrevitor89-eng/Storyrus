@@ -128,7 +128,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     bible: dict[str, bytes] = {}
     bible_cost = 0.0
     bible_lines: list[dict] = []
-    if not settings.offline_fallback:
+    if not settings.offline_fallback and settings.ebook_character_bible:
         bible, bible_cost = await _generate_character_bible(
             db,
             project,
