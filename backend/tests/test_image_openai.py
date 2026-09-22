@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import base64
 
-import httpx
 import pytest
 
 from app.ai_clients import image_openai as oai
@@ -45,7 +44,11 @@ class _FakeAsyncClient:
     async def post(self, url, **kwargs):
         _FakeAsyncClient.calls.append({"url": url, **kwargs})
         idx = len(_FakeAsyncClient.calls) - 1
-        item = _FakeAsyncClient.script[idx] if idx < len(_FakeAsyncClient.script) else _FakeAsyncClient.script[-1]
+        item = (
+            _FakeAsyncClient.script[idx]
+            if idx < len(_FakeAsyncClient.script)
+            else _FakeAsyncClient.script[-1]
+        )
         if isinstance(item, Exception):
             raise item
         return item
@@ -60,6 +63,7 @@ def _reset(monkeypatch):
     monkeypatch.setattr(oai.settings, "openai_max_retries", 2)
     monkeypatch.setattr(oai.settings, "openai_retry_base_s", 0.0)
     monkeypatch.setattr(oai.settings, "openai_retry_max_s", 0.0)
+
     async def _noop_sleep(*_a, **_k):
         return None
 
