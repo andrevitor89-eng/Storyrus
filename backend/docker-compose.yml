@@ -27,6 +27,9 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
       REDIS_URL: redis://redis:6379/0
+      STORAGE_LOCAL_DIR: /data/local-storage
+    volumes:
+      - local_storage:/data/local-storage
     depends_on:
       db:
         condition: service_healthy
@@ -44,6 +47,9 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://stories:stories@db:5432/stories
       REDIS_URL: redis://redis:6379/0
+      STORAGE_LOCAL_DIR: /data/local-storage
+    volumes:
+      - local_storage:/data/local-storage
     depends_on:
       db:
         condition: service_healthy
@@ -53,3 +59,4 @@ services:
 
 volumes:
   pgdata:
+  local_storage:
