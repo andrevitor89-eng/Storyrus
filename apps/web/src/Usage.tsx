@@ -17,11 +17,13 @@ const STEP_LABEL: Record<string, string> = {
 };
 
 const PROVIDER_LABEL: Record<string, string> = {
-  gemini: "Gemini",
-  fal: "Fal",
+  openai: "OpenAI",
   claude: "Claude",
   kling: "Kling",
   elevenlabs: "ElevenLabs",
+  // Legado (extrato antigo)
+  gemini: "Gemini",
+  fal: "Fal",
   "nano-banana": "Gemini",
 };
 

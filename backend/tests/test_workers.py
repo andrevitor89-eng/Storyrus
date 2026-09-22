@@ -94,6 +94,16 @@ class FakeImage:
         return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png", cost_usd=0.03)
 
 
+@pytest.fixture(autouse=True)
+def _default_face_score_ok(monkeypatch):
+    """Sem InsightFace real: juiz devolve nota alta salvo se o teste sobrescrever."""
+
+    async def high_score(_photo, _scene, **_k):
+        return 0.91
+
+    monkeypatch.setattr(handlers, "score_face_match", high_score)
+
+
 class FakeText:
     name = "fake-text"
 
@@ -214,8 +224,6 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
@@ -228,14 +236,14 @@ async def test_avatar_advances_state(db, mem_storage, monkeypatch):
     assert j.status == JobStatus.DONE.value
     assert p.status == ProjectStatus.AVATAR_READY.value
     assert p.character_ref and "storage_key" in p.character_ref
-    # generate_character + refine_identity (Fal cola o rosto)
+    # generate_character + refine_identity (OpenAI)
     assert mem_storage[p.character_ref["storage_key"]] == b"REFINED"
-    # generate 0.04 + 1 Fal 0.03
+    # generate 0.04 + refine 0.03
     assert float(j.cost_usd) == 0.07
 
 
 async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch):
-    """Nota alta nao pula o Fal: o retrato e a ancora das paginas."""
+    """Nota alta nao pula o refine: o retrato e a ancora das paginas."""
     heads: list[int] = []
 
     class Counting(FakeImage):
@@ -249,8 +257,6 @@ async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
@@ -262,9 +268,9 @@ async def test_avatar_high_face_still_runs_fal_once(db, mem_storage, monkeypatch
 async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypatch):
     realistic_calls: list[int] = []
 
-    class BoomThenGemini(FakeImage):
+    class BoomThenRealistic(FakeImage):
         async def generate_character(self, **kw):
-            raise ProviderError("Gemini fora", transient=False)
+            raise ProviderError("OpenAI fora", transient=False)
 
         async def generate_realistic(self, **kw):
             realistic_calls.append(1)
@@ -273,11 +279,9 @@ async def test_avatar_falls_back_to_generate_realistic(db, mem_storage, monkeypa
     async def high_score(_photo, _scene, **_k):
         return 0.91
 
-    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: BoomThenGemini())
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: BoomThenRealistic())
     monkeypatch.setattr(handlers, "score_face_match", high_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
@@ -306,7 +310,7 @@ async def test_avatar_low_face_retries_fal_swap(db, mem_storage, monkeypatch):
             )
 
         async def refine_character(self, **kw):
-            raise AssertionError("com Fal o avatar nao usa refine_character")
+            raise AssertionError("avatar usa so refine_identity")
 
     async def low_score(_photo, _scene, **_k):
         return 0.4
@@ -314,8 +318,6 @@ async def test_avatar_low_face_retries_fal_swap(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
     monkeypatch.setattr(handlers, "score_face_match", low_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
     monkeypatch.setattr(handlers.settings, "avatar_face_match_min", 0.80)
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
@@ -330,7 +332,7 @@ async def test_avatar_low_face_retries_fal_swap(db, mem_storage, monkeypatch):
 
 
 async def test_avatar_face_judge_none_retries_then_fails(db, mem_storage, monkeypatch):
-    """STO-37: juiz sem nota nao soft-skip — retenta Fal e falha visivel."""
+    """STO-37: juiz sem nota nao soft-skip — retenta refine e falha visivel."""
     heads: list[int] = []
     score_calls: list[int] = []
 
@@ -349,9 +351,7 @@ async def test_avatar_face_judge_none_retries_then_fails(db, mem_storage, monkey
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
     monkeypatch.setattr(handlers, "score_face_match", no_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
-    monkeypatch.setattr(handlers.settings, "gemini_face_retries", 2)
+    monkeypatch.setattr(handlers.settings, "face_match_retries", 2)
     monkeypatch.setattr(handlers.settings, "job_max_attempts", 1)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
@@ -385,9 +385,7 @@ async def test_avatar_face_judge_exception_retries_then_succeeds(db, mem_storage
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
     monkeypatch.setattr(handlers, "score_face_match", flaky_then_high)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
-    monkeypatch.setattr(handlers.settings, "gemini_face_retries", 3)
+    monkeypatch.setattr(handlers.settings, "face_match_retries", 3)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
@@ -404,7 +402,7 @@ async def test_avatar_face_judge_exception_retries_then_succeeds(db, mem_storage
 
 
 async def test_avatar_face_judge_recovers_on_second_fal(db, mem_storage, monkeypatch):
-    """STO-37: sem nota no 1º passe → segundo Fal; nota boa no 2º → aceita."""
+    """STO-37: sem nota no 1o passe -> segundo refine; nota boa no 2o -> aceita."""
     heads: list[int] = []
 
     class Counting(FakeImage):
@@ -427,9 +425,7 @@ async def test_avatar_face_judge_recovers_on_second_fal(db, mem_storage, monkeyp
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Counting())
     monkeypatch.setattr(handlers, "score_face_match", score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
-    monkeypatch.setattr(handlers.settings, "identity_head_provider", "pulid")
-    monkeypatch.setattr(handlers.settings, "fal_key", "test-fal")
-    monkeypatch.setattr(handlers.settings, "gemini_face_retries", 1)
+    monkeypatch.setattr(handlers.settings, "face_match_retries", 1)
     monkeypatch.setattr("app.workers.handlers.avatar.asyncio.sleep", no_sleep)
     _, p = _seed(db)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
@@ -1039,13 +1035,13 @@ async def test_ebook_face_match_low_retries_fal_head(db, mem_storage, monkeypatc
     db.refresh(j)
     assert j.status == JobStatus.FAILED.value
     assert "identidade" in (j.error or "")
-    # Cada pagina tenta 2 vezes (cena + refine + Fal) antes de recusar o job
+    # Cada pagina tenta 2 vezes (cena + refine_scene) antes de recusar o job
     assert len(scenes) >= 2
     assert len(scene_refines) >= 2
-    assert len(heads) >= 2
+    assert heads == []
 
 
-async def test_ebook_skips_fal_when_face_high(db, mem_storage, monkeypatch):
+async def test_ebook_skips_refine_when_face_high(db, mem_storage, monkeypatch):
     heads: list[int] = []
     scene_refines: list[int] = []
 
@@ -1165,13 +1161,18 @@ async def test_ebook_face_match_refine_scene_skips_fal(db, mem_storage, monkeypa
     assert heads == []
 
 
-async def test_ebook_face_match_none_runs_fal(db, mem_storage, monkeypatch):
+async def test_ebook_face_match_none_runs_refine_scene(db, mem_storage, monkeypatch):
     heads: list[int] = []
+    scene_refines: list[int] = []
 
     class Counting(FakeImage):
         async def refine_identity(self, **kw):
             heads.append(1)
             return await super().refine_identity(**kw)
+
+        async def refine_scene(self, **kw):
+            scene_refines.append(1)
+            return await super().refine_scene(**kw)
 
     async def no_score(_photo, _scene, **_k):
         return None
@@ -1181,7 +1182,7 @@ async def test_ebook_face_match_none_runs_fal(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "score_face_match", no_score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
-    monkeypatch.setattr(handlers.settings, "face_match_backend", "insightface")
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."
@@ -1193,10 +1194,11 @@ async def test_ebook_face_match_none_runs_fal(db, mem_storage, monkeypatch):
     db.refresh(j)
     assert j.status == JobStatus.FAILED.value
     assert "identidade" in (j.error or "")
-    assert len(heads) >= 2
+    assert heads == []
+    assert len(scene_refines) >= 2
 
 
-async def test_ebook_keeps_fal_even_when_score_worse(db, mem_storage, monkeypatch):
+async def test_ebook_fails_when_refine_scene_score_stays_low(db, mem_storage, monkeypatch):
     class Tagged(FakeImage):
         async def generate_scene(self, **kw):
             return ImageResult(image_bytes=b"SCENE", mime_type="image/png", cost_usd=0.04)
@@ -1205,16 +1207,17 @@ async def test_ebook_keeps_fal_even_when_score_worse(db, mem_storage, monkeypatc
             return ImageResult(image_bytes=b"SCENE_R", mime_type="image/png", cost_usd=0.03)
 
         async def refine_identity(self, **kw):
-            return ImageResult(image_bytes=b"FAL_WORSE", mime_type="image/png", cost_usd=0.03)
+            raise AssertionError("pagina nao usa refine_identity (ex-Fal)")
 
     async def score(_photo, scene, **_k):
-        return {"SCENE": 0.40, "SCENE_R": 0.55, "FAL_WORSE": 0.20}.get(scene.decode(), 0.0)
+        return {"SCENE": 0.40, "SCENE_R": 0.55}.get(scene.decode(), 0.0)
 
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: Tagged())
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "score_face_match", score)
     monkeypatch.setattr(handlers.settings, "offline_fallback", False)
     monkeypatch.setattr(handlers.settings, "ebook_face_match", True)
+    monkeypatch.setattr(handlers.settings, "ebook_refine_scene", True)
     _, p = _seed(db)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Pagina 1: ola.\nPagina 2: fim."

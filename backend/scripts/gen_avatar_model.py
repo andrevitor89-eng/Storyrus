@@ -12,8 +12,8 @@ Custo: 1 + `--passes` chamadas (default 3).
 
 Uso (a partir de backend/):
 
-  python scripts/gen_avatar_model.py --model gemini-3-pro-image
-  python scripts/gen_avatar_model.py --report-only --model gemini-3-pro-image
+  python scripts/gen_avatar_model.py --model gpt-image-1
+  python scripts/gen_avatar_model.py --report-only --model gpt-image-1
 """
 from __future__ import annotations
 
@@ -27,7 +27,6 @@ BACKEND = Path(__file__).resolve().parents[1]
 REPO = BACKEND.parent
 sys.path.insert(0, str(BACKEND))
 os.chdir(BACKEND)
-os.environ.setdefault("GEMINI_SSL_VERIFY", "system")
 
 from PIL import Image, ImageDraw  # noqa: E402
 
@@ -42,17 +41,6 @@ PHOTO = REPO / "apps" / "web" / "public" / "exemplos" / "foto-matteo.png"
 APPROVED = BACKEND / "scripts" / "out" / "amazonia-matteo" / "character.png"
 BASE_OUT = BACKEND / "scripts" / "out" / "avatar"
 CELL = 560
-
-_PRICE = {
-    ("gemini-3-pro-image", "1K"): 0.134,
-    ("gemini-3-pro-image", "2K"): 0.134,
-    ("gemini-3-pro-image", "4K"): 0.24,
-    ("gemini-3.1-flash-image", "1K"): 0.067,
-    ("gemini-3.1-flash-image", "2K"): 0.101,
-    ("gemini-3.1-flash-image", "4K"): 0.151,
-    ("gemini-2.5-flash-image", ""): 0.039,
-    ("gemini-2.5-flash-image", "1K"): 0.039,
-}
 
 
 def log(msg: str) -> None:
@@ -98,30 +86,27 @@ def contact_sheet(out: Path, model: str) -> Path:
 
 
 async def main(model: str | None, passes: int, report_only: bool) -> int:
-    # Pinar o modelo e desligar o fallback: um avatar do Flash rotulado como Pro
-    # invalidaria a comparacao inteira.
+    model_id = model or settings.openai_image_model
     if model:
-        settings.gemini_image_model = model
-    settings.gemini_image_model_fallback = ""
-    model_id = settings.gemini_image_model
+        settings.openai_image_model = model
     out = out_dir(model_id)
     out.mkdir(parents=True, exist_ok=True)
 
     if report_only:
         log(f"comparacao: {contact_sheet(out, model_id)}")
         return 0
-    if not settings.gemini_api_key:
-        log("GEMINI_API_KEY ausente")
+    if not settings.openai_api_key:
+        log("OPENAI_API_KEY ausente")
         return 1
     if not PHOTO.exists():
         log(f"foto nao encontrada: {PHOTO}")
         return 1
 
-    unit = _PRICE.get((model_id, settings.gemini_image_size))
+    unit = settings.price_openai_image_usd
     calls = 1 + max(0, passes)
-    budget = f"~${unit * calls:.2f}" if unit else "custo desconhecido"
+    budget = f"~${unit * calls:.2f}"
     log(
-        f"modelo={model_id} size={settings.gemini_image_size or 'default'} "
+        f"modelo={model_id} provider=openai "
         f"| {calls} chamadas (1 geracao + {passes} refinos) ({budget})"
     )
 
@@ -161,7 +146,7 @@ async def main(model: str | None, passes: int, report_only: bool) -> int:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Gera o avatar-base num modelo especifico")
-    parser.add_argument("--model", default=None, help="Default: GEMINI_IMAGE_MODEL.")
+    parser.add_argument("--model", default=None, help="Default: OPENAI_IMAGE_MODEL.")
     parser.add_argument("--passes", type=int, default=2, help="Refinos de identidade (default 2).")
     parser.add_argument(
         "--report-only", action="store_true", help="Refaz a folha sem gastar imagem."

@@ -91,9 +91,6 @@ async def test_judge_identity_none_is_unverified_when_configured(monkeypatch):
     from app.ai_clients import identity_lock as mod
 
     monkeypatch.setattr(mod.settings, "ebook_face_match", True)
-    monkeypatch.setattr(mod.settings, "face_match_backend", "insightface")
-    monkeypatch.setattr(mod.settings, "gemini_api_key", "k")
-    monkeypatch.setattr(mod.settings, "gemini_face_model", "flash")
 
     async def none_score(*_a, **_k):
         return None
@@ -105,13 +102,10 @@ async def test_judge_identity_none_is_unverified_when_configured(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_judge_identity_none_is_disabled_without_model(monkeypatch):
+async def test_judge_identity_none_is_disabled_when_face_match_off(monkeypatch):
     from app.ai_clients import identity_lock as mod
 
-    monkeypatch.setattr(mod.settings, "ebook_face_match", True)
-    monkeypatch.setattr(mod.settings, "face_match_backend", "gemini")
-    monkeypatch.setattr(mod.settings, "gemini_api_key", "k")
-    monkeypatch.setattr(mod.settings, "gemini_face_model", "")
+    monkeypatch.setattr(mod.settings, "ebook_face_match", False)
 
     async def none_score(*_a, **_k):
         return None
@@ -129,8 +123,6 @@ async def test_judge_identity_rejects_eye_inflate(monkeypatch):
     monkeypatch.setattr(mod.settings, "ebook_face_match", True)
     monkeypatch.setattr(mod.settings, "ebook_face_match_min", 0.72)
     monkeypatch.setattr(mod.settings, "ebook_eye_inflate_max", 0.15)
-    monkeypatch.setattr(mod.settings, "gemini_api_key", "k")
-    monkeypatch.setattr(mod.settings, "gemini_face_model", "flash")
 
     async def banana(*_a, **_k):
         return FaceScore(match=0.88, eye_inflate=0.42, geometry=0.9, age=0.85, hair=0.8)
@@ -149,8 +141,6 @@ async def test_judge_identity_rejects_geometry_drift(monkeypatch):
     monkeypatch.setattr(mod.settings, "ebook_face_match", True)
     monkeypatch.setattr(mod.settings, "ebook_face_match_min", 0.72)
     monkeypatch.setattr(mod.settings, "ebook_eye_inflate_max", 0.15)
-    monkeypatch.setattr(mod.settings, "gemini_api_key", "k")
-    monkeypatch.setattr(mod.settings, "gemini_face_model", "flash")
 
     async def pineapple(*_a, **_k):
         return FaceScore(match=0.81, eye_inflate=0.08, geometry=0.38, age=0.55, hair=0.8)

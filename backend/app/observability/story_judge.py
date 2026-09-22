@@ -1,4 +1,4 @@
-"""Juiz de historia (Gemini flash-lite) compartilhado entre o job e o script Opik."""
+"""Juiz de historia (OpenAI chat) compartilhado entre o job e o script Opik."""
 
 from __future__ import annotations
 
@@ -9,13 +9,14 @@ from typing import Any
 
 import httpx
 
-from app.ai_clients.gemini_api import BASE, api_message, ssl_verify
 from app.config import settings
 from app.observability.opik_trace import enabled, log_feedback, track, update_span
 
 logger = logging.getLogger(__name__)
 
 SCORE_KEYS = ("coherence", "age_fit", "education", "format")
+_OPENAI_CHAT = "https://api.openai.com/v1/chat/completions"
+
 
 _JUDGE_PROMPT = """Voce e um editor de livros infantis. Avalie a HISTORIA abaixo
 em relacao ao BRIEF. Responda SOMENTE com JSON valido, sem markdown:
@@ -89,12 +90,19 @@ def build_judge_prompt(
     )
 
 
-def _extract_gemini_text(data: dict) -> str:
-    return "".join(
-        part.get("text", "")
-        for cand in data.get("candidates", [])
-        for part in cand.get("content", {}).get("parts", [])
-    )
+def _extract_openai_text(data: dict) -> str:
+    choices = data.get("choices") or []
+    if not choices:
+        return ""
+    message = (choices[0] or {}).get("message") or {}
+    content = message.get("content")
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        return "".join(
+            part.get("text", "") if isinstance(part, dict) else str(part) for part in content
+        )
+    return str(content or "")
 
 
 @track(name="story_judge", type="llm", capture_input=False, capture_output=False)
@@ -106,40 +114,41 @@ async def score_story(
     language: str = "pt-BR",
     theme: str = "",
 ) -> dict[str, Any] | None:
-    """Chama Gemini flash-lite. None se a chave faltar ou a resposta for ilegivel."""
-    if not settings.gemini_api_key or not settings.gemini_face_model:
+    """Chama OpenAI chat. None se a chave faltar ou a resposta for ilegivel."""
+    api_key = (settings.openai_api_key or "").strip()
+    if not api_key:
         return None
+    model = settings.openai_story_judge_model
     prompt = build_judge_prompt(brief=brief, story=story, age=age, language=language, theme=theme)
     update_span(
         metadata={
-            "provider": "gemini",
-            "model": settings.gemini_face_model,
+            "provider": "openai",
+            "model": model,
             "action": "story_judge",
         },
         input={"prompt": prompt},
     )
     payload = {
-        "contents": [{"role": "user", "parts": [{"text": prompt}]}],
-        "generationConfig": {"responseMimeType": "application/json", "temperature": 0},
+        "model": model,
+        "temperature": 0,
+        "response_format": {"type": "json_object"},
+        "messages": [{"role": "user", "content": prompt}],
     }
-    url = f"{BASE}/models/{settings.gemini_face_model}:generateContent"
     headers = {
-        "x-goog-api-key": settings.gemini_api_key,
+        "Authorization": f"Bearer {api_key}",
         "content-type": "application/json",
     }
     try:
-        async with httpx.AsyncClient(
-            timeout=settings.gemini_face_timeout_s, verify=ssl_verify()
-        ) as client:
-            resp = await client.post(url, json=payload, headers=headers)
+        async with httpx.AsyncClient(timeout=settings.openai_timeout_s) as client:
+            resp = await client.post(_OPENAI_CHAT, json=payload, headers=headers)
     except httpx.RequestError as exc:
         logger.warning("Juiz de historia, rede: %s", exc)
         return None
     if resp.status_code >= 400:
-        logger.warning("Juiz de historia %s: %s", resp.status_code, api_message(resp))
+        logger.warning("Juiz de historia %s: %s", resp.status_code, resp.text[:300])
         return None
     try:
-        parsed = parse_judge_payload(_extract_gemini_text(resp.json()))
+        parsed = parse_judge_payload(_extract_openai_text(resp.json()))
     except Exception as exc:  # noqa: BLE001
         logger.warning("Juiz de historia devolveu resposta ilegivel: %s", exc)
         return None

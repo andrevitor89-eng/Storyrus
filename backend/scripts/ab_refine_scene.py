@@ -26,7 +26,6 @@ sys.path.insert(0, str(BACKEND))
 os.chdir(BACKEND)
 # Loja do SO: valida TLS mesmo com antivirus/proxy reassinando (o certifi que o
 # httpx fixa nao conhece esses roots).
-os.environ.setdefault("GEMINI_SSL_VERIFY", "system")
 
 from PIL import Image, ImageDraw  # noqa: E402
 
@@ -55,16 +54,6 @@ def out_dir(model: str) -> Path:
     return BASE_OUT / model
 
 # Preco por imagem (USD) para o relatorio; so os dois modelos em uso hoje.
-_PRICE = {
-    ("gemini-3-pro-image", "1K"): 0.134,
-    ("gemini-3-pro-image", "2K"): 0.134,
-    ("gemini-3-pro-image", "4K"): 0.24,
-    ("gemini-3.1-flash-image", "1K"): 0.067,
-    ("gemini-3.1-flash-image", "2K"): 0.101,
-    ("gemini-3.1-flash-image", "4K"): 0.151,
-    ("gemini-2.5-flash-image", ""): 0.039,
-    ("gemini-2.5-flash-image", "1K"): 0.039,
-}
 
 
 def log(msg: str) -> None:
@@ -72,7 +61,7 @@ def log(msg: str) -> None:
 
 
 def _unit_cost() -> float | None:
-    return _PRICE.get((settings.gemini_image_model, settings.gemini_image_size))
+    return float(settings.price_openai_image_usd)
 
 
 async def one_page(
@@ -188,12 +177,10 @@ def contact_sheet(out: Path, pages: list[int]) -> Path:
 
 
 async def main(pages: list[int], model: str | None, report_only: bool) -> int:
-    # Higiene do experimento: o par (crua, refinada) tem de sair do MESMO modelo.
-    # Com fallback ligado, um 503 no meio trocaria o modelo entre as duas chamadas.
     if model:
-        settings.gemini_image_model = model
-    settings.gemini_image_model_fallback = ""
-    out = out_dir(settings.gemini_image_model)
+        settings.openai_image_model = model
+    model_id = settings.openai_image_model
+    out = out_dir(model_id)
 
     if report_only:
         out.mkdir(parents=True, exist_ok=True)
@@ -202,8 +189,8 @@ async def main(pages: list[int], model: str | None, report_only: bool) -> int:
         log(f"comparacao: {sheet}")
         log(f"diferenca: {report}" if report else "sem pares para comparar")
         return 0
-    if not settings.gemini_api_key:
-        log("GEMINI_API_KEY ausente")
+    if not settings.openai_api_key:
+        log("OPENAI_API_KEY ausente")
         return 1
     if not AVATAR.exists():
         log(f"avatar aprovado nao encontrado: {AVATAR}")
@@ -213,7 +200,7 @@ async def main(pages: list[int], model: str | None, report_only: bool) -> int:
     unit = _unit_cost()
     budget = f"~${unit * 2 * len(pages):.2f}" if unit else "custo desconhecido"
     log(
-        f"modelo={settings.gemini_image_model} size={settings.gemini_image_size or 'default'} "
+        f"modelo={model_id} provider=openai "
         f"| {len(pages)} paginas x 2 chamadas = {len(pages) * 2} imagens ({budget})"
     )
 
@@ -267,7 +254,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--model",
         default=None,
-        help="Fixa o modelo do experimento (default: GEMINI_IMAGE_MODEL).",
+        help="Fixa o modelo do experimento (default: OPENAI_IMAGE_MODEL).",
     )
     parser.add_argument(
         "--report-only",

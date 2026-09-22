@@ -37,7 +37,7 @@ from app.services import jobs as jobs_svc
 
 logger = logging.getLogger("worker")
 
-# Status HTTP que costumam ser blips de cota/infra (alinhado a gemini_api / resilience).
+# Status HTTP que costumam ser blips de cota/infra (alinhado a resilience).
 _TRANSIENT_HTTP_STATUS = frozenset({429, 500, 502, 503, 504})
 
 

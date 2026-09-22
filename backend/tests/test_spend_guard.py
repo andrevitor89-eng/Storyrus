@@ -38,7 +38,7 @@ def _seed_measured(client, *, cost_usd: float, credits: int = 1, status=JobStatu
             project_id=project.id,
             type=JobType.EBOOK.value,
             status=status,
-            provider="nano-banana",
+            provider="openai",
             cost_usd=cost_usd,
             cost_credits=credits,
             created_at=datetime.now(UTC),
@@ -52,7 +52,7 @@ def _seed_measured(client, *, cost_usd: float, credits: int = 1, status=JobStatu
 
 def test_estimate_ebook_uses_pages_and_refine(monkeypatch):
     monkeypatch.setattr(settings, "ebook_pages", 10)
-    monkeypatch.setattr(settings, "price_gemini_image_usd", 0.04)
+    monkeypatch.setattr(settings, "price_openai_image_usd", 0.04)
     monkeypatch.setattr(settings, "ebook_face_match", True)
     monkeypatch.setattr(settings, "ebook_refine_scene", True)
     assert estimate_job_usd("EBOOK") == pytest.approx(0.8)

@@ -175,7 +175,6 @@ async def generate_one(child: Child, *, force: bool, budget_s: float) -> str:
         contact_sheet(child)
         return "skip"
 
-    settings.gemini_image_model_fallback = ""
     settings.offline_fallback = False
     budget = Budget(budget_s)
     photo = child.photo.read_bytes()
@@ -222,13 +221,12 @@ async def generate_one(child: Child, *, force: bool, budget_s: float) -> str:
 async def main(only: list[str] | None, force: bool, budget_min: float) -> int:
     sys.path.insert(0, str(BACKEND))
     os.chdir(BACKEND)
-    os.environ.setdefault("GEMINI_SSL_VERIFY", "system")
     os.environ.setdefault("OFFLINE_FALLBACK", "false")
 
     from app.config import settings
 
-    if not settings.gemini_api_key:
-        log("GEMINI_API_KEY ausente")
+    if not settings.openai_api_key:
+        log("OPENAI_API_KEY ausente")
         return 1
     if not PHOTOS_DIR.is_dir():
         log(f"pasta nao encontrada: {PHOTOS_DIR}")
@@ -241,8 +239,8 @@ async def main(only: list[str] | None, force: bool, budget_min: float) -> int:
         return 1
 
     log(
-        f"{len(batch)} criancas em {PHOTOS_DIR} | modelo={settings.gemini_image_model} "
-        f"size={settings.gemini_image_size or 'default'} | "
+        f"{len(batch)} criancas em {PHOTOS_DIR} | provider=openai "
+        f"model={settings.openai_image_model} | "
         f"~{1 + 1} chamadas/crianca | offline={settings.offline_fallback}"
     )
     for child in batch:

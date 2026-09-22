@@ -1,20 +1,18 @@
 """Factory: resolve o provedor configurado por etapa (settings).
 
-Imagem: `openai` (GPT Image, default) ou `nano-banana` (Gemini + Fal, rollback).
-Video: somente `kling` esta registrado. Nomes como `veo` levantam ValueError —
-nao ha placeholder de segundo provedor de video.
+Imagem: somente `openai` (GPT Image). Video: somente `kling`.
+Nomes legado (`nano-banana`, `veo`) levantam ValueError.
 """
 
 from __future__ import annotations
 
 from app.ai_clients.base import ImageProvider, TextProvider, VideoProvider
-from app.ai_clients.hybrid import HybridImageProvider
 from app.ai_clients.image_openai import OpenAIImageProvider
 from app.ai_clients.text_anthropic import AnthropicTextProvider
 from app.ai_clients.video_kling import KlingVideoProvider
 from app.config import settings
 
-_IMAGE = {"nano-banana": HybridImageProvider, "openai": OpenAIImageProvider}
+_IMAGE = {"openai": OpenAIImageProvider}
 _TEXT = {"claude": AnthropicTextProvider}
 _VIDEO = {"kling": KlingVideoProvider}
 

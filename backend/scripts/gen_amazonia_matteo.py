@@ -19,7 +19,6 @@ REPO = BACKEND.parent
 sys.path.insert(0, str(BACKEND))
 sys.path.insert(0, str(BACKEND / "scripts"))
 os.chdir(BACKEND)
-os.environ.setdefault("GEMINI_SSL_VERIFY", "system")
 
 from _amazonia_common import BookSpec, add_common_args, run  # noqa: E402
 

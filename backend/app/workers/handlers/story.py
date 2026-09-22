@@ -50,7 +50,7 @@ from app.services.usage_ledger import (
     lines_of,
 )
 
-from .avatar import _refine_identity, _refine_scene
+from .avatar import _refine_scene
 from .common import (
     _ext,
     _parse_pages,
@@ -1125,12 +1125,12 @@ async def _score_page_face(
 ) -> float | None:
     """Nota do juiz da pagina, com retry. None so apos esgotar (STO-37).
 
-    Caller usa None para disparar Fal; o portao fail-closed (`_judge_page`)
-    recusa a pagina se a nota continuar ausente.
+    Caller usa None para disparar refine_scene; o portao fail-closed
+    (`_judge_page`) recusa a pagina se a nota continuar ausente.
     """
     if not settings.ebook_face_match or not probe or not scene:
         return None
-    attempts = max(1, settings.gemini_face_retries)
+    attempts = max(1, settings.face_match_retries)
     for attempt in range(1, attempts + 1):
         try:
             score = await _pkg().score_face_match(probe, scene, domain=domain)
@@ -1152,7 +1152,7 @@ async def _score_page_face(
             )
         if attempt < attempts:
             await asyncio.sleep(min(4.0, 0.8 * attempt))
-    logger.warning("Juiz de rosto da pagina sem nota apos retry; segue para Fal/portao")
+    logger.warning("Juiz de rosto da pagina sem nota apos retry; segue para refine/portao")
     return None
 
 
@@ -1174,10 +1174,10 @@ async def lock_page_identity(
     refine_first: bool = True,
     page_idx: int | None = None,
 ) -> tuple[ImageResult, float | None]:
-    """Trava a cara da pagina: refine_scene se a nota cair; Fal por ultimo.
+    """Trava a cara da pagina: refine_scene OpenAI se a nota cair.
 
     A nota compara o AVATAR com a cena (mesmo estilo). Sem avatar, cai no
-    recorte da foto. O Fal sempre cola a foto real (`photo`).
+    recorte da foto. Sem passe Fal/PuLID — so edits GPT Image.
     `refine_first=False` quando o caller ja rodou refine_scene (script).
     """
     probe = avatar or photo
@@ -1191,26 +1191,16 @@ async def lock_page_identity(
     def _below(score: float | None) -> bool:
         return score is not None and score < threshold
 
-    if refine_first and _below(last_score):
-        headed = await _refine_scene(provider, avatar or photo or b"", headed, style)
-        if page_idx is not None:
-            for line in lines_of(headed):
-                if line.get("action") == "refine_scene":
-                    line["label"] = f"Página {page_idx} — refine avatar"
-        last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
-
-    # None/0 apos retry do juiz: Fal cola. Portao `_judge_page` falha se continuar.
-    needs_fal = photo and (_below(last_score) or last_score is None or last_score == 0.0)
-    if not needs_fal:
+    needs_refine = _below(last_score) or last_score is None or last_score == 0.0
+    if not (refine_first and needs_refine):
         return headed, last_score
 
-    headed = await _refine_identity(provider, photo, headed, style)
+    headed = await _refine_scene(provider, avatar or photo or b"", headed, style)
     if page_idx is not None:
         for line in lines_of(headed):
-            if line.get("action") == "refine_identity":
-                line["label"] = f"Página {page_idx} — cabeça Fal"
+            if line.get("action") == "refine_scene":
+                line["label"] = f"Página {page_idx} — refine avatar"
     last_score = await _score_page_face(probe, headed.image_bytes, domain=domain)
-    # ArcFace em cara pequena mente; nao desfaz o Fal.
     return headed, last_score
 
 
@@ -1249,7 +1239,7 @@ async def _illustrate_page(
     style_lock: asyncio.Lock,
     good_style: list[bytes],
 ) -> ImageResult:
-    """Cena no avatar; refine_scene se o juiz achar o rosto fraco; Fal por ultimo."""
+    """Cena no avatar; refine_scene OpenAI se o juiz achar o rosto fraco."""
     prompt = build_scene_prompt(
         page=idx,
         text=caption,

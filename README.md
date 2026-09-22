@@ -60,8 +60,7 @@ Tudo funciona offline para desenvolvimento, mas o pipeline real precisa de:
 
 | Variável | Para quê |
 |---|---|
-| `GEMINI_API_KEY` | Nano Banana Pro (cenas / fallback sem Fal) |
-| `FAL_KEY` | Fal.ai PuLID (avatar + passe de cabeça). Sem chave, cai no Gemini |
+| `OPENAI_API_KEY` | GPT Image (avatar, cenas, ebook) + juiz de história |
 | `ANTHROPIC_API_KEY` | Claude (geração da história) |
 | `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` | Kling (único provedor de vídeo) |
 | `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` / `STORAGE_BUCKET` / `STORAGE_ENDPOINT_URL` | R2/S3 (uploads e entregáveis) |

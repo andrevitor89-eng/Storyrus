@@ -97,12 +97,28 @@ async def test_generate_scene_uses_edits_with_avatar():
 
 
 @pytest.mark.asyncio
-async def test_refine_identity_is_noop():
+async def test_refine_identity_uses_edits():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"refined"))]
     provider = oai.OpenAIImageProvider()
-    result = await provider.refine_identity(photo=b"p", illustration=b"ill", style="cgi")
-    assert result.image_bytes == b"ill"
-    assert result.cost_usd == 0.0
-    assert not _FakeAsyncClient.calls
+    result = await provider.refine_identity(photo=b"p", illustration=b"ill", style="CGI 3D")
+    assert result.image_bytes == b"refined"
+    call = _FakeAsyncClient.calls[0]
+    assert "/images/edits" in call["url"]
+    assert call.get("files")
+    assert len(call["files"]) == 2
+
+
+@pytest.mark.asyncio
+async def test_refine_scene_uses_edits():
+    _FakeAsyncClient.script = [_FakeResponse(200, _ok_payload(b"scene-r"))]
+    provider = oai.OpenAIImageProvider()
+    result = await provider.refine_scene(
+        character_ref=b"avatar", scene=b"scene", style="cgi"
+    )
+    assert result.image_bytes == b"scene-r"
+    call = _FakeAsyncClient.calls[0]
+    assert "/images/edits" in call["url"]
+    assert len(call["files"]) == 2
 
 
 @pytest.mark.asyncio

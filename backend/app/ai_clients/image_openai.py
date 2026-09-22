@@ -1,7 +1,7 @@
 """ImageProvider: OpenAI GPT Image (gpt-image-1).
 
-Sem Fal/PuLID neste caminho: avatar, cena e realistic usam a Images API.
-`refine_*` sao no-op (retornam a ilustracao de entrada) para cortar custo.
+Avatar, cena, realistic e refine_* usam a Images API (generations/edits).
+Sem Gemini, Fal ou PuLID neste caminho.
 """
 
 from __future__ import annotations
@@ -14,7 +14,12 @@ import random
 import httpx
 
 from app.ai_clients.base import ImageResult, ProviderError
-from app.ai_clients.book_prompts import SCENE_GEN_PREFIX
+from app.ai_clients.book_prompts import (
+    REFINE_IDENTITY_AVATAR_PROMPT,
+    REFINE_IDENTITY_PROMPT,
+    REFINE_SCENE_PROMPT,
+    SCENE_GEN_PREFIX,
+)
 from app.config import settings
 from app.observability.opik_trace import track, update_span
 from app.services.pricing import openai_image_cost
@@ -61,15 +66,6 @@ def _parse_b64_response(data: dict) -> tuple[bytes, str, dict]:
         mime = "image/webp"
     usage = data.get("usage") if isinstance(data.get("usage"), dict) else {}
     return base64.b64decode(b64), mime, usage
-
-
-def _noop_refine(illustration: bytes, *, mime: str = "image/png") -> ImageResult:
-    return ImageResult(
-        image_bytes=illustration,
-        mime_type=mime,
-        cost_usd=0.0,
-        meta={"provider": "openai", "refine": "noop"},
-    )
 
 
 class OpenAIImageProvider:
@@ -304,8 +300,20 @@ class OpenAIImageProvider:
     async def refine_identity(
         self, *, photo: bytes, illustration: bytes, style: str = "realistic"
     ) -> ImageResult:
-        _ = photo, style
-        return _noop_refine(illustration)
+        """Corrige o rosto da ilustracao para ficar fiel a foto.
+
+        Ordem: (1) foto/recorte = verdade; (2) personagem a corrigir.
+        """
+        if not photo or not illustration:
+            raise ProviderError("refine_identity OpenAI exige foto e ilustracao", transient=False)
+        prompt = (
+            REFINE_IDENTITY_AVATAR_PROMPT if "CGI" in (style or "") else REFINE_IDENTITY_PROMPT
+        )
+        return await self._generate_with_refs(
+            prompt,
+            [photo, illustration],
+            size=settings.openai_image_size_portrait,
+        )
 
     async def refine_scene(
         self,
@@ -315,5 +323,15 @@ class OpenAIImageProvider:
         style: str = "realistic",
         photo: bytes | None = None,
     ) -> ImageResult:
-        _ = character_ref, style, photo
-        return _noop_refine(scene)
+        """Corrige a cabeca na cena usando o avatar (nao a foto crua).
+
+        Ordem: (1) avatar; (2) cena. `photo` e ignorado de proposito.
+        """
+        _ = style, photo
+        if not character_ref or not scene:
+            raise ProviderError("refine_scene OpenAI exige avatar e cena", transient=False)
+        return await self._generate_with_refs(
+            REFINE_SCENE_PROMPT,
+            [character_ref, scene],
+            size=settings.openai_image_size_square,
+        )
