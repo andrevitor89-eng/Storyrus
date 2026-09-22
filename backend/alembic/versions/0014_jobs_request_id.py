@@ -1,7 +1,7 @@
 """jobs: request_id for API ↔ worker correlation (STO-29)
 
 Revision ID: 0014_jobs_request_id
-Revises: 0013_jobs_status_created_at_index
+Revises: 0013_jobs_status_created_idx
 Create Date: 2026-09-17
 
 Persiste o X-Request-ID da API no job para o worker reusar nos logs JSON
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "0014_jobs_request_id"
-down_revision: Union[str, None] = "0013_jobs_status_created_at_index"
+down_revision: Union[str, None] = "0013_jobs_status_created_idx"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
