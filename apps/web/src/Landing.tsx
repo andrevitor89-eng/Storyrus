@@ -121,10 +121,26 @@ const NAV_CAT_META = [
       { href: "/app?tema=superhero" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 3 },
-      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 4 },
-      { href: "/app?tema=adventure", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
-      { href: "/app?tema=fantasy", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=princess", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=adventure", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=adventure", img: "capa-cristobal-esporte.jpg", catalogI: 5 },
+      { href: "/app?tema=adventure", img: "capa-nanoaventuras.jpg", catalogI: 11 },
+    ],
+  },
+  {
+    color: "#b48ad4",
+    subs: [
+      { href: "/app?tema=mothers_day" },
+      { href: "/app?tema=fathers_day" },
+      { href: "/app?tema=grandparents_love" },
+      { href: "/app?tema=family_love" },
+      { href: "/app" },
+    ],
+    feats: [
+      { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
+      { href: "/app?tema=grandparents_love", img: "capa-amordebisavo.jpg", catalogI: 9 },
+      { href: "/app?tema=family_love", img: "capa-mamaepapaimatteo.jpg", catalogI: 8 },
+      { href: "/app?tema=mothers_day", img: "capa-amordemae.jpg", catalogI: 7 },
     ],
   },
   {
@@ -140,39 +156,8 @@ const NAV_CAT_META = [
     ],
     feats: [
       { href: "/app?tema=christmas", img: "capa-natalmemetata.jpg", catalogI: 10 },
-      { href: "/app?tema=birthday", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
       { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
-      { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-    ],
-  },
-  {
-    color: "#b48ad4",
-    subs: [
-      { href: "/app?tema=mothers_day" },
-      { href: "/app?tema=fathers_day" },
-      { href: "/app?tema=grandparents_love" },
-      { href: "/app" },
-    ],
-    feats: [
-      { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
-      { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-      { href: "/app?tema=grandparents_love", img: "capa-amordebisavo.jpg", catalogI: 9 },
-      { href: "/app", img: "capa-martin-goleiro.jpg", catalogI: 0 },
-    ],
-  },
-  {
-    color: "#f0a0c0",
-    subs: [
-      { href: "/app?tema=literacia_emocional" },
-      { href: "/app?tema=rotina_dormir" },
-      { href: "/app?tema=compartilhar_revezar" },
-      { href: "/app?tema=consciencia_corporal" },
-    ],
-    feats: [
-      { href: "/app?tema=literacia_emocional", img: "capa-martin-goleiro.jpg", catalogI: 0 },
-      { href: "/app?tema=rotina_dormir", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-      { href: "/app?tema=compartilhar_revezar", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
-      { href: "/app?tema=consciencia_corporal", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=mothers_day", img: "capa-amordemae.jpg", catalogI: 7 },
     ],
   },
   {
@@ -188,10 +173,18 @@ const NAV_CAT_META = [
     ],
     feats: [
       { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 3 },
-      { href: "/app?tema=pensamento_matematico", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-      { href: "/app?tema=cores", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
       { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 4 },
     ],
+  },
+  {
+    color: "#f0a0c0",
+    subs: [
+      { href: "/app?tema=literacia_emocional" },
+      { href: "/app?tema=rotina_dormir" },
+      { href: "/app?tema=compartilhar_revezar" },
+      { href: "/app?tema=consciencia_corporal" },
+    ],
+    feats: [],
   },
 ] as const;
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
@@ -452,27 +445,27 @@ const I18N = {
       {
         name: "Aventuras Favoritas",
         subs: ["Aventura", "Fantasia", "Dinossauros", "Fundo do mar", "Espaço", "Princesas", "Super-heróis"],
-        feats: ["Aprendendo o Alfabeto com a Sofia", "Bruno em uma aventura animal", "Cristobal e seu Esporte Favorito", "Aprendendo o Alfabeto com a Sofia"],
+        feats: ["Princesas", "Aventura", "Cristobal e seu Esporte Favorito", "Nano e suas Aventuras"],
+      },
+      {
+        name: "Você e Eu",
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos"],
+        feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
       },
       {
         name: "Ocasiões Especiais",
         subs: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais", "Páscoa", "Dia das Crianças", "Ano Novo"],
-        feats: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais"],
-      },
-      {
-        name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Irmãos e primos"],
-        feats: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Irmãos e primos"],
-      },
-      {
-        name: "Sentimentos",
-        subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
-        feats: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
+        feats: ["Natal", "Dia das Mães", "O Amor de Mãe"],
       },
       {
         name: "Atividades",
         subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Transporte"],
-        feats: ["Alfabetização", "Matemática", "Cores", "Animais"],
+        feats: ["Alfabetização", "Animais"],
+      },
+      {
+        name: "Sentimentos",
+        subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
+        feats: [],
       },
     ],
     cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -600,27 +593,27 @@ const I18N = {
       {
         name: "Favorite Adventures",
         subs: ["Adventure", "Fantasy", "Dinosaurs", "Under the sea", "Space", "Princesses", "Superheroes"],
-        feats: ["Learning the Alphabet with Sofia", "Bruno on an Animal Adventure", "Cristobal and His Favorite Sport", "Learning the Alphabet with Sofia"],
+        feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport", "Nano and His Adventures"],
+      },
+      {
+        name: "You and Me",
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins"],
+        feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
       },
       {
         name: "Special Occasions",
         subs: ["Christmas", "Birthday", "Mother's Day", "Father's Day", "Easter", "Children's Day", "New Year"],
-        feats: ["Christmas", "Birthday", "Mother's Day", "Father's Day"],
-      },
-      {
-        name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Siblings and cousins"],
-        feats: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Siblings and cousins"],
-      },
-      {
-        name: "Feelings",
-        subs: ["Feelings", "Bedtime", "Sharing", "Body"],
-        feats: ["Feelings", "Bedtime", "Sharing", "Body"],
+        feats: ["Christmas", "Mother's Day", "A Mother's Love"],
       },
       {
         name: "Activities",
         subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Transport"],
-        feats: ["Literacy", "Math", "Colors", "Animals"],
+        feats: ["Literacy", "Animals"],
+      },
+      {
+        name: "Feelings",
+        subs: ["Feelings", "Bedtime", "Sharing", "Body"],
+        feats: [],
       },
     ],
     cat_below: "Preserve moments. Gift your family an unforgettable story.",
@@ -748,27 +741,27 @@ const I18N = {
       {
         name: "Aventuras Favoritas",
         subs: ["Aventura", "Fantasía", "Dinosaurios", "Fondo del mar", "Espacio", "Princesas", "Superhéroes"],
-        feats: ["Aprendiendo el alfabeto con Sofia", "Bruno en una aventura animal", "Cristobal y su deporte favorito", "Aprendiendo el alfabeto con Sofia"],
+        feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito", "Nano y sus aventuras"],
+      },
+      {
+        name: "Tú y Yo",
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos"],
+        feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
         name: "Ocasiones Especiales",
         subs: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre", "Pascua", "Día del Niño", "Año Nuevo"],
-        feats: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre"],
-      },
-      {
-        name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Hermanos y primos"],
-        feats: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Hermanos y primos"],
-      },
-      {
-        name: "Sentimientos",
-        subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
-        feats: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
+        feats: ["Navidad", "Día de la Madre", "El Amor de Mamá"],
       },
       {
         name: "Actividades",
         subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Transporte"],
-        feats: ["Alfabetización", "Matemáticas", "Colores", "Animales"],
+        feats: ["Alfabetización", "Animales"],
+      },
+      {
+        name: "Sentimientos",
+        subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
+        feats: [],
       },
     ],
     cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
