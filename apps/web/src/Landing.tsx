@@ -90,7 +90,7 @@ const CATALOG_THEMES = [
   "family_love",
   "grandparents_love",
   "christmas",
-  "pets",
+  "adventure",
 ];
 const BOOK3D = [
   { bg: "#efe4c4" },
@@ -121,10 +121,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=superhero" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", img: "capa-martin-goleiro.jpg", catalogI: 0 },
-      { href: "/app?tema=animais_sons", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 3 },
+      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 4 },
       { href: "/app?tema=adventure", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
-      { href: "/app?tema=fantasy", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=fantasy", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
     ],
   },
   {
@@ -139,7 +139,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=new_year" },
     ],
     feats: [
-      { href: "/app?tema=christmas", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=christmas", img: "capa-natalmemetata.jpg", catalogI: 10 },
       { href: "/app?tema=birthday", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
       { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
       { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
@@ -150,13 +150,13 @@ const NAV_CAT_META = [
     subs: [
       { href: "/app?tema=mothers_day" },
       { href: "/app?tema=fathers_day" },
-      { href: "/app" },
+      { href: "/app?tema=grandparents_love" },
       { href: "/app" },
     ],
     feats: [
       { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
       { href: "/app?tema=fathers_day", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-      { href: "/app", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
+      { href: "/app?tema=grandparents_love", img: "capa-amordebisavo.jpg", catalogI: 9 },
       { href: "/app", img: "capa-martin-goleiro.jpg", catalogI: 0 },
     ],
   },
@@ -187,10 +187,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=transporte_ajudantes" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", img: "capa-martin-goleiro.jpg", catalogI: 0 },
+      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 3 },
       { href: "/app?tema=pensamento_matematico", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
       { href: "/app?tema=cores", img: "capa-antonio-bicicleta.jpg", catalogI: 2 },
-      { href: "/app?tema=animais_sons", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
+      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 4 },
     ],
   },
 ] as const;
@@ -1201,7 +1201,7 @@ export function Landing() {
             <div className="cat-card reveal" key={c.t}>
               <div className="cat-display" style={{ background: BOOK3D[i].bg }}>
                 <div className="cat-book">
-                  <img src={exUrl(CATALOG_IMGS[i])} alt={c.t} />
+                  <img src={exUrl(CATALOG_IMGS[i])} alt={c.t} loading="lazy" />
                 </div>
               </div>
               <div className="cat-body">
