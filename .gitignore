@@ -163,6 +163,18 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/foto-facundo-motocross.jpg
 !apps/web/public/exemplos/video-*.mp4
 !apps/web/public/exemplos/LEIA-ME.txt
+!apps/web/public/exemplos/capa-maya-cachorra-pt.jpg
+!apps/web/public/exemplos/capa-maya-cachorra-en.jpg
+!apps/web/public/exemplos/capa-maya-cachorra-es.jpg
+!apps/web/public/exemplos/pagina-maya-cachorra-pt.jpg
+!apps/web/public/exemplos/pagina-maya-cachorra-en.jpg
+!apps/web/public/exemplos/pagina-maya-cachorra-es.jpg
+!apps/web/public/exemplos/foto-maya-cachorra-pt.jpg
+!apps/web/public/exemplos/foto-maya-cachorra-en.jpg
+!apps/web/public/exemplos/foto-maya-cachorra-es.jpg
+!apps/web/public/exemplos/capa-mako-amigofiel.jpg
+!apps/web/public/exemplos/pagina-mako-amigofiel.jpg
+!apps/web/public/exemplos/foto-mako-amigofiel.jpg
 
 .vercel
 .env*

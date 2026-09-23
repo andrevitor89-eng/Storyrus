@@ -64,7 +64,11 @@ const HERO_BOOKS = [
   { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", name: "Maria Jesus" },
   { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg", name: "Facundo" },
 ] as const;
-const CATALOG_IMGS = [
+type CatalogImg = string | Record<Lang, string>;
+function catalogImgSrc(img: CatalogImg, lang: Lang): string {
+  return typeof img === "string" ? img : img[lang];
+}
+const CATALOG_IMGS: CatalogImg[] = [
   "capa-martin-goleiro.jpg",
   "capa-emilia-bailarina.jpg",
   "capa-antonio-bicicleta.jpg",
@@ -77,6 +81,8 @@ const CATALOG_IMGS = [
   "capa-amordebisavo.jpg",
   "capa-natalmemetata.jpg",
   "capa-nanoaventuras.jpg",
+  { pt: "capa-maya-cachorra-pt.jpg", en: "capa-maya-cachorra-en.jpg", es: "capa-maya-cachorra-es.jpg" },
+  "capa-mako-amigofiel.jpg",
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -91,6 +97,8 @@ const CATALOG_THEMES = [
   "grandparents_love",
   "christmas",
   "adventure",
+  "pets",
+  "pets",
 ];
 const BOOK3D = [
   { bg: "#efe4c4" },
@@ -105,6 +113,8 @@ const BOOK3D = [
   { bg: "#dcedf2" },
   { bg: "#f3dede" },
   { bg: "#d6ecf5" },
+  { bg: "#f4ecd8" },
+  { bg: "#ecdfc8" },
 ];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -539,6 +549,8 @@ const I18N = {
       { t: "Amor de Bisavó", p: "Uma homenagem à bisavó: colo, carinho e histórias que atravessam gerações, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor entre gerações", quote: "Bisavó tem abraço que acolhe e guarda todo o meu carinho." },
       { t: "Natal com a Meme e o Tata", p: "Um Natal em família: o carinho da Meme e do Tata, luzes na árvore e um abraço apertado para guardar para sempre.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Natal é mais gostoso ao lado de quem a gente ama." },
       { t: "Nano e suas Aventuras", p: "Uma aventura marítima só dele: vento nas orelhas, mar azul e a alegria de explorar ao lado de quem ama, para guardar para sempre.", cover: "Hard", size: "M", tag: "Aventura e mar", quote: "Vento nas orelhas, mar pela frente — a aventura começou!" },
+      { t: "Maya, Minha Cachorra Carinhosa", p: "Uma amizade cheia de carinho entre uma menina e sua cadela: cuidado, afeto e companhia em cada página.", cover: "Soft", size: "M", tag: "Amizade e cuidado", quote: "Amor e cuidado, todos os dias." },
+      { t: "Mako, Meu Amigo Fiel", p: "Um bebê e seu cão fiel: lealdade, proteção e carinho em uma amizade só deles.", cover: "Soft", size: "M", tag: "Amizade e lealdade", quote: "Amor fiel, todos os dias." },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -687,6 +699,8 @@ const I18N = {
       { t: "Great-Grandma's Love", p: "A tribute to great-grandma: hugs, warmth and stories that cross generations, to treasure forever.", cover: "Hard", size: "M", tag: "Love across generations", quote: "Great-grandma's hug holds all my love." },
       { t: "Christmas with Meme and Tata", p: "A family Christmas: the warmth of grandma and grandpa, twinkling lights and a big hug to treasure forever.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Christmas feels warmer with the ones we love." },
       { t: "Nano and His Adventures", p: "A sea adventure all his own: the wind in his ears, the blue ocean and the joy of exploring beside the ones he loves, to treasure forever.", cover: "Hard", size: "M", tag: "Adventure and sea", quote: "Wind in his ears, sea ahead — the adventure has begun!" },
+      { t: "Maya, My Loving Dog", p: "A heartwarming friendship between a girl and her dog: care, affection and companionship on every page.", cover: "Soft", size: "M", tag: "Friendship and care", quote: "Love and care, every day." },
+      { t: "Mako, My Loyal Friend", p: "A baby and his loyal dog: loyalty, protection and affection in a friendship all their own.", cover: "Soft", size: "M", tag: "Friendship and loyalty", quote: "Loyal love, every day." },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -835,6 +849,8 @@ const I18N = {
       { t: "El Amor de la Bisabuela", p: "Un homenaje a la bisabuela: abrazos, cariño e historias que atraviesan generaciones, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor entre generaciones", quote: "El abrazo de la bisabuela guarda todo mi cariño." },
       { t: "Navidad con la Meme y el Tata", p: "Una Navidad en familia: el cariño de la Meme y el Tata, luces en el árbol y un abrazo apretado para guardar para siempre.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "La Navidad es más linda junto a quienes amamos." },
       { t: "Nano y sus Aventuras", p: "Una aventura marítima solo para él: viento en las orejas, mar azul y la alegría de explorar junto a quienes ama, para guardar para siempre.", cover: "Hard", size: "M", tag: "Aventura y mar", quote: "Viento en las orejas, mar por delante — ¡la aventura comenzó!" },
+      { t: "Maya, Mi Perrita Cariñosa", p: "Una amistad llena de cariño entre una niña y su perrita: cuidado, afecto y compañía en cada página.", cover: "Soft", size: "M", tag: "Amistad y cuidado", quote: "Amor y cuidado, todos los días." },
+      { t: "Mako, Mi Amigo Fiel", p: "Un bebé y su perro fiel: lealtad, protección y cariño en una amistad solo de ellos.", cover: "Soft", size: "M", tag: "Amistad y lealtad", quote: "Amor fiel, todos los días." },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -1194,7 +1210,7 @@ export function Landing() {
             <div className="cat-card reveal" key={c.t}>
               <div className="cat-display" style={{ background: BOOK3D[i].bg }}>
                 <div className="cat-book">
-                  <img src={exUrl(CATALOG_IMGS[i])} alt={c.t} loading="lazy" />
+                  <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
                 </div>
               </div>
               <div className="cat-body">
