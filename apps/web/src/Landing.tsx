@@ -1289,9 +1289,9 @@ export function Landing() {
         <div className="rev-carousel reveal" aria-label={t.rev_title}>
           <div className="rev-carousel-track">
             {[0, 1].map((copy) => exampleBooks.map((b, i) => (
-              <figure className="rev-photo" key={`${copy}-${b.cover}`} aria-hidden={copy === 1 ? true : undefined}>
+              <figure className="rev-photo" key={`${copy}-${b.tab}`} aria-hidden={copy === 1 ? true : undefined}>
                 <img
-                  src={exUrl(b.cover)}
+                  src={exUrl(b.tab)}
                   alt={copy === 0 ? b.title : ""}
                   loading="lazy"
                   data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
