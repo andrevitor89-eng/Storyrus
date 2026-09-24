@@ -345,7 +345,7 @@ a.kcat-btn:active {
 .khero-flip {
   width: 100%;
   display: flex; flex-direction: column; align-items: center;
-  gap: 32px; margin-top: 0;
+  gap: 72px; margin-top: 8px;
 }
 .khero-tabs {
   display: grid;
@@ -417,9 +417,12 @@ a.kcat-btn:active {
   transform-origin: center bottom;
 }
 .kbanner-hero .fb-spine,
-.kbanner-hero .fb-stage::before,
-.kbanner-hero .fb-leaf-shade {
+.kbanner-hero .fb-stage::before {
   display: none !important;
+}
+.kbanner-hero .fb-leaf-shade {
+  display: block;
+  background: linear-gradient(90deg, rgba(0,0,0,.5) 0%, rgba(0,0,0,.12) 48%, rgba(0,0,0,0) 100%);
 }
 .khero-after {
   display: flex; flex-direction: column; align-items: center; gap: 18px;
@@ -440,6 +443,7 @@ a.kcat-btn:active {
   display: grid;
   place-items: center;
   box-sizing: border-box;
+  background: transparent;
 }
 .cat-book {
   position: relative;
@@ -621,6 +625,42 @@ a.kcat-btn:active {
   color: #b9c3e2;
 }
 .ksection-como .howex { margin-top: 22px; }
+
+.hiw-chat {
+  width: min(720px, 100%);
+  margin: 8px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+.hiw-row { display: flex; flex-direction: column; gap: 6px; max-width: 86%; }
+.hiw-row-user { align-self: flex-end; align-items: flex-end; }
+.hiw-row-bot { align-self: flex-start; align-items: flex-start; }
+.hiw-who {
+  font-size: .78rem;
+  font-weight: 800;
+  letter-spacing: .02em;
+  color: #9fabce;
+}
+.hiw-bubble {
+  margin: 0;
+  padding: 14px 16px;
+  border-radius: 18px;
+  line-height: 1.45;
+  font-size: 1.02rem;
+}
+.hiw-bubble-user {
+  background: linear-gradient(135deg, #3a5fae, #5b4db8);
+  color: #fff;
+  border-bottom-right-radius: 6px;
+}
+.hiw-bubble-bot {
+  background: #172140;
+  color: #e4ebf8;
+  border: 1px solid #2c3b66;
+  border-bottom-left-radius: 6px;
+}
 .shot-tips {
   max-width: 100%; margin: 0 auto; padding: 8px 0 12px;
   border-radius: 0; background: none; border: none;
@@ -913,7 +953,7 @@ a.kcat-btn:active {
 .fb-leaf-shade {
   position: absolute; inset: 0; z-index: 2; pointer-events: none;
   border-radius: 10px 4px 4px 10px;
-  background: linear-gradient(90deg, rgba(0,0,0,.18) 0%, rgba(0,0,0,0) 42%);
+  background: linear-gradient(90deg, rgba(0,0,0,.45) 0%, rgba(0,0,0,.1) 50%, rgba(0,0,0,0) 100%);
   opacity: 0; transition: none;
 }
 .fb-leaf.next { animation: fbPeelNext .6s cubic-bezier(.25,.8,.25,1) forwards; }
@@ -921,17 +961,17 @@ a.kcat-btn:active {
 .fb-leaf.next .fb-leaf-shade,
 .fb-leaf.prev .fb-leaf-shade { animation: fbShade .6s cubic-bezier(.25,.8,.25,1) forwards; }
 @keyframes fbPeelNext {
-  0% { transform: rotateY(0deg); box-shadow: 0 0 0 rgba(0,0,0,0); }
-  100% { transform: rotateY(-105deg); box-shadow: -18px 0 36px rgba(0,0,0,.35); }
+  0% { transform: rotateY(0deg); box-shadow: 6px 0 16px rgba(0,0,0,.18); }
+  100% { transform: rotateY(-105deg); box-shadow: -36px 14px 52px rgba(0,0,0,.58); }
 }
 @keyframes fbPeelPrev {
-  0% { transform: rotateY(-105deg); box-shadow: -18px 0 36px rgba(0,0,0,.35); }
-  100% { transform: rotateY(0deg); box-shadow: 0 0 0 rgba(0,0,0,0); }
+  0% { transform: rotateY(-105deg); box-shadow: -36px 14px 52px rgba(0,0,0,.58); }
+  100% { transform: rotateY(0deg); box-shadow: 6px 0 16px rgba(0,0,0,.18); }
 }
 @keyframes fbShade {
-  0% { opacity: .15; }
-  45% { opacity: .55; }
-  100% { opacity: .2; }
+  0% { opacity: .4; }
+  45% { opacity: .95; }
+  100% { opacity: .45; }
 }
 .fb-count {
   position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); z-index: 5;
@@ -1136,6 +1176,34 @@ img.ex-tab-cover {
   width: 100%;
   margin: 8px auto 30px;
   overflow: visible;
+}
+.rev-carousel {
+  overflow: hidden;
+  width: 100%;
+  margin: 8px auto 30px;
+}
+.rev-carousel-track {
+  display: flex;
+  width: max-content;
+  animation: rev-marquee 46s linear infinite;
+}
+.rev-carousel:hover .rev-carousel-track,
+.rev-carousel:focus-within .rev-carousel-track {
+  animation-play-state: paused;
+}
+.rev-carousel .rev-photo { width: 168px; flex: none; margin-right: 18px; }
+@keyframes rev-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rev-carousel-track {
+    animation: none;
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .rev-carousel .rev-photo { width: min(168px, 42vw); }
 }
 .rev-photo {
   margin: 0;

@@ -271,4 +271,20 @@ describe("Landing — CTAs e links", () => {
       expect(link.getAttribute("href")).toMatch(/^\/app\?tema=/);
     }
   });
+
+  it("ordena as seções e aponta o Instagram para storyr.us", async () => {
+    renderLanding();
+    await screen.findByTestId("landing-hero-cta");
+
+    const order = ["como-chat", "catalogo", "promessa", "videos", "reviews", "faq", "como"];
+    const nodes = order.map((id) => document.getElementById(id));
+    expect(nodes.every(Boolean)).toBe(true);
+    for (let i = 0; i < nodes.length - 1; i++) {
+      expect(nodes[i]!.compareDocumentPosition(nodes[i + 1]!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+
+    expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
+    expect(screen.getAllByRole("link", { name: /^cartoon$/i }).length).toBeGreaterThan(0);
+    expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
+  });
 });

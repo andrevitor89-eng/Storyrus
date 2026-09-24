@@ -40,7 +40,7 @@ const IcInstagram = ({ className }: IconProps) => (
 
 const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
-const CONTACT_INSTA = "storyrusbr";
+const CONTACT_INSTA = "storyr.us";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 const FLIP_MS = 600;
 const FLIP_AUTO_MS = 2000;
@@ -99,22 +99,6 @@ const CATALOG_THEMES = [
   "adventure",
   "pets",
   "pets",
-];
-const BOOK3D = [
-  { bg: "#efe4c4" },
-  { bg: "#e4eed4" },
-  { bg: "#d4e8f6" },
-  { bg: "#f0e4f4" },
-  { bg: "#e8f4e4" },
-  { bg: "#e4eef8" },
-  { bg: "#f8e6d8" },
-  { bg: "#f0e6d2" },
-  { bg: "#e6ded0" },
-  { bg: "#dcedf2" },
-  { bg: "#f3dede" },
-  { bg: "#d6ecf5" },
-  { bg: "#f4ecd8" },
-  { bg: "#ecdfc8" },
 ];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -437,8 +421,9 @@ const I18N = {
   pt: {
     nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
     reviews_link: "Avaliações",
+    videos_link: "Vídeos",
     my_books: "Meus Livros",
-    our_story: "Personalização",
+    our_story: "Cartoon",
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
     cats_label: "Categorias",
@@ -488,6 +473,8 @@ const I18N = {
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
     hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada.",
+    chat_you: "Você",
+    chat_us: "Story R Us",
     hiw: [
       { t: "Você envia a foto", p: "Uma foto da criança já basta para começar." },
       { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
@@ -522,7 +509,7 @@ const I18N = {
       { t: "Vídeo narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
       { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
-    cat_title: "Nossos livros", cat_sub: "Cada tema vira uma história ilustrada com seu filho como protagonista.",
+    cat_title: "Nossos livros", cat_sub: "Cada tema se transforma em uma narrativa ilustrada, concebida para que seu filho seja o protagonista de sua própria história.",
     personalize: "Personalizar",
     a11y_theme: "Alternar tema claro/escuro",
     a11y_menu: "Menu",
@@ -587,8 +574,9 @@ const I18N = {
   en: {
     nav: ["How it works", "Books", "Videos", "FAQ"],
     reviews_link: "Reviews",
+    videos_link: "Videos",
     my_books: "My Books",
-    our_story: "Personalization",
+    our_story: "Cartoon",
     see_all_books: "See all books",
     view_all: "View all",
     cats_label: "Categories",
@@ -638,6 +626,8 @@ const I18N = {
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
     hiw_title: "How it works", hiw_sub: "You send the photo and we turn your little one into an illustrated character, creating a personalized adventure.",
+    chat_you: "You",
+    chat_us: "Story R Us",
     hiw: [
       { t: "You send the photo", p: "One photo of your child is all it takes to begin." },
       { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
@@ -672,7 +662,7 @@ const I18N = {
       { t: "Narrated video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
       { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
-    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated story with your child as the hero.",
+    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated narrative, designed so your child is the hero of their own story.",
     personalize: "Personalize",
     a11y_theme: "Toggle light/dark theme",
     a11y_menu: "Menu",
@@ -737,8 +727,9 @@ const I18N = {
   es: {
     nav: ["Cómo funciona", "Libros", "Videos", "FAQ"],
     reviews_link: "Reseñas",
+    videos_link: "Videos",
     my_books: "Mis Libros",
-    our_story: "Personalización",
+    our_story: "Cartoon",
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
     cats_label: "Categorías",
@@ -788,6 +779,8 @@ const I18N = {
     ba_sub: "Fotos reales convertidas en personajes ilustrados.",
     ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
     hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada.",
+    chat_you: "Tú",
+    chat_us: "Story R Us",
     hiw: [
       { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
       { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
@@ -822,7 +815,7 @@ const I18N = {
       { t: "Video narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear mi video", badge: "" },
       { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear animación", badge: "" },
     ],
-    cat_title: "Nuestros libros", cat_sub: "Cada tema se vuelve una historia ilustrada con tu hijo como protagonista.",
+    cat_title: "Nuestros libros", cat_sub: "Cada tema se transforma en una narrativa ilustrada, concebida para que tu hijo sea el protagonista de su propia historia.",
     personalize: "Personalizar",
     a11y_theme: "Cambiar tema claro/oscuro",
     a11y_menu: "Menú",
@@ -1042,6 +1035,14 @@ export function Landing() {
                     </div>
                   </div>
                 ))}
+                <a href="#como" className="kcat-btn" onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
+                  {t.hiw_title}
+                </a>
+                <a href="#videos" className="kcat-btn" onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
+                  {t.videos_link}
+                </a>
                 <a href="#promessa" className="kcat-btn" onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#5ec4a8", boxShadow: "0 0 10px rgba(94,196,168,.9)" }} />
                   {t.our_story}
@@ -1107,11 +1108,12 @@ export function Landing() {
           </div>
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
+            <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
+            <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#promessa" onClick={closeNav}>{t.our_story}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-            {t.nav.map((label, i) => (
-              <a className="kmobile-link" key={label} href={navHrefs[i]} onClick={closeNav}>{label}</a>
-            ))}
+            <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
+            <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
           <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
@@ -1156,7 +1158,148 @@ export function Landing() {
         </div>
       </section>
 
-      {/* COMO FUNCIONA + DICAS */}
+      {/* COMO FUNCIONA — chat estático, no fluxo principal */}
+      <section className="ksection ksection-chat" id="como-chat" aria-labelledby="como-chat-title">
+        <h2 className="ktitle reveal" id="como-chat-title">{t.hiw_title}</h2>
+        <p className="ksub reveal">{t.hiw_sub}</p>
+        <div className="hiw-chat">
+          {t.hiw.map((h) => (
+            <Fragment key={h.t}>
+              <div className="hiw-row hiw-row-user">
+                <span className="hiw-who">{t.chat_you}</span>
+                <p className="hiw-bubble hiw-bubble-user">{h.t}</p>
+              </div>
+              <div className="hiw-row hiw-row-bot">
+                <span className="hiw-who">{t.chat_us}</span>
+                <p className="hiw-bubble hiw-bubble-bot">{h.p}</p>
+              </div>
+            </Fragment>
+          ))}
+        </div>
+      </section>
+
+      {/* NOSSOS LIVROS */}
+      <section className="ksection" id="catalogo">
+        <h2 className="ktitle reveal">{t.cat_title}</h2>
+        <p className="ksub reveal">{t.cat_sub}</p>
+        <div className="cat-grid">
+          {t.catalog.map((c, i) => (
+            <div className="cat-card reveal" key={c.t}>
+              <div className="cat-display">
+                <div className="cat-book">
+                  <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
+                </div>
+              </div>
+              <div className="cat-body">
+                <div className="cat-badges">
+                  <span className="cat-cover-type">{c.cover}</span>
+                  <span className="cat-size">{c.size}</span>
+                  <span className="cat-tag">{c.tag}</span>
+                </div>
+                <h3>{c.t}</h3>
+                <p>{c.p}</p>
+                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* NOSSA PROMESSA — logo abaixo dos livros */}
+      <section className="ksection promise-section" id="promessa">
+        <h2 className="ktitle reveal promise-heading">
+          {lang === "pt" ? (
+            <>
+              Um <span className="promise-mark">presente</span> personalizado para eternizar momentos inesquecíveis.
+            </>
+          ) : t.promise_title}
+        </h2>
+        <p className="ksub reveal">{t.promise_sub}</p>
+        <div className="promise-grid">
+          {t.promise.map((pr, i) => {
+            const Icon = PROMISE_ICONS[i];
+            return (
+              <div className="promise-card reveal" key={pr.t}>
+                <span className="promise-ic"><Icon /></span>
+                <h3>{pr.t}</h3>
+                <p>{pr.p}</p>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* VÍDEOS NARRADOS */}
+      <section className="ksection" id="videos">
+        <h2 className="ktitle reveal">{t.vid_title}</h2>
+        <p className="ksub reveal">{t.vid_sub}</p>
+        <div className="vid-grid">
+          {t.videos.map((v, i) => {
+            const src = VIDEO_SRCS[i];
+            const canPlay = Boolean(src);
+            return (
+              <figure className="vid-card reveal" key={v.t}>
+                <div className="vid-thumb">
+                  {canPlay && src ? (
+                    <AutoMutedVideo key={src} src={exUrl(src)} poster={exUrl(VIDEO_IMGS[i])} />
+                  ) : (
+                    <button
+                      type="button"
+                      className="vid-play-btn"
+                      aria-label={`${v.t} — ${t.vid_soon}`}
+                      disabled
+                    >
+                      <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
+                      <span className="vid-dur">{t.vid_soon}</span>
+                    </button>
+                  )}
+                </div>
+                <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
+              </figure>
+            );
+          })}
+        </div>
+        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+      </section>
+
+      {/* AVALIAÇÕES */}
+      <section className="ksection" id="reviews">
+        <h2 className="ktitle reveal">{t.rev_title}</h2>
+        <p className="ksub reveal">{t.rev_sub}</p>
+        <div className="rev-carousel reveal" aria-label={t.rev_title}>
+          <div className="rev-carousel-track">
+            {[0, 1].map((copy) => exampleBooks.map((b, i) => (
+              <figure className="rev-photo" key={`${copy}-${b.cover}`} aria-hidden={copy === 1 ? true : undefined}>
+                <img
+                  src={exUrl(b.cover)}
+                  alt={copy === 0 ? b.title : ""}
+                  loading="lazy"
+                  data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
+                />
+                <figcaption data-testid={copy === 0 ? `landing-review-name-${i}` : undefined}>{b.name}</figcaption>
+              </figure>
+            )))}
+          </div>
+        </div>
+        <div className="rev-grid">
+          {t.reviews.map((r) => (
+            <figure className="rev-card reveal" key={r.name}>
+              <div className="rev-stars">★★★★★</div>
+              <blockquote>{r.q}</blockquote>
+              <figcaption><span className="rev-av">{r.name.charAt(0)}</span>{r.name}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </section>
+
+      {/* FAQ */}
+      <section className="ksection" id="faq">
+        <h2 className="ktitle reveal">{t.faq_title}</h2>
+        <p className="ksub reveal">{t.faq_sub}</p>
+        <div className="reveal"><Faq items={t.faq} /></div>
+      </section>
+
+      {/* COMO FUNCIONA — página do botão (dicas + passos) */}
       <section className="ksection ksection-como" id="como">
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
@@ -1202,120 +1345,6 @@ export function Landing() {
         </div>
       </section>
 
-      {/* NOSSOS LIVROS */}
-      <section className="ksection" id="catalogo">
-        <h2 className="ktitle reveal">{t.cat_title}</h2>
-        <p className="ksub reveal">{t.cat_sub}</p>
-        <div className="cat-grid">
-          {t.catalog.map((c, i) => (
-            <div className="cat-card reveal" key={c.t}>
-              <div className="cat-display" style={{ background: BOOK3D[i].bg }}>
-                <div className="cat-book">
-                  <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
-                </div>
-              </div>
-              <div className="cat-body">
-                <div className="cat-badges">
-                  <span className="cat-cover-type">{c.cover}</span>
-                  <span className="cat-size">{c.size}</span>
-                  <span className="cat-tag">{c.tag}</span>
-                </div>
-                <h3>{c.t}</h3>
-                <p>{c.p}</p>
-                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* VÍDEOS NARRADOS */}
-      <section className="ksection" id="videos">
-        <h2 className="ktitle reveal">{t.vid_title}</h2>
-        <p className="ksub reveal">{t.vid_sub}</p>
-        <div className="vid-grid">
-          {t.videos.map((v, i) => {
-            const src = VIDEO_SRCS[i];
-            const canPlay = Boolean(src);
-            return (
-              <figure className="vid-card reveal" key={v.t}>
-                <div className="vid-thumb">
-                  {canPlay && src ? (
-                    <AutoMutedVideo key={src} src={exUrl(src)} poster={exUrl(VIDEO_IMGS[i])} />
-                  ) : (
-                    <button
-                      type="button"
-                      className="vid-play-btn"
-                      aria-label={`${v.t} — ${t.vid_soon}`}
-                      disabled
-                    >
-                      <img src={exUrl(VIDEO_IMGS[i])} alt={v.t} loading="lazy" />
-                      <span className="vid-dur">{t.vid_soon}</span>
-                    </button>
-                  )}
-                </div>
-                <figcaption><h3>{v.t}</h3><p>{v.p}</p></figcaption>
-              </figure>
-            );
-          })}
-        </div>
-        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
-      </section>
-
-      {/* AVALIAÇÕES */}
-      <section className="ksection" id="reviews">
-        <h2 className="ktitle reveal">{t.rev_title}</h2>
-        <p className="ksub reveal">{t.rev_sub}</p>
-        <div className="rev-photos reveal" aria-label={t.rev_title}>
-          {exampleBooks.map((b, i) => (
-            <figure className="rev-photo" key={b.cover}>
-              <img src={exUrl(b.cover)} alt={b.title} loading="lazy" data-testid={`landing-review-cover-${i}`} />
-              <figcaption data-testid={`landing-review-name-${i}`}>{b.name}</figcaption>
-            </figure>
-          ))}
-        </div>
-        <div className="rev-grid">
-          {t.reviews.map((r) => (
-            <figure className="rev-card reveal" key={r.name}>
-              <div className="rev-stars">★★★★★</div>
-              <blockquote>{r.q}</blockquote>
-              <figcaption><span className="rev-av">{r.name.charAt(0)}</span>{r.name}</figcaption>
-            </figure>
-          ))}
-        </div>
-      </section>
-
-      {/* NOSSA PROMESSA */}
-      <section className="ksection promise-section" id="promessa">
-        <h2 className="ktitle reveal promise-heading">
-          {lang === "pt" ? (
-            <>
-              Um <span className="promise-mark">presente</span> personalizado para eternizar momentos inesquecíveis.
-            </>
-          ) : t.promise_title}
-        </h2>
-        <p className="ksub reveal">{t.promise_sub}</p>
-        <div className="promise-grid">
-          {t.promise.map((pr, i) => {
-            const Icon = PROMISE_ICONS[i];
-            return (
-              <div className="promise-card reveal" key={pr.t}>
-                <span className="promise-ic"><Icon /></span>
-                <h3>{pr.t}</h3>
-                <p>{pr.p}</p>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* FAQ */}
-      <section className="ksection" id="faq">
-        <h2 className="ktitle reveal">{t.faq_title}</h2>
-        <p className="ksub reveal">{t.faq_sub}</p>
-        <div className="reveal"><Faq items={t.faq} /></div>
-      </section>
-
       {/* FAIXA DE ATRIBUTOS */}
       <section className="featurebar" id="presente">
         {t.features.map((f, i) => {
@@ -1343,7 +1372,7 @@ export function Landing() {
               <span>{CONTACT_EMAIL}</span>
             </a>
             <a
-              href={`https://instagram.com/${CONTACT_INSTA}`}
+              href={`https://www.instagram.com/${CONTACT_INSTA}/`}
               className="kfoot-contact"
               target="_blank"
               rel="noopener noreferrer"
