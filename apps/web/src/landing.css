@@ -1248,8 +1248,9 @@ img.ex-tab-cover {
 .rev-photo img {
   display: block;
   width: 100%;
+  height: auto;
   aspect-ratio: 1 / 1;
-  object-fit: cover;
+  object-fit: contain;
   object-position: center center;
   border-radius: 12px;
   padding: 0;

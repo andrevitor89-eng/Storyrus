@@ -149,6 +149,23 @@ describe("Landing — avaliações", () => {
   });
 });
 
+describe("Landing — catálogo", () => {
+  it("usa PNG sem fundo de estúdio nas capas 3D e mantém JPG nas capas full-bleed", async () => {
+    renderLanding();
+
+    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    const imgs = within(catalog).getAllByRole("img");
+    const srcs = imgs.map((img) => img.getAttribute("src") ?? "");
+    expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-amordemae.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-mamaepapaimatteo.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-sofia-alfabeto.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-martin-goleiro.jpg"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-natalmemetata.jpg"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
+  });
+});
+
 describe("Landing — FAQ", () => {
   it("abre e fecha item; só um fica expandido por vez", async () => {
     const user = userEvent.setup();

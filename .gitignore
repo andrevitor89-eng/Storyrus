@@ -140,8 +140,11 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/personagem-avatar.jpg
 !apps/web/public/exemplos/cena-dino-floresta.jpg
 !apps/web/public/exemplos/capa-sofia-alfabeto.jpg
+!apps/web/public/exemplos/capa-sofia-alfabeto.png
 !apps/web/public/exemplos/capa-bruno-animais.jpg
+!apps/web/public/exemplos/capa-bruno-animais.png
 !apps/web/public/exemplos/capa-cristobal-esporte.jpg
+!apps/web/public/exemplos/capa-cristobal-esporte.png
 !apps/web/public/exemplos/capa-gael-economia.jpg
 !apps/web/public/exemplos/capa-martin-goleiro.jpg
 !apps/web/public/exemplos/capa-emilia-bailarina.jpg
@@ -211,6 +214,24 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/pagina-nanoaventuras-es.jpg
 !apps/web/public/exemplos/foto-nanoaventuras-en.jpg
 !apps/web/public/exemplos/foto-nanoaventuras-es.jpg
+!apps/web/public/exemplos/capa-nicolas-maefilho.jpg
+!apps/web/public/exemplos/capa-nicolas-maefilho.png
+!apps/web/public/exemplos/capa-amordemae.jpg
+!apps/web/public/exemplos/capa-amordemae.png
+!apps/web/public/exemplos/capa-amordemae-en.png
+!apps/web/public/exemplos/capa-amordemae-es.png
+!apps/web/public/exemplos/capa-mamaepapaimatteo.jpg
+!apps/web/public/exemplos/capa-mamaepapaimatteo.png
+!apps/web/public/exemplos/capa-mamaepapaimatteo-en.png
+!apps/web/public/exemplos/capa-mamaepapaimatteo-es.png
+!apps/web/public/exemplos/capa-amordebisavo.jpg
+!apps/web/public/exemplos/capa-amordebisavo.png
+!apps/web/public/exemplos/capa-amordebisavo-en.png
+!apps/web/public/exemplos/capa-amordebisavo-es.png
+!apps/web/public/exemplos/capa-nanoaventuras.jpg
+!apps/web/public/exemplos/capa-nanoaventuras.png
+!apps/web/public/exemplos/capa-nanoaventuras-en.png
+!apps/web/public/exemplos/capa-nanoaventuras-es.png
 
 .vercel
 .env*
