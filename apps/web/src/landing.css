@@ -338,14 +338,14 @@ a.kcat-btn:active {
 }
 .khero-intro {
   text-align: center; width: 100%; max-width: 70rem;
-  display: flex; flex-direction: column; align-items: center; gap: 26px;
+  display: flex; flex-direction: column; align-items: center; gap: 44px;
 }
 .khero-intro h1 { font-size: clamp(1.75rem, 3.1vw, 2.9rem); line-height: 1.2; margin: 0; text-wrap: balance; }
 .khero-intro .keyebrow { margin: 0; }
 .khero-flip {
   width: 100%;
   display: flex; flex-direction: column; align-items: center;
-  gap: 72px; margin-top: 8px;
+  gap: 72px; margin-top: 28px;
 }
 .khero-tabs {
   display: grid;
@@ -573,6 +573,8 @@ a.kcat-btn:active {
 .kbh-thumb-title .cover-story { font-size: clamp(.62rem, 2.5vw, .98rem); bottom: 7%; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 12px; gap: 14px; }
+  .khero-intro { gap: 32px; }
+  .khero-flip { margin-top: 18px; }
   .khero-tabs { max-width: 100%; gap: 8px; }
   .khero-tabs img.ex-tab-cover { border-radius: 10px; }
   .kbanner-hero .fb-stage { width: min(560px, 96vw); aspect-ratio: 17 / 10; }
