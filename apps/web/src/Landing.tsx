@@ -129,12 +129,13 @@ const NAV_CAT_META = [
       { href: "/app?tema=space" },
       { href: "/app?tema=princess" },
       { href: "/app?tema=superhero" },
+      { href: "/app?tema=sport" },
     ],
     feats: [
-      { href: "/app?tema=princess", img: "capa-emilia-bailarina.jpg", catalogI: 1 },
-      { href: "/app?tema=adventure", img: "capa-martin-goleiro.jpg", catalogI: 0 },
-      { href: "/app?tema=adventure", img: "capa-cristobal-esporte.jpg", catalogI: 5 },
-      { href: "/app?tema=adventure", img: "capa-nanoaventuras.jpg", catalogI: 11 },
+      { href: "/app?tema=princess", catalogI: 1 },
+      { href: "/app?tema=adventure", catalogI: 0 },
+      { href: "/app?tema=adventure", catalogI: 5 },
+      { href: "/app?tema=adventure", catalogI: 11 },
     ],
   },
   {
@@ -147,10 +148,10 @@ const NAV_CAT_META = [
       { href: "/app" },
     ],
     feats: [
-      { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
-      { href: "/app?tema=grandparents_love", img: "capa-amordebisavo.jpg", catalogI: 9 },
-      { href: "/app?tema=family_love", img: "capa-mamaepapaimatteo.jpg", catalogI: 8 },
-      { href: "/app?tema=mothers_day", img: "capa-amordemae.jpg", catalogI: 7 },
+      { href: "/app?tema=mothers_day", catalogI: 6 },
+      { href: "/app?tema=grandparents_love", catalogI: 9 },
+      { href: "/app?tema=family_love", catalogI: 8 },
+      { href: "/app?tema=mothers_day", catalogI: 7 },
     ],
   },
   {
@@ -165,9 +166,9 @@ const NAV_CAT_META = [
       { href: "/app?tema=new_year" },
     ],
     feats: [
-      { href: "/app?tema=christmas", img: "capa-natalmemetata.jpg", catalogI: 10 },
-      { href: "/app?tema=mothers_day", img: "capa-nicolas-maefilho.jpg", catalogI: 6 },
-      { href: "/app?tema=mothers_day", img: "capa-amordemae.jpg", catalogI: 7 },
+      { href: "/app?tema=christmas", catalogI: 10 },
+      { href: "/app?tema=mothers_day", catalogI: 6 },
+      { href: "/app?tema=mothers_day", catalogI: 7 },
     ],
   },
   {
@@ -182,8 +183,8 @@ const NAV_CAT_META = [
       { href: "/app?tema=transporte_ajudantes" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", img: "capa-sofia-alfabeto.jpg", catalogI: 3 },
-      { href: "/app?tema=animais_sons", img: "capa-bruno-animais.jpg", catalogI: 4 },
+      { href: "/app?tema=alfabetizacao_inicial", catalogI: 3 },
+      { href: "/app?tema=animais_sons", catalogI: 4 },
     ],
   },
   {
@@ -453,8 +454,8 @@ const I18N = {
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
     cats: [
       {
-        name: "Aventuras Favoritas",
-        subs: ["Aventura", "Fantasia", "Dinossauros", "Fundo do mar", "Espaço", "Princesas", "Super-heróis"],
+        name: "Aventuras",
+        subs: ["Aventura", "Fantasia", "Dinossauros", "Fundo do mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
         feats: ["Princesas", "Aventura", "Cristobal e seu Esporte Favorito", "Nano e suas Aventuras"],
       },
       {
@@ -468,7 +469,7 @@ const I18N = {
         feats: ["Natal", "Dia das Mães", "O Amor de Mãe"],
       },
       {
-        name: "Atividades",
+        name: "Educativo",
         subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Transporte"],
         feats: ["Alfabetização", "Animais"],
       },
@@ -603,8 +604,8 @@ const I18N = {
     hero_sign: "One photo. One story. One lasting memory.",
     cats: [
       {
-        name: "Favorite Adventures",
-        subs: ["Adventure", "Fantasy", "Dinosaurs", "Under the sea", "Space", "Princesses", "Superheroes"],
+        name: "Adventures",
+        subs: ["Adventure", "Fantasy", "Dinosaurs", "Under the sea", "Space", "Princesses", "Superheroes", "Sports"],
         feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport", "Nano and His Adventures"],
       },
       {
@@ -618,7 +619,7 @@ const I18N = {
         feats: ["Christmas", "Mother's Day", "A Mother's Love"],
       },
       {
-        name: "Activities",
+        name: "Educational",
         subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Transport"],
         feats: ["Literacy", "Animals"],
       },
@@ -753,8 +754,8 @@ const I18N = {
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
     cats: [
       {
-        name: "Aventuras Favoritas",
-        subs: ["Aventura", "Fantasía", "Dinosaurios", "Fondo del mar", "Espacio", "Princesas", "Superhéroes"],
+        name: "Aventuras",
+        subs: ["Aventura", "Fantasía", "Dinosaurios", "Fondo del mar", "Espacio", "Princesas", "Superhéroes", "Deportes"],
         feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito", "Nano y sus aventuras"],
       },
       {
@@ -768,7 +769,7 @@ const I18N = {
         feats: ["Navidad", "Día de la Madre", "El Amor de Mamá"],
       },
       {
-        name: "Actividades",
+        name: "Educativo",
         subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Transporte"],
         feats: ["Alfabetización", "Animales"],
       },
@@ -927,7 +928,7 @@ export function Landing() {
     feats: cat.feats.map((label, j) => ({
       label,
       href: NAV_CAT_META[i].feats[j].href,
-      img: NAV_CAT_META[i].feats[j].img,
+      img: catalogImgSrc(CATALOG_IMGS[NAV_CAT_META[i].feats[j].catalogI], lang),
     })),
   }));
 
