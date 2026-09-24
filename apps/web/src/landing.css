@@ -243,7 +243,7 @@ a.kcat-btn:active {
 .kcat-feat:hover,
 .kcat-feat:focus-visible { background: #f8faff; transform: translateY(-2px); }
 .kcat-feat-cover {
-  position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden;
+  position: relative; display: block; aspect-ratio: 1 / 1; overflow: visible;
   border-radius: 10px; background: transparent;
   container-type: inline-size;
 }
@@ -251,11 +251,11 @@ a.kcat-btn:active {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: calc(100% * 1.2);
-  height: calc(100% * 1.2);
+  width: 100%;
+  height: 100%;
   max-width: none;
-  transform: translate(-50%, -50%);
-  object-fit: cover;
+  transform: translate(-50%, -50%) scale(1);
+  object-fit: contain;
   object-position: center;
   display: block;
 }
@@ -458,17 +458,17 @@ a.kcat-btn:active {
   display: block;
   box-sizing: border-box;
   background: transparent;
-  overflow: hidden;
+  overflow: visible;
   border: none;
   border-radius: 10px;
-  box-shadow: 0 16px 28px rgba(0,0,0,.32);
+  box-shadow: none;
 }
 .cat-book {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: visible;
   display: block;
   background: transparent;
 }
@@ -476,11 +476,11 @@ a.kcat-btn:active {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: calc(100% * 1.2);
-  height: calc(100% * 1.2);
+  width: 100%;
+  height: 100%;
   max-width: none;
-  transform: translate(-50%, -50%);
-  object-fit: cover;
+  transform: translate(-50%, -50%) scale(1);
+  object-fit: contain;
   object-position: center;
   filter: none;
 }
@@ -1216,7 +1216,7 @@ img.ex-tab-cover {
 .rev-carousel-track {
   display: flex;
   width: max-content;
-  animation: rev-marquee 46s linear infinite;
+  animation: rev-marquee 90s linear infinite;
 }
 .rev-carousel:hover .rev-carousel-track,
 .rev-carousel:focus-within .rev-carousel-track {
@@ -1289,8 +1289,8 @@ img.ex-tab-cover {
 }
 .cat-card:hover { transform: translateY(-8px); }
 .cat-card.surprise { border-color: transparent; }
-.cat-cover { position: relative; aspect-ratio: 3 / 4; overflow: hidden; }
-.cat-cover img { width: 100%; height: 100%; object-fit: cover; object-position: center top; }
+.cat-cover { position: relative; aspect-ratio: 3 / 4; overflow: visible; background: transparent; }
+.cat-cover img { width: 100%; height: 100%; object-fit: contain; object-position: center; }
 .cat-off { position: absolute; top: 10px; left: 10px; background: var(--coral); color: #fff; font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .8rem; padding: 3px 10px; border-radius: 999px; }
 .cat-ia { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--coral), var(--yellow)); display: grid; place-items: center; color: #1f3568; }
 .cat-ia svg { width: 18px; height: 18px; }
@@ -1773,9 +1773,9 @@ img.ex-tab-cover {
 @keyframes breathe { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.04); } }
 @keyframes floaty { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-/* capas do catálogo: Ken Burns + zoom no hover */
-.cat-cover img { animation: kenburns 20s ease-in-out infinite alternate; transition: transform .5s ease; will-change: transform; }
-.cat-card:hover .cat-cover img { animation-play-state: paused; transform: scale(1.07); }
+/* capas do catálogo: sem zoom/crop — a arte inteira precisa aparecer */
+.cat-cover img { animation: none; transition: none; will-change: auto; }
+.cat-card:hover .cat-cover img { transform: none; }
 
 /* como funciona: leve zoom vivo (só na moldura quadrada) */
 .howex-media img { animation: kenburnsSoft 24s ease-in-out infinite alternate; will-change: transform; }

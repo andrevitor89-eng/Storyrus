@@ -64,6 +64,22 @@ const HERO_BOOKS = [
   { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", name: "Maria Jesus" },
   { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg", name: "Facundo" },
 ] as const;
+/** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
+const REVIEW_PHOTOS = [
+  { tab: "foto-martin-goleiro.jpg", name: "Martin" },
+  { tab: "foto-emilia-bailarina.jpg", name: "Emilia" },
+  { tab: "foto-antonio-bicicleta.jpg", name: "Antonio" },
+  { tab: "foto-mariajesus-hockey.jpg", name: "Maria Jesus" },
+  { tab: "foto-facundo-motocross.jpg", name: "Facundo" },
+  { tab: "foto-nicolas-maefilho.jpg", name: "Nicolas" },
+  { tab: "foto-amordemae.jpg", name: "Amor de Mãe" },
+  { tab: "foto-mamaepapaimatteo-en.jpg", name: "Matteo" },
+  { tab: "foto-amordebisavo.jpg", name: "Amor de Bisavó" },
+  { tab: "foto-natalmemetata.jpg", name: "Meme e Tata" },
+  { tab: "foto-nanoaventuras.jpg", name: "Nano" },
+  { tab: "foto-maya-cachorra-pt.jpg", name: "Maya" },
+  { tab: "foto-mako-amigofiel.jpg", name: "Mako" },
+] as const;
 type CatalogImg = string | Record<Lang, string>;
 function catalogImgSrc(img: CatalogImg, lang: Lang): string {
   return typeof img === "string" ? img : img[lang];
@@ -1288,11 +1304,11 @@ export function Landing() {
         <p className="ksub reveal">{t.rev_sub}</p>
         <div className="rev-carousel reveal" aria-label={t.rev_title}>
           <div className="rev-carousel-track">
-            {[0, 1].map((copy) => exampleBooks.map((b, i) => (
+            {[0, 1].map((copy) => REVIEW_PHOTOS.map((b, i) => (
               <figure className="rev-photo" key={`${copy}-${b.tab}`} aria-hidden={copy === 1 ? true : undefined}>
                 <img
                   src={exUrl(b.tab)}
-                  alt={copy === 0 ? b.title : ""}
+                  alt={copy === 0 ? b.name : ""}
                   loading="lazy"
                   data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
                 />

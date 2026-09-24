@@ -121,11 +121,30 @@ describe("Landing — avaliações", () => {
     renderLanding();
 
     const reviews = (await screen.findByRole("heading", { name: /o que as famílias dizem/i })).closest("section") as HTMLElement;
-    expect(within(reviews).getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("foto-martin-goleiro.jpg"));
-    expect(within(reviews).getByTestId("landing-review-cover-1")).toHaveAttribute("src", expect.stringContaining("foto-emilia-bailarina.jpg"));
+    const fotos = [
+      "foto-martin-goleiro.jpg",
+      "foto-emilia-bailarina.jpg",
+      "foto-antonio-bicicleta.jpg",
+      "foto-mariajesus-hockey.jpg",
+      "foto-facundo-motocross.jpg",
+      "foto-nicolas-maefilho.jpg",
+      "foto-amordemae.jpg",
+      "foto-mamaepapaimatteo-en.jpg",
+      "foto-amordebisavo.jpg",
+      "foto-natalmemetata.jpg",
+      "foto-nanoaventuras.jpg",
+      "foto-maya-cachorra-pt.jpg",
+      "foto-mako-amigofiel.jpg",
+    ];
+    fotos.forEach((file, i) => {
+      expect(within(reviews).getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
+    });
     expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
     expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Emilia$/);
     expect(within(reviews).getByTestId("landing-review-name-3")).toHaveTextContent(/^Maria Jesus$/);
+    expect(within(reviews).getByTestId("landing-review-name-5")).toHaveTextContent(/^Nicolas$/);
+    expect(within(reviews).getByTestId("landing-review-name-12")).toHaveTextContent(/^Mako$/);
+    expect(within(reviews).queryByTestId("landing-review-cover-13")).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/o Grande Goleiro do Chile/i)).not.toBeInTheDocument();
   });
 });
