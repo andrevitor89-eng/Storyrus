@@ -625,42 +625,6 @@ a.kcat-btn:active {
   color: #b9c3e2;
 }
 .ksection-como .howex { margin-top: 22px; }
-
-.hiw-chat {
-  width: min(720px, 100%);
-  margin: 8px auto 0;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  text-align: left;
-}
-.hiw-row { display: flex; flex-direction: column; gap: 6px; max-width: 86%; }
-.hiw-row-user { align-self: flex-end; align-items: flex-end; }
-.hiw-row-bot { align-self: flex-start; align-items: flex-start; }
-.hiw-who {
-  font-size: .78rem;
-  font-weight: 800;
-  letter-spacing: .02em;
-  color: #9fabce;
-}
-.hiw-bubble {
-  margin: 0;
-  padding: 14px 16px;
-  border-radius: 18px;
-  line-height: 1.45;
-  font-size: 1.02rem;
-}
-.hiw-bubble-user {
-  background: linear-gradient(135deg, #3a5fae, #5b4db8);
-  color: #fff;
-  border-bottom-right-radius: 6px;
-}
-.hiw-bubble-bot {
-  background: #172140;
-  color: #e4ebf8;
-  border: 1px solid #2c3b66;
-  border-bottom-left-radius: 6px;
-}
 .shot-tips {
   max-width: 100%; margin: 0 auto; padding: 8px 0 12px;
   border-radius: 0; background: none; border: none;

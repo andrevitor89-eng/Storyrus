@@ -276,7 +276,7 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
-    const order = ["como-chat", "catalogo", "promessa", "videos", "reviews", "faq", "como"];
+    const order = ["como", "catalogo", "promessa", "videos", "reviews", "faq"];
     const nodes = order.map((id) => document.getElementById(id));
     expect(nodes.every(Boolean)).toBe(true);
     for (let i = 0; i < nodes.length - 1; i++) {

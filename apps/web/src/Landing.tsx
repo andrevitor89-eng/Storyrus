@@ -473,8 +473,6 @@ const I18N = {
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
     hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu pequeno em um personagem ilustrado, criando uma aventura personalizada.",
-    chat_you: "Você",
-    chat_us: "Story R Us",
     hiw: [
       { t: "Você envia a foto", p: "Uma foto da criança já basta para começar." },
       { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
@@ -626,8 +624,6 @@ const I18N = {
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
     hiw_title: "How it works", hiw_sub: "You send the photo and we turn your little one into an illustrated character, creating a personalized adventure.",
-    chat_you: "You",
-    chat_us: "Story R Us",
     hiw: [
       { t: "You send the photo", p: "One photo of your child is all it takes to begin." },
       { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
@@ -779,8 +775,6 @@ const I18N = {
     ba_sub: "Fotos reales convertidas en personajes ilustrados.",
     ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
     hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu pequeño en un personaje ilustrado, creando una aventura personalizada.",
-    chat_you: "Tú",
-    chat_us: "Story R Us",
     hiw: [
       { t: "Tú envías la foto", p: "Una foto del niño ya basta para empezar." },
       { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
@@ -1158,23 +1152,49 @@ export function Landing() {
         </div>
       </section>
 
-      {/* COMO FUNCIONA — chat estático, no fluxo principal */}
-      <section className="ksection ksection-chat" id="como-chat" aria-labelledby="como-chat-title">
-        <h2 className="ktitle reveal" id="como-chat-title">{t.hiw_title}</h2>
-        <p className="ksub reveal">{t.hiw_sub}</p>
-        <div className="hiw-chat">
-          {t.hiw.map((h) => (
-            <Fragment key={h.t}>
-              <div className="hiw-row hiw-row-user">
-                <span className="hiw-who">{t.chat_you}</span>
-                <p className="hiw-bubble hiw-bubble-user">{h.t}</p>
-              </div>
-              <div className="hiw-row hiw-row-bot">
-                <span className="hiw-who">{t.chat_us}</span>
-                <p className="hiw-bubble hiw-bubble-bot">{h.p}</p>
-              </div>
-            </Fragment>
-          ))}
+      {/* COMO FUNCIONA + DICAS */}
+      <section className="ksection ksection-como" id="como">
+        <div className="como-panel reveal">
+          <h2 className="ktitle">{t.hiw_title}</h2>
+          <p className="ksub">{t.hiw_sub}</p>
+          <div className="shot-tips">
+            <h3>{t.shot_title}</h3>
+            <p className="shot-sub">{t.shot_sub}</p>
+            <div className="shot-grid">
+              {SHOTS.map((s, i) => (
+                <div className={`shot${s.ok ? " ok" : ""}`} key={i}>
+                  <div className="shot-ava-wrap">
+                    <div className="shot-ava">
+                      {s.img ? (
+                        <img src={exUrl(s.img)} alt={t.shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                      ) : (
+                        <ShotArt kind={s.art ?? "good"} />
+                      )}
+                    </div>
+                    <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+                  </div>
+                  {t.shots[i] ? <p>{t.shots[i]}</p> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="howex">
+            {t.hiw.map((h, i) => (
+              <Fragment key={h.t}>
+                <figure className={`howex-card${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
+                  <div className="howex-media">
+                    <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                  </div>
+                  <span className="howex-num">{i + 1}</span>
+                  <figcaption>
+                    <h3>{h.t}</h3>
+                    <p>{h.p}</p>
+                  </figcaption>
+                </figure>
+                {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+              </Fragment>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -1297,52 +1317,6 @@ export function Landing() {
         <h2 className="ktitle reveal">{t.faq_title}</h2>
         <p className="ksub reveal">{t.faq_sub}</p>
         <div className="reveal"><Faq items={t.faq} /></div>
-      </section>
-
-      {/* COMO FUNCIONA — página do botão (dicas + passos) */}
-      <section className="ksection ksection-como" id="como">
-        <div className="como-panel reveal">
-          <h2 className="ktitle">{t.hiw_title}</h2>
-          <p className="ksub">{t.hiw_sub}</p>
-          <div className="shot-tips">
-            <h3>{t.shot_title}</h3>
-            <p className="shot-sub">{t.shot_sub}</p>
-            <div className="shot-grid">
-              {SHOTS.map((s, i) => (
-                <div className={`shot${s.ok ? " ok" : ""}`} key={i}>
-                  <div className="shot-ava-wrap">
-                    <div className="shot-ava">
-                      {s.img ? (
-                        <img src={exUrl(s.img)} alt={t.shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                      ) : (
-                        <ShotArt kind={s.art ?? "good"} />
-                      )}
-                    </div>
-                    <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
-                  </div>
-                  {t.shots[i] ? <p>{t.shots[i]}</p> : null}
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="howex">
-            {t.hiw.map((h, i) => (
-              <Fragment key={h.t}>
-                <figure className={`howex-card${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
-                  <div className="howex-media">
-                    <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
-                  </div>
-                  <span className="howex-num">{i + 1}</span>
-                  <figcaption>
-                    <h3>{h.t}</h3>
-                    <p>{h.p}</p>
-                  </figcaption>
-                </figure>
-                {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
-              </Fragment>
-            ))}
-          </div>
-        </div>
       </section>
 
       {/* FAIXA DE ATRIBUTOS */}
