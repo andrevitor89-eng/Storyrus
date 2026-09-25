@@ -3,6 +3,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "./Landing";
+import { AppRoutes } from "./Root";
 
 function renderLanding() {
   return render(
@@ -365,7 +366,26 @@ describe("Landing — CTAs e links", () => {
     }
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
-    expect(screen.getAllByRole("link", { name: /^cartoon$/i }).length).toBeGreaterThan(0);
+    const cartoonLinks = screen.getAllByRole("link", { name: /^cartoon$/i });
+    expect(cartoonLinks.length).toBeGreaterThan(0);
+    for (const link of cartoonLinks) {
+      expect(link).toHaveAttribute("href", "/cartoon");
+    }
     expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
+  });
+
+  it("rota /cartoon renderiza a cópia da landing", async () => {
+    render(
+      <MemoryRouter initialEntries={["/cartoon"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("landing-hero-cta")).toBeInTheDocument();
+    const cartoonLinks = screen.getAllByRole("link", { name: /^cartoon$/i });
+    expect(cartoonLinks.length).toBeGreaterThan(0);
+    for (const link of cartoonLinks) {
+      expect(link).toHaveAttribute("href", "/cartoon");
+    }
   });
 });

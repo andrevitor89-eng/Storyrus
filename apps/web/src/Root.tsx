@@ -14,6 +14,7 @@ const Usage = lazy(() =>
 /**
  * Roteamento do site:
  *   /              → Landing
+ *   /cartoon       → Landing (cópia Cartoon)
  *   /app           → Estúdio
  *   /gastos        → Painel privado de custos USD
  *   /landing       → Landing (compatibilidade)
@@ -29,6 +30,7 @@ export function AppRoutes() {
     <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Landing />} />
+        <Route path="/cartoon" element={<Landing />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/landing" element={<Landing />} />

@@ -630,7 +630,7 @@ a.kcat-btn:active {
   .kbh-slide { transition: none; } .kbh-book { animation: none; }
 }
 
-/* ---------- Dicas de foto (enquadramento perfeito) ---------- */
+/* ---------- Condições do Como funciona ---------- */
 .ksection-como { padding-top: 36px; padding-bottom: 36px; }
 .como-panel {
   width: 100%;
@@ -655,34 +655,32 @@ a.kcat-btn:active {
   border-radius: 0; background: none; border: none;
   box-shadow: none;
 }
-.shot-tips h2.ktitle,
-.shot-tips h3 { margin: 0 0 4px; font-size: clamp(1.15rem, 2.6vw, 1.55rem); color: #fff; text-align: center; }
-.shot-tips .shot-sub { text-align: center; color: #b9c2dc; margin: 0 auto 14px; max-width: 46ch; font-size: .95rem; }
-.shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: start; }
-.shot { text-align: center; display: flex; flex-direction: column; align-items: center; }
-.shot-ava-wrap { position: relative; width: 168px; max-width: 100%; margin: 0 auto 12px; }
-.shot-ava { width: 100%; aspect-ratio: 1 / 1; border-radius: 50%; overflow: hidden; border: 4px solid #d7dbe6; background: #fff; }
-.shot.ok .shot-ava { border-color: #2fa860; box-shadow: 0 0 0 6px rgba(47,168,96,.22); border-width: 5px; }
-.shot-ava img, .shot-ava .shot-svg {
-  width: 100%; height: 100%; display: block;
-  object-fit: cover; object-position: center center;
+.shot-tips .shot-sub { text-align: center; color: #b9c2dc; margin: 0 auto 14px; max-width: 52ch; font-size: .95rem; }
+.shot-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; align-items: stretch; }
+.shot {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #172140;
+  border: 2px solid #26315a;
+  border-radius: 18px;
+  padding: 16px 16px 18px;
 }
-.shot.ok .shot-ava img {
-  object-fit: cover;
-  object-position: center center;
+.shot h3 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  color: #fff;
+  text-align: left;
 }
-.shot:not(.ok) .shot-ava img,
-.shot:not(.ok) .shot-ava .shot-svg { filter: grayscale(1) contrast(.95) brightness(.96); }
-.shot-badge { position: absolute; left: 14px; top: 14px; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: #fff; box-shadow: 0 3px 10px rgba(0,0,0,.28); z-index: 2; transform: translate(-42%, -42%); border: 3px solid #f2faf3; }
-.shot.ok .shot-badge { background: #2fa860; }
-.shot:not(.ok) .shot-badge { background: #e23d3d; color: #fff; }
-.shot-badge svg { width: 17px; height: 17px; }
-.shot p { font-family: 'Baloo 2', cursive; font-weight: 800; color: #9aa3b8; margin: 0; font-size: 1rem; }
-.shot.ok p { color: #2fa860; }
-.shot:not(.ok) p { color: var(--yellow); }
+.shot p {
+  margin: 0;
+  color: #b9c2dc;
+  font-weight: 600;
+  font-size: .95rem;
+  line-height: 1.45;
+}
 [data-theme="dark"] .kid .shot-tips { background: none; border: none; }
-[data-theme="dark"] .kid .shot-tips h2.ktitle,
-[data-theme="dark"] .kid .shot-tips h3 { color: #fff; }
 [data-theme="dark"] .kid .shot-tips .shot-sub { color: #b9c2dc; }
 [data-theme="light"] .kid .como-panel {
   background: #fff;
@@ -695,17 +693,15 @@ a.kcat-btn:active {
   background: none;
   border: none;
 }
-[data-theme="light"] .kid .shot-tips h3 { color: var(--ink); }
 [data-theme="light"] .kid .shot-tips .shot-sub { color: #6b6890; }
-[data-theme="dark"] .kid .shot-badge { border-color: #1a2340; }
-@media (max-width: 620px) {
-  .shot-grid { grid-template-columns: repeat(2, 1fr); gap: 20px 12px; }
-  .shot-ava-wrap { width: 120px; }
+[data-theme="light"] .kid .shot {
+  background: #f7f4ee;
+  border-color: #e6ebf5;
 }
-@media (max-width: 480px) {
-  .shot-tips { padding: 14px 12px 16px; }
-  .shot-ava-wrap { width: 126px; }
-  .shot p { font-size: .9rem; }
+[data-theme="light"] .kid .shot h3 { color: var(--ink); }
+[data-theme="light"] .kid .shot p { color: #6b6890; }
+@media (max-width: 720px) {
+  .shot-grid { grid-template-columns: 1fr; }
 }
 
 /* ---------- Seção de Vídeos narrados ---------- */
