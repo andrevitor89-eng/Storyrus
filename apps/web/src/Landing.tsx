@@ -204,14 +204,6 @@ const CATALOG_PRICE: Record<Lang, string> = {
   en: "On request",
   es: "Bajo consulta",
 };
-const CATALOG_FILTERS = ["M", "P", "Hard", "Soft"] as const;
-type CatalogFilter = (typeof CATALOG_FILTERS)[number];
-function catalogMatches(combo: { cover: "hard" | "soft"; size: "p" | "g" }, filter: CatalogFilter): boolean {
-  if (filter === "Hard") return combo.cover === "hard";
-  if (filter === "Soft") return combo.cover === "soft";
-  if (filter === "P") return combo.size === "p";
-  return combo.size === "g";
-}
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 const NAV_CAT_META = [
@@ -1024,7 +1016,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "dark";
   });
   const [heroPick, setHeroPick] = useState(0);
-  const [catalogFilter, setCatalogFilter] = useState<CatalogFilter | null>(null);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1368,24 +1359,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
-        <div className="cat-filters" role="group" aria-label={t.cat_title}>
-          {CATALOG_FILTERS.map((filter) => (
-            <button
-              key={filter}
-              type="button"
-              className={`cat-filter${catalogFilter === filter ? " on" : ""}`}
-              aria-pressed={catalogFilter === filter}
-              data-testid={`landing-catalog-filter-${filter}`}
-              onClick={() => setCatalogFilter((cur) => (cur === filter ? null : filter))}
-            >
-              {filter}
-            </button>
-          ))}
-        </div>
         <div className="cat-grid">
           {t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => {
             const combo = CATALOG_COMBOS[i % CATALOG_COMBOS.length];
-            if (catalogFilter && !catalogMatches(combo, catalogFilter)) return null;
             return (
             <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format={`${combo.cover}-${combo.size}`}>
               <div className="cat-display">

@@ -1361,16 +1361,6 @@ img.ex-tab-cover {
   background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; font-family: 'Baloo 2', cursive; font-weight: 800; }
 
 /* ---------- Catálogo de livros ---------- */
-.cat-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin: 0 auto 28px; }
-.cat-filter {
-  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 1rem; letter-spacing: .2px;
-  color: #e9eefb; background: #172140; border: 2px solid #33406e; border-radius: 999px;
-  padding: 8px 20px; cursor: pointer;
-}
-.cat-filter:hover, .cat-filter.on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
-[data-theme="light"] .kid .cat-filter { color: var(--ink); background: #fff; border-color: #e6ebf5; }
-[data-theme="light"] .kid .cat-filter:hover,
-[data-theme="light"] .kid .cat-filter.on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
 .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .cat-card,
 #catalogo .cat-card {

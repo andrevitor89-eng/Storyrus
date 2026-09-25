@@ -196,29 +196,6 @@ describe("Landing — catálogo", () => {
     expect(cards[1].querySelector(".cover-soft.size-g img")).toHaveAttribute("src", expect.stringContaining("capa-emilia-bailarina.jpg"));
   });
 
-  it("filtra o catálogo pelos botões M, P, Hard e Soft", async () => {
-    const user = userEvent.setup();
-    renderLanding();
-
-    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
-    for (const label of ["M", "P", "Hard", "Soft"]) {
-      expect(within(catalog).getByTestId(`landing-catalog-filter-${label}`)).toHaveTextContent(label);
-    }
-
-    await user.click(within(catalog).getByTestId("landing-catalog-filter-Hard"));
-    const hard = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(hard.length).toBeGreaterThan(0);
-    hard.forEach((card) => expect(card.getAttribute("data-format")).toMatch(/^hard-/));
-
-    await user.click(within(catalog).getByTestId("landing-catalog-filter-P"));
-    within(catalog).getAllByTestId("landing-catalog-card").forEach((card) => {
-      expect(card.getAttribute("data-format")).toMatch(/-p$/);
-    });
-
-    await user.click(within(catalog).getByTestId("landing-catalog-filter-P"));
-    expect(within(catalog).getAllByTestId("landing-catalog-card")).toHaveLength(15);
-  });
-
   it("troca capas localizadas de Bruno e Ester ao mudar o idioma", async () => {
     const user = userEvent.setup();
     renderLanding();
