@@ -1209,9 +1209,12 @@ img.ex-tab-cover {
   overflow: visible;
 }
 .rev-carousel {
-  overflow: hidden;
+  /* Horizontal clip is handled by .kid { overflow-x: clip }.
+     overflow:hidden here was slicing the top of the gold squares. */
+  overflow: visible;
   width: 100%;
   margin: 8px auto 30px;
+  padding: 12px 0 10px;
 }
 .rev-carousel-track {
   display: flex;
@@ -1245,20 +1248,32 @@ img.ex-tab-cover {
   min-width: 0;
   overflow: visible;
 }
-.rev-photo img {
+.rev-photo-frame {
+  position: relative;
   display: block;
   width: 100%;
-  height: auto;
   aspect-ratio: 1 / 1;
-  object-fit: contain;
-  object-position: center center;
   border-radius: 12px;
-  padding: 0;
-  background: transparent;
+  border: 3px solid var(--yellow);
+  overflow: hidden;
+  background: #10182e;
+  box-sizing: border-box;
   box-shadow:
-    0 0 0 3px var(--yellow),
     0 0 18px rgba(244,183,64,.32),
     0 12px 28px rgba(0,0,0,.32);
+}
+.rev-photo-frame img {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  border-radius: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: none;
 }
 .rev-photo figcaption {
   font-family: 'Baloo 2', cursive;

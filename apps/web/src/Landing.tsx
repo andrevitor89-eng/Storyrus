@@ -1354,12 +1354,14 @@ export function Landing() {
           <div className="rev-carousel-track">
             {[0, 1].map((copy) => REVIEW_PHOTOS.map((b, i) => (
               <figure className="rev-photo" key={`${copy}-${b.tab}`} aria-hidden={copy === 1 ? true : undefined}>
-                <img
-                  src={exUrl(b.tab)}
-                  alt={copy === 0 ? b.name : ""}
-                  loading="lazy"
-                  data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
-                />
+                <span className="rev-photo-frame">
+                  <img
+                    src={exUrl(b.tab)}
+                    alt={copy === 0 ? b.name : ""}
+                    loading="lazy"
+                    data-testid={copy === 0 ? `landing-review-cover-${i}` : undefined}
+                  />
+                </span>
                 <figcaption data-testid={copy === 0 ? `landing-review-name-${i}` : undefined}>{b.name}</figcaption>
               </figure>
             )))}
