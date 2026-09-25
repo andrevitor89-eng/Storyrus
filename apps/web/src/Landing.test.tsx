@@ -297,25 +297,20 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(within(siteMenu).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/app");
   });
 
-  it("abre o hero na capa de Natal e duplica a faixa", async () => {
+  it("troca o livro de exemplo no hero via tabs", async () => {
     const user = userEvent.setup();
     renderLanding();
 
-    const cover = await screen.findByTestId("landing-hero-slide-0");
-    expect(cover).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata-en.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-en.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata-en.jpg"));
+    const tabs = await screen.findAllByRole("tab");
+    expect(screen.getByTestId("landing-hero-tab-cover-0")).toHaveAttribute("src", expect.stringContaining("capa-martin-goleiro.jpg"));
+    expect(screen.getByTestId("landing-hero-tab-cover-1")).toHaveAttribute("src", expect.stringContaining("capa-emilia-bailarina.jpg"));
+    expect(tabs.length).toBeGreaterThanOrEqual(2);
+    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+    expect(tabs[1]).toHaveAttribute("aria-selected", "false");
 
-    const carousel = cover.closest(".hero-carousel") as HTMLElement;
-    const natalCovers = [...carousel.querySelectorAll("img")].filter((img) =>
-      (img.getAttribute("src") ?? "").includes("capa-natalmemetata-en.jpg"),
-    );
-    expect(natalCovers).toHaveLength(2);
-
-    await user.click(screen.getByTestId("landing-lang-es"));
-    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata-es.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-es.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata-es.jpg"));
+    await user.click(tabs[1]);
+    expect(tabs[0]).toHaveAttribute("aria-selected", "false");
+    expect(tabs[1]).toHaveAttribute("aria-selected", "true");
   });
 
   it("coloca o texto Uma foto abaixo do titulo Transforme", async () => {
@@ -327,35 +322,6 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(intro.firstElementChild).toBe(heading);
     expect(intro).toHaveTextContent(/uma foto\. uma história\. uma memória eterna/i);
     expect(heading.nextElementSibling).toHaveTextContent(/uma foto/i);
-  });
-});
-
-describe("Landing — como funciona", () => {
-  it("mantém os três passos ilustrados e mostra as exigências das fotos", async () => {
-    const user = userEvent.setup();
-    renderLanding();
-
-    await screen.findByTestId("landing-hero-cta");
-    expect(screen.getByRole("heading", { name: /^como funciona$/i })).toBeInTheDocument();
-    expect(screen.getByText("Você envia a foto")).toBeInTheDocument();
-    expect(screen.getByText("Criamos o personagem e a história")).toBeInTheDocument();
-    expect(screen.getByText("Sua criança ganha o livro")).toBeInTheDocument();
-
-    const brief = screen.getByRole("region", { name: /como enviar as fotos/i });
-    expect(within(brief).getByRole("heading", { name: /^fotos$/i })).toBeInTheDocument();
-    expect(within(brief).getByRole("heading", { name: /junto às fotos/i })).toBeInTheDocument();
-    expect(within(brief).getByText(/envie de 3 a 5 fotos recentes/i)).toBeInTheDocument();
-    expect(within(brief).getByText(/título exato do livro/i)).toBeInTheDocument();
-    expect(within(brief).getByText(/três imagens da série/i)).toBeInTheDocument();
-
-    await user.click(screen.getByTestId("landing-lang-en"));
-    expect(screen.getByRole("heading", { name: /^how it works$/i })).toBeInTheDocument();
-    expect(screen.getByText("You send the photo")).toBeInTheDocument();
-    expect(screen.getByText("We create the character and story")).toBeInTheDocument();
-    expect(screen.getByText("Your child gets the book")).toBeInTheDocument();
-    const briefEn = screen.getByRole("region", { name: /how to send the photos/i });
-    expect(within(briefEn).getByText(/send 3 to 5 recent photos/i)).toBeInTheDocument();
-    expect(within(briefEn).getByText(/exact title of the book/i)).toBeInTheDocument();
   });
 });
 

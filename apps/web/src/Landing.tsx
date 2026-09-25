@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useRef, useState, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
@@ -42,71 +42,8 @@ const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
 const CONTACT_INSTA = "storyr.us";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
-type HeroAsset = Record<Lang, string>;
-const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
-/** Hero strip: capa, página aberta, criança lendo. Natal fica na abertura. */
-const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
-  {
-    name: "Meme e Tata",
-    cover: heroAsset("capa-natalmemetata-en.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
-    page: heroAsset("pagina-natalmemetata-en.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
-    photo: heroAsset("foto-natalmemetata-en.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
-  },
-  {
-    name: "Nano",
-    cover: heroAsset("capa-nanoaventuras.jpg", "capa-nanoaventuras-en.jpg", "capa-nanoaventuras-es.jpg"),
-    page: heroAsset("pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
-    photo: heroAsset("foto-nanoaventuras-en.jpg", "foto-nanoaventuras-en.jpg", "foto-nanoaventuras-es.jpg"),
-  },
-  {
-    name: "Amor de Bisavó",
-    cover: heroAsset("capa-amordebisavo.jpg", "capa-amordebisavo-en.jpg", "capa-amordebisavo-es.jpg"),
-    page: heroAsset("pagina-amordebisavo-en.jpg", "pagina-amordebisavo-en.jpg", "pagina-amordebisavo-es.jpg"),
-    photo: heroAsset("foto-amordebisavo-en.jpg", "foto-amordebisavo-en.jpg", "foto-amordebisavo-es.jpg"),
-  },
-  {
-    name: "Amor de Mãe",
-    cover: heroAsset("capa-amordemae.jpg", "capa-amordemae-en.jpg", "capa-amordemae-es.jpg"),
-    page: heroAsset("pagina-amordemae-en.jpg", "pagina-amordemae-en.jpg", "pagina-amordemae-es.jpg"),
-    photo: heroAsset("foto-amordemae-en.jpg", "foto-amordemae-en.jpg", "foto-amordemae-es.jpg"),
-  },
-  {
-    name: "Mako",
-    cover: heroAsset("capa-mako-amigofiel.jpg", "capa-mako-amigofiel-en.jpg", "capa-mako-amigofiel-es.jpg"),
-    page: heroAsset("pagina-mako-amigofiel.jpg", "pagina-mako-amigofiel-en.jpg", "pagina-mako-amigofiel-es.jpg"),
-    photo: heroAsset("foto-mako-amigofiel.jpg", "foto-mako-amigofiel-en.jpg", "foto-mako-amigofiel-es.jpg"),
-  },
-  {
-    name: "Martin",
-    cover: heroAsset("capa-martin-goleiro.jpg"),
-    page: heroAsset("pagina-martin-goleiro.jpg"),
-    photo: heroAsset("foto-martin-goleiro.jpg"),
-  },
-  {
-    name: "Emilia",
-    cover: heroAsset("capa-emilia-bailarina.jpg"),
-    page: heroAsset("pagina-emilia-bailarina.jpg"),
-    photo: heroAsset("foto-emilia-bailarina.jpg"),
-  },
-  {
-    name: "Antonio",
-    cover: heroAsset("capa-antonio-bicicleta.jpg"),
-    page: heroAsset("pagina-antonio-bicicleta.jpg"),
-    photo: heroAsset("foto-antonio-bicicleta.jpg"),
-  },
-  {
-    name: "Maria Jesus",
-    cover: heroAsset("capa-mariajesus-hockey.jpg"),
-    page: heroAsset("pagina-mariajesus-hockey.jpg"),
-    photo: heroAsset("foto-mariajesus-hockey.jpg"),
-  },
-  {
-    name: "Facundo",
-    cover: heroAsset("capa-facundo-motocross.jpg"),
-    page: heroAsset("pagina-facundo-motocross.jpg"),
-    photo: heroAsset("foto-facundo-motocross.jpg"),
-  },
-];
+const FLIP_MS = 600;
+const FLIP_AUTO_MS = 2000;
 
 type CoverFont = "fredoka" | "baloo" | "lilita";
 
@@ -119,6 +56,14 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
   { img: "dica-multi.png", ok: false, focus: "68% 38%" },
   { img: "dica-lado.png", ok: false, focus: "78% 32%" },
 ];
+/** Hero FlipBook: only lifestyle books (child holding the book) from landing/ */
+const HERO_BOOKS = [
+  { tab: "foto-martin-goleiro.jpg", cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", name: "Martin" },
+  { tab: "foto-emilia-bailarina.jpg", cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", name: "Emilia" },
+  { tab: "foto-antonio-bicicleta.jpg", cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", name: "Antonio" },
+  { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", name: "Maria Jesus" },
+  { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg", name: "Facundo" },
+] as const;
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -422,6 +367,91 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
   );
 }
 
+function FlipBook({
+  pages,
+  compact = false,
+  labels,
+}: {
+  pages: string[];
+  compact?: boolean;
+  labels?: { prev: string; next: string; turn: string; cover: string; photo: string };
+}) {
+  const [i, setI] = useState(0);
+  const [anim, setAnim] = useState<"next" | "prev" | null>(null);
+  const [target, setTarget] = useState(0);
+  const [hover, setHover] = useState(false);
+  const busy = useRef(false);
+  const flip = (dir: "next" | "prev", loop = false) => {
+    if (busy.current || pages.length < 2) return;
+    let t = dir === "next" ? i + 1 : i - 1;
+    if (t >= pages.length) { if (!loop) return; t = 0; }
+    if (t < 0) return;
+    busy.current = true;
+    setTarget(t);
+    setAnim(dir);
+    window.setTimeout(() => {
+      setI(t);
+      setAnim(null);
+      busy.current = false;
+    }, FLIP_MS);
+  };
+  useEffect(() => {
+    if (!hover) return;
+    const id = window.setTimeout(() => flip("next", true), FLIP_AUTO_MS);
+    return () => window.clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [i, pages.length, hover]);
+  useEffect(() => {
+    if (hover) return;
+    busy.current = false;
+    setAnim(null);
+    setI(0);
+    setTarget(0);
+  }, [hover]);
+  const underSrc = anim === "next" ? pages[target] : pages[i];
+  const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
+  const underIdx = anim === "next" ? target : i;
+  const leafIdx = anim === "next" ? i : (anim === "prev" ? target : i);
+  const pageKind = (idx: number) => (
+    idx === 0 ? "fb-page--cover" : idx === 1 ? "fb-page--spread" : "fb-page--photo"
+  );
+  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa", photo: "Na mão" };
+  const pageLabel = (idx: number) => (
+    idx === 0 ? L.cover : idx >= 2 ? L.photo : `${idx} / ${Math.max(pages.length - 1, 1)}`
+  );
+  const onStage = (e: RMouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
+  };
+  const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
+      e.preventDefault();
+      flip("next", true);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      flip("prev");
+    }
+  };
+  return (
+    <div
+      className={`flipbook${compact ? " flipbook-mini" : ""}`}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+    >
+      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label={L.prev}>‹</button>}
+      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={L.turn}>
+        <span className="fb-spine" />
+        <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
+        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
+          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(i)} />
+          <span className="fb-leaf-shade" aria-hidden />
+        </div>
+      </div>
+      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
+    </div>
+  );
+}
+
 const I18N = {
   pt: {
     nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
@@ -486,33 +516,6 @@ const I18N = {
     shot_title: "Dicas para a foto perfeita",
     shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
     shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
-    brief_title: "Como enviar as fotos",
-    brief_intro: "Para recriar o livro com maior fidelidade, envie as fotografias seguindo estas exigências.",
-    brief_photos_title: "Fotos",
-    brief_photos: [
-      "Envie de 3 a 5 fotos recentes da criança.",
-      "Pelo menos uma foto deve mostrar o rosto de frente, centralizado e próximo.",
-      "Use imagens nítidas, coloridas e em alta resolução.",
-      "Prefira luz natural, sem sombras fortes no rosto.",
-      "Os olhos, cabelos, orelhas e formato do rosto devem estar completamente visíveis.",
-      "Envie fotos de ângulos diferentes: frente, levemente de lado e corpo inteiro.",
-      "Evite filtros, montagens, capturas de tela e fotos desfocadas.",
-      "Evite chapéus, óculos escuros, chupetas ou objetos cobrindo o rosto.",
-      "Para manter a roupa no livro, envie uma fotografia mostrando claramente a roupa completa.",
-      "Para incluir pais ou familiares, envie 2 a 3 fotos individuais de cada pessoa.",
-      "Para animais, envie fotos de frente, de perfil e do corpo inteiro, mostrando pelagem, olhos, focinho, orelhas e marcas especiais.",
-    ],
-    brief_info_title: "Junto às fotos",
-    brief_info: [
-      "Nome e idade da criança.",
-      "Título exato do livro.",
-      "Tema da história.",
-      "Quem deve aparecer nas três imagens.",
-      "Idioma: português, espanhol ou inglês.",
-      "Roupa que deve ser mantida.",
-      "Características importantes que não podem ser modificadas.",
-    ],
-    brief_close: "Quanto mais claras e variadas forem as referências, mais consistentes ficarão os rostos e os personagens nas três imagens da série.",
     hero_books: [
       "Martin, o Grande Goleiro do Chile",
       "Emilia e os Primeiros Passos da Bailarina",
@@ -670,33 +673,6 @@ const I18N = {
     shot_title: "Tips for the perfect photo",
     shot_sub: "Upload a clear photo of your child with the face centered.",
     shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
-    brief_title: "How to send the photos",
-    brief_intro: "To recreate the book with greater fidelity, send the photographs following these requirements.",
-    brief_photos_title: "Photos",
-    brief_photos: [
-      "Send 3 to 5 recent photos of the child.",
-      "At least one photo must show the face from the front, centered and close.",
-      "Use sharp, colorful, high-resolution images.",
-      "Prefer natural light, without strong shadows on the face.",
-      "Eyes, hair, ears and the shape of the face must be fully visible.",
-      "Send photos from different angles: front, slightly from the side and full body.",
-      "Avoid filters, composites, screenshots and blurry photos.",
-      "Avoid hats, dark glasses, pacifiers or objects covering the face.",
-      "To keep the outfit in the book, send a photograph that clearly shows the full outfit.",
-      "To include parents or relatives, send 2 to 3 individual photos of each person.",
-      "For animals, send front, profile and full-body photos showing the coat, eyes, snout, ears and special markings.",
-    ],
-    brief_info_title: "Along with the photos",
-    brief_info: [
-      "The child's name and age.",
-      "The exact title of the book.",
-      "The theme of the story.",
-      "Who should appear in the three images.",
-      "Language: Portuguese, Spanish or English.",
-      "The outfit that must be kept.",
-      "Important features that cannot be changed.",
-    ],
-    brief_close: "The clearer and more varied the references, the more consistent the faces and characters will be in the three images of the series.",
     hero_books: [
       "Martin, the Great Goalkeeper of Chile",
       "Emilia and the Ballerina's First Steps",
@@ -854,33 +830,6 @@ const I18N = {
     shot_title: "Consejos para la foto perfecta",
     shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
     shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
-    brief_title: "Cómo enviar las fotos",
-    brief_intro: "Para recrear el libro con mayor fidelidad, envía las fotografías siguiendo estas exigencias.",
-    brief_photos_title: "Fotos",
-    brief_photos: [
-      "Envía de 3 a 5 fotos recientes del niño.",
-      "Al menos una foto debe mostrar el rostro de frente, centrado y cercano.",
-      "Usa imágenes nítidas, coloridas y en alta resolución.",
-      "Prefiere luz natural, sin sombras fuertes en el rostro.",
-      "Los ojos, el cabello, las orejas y la forma del rostro deben estar completamente visibles.",
-      "Envía fotos de ángulos diferentes: frente, levemente de lado y cuerpo entero.",
-      "Evita filtros, montajes, capturas de pantalla y fotos desenfocadas.",
-      "Evita sombreros, lentes oscuros, chupetes u objetos que cubran el rostro.",
-      "Para mantener la ropa en el libro, envía una fotografía que muestre claramente la ropa completa.",
-      "Para incluir padres o familiares, envía 2 o 3 fotos individuales de cada persona.",
-      "Para animales, envía fotos de frente, de perfil y de cuerpo entero, mostrando pelaje, ojos, hocico, orejas y marcas especiales.",
-    ],
-    brief_info_title: "Junto a las fotos",
-    brief_info: [
-      "Nombre y edad del niño.",
-      "Título exacto del libro.",
-      "Tema de la historia.",
-      "Quién debe aparecer en las tres imágenes.",
-      "Idioma: portugués, español o inglés.",
-      "Ropa que debe mantenerse.",
-      "Características importantes que no pueden modificarse.",
-    ],
-    brief_close: "Cuanto más claras y variadas sean las referencias, más consistentes quedarán los rostros y los personajes en las tres imágenes de la serie.",
     hero_books: [
       "Martin, el gran arquero de Chile",
       "Emilia y los primeros pasos de la bailarina",
@@ -994,6 +943,7 @@ export function Landing() {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
+  const [exBook, setExBook] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1003,11 +953,14 @@ export function Landing() {
   });
   const t = I18N[lang];
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const heroSlides = HERO_STRIP.flatMap((book) => [
-    { src: book.cover[lang], alt: book.name },
-    { src: book.page[lang], alt: book.name },
-    { src: book.photo[lang], alt: book.name },
-  ]);
+  const exampleBooks = HERO_BOOKS.map((b, i) => ({
+    title: t.hero_books[i],
+    name: b.name,
+    tab: b.tab,
+    cover: b.cover,
+    pages: [b.cover, b.page, b.tab],
+  }));
+  const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
     color: NAV_CAT_META[i].color,
@@ -1214,25 +1167,36 @@ export function Landing() {
         </div>
       </header>
 
-      {/* HERO — proposta de valor + faixa de livros */}
+      {/* HERO — proposta de valor + flipbook */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <div className="hero-carousel" aria-label={t.hero_sign}>
-          <div className="hero-carousel-track">
-            {[0, 1].map((copy) => heroSlides.map((slide, i) => (
-              <figure className="hero-slide" key={`${copy}-${slide.src}-${i}`} aria-hidden={copy === 1 ? true : undefined}>
-                <span className="hero-slide-frame">
-                  <img
-                    src={exUrl(slide.src)}
-                    alt={copy === 0 ? slide.alt : ""}
-                    data-testid={copy === 0 ? `landing-hero-slide-${i}` : undefined}
-                  />
-                </span>
-              </figure>
-            )))}
+        <div className="khero-flip">
+          <div className="ex-tabs khero-tabs" role="tablist" aria-label={t.story_title}>
+            {exampleBooks.map((b, i) => (
+              <button
+                key={b.title}
+                type="button"
+                className={`ex-tab${i === exBook ? " on" : ""}`}
+                onClick={() => setExBook(i)}
+                role="tab"
+                id={`ex-tab-${i}`}
+                aria-label={b.title}
+                aria-selected={i === exBook}
+                aria-controls="ex-book-panel"
+              >
+                <img className="ex-tab-cover" src={exUrl(b.cover)} alt="" data-testid={`landing-hero-tab-cover-${i}`} />
+              </button>
+            ))}
+          </div>
+          <div id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
+            <FlipBook
+              key={exBook}
+              pages={exampleBooks[exBook].pages}
+              labels={flipLabels}
+            />
           </div>
         </div>
         <div className="khero-after">
@@ -1285,26 +1249,6 @@ export function Landing() {
             ))}
           </div>
         </div>
-      </section>
-
-      <section className="ksection" id="como-fotos" aria-labelledby="como-fotos-title">
-        <h2 className="ktitle reveal" id="como-fotos-title">{t.brief_title}</h2>
-        <p className="ksub reveal">{t.brief_intro}</p>
-        <div className="hiw-brief reveal">
-          <div>
-            <h3>{t.brief_photos_title}</h3>
-            <ul>
-              {t.brief_photos.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </div>
-          <div>
-            <h3>{t.brief_info_title}</h3>
-            <ul>
-              {t.brief_info.map((item) => <li key={item}>{item}</li>)}
-            </ul>
-          </div>
-        </div>
-        <p className="ksub hiw-brief-close reveal">{t.brief_close}</p>
       </section>
 
       {/* NOSSOS LIVROS */}
