@@ -243,19 +243,17 @@ a.kcat-btn:active {
 .kcat-feat:hover,
 .kcat-feat:focus-visible { background: #f8faff; transform: translateY(-2px); }
 .kcat-feat-cover {
-  position: relative; display: block; aspect-ratio: 1 / 1; overflow: visible;
+  position: relative; display: block; aspect-ratio: 1 / 1; overflow: hidden;
   border-radius: 10px; background: transparent;
   container-type: inline-size;
 }
 .kcat-feat-cover img {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  inset: 0;
   width: 100%;
   height: 100%;
   max-width: none;
-  transform: translate(-50%, -50%) scale(1);
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   display: block;
 }
@@ -453,12 +451,14 @@ a.kcat-btn:active {
 }
 .cat-display {
   position: relative;
-  aspect-ratio: 1;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  flex: 0 0 auto;
   padding: 0;
   display: block;
   box-sizing: border-box;
   background: transparent;
-  overflow: visible;
+  overflow: hidden;
   border: none;
   border-radius: 10px;
   box-shadow: none;
@@ -468,19 +468,17 @@ a.kcat-btn:active {
   inset: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
+  overflow: hidden;
   display: block;
   background: transparent;
 }
 .cat-book img {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  inset: 0;
   width: 100%;
   height: 100%;
   max-width: none;
-  transform: translate(-50%, -50%) scale(1);
-  object-fit: contain;
+  object-fit: cover;
   object-position: center;
   filter: none;
 }
@@ -1190,6 +1188,11 @@ img.ex-tab-cover {
 .fmt-card .kbtn { margin-top: auto; justify-content: center; }
 
 /* ---------- Avaliações ---------- */
+#reviews {
+  container-type: inline-size;
+  --rev-col-gap: 16px;
+  --rev-card-w: calc((100cqi - var(--rev-col-gap)) / 2);
+}
 #reviews .ktitle,
 #reviews .ksub {
   width: 100%;
@@ -1225,7 +1228,12 @@ img.ex-tab-cover {
 .rev-carousel:focus-within .rev-carousel-track {
   animation-play-state: paused;
 }
-.rev-carousel .rev-photo { width: 168px; flex: none; margin-right: 18px; }
+.rev-carousel .rev-photo {
+  width: var(--rev-card-w);
+  flex: 0 0 var(--rev-card-w);
+  margin-right: var(--rev-col-gap);
+  box-sizing: border-box;
+}
 @keyframes rev-marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
@@ -1237,7 +1245,6 @@ img.ex-tab-cover {
     flex-wrap: wrap;
     justify-content: center;
   }
-  .rev-carousel .rev-photo { width: min(168px, 42vw); }
 }
 .rev-photo {
   margin: 0;
@@ -1285,7 +1292,7 @@ img.ex-tab-cover {
   max-width: 100%;
   min-height: 0;
 }
-.rev-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; max-width: 100%; margin: 0 auto; align-items: stretch; }
+.rev-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--rev-col-gap); max-width: 100%; margin: 0 auto; align-items: stretch; }
 .rev-card { display: flex; flex-direction: column; margin: 0; background: #172140; border-radius: 22px; padding: 24px; text-align: left;
   box-shadow: 0 14px 30px rgba(0,0,0,.4); border: 1px solid #26315a; }
 .rev-stars { color: var(--yellow); letter-spacing: 2px; margin-bottom: 8px; }
@@ -1298,7 +1305,7 @@ img.ex-tab-cover {
 .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .cat-card,
 #catalogo .cat-card {
-  display: flex; flex-direction: column; height: 100%; min-width: 0;
+  display: flex; flex-direction: column; height: 100%; width: 100%; min-width: 0;
   background: transparent; background-image: none;
   border-radius: 0; overflow: visible; border: none; box-shadow: none;
   transition: transform .18s ease;
@@ -1311,8 +1318,16 @@ img.ex-tab-cover {
 .cat-ia { position: absolute; top: 10px; left: 10px; width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--coral), var(--yellow)); display: grid; place-items: center; color: #1f3568; }
 .cat-ia svg { width: 18px; height: 18px; }
 .cat-body { display: flex; flex-direction: column; flex: 1; padding: 14px 4px 8px; text-align: left; }
-.cat-body h3 { margin: 0 0 4px; color: #e9eefb; font-size: 1.25rem; }
-.cat-body p { margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.4; }
+.cat-body h3 {
+  margin: 0 0 4px; color: #e9eefb; font-size: 1.25rem; line-height: 1.25;
+  min-height: 2.5em; max-height: 2.5em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.cat-body p {
+  margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.4;
+  min-height: 4.2em; max-height: 4.2em;
+  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+}
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
 .cat-price span { display: block; font-size: .82rem; font-weight: 600; color: #9fabce; }
 .cat-body .kbtn { margin-top: auto; justify-content: center; }
@@ -1392,6 +1407,7 @@ img.ex-tab-cover {
   img.ex-tab-cover { width: 100%; padding: 0; }
   .rev-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 100%; gap: 14px; }
   .rev-grid { grid-template-columns: 1fr; max-width: 100%; }
+  #reviews { --rev-card-w: 100cqi; }
   .featured-book .fb-stage { width: min(320px, 86vw); }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }
