@@ -42,10 +42,72 @@ const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
 const CONTACT_INSTA = "storyr.us";
 const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
-const FLIP_MS = 600;
-const FLIP_AUTO_MS = 2000;
-
 type CoverFont = "fredoka" | "baloo" | "lilita";
+type HeroAsset = Record<Lang, string>;
+const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
+/** Hero strip: capa, página aberta, criança lendo. Natal fica na abertura. */
+const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
+  {
+    name: "Meme e Tata",
+    cover: heroAsset("capa-natalmemetata-en.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
+    page: heroAsset("pagina-natalmemetata-en.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
+    photo: heroAsset("foto-natalmemetata-en.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
+  },
+  {
+    name: "Nano",
+    cover: heroAsset("capa-nanoaventuras.jpg", "capa-nanoaventuras-en.jpg", "capa-nanoaventuras-es.jpg"),
+    page: heroAsset("pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
+    photo: heroAsset("foto-nanoaventuras-en.jpg", "foto-nanoaventuras-en.jpg", "foto-nanoaventuras-es.jpg"),
+  },
+  {
+    name: "Amor de Bisavó",
+    cover: heroAsset("capa-amordebisavo.jpg", "capa-amordebisavo-en.jpg", "capa-amordebisavo-es.jpg"),
+    page: heroAsset("pagina-amordebisavo-en.jpg", "pagina-amordebisavo-en.jpg", "pagina-amordebisavo-es.jpg"),
+    photo: heroAsset("foto-amordebisavo-en.jpg", "foto-amordebisavo-en.jpg", "foto-amordebisavo-es.jpg"),
+  },
+  {
+    name: "Amor de Mãe",
+    cover: heroAsset("capa-amordemae.jpg", "capa-amordemae-en.jpg", "capa-amordemae-es.jpg"),
+    page: heroAsset("pagina-amordemae-en.jpg", "pagina-amordemae-en.jpg", "pagina-amordemae-es.jpg"),
+    photo: heroAsset("foto-amordemae-en.jpg", "foto-amordemae-en.jpg", "foto-amordemae-es.jpg"),
+  },
+  {
+    name: "Mako",
+    cover: heroAsset("capa-mako-amigofiel.jpg", "capa-mako-amigofiel-en.jpg", "capa-mako-amigofiel-es.jpg"),
+    page: heroAsset("pagina-mako-amigofiel.jpg", "pagina-mako-amigofiel-en.jpg", "pagina-mako-amigofiel-es.jpg"),
+    photo: heroAsset("foto-mako-amigofiel.jpg", "foto-mako-amigofiel-en.jpg", "foto-mako-amigofiel-es.jpg"),
+  },
+  {
+    name: "Martin",
+    cover: heroAsset("capa-martin-goleiro.jpg"),
+    page: heroAsset("pagina-martin-goleiro.jpg"),
+    photo: heroAsset("foto-martin-goleiro.jpg"),
+  },
+  {
+    name: "Emilia",
+    cover: heroAsset("capa-emilia-bailarina.jpg"),
+    page: heroAsset("pagina-emilia-bailarina.jpg"),
+    photo: heroAsset("foto-emilia-bailarina.jpg"),
+  },
+  {
+    name: "Antonio",
+    cover: heroAsset("capa-antonio-bicicleta.jpg"),
+    page: heroAsset("pagina-antonio-bicicleta.jpg"),
+    photo: heroAsset("foto-antonio-bicicleta.jpg"),
+  },
+  {
+    name: "Maria Jesus",
+    cover: heroAsset("capa-mariajesus-hockey.jpg"),
+    page: heroAsset("pagina-mariajesus-hockey.jpg"),
+    photo: heroAsset("foto-mariajesus-hockey.jpg"),
+  },
+  {
+    name: "Facundo",
+    cover: heroAsset("capa-facundo-motocross.jpg"),
+    page: heroAsset("pagina-facundo-motocross.jpg"),
+    photo: heroAsset("foto-facundo-motocross.jpg"),
+  },
+];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
@@ -54,14 +116,6 @@ const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: bo
   { img: "dica-multi.png", ok: false, focus: "68% 38%" },
   { img: "dica-lado.png", ok: false, focus: "78% 32%" },
 ];
-/** Hero FlipBook: only lifestyle books (child holding the book) from landing/ */
-const HERO_BOOKS = [
-  { tab: "foto-martin-goleiro.jpg", cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", name: "Martin" },
-  { tab: "foto-emilia-bailarina.jpg", cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", name: "Emilia" },
-  { tab: "foto-antonio-bicicleta.jpg", cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", name: "Antonio" },
-  { tab: "foto-mariajesus-hockey.jpg", cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg", name: "Maria Jesus" },
-  { tab: "foto-facundo-motocross.jpg", cover: "capa-facundo-motocross.jpg", page: "pagina-facundo-motocross.jpg", name: "Facundo" },
-] as const;
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -132,14 +186,23 @@ const CATALOG_THEMES = [
   "underwater",
   "dinosaurs",
 ];
-/** Catálogo da principal: no máximo 15, na ordem Hard → Soft → P → M. */
+/** Catálogo da principal: no máximo 15, alternando capa e tamanho. */
 const CATALOG_LIMIT = 15;
-const CATALOG_KINDS = ["Hard", "Soft", "P", "M"] as const;
-type CatalogKind = (typeof CATALOG_KINDS)[number];
-const CATALOG_KIND_DESC: Record<Lang, Record<CatalogKind, string>> = {
-  pt: { Hard: "Capa dura", Soft: "Capa mole", P: "Tamanho pequeno", M: "Tamanho médio" },
-  en: { Hard: "Hardcover", Soft: "Softcover", P: "Small size", M: "Medium size" },
-  es: { Hard: "Tapa dura", Soft: "Tapa blanda", P: "Tamaño pequeño", M: "Tamaño mediano" },
+const CATALOG_COMBOS = [
+  { cover: "hard", size: "p" },
+  { cover: "soft", size: "g" },
+  { cover: "hard", size: "g" },
+  { cover: "soft", size: "p" },
+] as const;
+const CATALOG_COMBO_DESC: Record<Lang, readonly string[]> = {
+  pt: ["Capa dura e pequeno", "Capa mole e grande", "Capa dura e grande", "Capa mole e pequeno"],
+  en: ["Hardcover and small", "Softcover and large", "Hardcover and large", "Softcover and small"],
+  es: ["Tapa dura y pequeño", "Tapa blanda y grande", "Tapa dura y grande", "Tapa blanda y pequeño"],
+};
+const CATALOG_PRICE: Record<Lang, string> = {
+  pt: "Sob consulta",
+  en: "On request",
+  es: "Bajo consulta",
 };
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -369,91 +432,6 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
         </div>
         );
       })}
-    </div>
-  );
-}
-
-function FlipBook({
-  pages,
-  compact = false,
-  labels,
-}: {
-  pages: string[];
-  compact?: boolean;
-  labels?: { prev: string; next: string; turn: string; cover: string; photo: string };
-}) {
-  const [i, setI] = useState(0);
-  const [anim, setAnim] = useState<"next" | "prev" | null>(null);
-  const [target, setTarget] = useState(0);
-  const [hover, setHover] = useState(false);
-  const busy = useRef(false);
-  const flip = (dir: "next" | "prev", loop = false) => {
-    if (busy.current || pages.length < 2) return;
-    let t = dir === "next" ? i + 1 : i - 1;
-    if (t >= pages.length) { if (!loop) return; t = 0; }
-    if (t < 0) return;
-    busy.current = true;
-    setTarget(t);
-    setAnim(dir);
-    window.setTimeout(() => {
-      setI(t);
-      setAnim(null);
-      busy.current = false;
-    }, FLIP_MS);
-  };
-  useEffect(() => {
-    if (!hover) return;
-    const id = window.setTimeout(() => flip("next", true), FLIP_AUTO_MS);
-    return () => window.clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [i, pages.length, hover]);
-  useEffect(() => {
-    if (hover) return;
-    busy.current = false;
-    setAnim(null);
-    setI(0);
-    setTarget(0);
-  }, [hover]);
-  const underSrc = anim === "next" ? pages[target] : pages[i];
-  const leafSrc = anim === "next" ? pages[i] : (anim === "prev" ? pages[target] : pages[i]);
-  const underIdx = anim === "next" ? target : i;
-  const leafIdx = anim === "next" ? i : (anim === "prev" ? target : i);
-  const pageKind = (idx: number) => (
-    idx === 0 ? "fb-page--cover" : idx === 1 ? "fb-page--spread" : "fb-page--photo"
-  );
-  const L = labels ?? { prev: "Página anterior", next: "Próxima página", turn: "Virar página", cover: "Capa", photo: "Na mão" };
-  const pageLabel = (idx: number) => (
-    idx === 0 ? L.cover : idx >= 2 ? L.photo : `${idx} / ${Math.max(pages.length - 1, 1)}`
-  );
-  const onStage = (e: RMouseEvent<HTMLDivElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev");
-  };
-  const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
-      e.preventDefault();
-      flip("next", true);
-    } else if (e.key === "ArrowLeft") {
-      e.preventDefault();
-      flip("prev");
-    }
-  };
-  return (
-    <div
-      className={`flipbook${compact ? " flipbook-mini" : ""}`}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-    >
-      {!compact && <button className="fb-nav" onClick={() => flip("prev")} disabled={i === 0 || !!anim} aria-label={L.prev}>‹</button>}
-      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={L.turn}>
-        <span className="fb-spine" />
-        <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
-        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
-          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(i)} />
-          <span className="fb-leaf-shade" aria-hidden />
-        </div>
-      </div>
-      {!compact && <button className="fb-nav" onClick={() => flip("next")} disabled={i === pages.length - 1 || !!anim} aria-label={L.next}>›</button>}
     </div>
   );
 }
@@ -953,6 +931,73 @@ const I18N = {
   },
 } as const;
 
+const FLIP_MS = 600;
+
+function FlipBook({
+  pages,
+  index,
+  onIndex,
+  labels,
+}: {
+  pages: string[];
+  index: number;
+  onIndex: (next: number) => void;
+  labels: { prev: string; next: string; turn: string; cover: string; photo: string };
+}) {
+  const [anim, setAnim] = useState<"next" | "prev" | null>(null);
+  const [target, setTarget] = useState(index);
+  const busy = useRef(false);
+  const flip = (dir: "next" | "prev") => {
+    if (busy.current || pages.length < 2) return;
+    const t = dir === "next" ? index + 1 : index - 1;
+    if (t < 0 || t >= pages.length) return;
+    busy.current = true;
+    setTarget(t);
+    setAnim(dir);
+    window.setTimeout(() => {
+      onIndex(t);
+      setAnim(null);
+      busy.current = false;
+    }, FLIP_MS);
+  };
+  const underSrc = anim === "next" ? pages[target] : pages[index];
+  const leafSrc = anim === "next" ? pages[index] : (anim === "prev" ? pages[target] : pages[index]);
+  const underIdx = anim === "next" ? target : index;
+  const leafIdx = anim === "next" ? index : (anim === "prev" ? target : index);
+  const pageKind = (idx: number) => (
+    idx === 0 ? "fb-page--cover" : idx === 1 ? "fb-page--spread" : "fb-page--photo"
+  );
+  const pageLabel = (idx: number) => (
+    idx === 0 ? labels.cover : idx >= 2 ? labels.photo : `${idx} / ${Math.max(pages.length - 1, 1)}`
+  );
+  const onStage = (e: RMouseEvent<HTMLDivElement>) => {
+    const r = e.currentTarget.getBoundingClientRect();
+    if (e.clientX - r.left > r.width / 2) flip("next"); else flip("prev");
+  };
+  const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
+      e.preventDefault();
+      flip("next");
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      flip("prev");
+    }
+  };
+  return (
+    <div className="flipbook">
+      <button className="fb-nav" type="button" onClick={() => flip("prev")} disabled={index === 0 || !!anim} aria-label={labels.prev}>‹</button>
+      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={labels.turn}>
+        <span className="fb-spine" />
+        <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
+        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
+          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(index)} data-testid="landing-hero-flip" />
+        </div>
+      </div>
+      <button className="fb-nav" type="button" onClick={() => flip("next")} disabled={index === pages.length - 1 || !!anim} aria-label={labels.next}>›</button>
+    </div>
+  );
+}
+
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -970,7 +1015,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
-  const [exBook, setExBook] = useState(0);
+  const [heroPick, setHeroPick] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -984,13 +1029,18 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     ? t.hiw.map((h, i) => (i === 0 ? { ...h, p: t.cartoon_hiw_photo } : h))
     : t.hiw;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const exampleBooks = HERO_BOOKS.map((b, i) => ({
-    title: t.hero_books[i],
-    name: b.name,
-    tab: b.tab,
-    cover: b.cover,
-    pages: [b.cover, b.page, b.tab],
-  }));
+  const heroSlides = HERO_STRIP.flatMap((book) => [
+    { src: book.cover[lang], alt: book.name },
+    { src: book.page[lang], alt: book.name },
+    { src: book.photo[lang], alt: book.name },
+  ]);
+  const heroBook = Math.floor(heroPick / 3);
+  const heroPage = heroPick % 3;
+  const heroPages = [
+    HERO_STRIP[heroBook].cover[lang],
+    HERO_STRIP[heroBook].page[lang],
+    HERO_STRIP[heroBook].photo[lang],
+  ];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
@@ -1198,37 +1248,44 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
       </header>
 
-      {/* HERO — proposta de valor + flipbook */}
+      {/* HERO — proposta de valor + faixa de livros */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>
         <div className="khero-intro">
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <div className="khero-flip">
-          <div className="ex-tabs khero-tabs" role="tablist" aria-label={t.story_title}>
-            {exampleBooks.map((b, i) => (
+        <div className="hero-carousel" aria-label={t.hero_sign}>
+          <div className="hero-carousel-track">
+            {[0, 1].map((copy) => heroSlides.map((slide, i) => (
               <button
-                key={b.title}
                 type="button"
-                className={`ex-tab${i === exBook ? " on" : ""}`}
-                onClick={() => setExBook(i)}
-                role="tab"
-                id={`ex-tab-${i}`}
-                aria-label={b.title}
-                aria-selected={i === exBook}
-                aria-controls="ex-book-panel"
+                className={`hero-slide${i === heroPick ? " on" : ""}`}
+                key={`${copy}-${slide.src}-${i}`}
+                aria-hidden={copy === 1 ? true : undefined}
+                aria-pressed={copy === 0 ? i === heroPick : undefined}
+                aria-label={slide.alt}
+                tabIndex={copy === 1 ? -1 : 0}
+                onClick={() => setHeroPick(i)}
+                data-testid={copy === 0 ? `landing-hero-pick-${i}` : undefined}
               >
-                <img className="ex-tab-cover" src={exUrl(b.cover)} alt="" data-testid={`landing-hero-tab-cover-${i}`} />
+                <span className="hero-slide-frame">
+                  <img
+                    src={exUrl(slide.src)}
+                    alt=""
+                    data-testid={copy === 0 ? `landing-hero-slide-${i}` : undefined}
+                  />
+                </span>
               </button>
-            ))}
+            )))}
           </div>
-          <div id="ex-book-panel" role="tabpanel" aria-labelledby={`ex-tab-${exBook}`}>
-            <FlipBook
-              key={exBook}
-              pages={exampleBooks[exBook].pages}
-              labels={flipLabels}
-            />
-          </div>
+        </div>
+        <div className="khero-flipbook">
+          <FlipBook
+            pages={heroPages}
+            index={heroPage}
+            onIndex={(page) => setHeroPick(heroBook * 3 + page)}
+            labels={flipLabels}
+          />
         </div>
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
@@ -1304,21 +1361,20 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
           {t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => {
-            const kind = CATALOG_KINDS[i % CATALOG_KINDS.length];
+            const combo = CATALOG_COMBOS[i % CATALOG_COMBOS.length];
             return (
-            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format={kind}>
+            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format={`${combo.cover}-${combo.size}`}>
               <div className="cat-display">
-                <div className={`cat-book fmt-${kind.toLowerCase()}`}>
+                <div className={`cat-book cover-${combo.cover} size-${combo.size}`}>
                   <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
                 </div>
               </div>
               <div className="cat-body">
                 <div className="cat-badges">
-                  <span className="cat-cover-type">{kind}</span>
-                  <span className="cat-tag">{c.tag}</span>
+                  <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
                 </div>
                 <h3>{c.t}</h3>
-                <p>{CATALOG_KIND_DESC[lang][kind]}</p>
+                <p>{CATALOG_COMBO_DESC[lang][i % CATALOG_COMBOS.length]}</p>
                 <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
               </div>
             </div>
