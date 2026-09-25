@@ -1189,9 +1189,7 @@ img.ex-tab-cover {
 
 /* ---------- Avaliações ---------- */
 #reviews {
-  container-type: inline-size;
   --rev-col-gap: 16px;
-  --rev-card-w: calc((100cqi - var(--rev-col-gap)) / 2);
 }
 #reviews .ktitle,
 #reviews .ksub {
@@ -1212,12 +1210,12 @@ img.ex-tab-cover {
   overflow: visible;
 }
 .rev-carousel {
-  /* Horizontal clip is handled by .kid { overflow-x: clip }.
-     overflow:hidden here was slicing the top of the gold squares. */
-  overflow: visible;
+  overflow: hidden;
   width: 100%;
+  max-width: 100%;
   margin: 8px auto 30px;
-  padding: 12px 0 10px;
+  padding: 16px 0 10px;
+  box-sizing: border-box;
 }
 .rev-carousel-track {
   display: flex;
@@ -1229,9 +1227,9 @@ img.ex-tab-cover {
   animation-play-state: paused;
 }
 .rev-carousel .rev-photo {
-  width: var(--rev-card-w);
-  flex: 0 0 var(--rev-card-w);
-  margin-right: var(--rev-col-gap);
+  width: 168px;
+  flex: 0 0 168px;
+  margin-right: 18px;
   box-sizing: border-box;
 }
 @keyframes rev-marquee {
@@ -1245,6 +1243,7 @@ img.ex-tab-cover {
     flex-wrap: wrap;
     justify-content: center;
   }
+  .rev-carousel .rev-photo { width: min(168px, 42vw); flex-basis: min(168px, 42vw); }
 }
 .rev-photo {
   margin: 0;
@@ -1407,7 +1406,6 @@ img.ex-tab-cover {
   img.ex-tab-cover { width: 100%; padding: 0; }
   .rev-photos { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 100%; gap: 14px; }
   .rev-grid { grid-template-columns: 1fr; max-width: 100%; }
-  #reviews { --rev-card-w: 100cqi; }
   .featured-book .fb-stage { width: min(320px, 86vw); }
   .promise-grid { grid-template-columns: 1fr 1fr; }
   .ba-gallery { grid-template-columns: 1fr; max-width: 420px; }

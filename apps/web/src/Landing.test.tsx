@@ -123,34 +123,32 @@ describe("Landing — avaliações", () => {
     const reviews = (await screen.findByRole("heading", { name: /o que as famílias dizem/i })).closest("section") as HTMLElement;
     const fotos = [
       "foto-martin-goleiro.jpg",
-      "foto-emilia-bailarina.jpg",
-      "foto-antonio-bicicleta.jpg",
-      "foto-mariajesus-hockey.jpg",
-      "foto-facundo-motocross.jpg",
       "foto-nicolas-maefilho.jpg",
+      "foto-emilia-bailarina.jpg",
       "foto-amordemae.jpg",
+      "foto-antonio-bicicleta.jpg",
       "foto-mamaepapaimatteo-en.jpg",
+      "foto-mariajesus-hockey.jpg",
       "foto-amordebisavo.jpg",
+      "foto-facundo-motocross.jpg",
       "foto-natalmemetata.jpg",
-      "foto-nanoaventuras.jpg",
-      "foto-maya-cachorra-pt.jpg",
-      "foto-mako-amigofiel.jpg",
       "foto-ester.png",
       "foto-raquel-papai.png",
       "foto-rebeca.png",
+      "foto-maya-cachorra-pt.jpg",
       "foto-abigail.png",
+      "foto-nanoaventuras.jpg",
       "foto-miriam.png",
+      "foto-mako-amigofiel.jpg",
       "foto-noe.png",
     ];
     fotos.forEach((file, i) => {
       expect(within(reviews).getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
     });
     expect(within(reviews).getByTestId("landing-review-name-0")).toHaveTextContent(/^Martin$/);
-    expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Emilia$/);
-    expect(within(reviews).getByTestId("landing-review-name-3")).toHaveTextContent(/^Maria Jesus$/);
-    expect(within(reviews).getByTestId("landing-review-name-5")).toHaveTextContent(/^Nicolas$/);
-    expect(within(reviews).getByTestId("landing-review-name-12")).toHaveTextContent(/^Mako$/);
-    expect(within(reviews).getByTestId("landing-review-name-13")).toHaveTextContent(/^Ester$/);
+    expect(within(reviews).getByTestId("landing-review-name-1")).toHaveTextContent(/^Nicolas$/);
+    expect(within(reviews).getByTestId("landing-review-name-2")).toHaveTextContent(/^Emilia$/);
+    expect(within(reviews).getByTestId("landing-review-name-11")).toHaveTextContent(/^Raquel$/);
     expect(within(reviews).getByTestId("landing-review-name-18")).toHaveTextContent(/^Noé$/);
     expect(within(reviews).queryByTestId("landing-review-cover-19")).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/o Grande Goleiro do Chile/i)).not.toBeInTheDocument();
