@@ -132,6 +132,15 @@ const CATALOG_THEMES = [
   "underwater",
   "dinosaurs",
 ];
+/** Catálogo da principal: no máximo 15, na ordem Hard → Soft → P → M. */
+const CATALOG_LIMIT = 15;
+const CATALOG_KINDS = ["Hard", "Soft", "P", "M"] as const;
+type CatalogKind = (typeof CATALOG_KINDS)[number];
+const CATALOG_KIND_DESC: Record<Lang, Record<CatalogKind, string>> = {
+  pt: { Hard: "Capa dura", Soft: "Capa mole", P: "Tamanho pequeno", M: "Tamanho médio" },
+  en: { Hard: "Hardcover", Soft: "Softcover", P: "Small size", M: "Medium size" },
+  es: { Hard: "Tapa dura", Soft: "Tapa blanda", P: "Tamaño pequeño", M: "Tamaño mediano" },
+};
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 const NAV_CAT_META = [
@@ -1294,25 +1303,27 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
-          {t.catalog.map((c, i) => (
-            <div className="cat-card reveal" key={c.t}>
+          {t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => {
+            const kind = CATALOG_KINDS[i % CATALOG_KINDS.length];
+            return (
+            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format={kind}>
               <div className="cat-display">
-                <div className="cat-book">
+                <div className={`cat-book fmt-${kind.toLowerCase()}`}>
                   <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
                 </div>
               </div>
               <div className="cat-body">
                 <div className="cat-badges">
-                  <span className="cat-cover-type">{c.cover}</span>
-                  <span className="cat-size">{c.size}</span>
+                  <span className="cat-cover-type">{kind}</span>
                   <span className="cat-tag">{c.tag}</span>
                 </div>
                 <h3>{c.t}</h3>
-                <p>{c.p}</p>
+                <p>{CATALOG_KIND_DESC[lang][kind]}</p>
                 <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

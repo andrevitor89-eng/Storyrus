@@ -478,10 +478,16 @@ a.kcat-btn:active {
   width: 100%;
   height: 100%;
   max-width: none;
-  object-fit: cover;
+  margin: auto;
+  object-fit: contain;
   object-position: center;
   filter: none;
 }
+/* o tamanho na tela acompanha o formato: Hard grande, Soft menor, M médio, P pequeno */
+#catalogo .cat-book.fmt-hard img { width: 100%; height: 100%; object-fit: cover; }
+#catalogo .cat-book.fmt-soft img { width: 84%; height: 84%; }
+#catalogo .cat-book.fmt-m img { width: 72%; height: 72%; }
+#catalogo .cat-book.fmt-p img { width: 56%; height: 56%; }
 .kbh-frame {
   position: relative; width: min(400px, 70vw, calc(50dvh * 3 / 4)); border-radius: 14px 6px 6px 14px;
   overflow: hidden; aspect-ratio: 3 / 4; background: #12203f;
@@ -1360,8 +1366,8 @@ img.ex-tab-cover {
 }
 .cat-body p {
   margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.4;
-  min-height: 4.2em; max-height: 4.2em;
-  display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;
+  min-height: 1.4em; max-height: 2.8em;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
 .cat-price span { display: block; font-size: .82rem; font-weight: 600; color: #9fabce; }

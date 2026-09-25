@@ -174,7 +174,27 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-martin-goleiro.jpg"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-natalmemetata.jpg"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(20);
+    expect(imgs).toHaveLength(15);
+  });
+
+  it("alterna Hard, Soft, P e M e descreve o formato, não o resumo", async () => {
+    renderLanding();
+
+    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    const cards = within(catalog).getAllByTestId("landing-catalog-card");
+    const kinds = ["Hard", "Soft", "P", "M"];
+    expect(cards).toHaveLength(15);
+    cards.forEach((card, i) => {
+      expect(card).toHaveAttribute("data-format", kinds[i % 4]);
+    });
+    expect(within(cards[0]).getByText("Capa dura")).toBeInTheDocument();
+    expect(within(cards[1]).getByText("Capa mole")).toBeInTheDocument();
+    expect(within(cards[2]).getByText("Tamanho pequeno")).toBeInTheDocument();
+    expect(within(cards[3]).getByText("Tamanho médio")).toBeInTheDocument();
+    expect(within(catalog).queryByText(/Goleiro que cai/i)).not.toBeInTheDocument();
+    expect(cards[0].querySelector(".fmt-hard img")).toHaveAttribute("src", expect.stringContaining("capa-martin-goleiro.jpg"));
+    expect(cards[2].querySelector(".fmt-p img")).toHaveAttribute("src", expect.stringContaining("capa-antonio-bicicleta.jpg"));
+    expect(cards[3].querySelector(".fmt-m img")).toHaveAttribute("src", expect.stringContaining("capa-sofia-alfabeto.png"));
   });
 
   it("troca capas localizadas de Bruno e Ester ao mudar o idioma", async () => {
@@ -204,11 +224,9 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
+    expect(personalize).toHaveLength(15);
     expect(personalize[5]).toHaveAttribute("href", "/app?tema=sport");
     expect(personalize[14]).toHaveAttribute("href", "/app?tema=birthday");
-    expect(personalize[15]).toHaveAttribute("href", "/app?tema=fathers_day");
-    expect(personalize[16]).toHaveAttribute("href", "/app?tema=superhero");
-    expect(personalize[19]).toHaveAttribute("href", "/app?tema=dinosaurs");
   });
 });
 
