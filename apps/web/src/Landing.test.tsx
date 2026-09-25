@@ -135,6 +135,12 @@ describe("Landing — avaliações", () => {
       "foto-nanoaventuras.jpg",
       "foto-maya-cachorra-pt.jpg",
       "foto-mako-amigofiel.jpg",
+      "foto-ester.png",
+      "foto-raquel-papai.png",
+      "foto-rebeca.png",
+      "foto-abigail.png",
+      "foto-miriam.png",
+      "foto-noe.png",
     ];
     fotos.forEach((file, i) => {
       expect(within(reviews).getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
@@ -144,7 +150,9 @@ describe("Landing — avaliações", () => {
     expect(within(reviews).getByTestId("landing-review-name-3")).toHaveTextContent(/^Maria Jesus$/);
     expect(within(reviews).getByTestId("landing-review-name-5")).toHaveTextContent(/^Nicolas$/);
     expect(within(reviews).getByTestId("landing-review-name-12")).toHaveTextContent(/^Mako$/);
-    expect(within(reviews).queryByTestId("landing-review-cover-13")).not.toBeInTheDocument();
+    expect(within(reviews).getByTestId("landing-review-name-13")).toHaveTextContent(/^Ester$/);
+    expect(within(reviews).getByTestId("landing-review-name-18")).toHaveTextContent(/^Noé$/);
+    expect(within(reviews).queryByTestId("landing-review-cover-19")).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/o Grande Goleiro do Chile/i)).not.toBeInTheDocument();
   });
 });
@@ -160,9 +168,52 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-amordemae.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-mamaepapaimatteo.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-sofia-alfabeto.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-bruno-animais.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-gael-es.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-matteo-rancho-es.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-ester.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-martin-goleiro.jpg"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-natalmemetata.jpg"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
+    expect(imgs).toHaveLength(22);
+  });
+
+  it("troca capas localizadas de Bruno, Gael e Ester ao mudar o idioma", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    const ptSrcs = within(catalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
+    expect(ptSrcs.some((src) => src.includes("capa-bruno-animais.png"))).toBe(true);
+    expect(ptSrcs.some((src) => src.includes("capa-bruno-animais-en.png"))).toBe(false);
+
+    await user.click(screen.getByTestId("landing-lang-en"));
+    const enCatalog = (await screen.findByRole("heading", { name: /our books/i })).closest("section") as HTMLElement;
+    const enSrcs = within(enCatalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
+    expect(enSrcs.some((src) => src.includes("capa-bruno-animais-en.png"))).toBe(true);
+    expect(enSrcs.some((src) => src.includes("capa-gael-en.png"))).toBe(true);
+    expect(enSrcs.some((src) => src.includes("capa-ester-en.png"))).toBe(true);
+
+    await user.click(screen.getByTestId("landing-lang-es"));
+    const esCatalog = (await screen.findByRole("heading", { name: /nuestros libros/i })).closest("section") as HTMLElement;
+    const esSrcs = within(esCatalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
+    expect(esSrcs.some((src) => src.includes("capa-bruno-animais-es.png"))).toBe(true);
+    expect(esSrcs.some((src) => src.includes("capa-gael-es.png"))).toBe(true);
+    expect(esSrcs.some((src) => src.includes("capa-ester-es.png"))).toBe(true);
+  });
+
+  it("aponta Cristobal para esporte e Gael para educativo", async () => {
+    renderLanding();
+    await screen.findByTestId("landing-hero-cta");
+
+    const personalize = screen.getAllByTestId("landing-personalize");
+    expect(personalize[5]).toHaveAttribute("href", "/app?tema=sport");
+    expect(personalize[14]).toHaveAttribute("href", "/app?tema=pensamento_matematico");
+    expect(personalize[15]).toHaveAttribute("href", "/app?tema=animais_sons");
+    expect(personalize[16]).toHaveAttribute("href", "/app?tema=birthday");
+    expect(personalize[17]).toHaveAttribute("href", "/app?tema=fathers_day");
+    expect(personalize[18]).toHaveAttribute("href", "/app?tema=superhero");
+    expect(personalize[21]).toHaveAttribute("href", "/app?tema=dinosaurs");
   });
 });
 

@@ -79,6 +79,12 @@ const REVIEW_PHOTOS = [
   { tab: "foto-nanoaventuras.jpg", name: "Nano" },
   { tab: "foto-maya-cachorra-pt.jpg", name: "Maya" },
   { tab: "foto-mako-amigofiel.jpg", name: "Mako" },
+  { tab: "foto-ester.png", name: "Ester" },
+  { tab: "foto-raquel-papai.png", name: "Raquel" },
+  { tab: "foto-rebeca.png", name: "Rebeca" },
+  { tab: "foto-abigail.png", name: "Abigail" },
+  { tab: "foto-miriam.png", name: "Miriam" },
+  { tab: "foto-noe.png", name: "Noé" },
 ] as const;
 type CatalogImg = string | Record<Lang, string>;
 function catalogImgSrc(img: CatalogImg, lang: Lang): string {
@@ -89,7 +95,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   "capa-emilia-bailarina.jpg",
   "capa-antonio-bicicleta.jpg",
   "capa-sofia-alfabeto.png",
-  "capa-bruno-animais.png",
+  { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
   "capa-cristobal-esporte.png",
   "capa-nicolas-maefilho.png",
   { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
@@ -99,6 +105,14 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-nanoaventuras.png", en: "capa-nanoaventuras-en.png", es: "capa-nanoaventuras-es.png" },
   { pt: "capa-maya-cachorra-pt.jpg", en: "capa-maya-cachorra-en.jpg", es: "capa-maya-cachorra-es.jpg" },
   { pt: "capa-mako-amigofiel.jpg", en: "capa-mako-amigofiel-en.jpg", es: "capa-mako-amigofiel-es.jpg" },
+  { pt: "capa-gael-es.png", en: "capa-gael-en.png", es: "capa-gael-es.png" },
+  { pt: "capa-matteo-rancho-es.png", en: "capa-matteo-rancho-en.png", es: "capa-matteo-rancho-es.png" },
+  { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" },
+  { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" },
+  { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" },
+  { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" },
+  { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" },
+  { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" },
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -106,7 +120,7 @@ const CATALOG_THEMES = [
   "adventure",
   "alfabetizacao_inicial",
   "animais_sons",
-  "adventure",
+  "sport",
   "mothers_day",
   "mothers_day",
   "family_love",
@@ -115,6 +129,14 @@ const CATALOG_THEMES = [
   "adventure",
   "pets",
   "pets",
+  "pensamento_matematico",
+  "animais_sons",
+  "birthday",
+  "fathers_day",
+  "superhero",
+  "space",
+  "underwater",
+  "dinosaurs",
 ];
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -134,7 +156,7 @@ const NAV_CAT_META = [
     feats: [
       { href: "/app?tema=princess", catalogI: 1 },
       { href: "/app?tema=adventure", catalogI: 0 },
-      { href: "/app?tema=adventure", catalogI: 5 },
+      { href: "/app?tema=sport", catalogI: 5 },
       { href: "/app?tema=adventure", catalogI: 11 },
     ],
   },
@@ -169,6 +191,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=christmas", catalogI: 10 },
       { href: "/app?tema=mothers_day", catalogI: 6 },
       { href: "/app?tema=mothers_day", catalogI: 7 },
+      { href: "/app?tema=birthday", catalogI: 16 },
     ],
   },
   {
@@ -185,6 +208,7 @@ const NAV_CAT_META = [
     feats: [
       { href: "/app?tema=alfabetizacao_inicial", catalogI: 3 },
       { href: "/app?tema=animais_sons", catalogI: 4 },
+      { href: "/app?tema=pensamento_matematico", catalogI: 14 },
     ],
   },
   {
@@ -467,12 +491,12 @@ const I18N = {
       {
         name: "Ocasiões Especiais",
         subs: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais", "Páscoa", "Dia das Crianças", "Ano Novo"],
-        feats: ["Natal", "Dia das Mães", "O Amor de Mãe"],
+        feats: ["Natal", "Dia das Mães", "O Amor de Mãe", "O Aniversário Especial de Ester"],
       },
       {
         name: "Educativo",
         subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Transporte"],
-        feats: ["Alfabetização", "Animais"],
+        feats: ["Alfabetização", "Animais", "Gael e o Cofrinho"],
       },
       {
         name: "Sentimentos",
@@ -553,6 +577,14 @@ const I18N = {
       { t: "Nano e suas Aventuras", p: "Uma aventura marítima só dele: vento nas orelhas, mar azul e a alegria de explorar ao lado de quem ama, para guardar para sempre.", cover: "Hard", size: "M", tag: "Aventura e mar", quote: "Vento nas orelhas, mar pela frente — a aventura começou!" },
       { t: "Maya, Minha Cachorra Carinhosa", p: "Uma amizade cheia de carinho entre uma menina e sua cadela: cuidado, afeto e companhia em cada página.", cover: "Soft", size: "M", tag: "Amizade e cuidado", quote: "Amor e cuidado, todos os dias." },
       { t: "Mako, Meu Amigo Fiel", p: "Um bebê e seu cão fiel: lealdade, proteção e carinho em uma amizade só deles.", cover: "Soft", size: "M", tag: "Amizade e lealdade", quote: "Amor fiel, todos os dias." },
+      { t: "Gael e o Cofrinho", p: "Aprender a guardar, esperar e sonhar grande: o primeiro passo do seu filho rumo ao dinheiro com carinho.", cover: "Soft", size: "M", tag: "Educação financeira", quote: "Poupar também é crescer!" },
+      { t: "Matteo e os Cuidados do Rancho", p: "No rancho, cuidar dos animais ensina gentileza, responsabilidade e amor pela natureza.", cover: "Soft", size: "M", tag: "Animais e cuidado", quote: "Cuidar é amar!" },
+      { t: "O Aniversário Especial de Ester", p: "Velas, abraços e um pedido no coração: o aniversário do seu filho vira uma história só dele.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Mais um ano de felicidade!" },
+      { t: "Raquel e Papai: Aventuras para Sempre", p: "Mão na mão com o papai, cada caminho vira memória — uma aventura para guardar para sempre.", cover: "Hard", size: "M", tag: "Papai e eu", quote: "Juntos, a aventura nunca acaba." },
+      { t: "Rebeca, a Pequena Grande Heroína", p: "Capa ao vento e coragem no peito: o seu filho salva o dia com o coração.", cover: "Hard", size: "M", tag: "Super-heróis", quote: "Ser herói começa com um sorriso." },
+      { t: "Abigail em uma Aventura pelo Espaço", p: "Foguetes, planetas e curiosidade: uma viagem estelar com o seu filho no comando.", cover: "Hard", size: "M", tag: "Espaço", quote: "Coragem, curiosidade e descobertas!" },
+      { t: "Miriam e os Segredos do Fundo do Mar", p: "Tartarugas, corais e amizade: o seu filho explora o oceano com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do mar", quote: "Cuidar do mar é cuidar dos amigos." },
+      { t: "Noé na Terra dos Dinossauros", p: "Fósseis, amigos gigantes e coragem: uma expedição pré-histórica com o seu filho.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Descobrir juntos é a melhor aventura." },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -618,12 +650,12 @@ const I18N = {
       {
         name: "Special Occasions",
         subs: ["Christmas", "Birthday", "Mother's Day", "Father's Day", "Easter", "Children's Day", "New Year"],
-        feats: ["Christmas", "Mother's Day", "A Mother's Love"],
+        feats: ["Christmas", "Mother's Day", "A Mother's Love", "Ester's Special Birthday"],
       },
       {
         name: "Educational",
         subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Transport"],
-        feats: ["Literacy", "Animals"],
+        feats: ["Literacy", "Animals", "Gael and the Piggy Bank"],
       },
       {
         name: "Feelings",
@@ -704,6 +736,14 @@ const I18N = {
       { t: "Nano and His Adventures", p: "A sea adventure all his own: the wind in his ears, the blue ocean and the joy of exploring beside the ones he loves, to treasure forever.", cover: "Hard", size: "M", tag: "Adventure and sea", quote: "Wind in his ears, sea ahead — the adventure has begun!" },
       { t: "Maya, My Loving Dog", p: "A heartwarming friendship between a girl and her dog: care, affection and companionship on every page.", cover: "Soft", size: "M", tag: "Friendship and care", quote: "Love and care, every day." },
       { t: "Mako, My Loyal Friend", p: "A baby and his loyal dog: loyalty, protection and affection in a friendship all their own.", cover: "Soft", size: "M", tag: "Friendship and loyalty", quote: "Loyal love, every day." },
+      { t: "Gael and the Piggy Bank", p: "Learning to save, wait and dream big: your child's first steps toward money with kindness.", cover: "Soft", size: "M", tag: "Financial literacy", quote: "Saving helps us grow!" },
+      { t: "Matteo and the Care of the Ranch", p: "On the ranch, caring for animals teaches kindness, responsibility and love for nature.", cover: "Soft", size: "M", tag: "Animals and care", quote: "Caring is loving!" },
+      { t: "Ester's Special Birthday", p: "Candles, hugs and a wish from the heart: your child's birthday becomes a story all their own.", cover: "Hard", size: "M", tag: "Birthday", quote: "One more year of happiness!" },
+      { t: "Raquel and Dad: Adventures Forever", p: "Hand in hand with dad, every path becomes a memory — an adventure to keep forever.", cover: "Hard", size: "M", tag: "Dad and me", quote: "Together, the adventure never ends." },
+      { t: "Rebeca, the Little Great Heroine", p: "Cape in the wind and courage in her heart: your child saves the day with kindness.", cover: "Hard", size: "M", tag: "Superheroes", quote: "Being a hero starts with a smile." },
+      { t: "Abigail on a Space Adventure", p: "Rockets, planets and curiosity: a starry journey with your child at the helm.", cover: "Hard", size: "M", tag: "Space", quote: "Courage, curiosity and discovery!" },
+      { t: "Miriam and the Secrets of the Deep Sea", p: "Turtles, coral and friendship: your child explores the ocean with care and wonder.", cover: "Hard", size: "M", tag: "Under the sea", quote: "Caring for the sea is caring for friends." },
+      { t: "Noé in the Land of Dinosaurs", p: "Fossils, giant friends and courage: a prehistoric expedition with your child.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "Discovering together is the best adventure." },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -769,12 +809,12 @@ const I18N = {
       {
         name: "Ocasiones Especiales",
         subs: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre", "Pascua", "Día del Niño", "Año Nuevo"],
-        feats: ["Navidad", "Día de la Madre", "El Amor de Mamá"],
+        feats: ["Navidad", "Día de la Madre", "El Amor de Mamá", "El Cumpleaños Especial de Ester"],
       },
       {
         name: "Educativo",
         subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Transporte"],
-        feats: ["Alfabetización", "Animales"],
+        feats: ["Alfabetización", "Animales", "Gael y la Alcancía"],
       },
       {
         name: "Sentimientos",
@@ -855,6 +895,14 @@ const I18N = {
       { t: "Nano y sus Aventuras", p: "Una aventura marítima solo para él: viento en las orejas, mar azul y la alegría de explorar junto a quienes ama, para guardar para siempre.", cover: "Hard", size: "M", tag: "Aventura y mar", quote: "Viento en las orejas, mar por delante — ¡la aventura comenzó!" },
       { t: "Maya, Mi Perrita Cariñosa", p: "Una amistad llena de cariño entre una niña y su perrita: cuidado, afecto y compañía en cada página.", cover: "Soft", size: "M", tag: "Amistad y cuidado", quote: "Amor y cuidado, todos los días." },
       { t: "Mako, Mi Amigo Fiel", p: "Un bebé y su perro fiel: lealtad, protección y cariño en una amistad solo de ellos.", cover: "Soft", size: "M", tag: "Amistad y lealtad", quote: "Amor fiel, todos los días." },
+      { t: "Gael y la Alcancía", p: "Aprender a guardar, esperar y soñar en grande: el primer paso de tu hijo hacia el dinero con cariño.", cover: "Soft", size: "M", tag: "Educación financiera", quote: "¡Ahorrar también es crecer!" },
+      { t: "Matteo y los Cuidados del Rancho", p: "En el rancho, cuidar a los animales enseña gentileza, responsabilidad y amor por la naturaleza.", cover: "Soft", size: "M", tag: "Animales y cuidado", quote: "¡Cuidar es amar!" },
+      { t: "El Cumpleaños Especial de Ester", p: "Velas, abrazos y un deseo en el corazón: el cumpleaños de tu hijo se vuelve una historia solo de él.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Un año más de felicidad!" },
+      { t: "Raquel y Papá: Aventuras para Siempre", p: "De la mano con papá, cada camino se vuelve recuerdo — una aventura para guardar para siempre.", cover: "Hard", size: "M", tag: "Papá y yo", quote: "Juntos, la aventura nunca termina." },
+      { t: "Rebeca, la Pequeña Gran Heroína", p: "Capa al viento y coraje en el pecho: tu hijo salva el día con el corazón.", cover: "Hard", size: "M", tag: "Superhéroes", quote: "Ser héroe empieza con una sonrisa." },
+      { t: "Abigail en una Aventura por el Espacio", p: "Cohetes, planetas y curiosidad: un viaje estelar con tu hijo al mando.", cover: "Hard", size: "M", tag: "Espacio", quote: "¡Coraje, curiosidad y descubrimientos!" },
+      { t: "Miriam y los Secretos del Fondo del Mar", p: "Tortugas, corales y amistad: tu hijo explora el océano con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del mar", quote: "Cuidar el mar es cuidar a los amigos." },
+      { t: "Noé en la Tierra de los Dinosaurios", p: "Fósiles, amigos gigantes y coraje: una expedición prehistórica con tu hijo.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Descubrir juntos es la mejor aventura." },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
