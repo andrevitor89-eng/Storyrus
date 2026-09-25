@@ -372,9 +372,11 @@ describe("Landing — CTAs e links", () => {
       expect(link).toHaveAttribute("href", "/cartoon");
     }
     expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
+    expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
   });
 
-  it("rota /cartoon renderiza a cópia da landing", async () => {
+  it("rota /cartoon renderiza a cópia da landing com o como funciona antigo", async () => {
     render(
       <MemoryRouter initialEntries={["/cartoon"]}>
         <AppRoutes />
@@ -387,5 +389,9 @@ describe("Landing — CTAs e links", () => {
     for (const link of cartoonLinks) {
       expect(link).toHaveAttribute("href", "/cartoon");
     }
+    expect(screen.getByRole("heading", { name: /dicas para a foto perfeita/i })).toBeInTheDocument();
+    expect(screen.getByText(/nítida, bem iluminada e centralizada/i)).toBeInTheDocument();
+    expect(screen.getByText(/uma foto da criança já basta para começar/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
   });
 });

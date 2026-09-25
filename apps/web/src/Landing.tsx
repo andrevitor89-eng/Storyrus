@@ -25,6 +25,8 @@ const IcShield = ({ className }: IconProps) => (<Svg className={className}><path
 const IcEye = ({ className }: IconProps) => (<Svg className={className}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.6" /></Svg>);
 const IcTruck = ({ className }: IconProps) => (<Svg className={className}><path d="M3 6.5h11v9H3zM14 9.5h4l3 3v3h-7z" /><circle cx="7" cy="18" r="1.6" /><circle cx="17.5" cy="18" r="1.6" /></Svg>);
 const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="M10 9.5l4.5 2.5-4.5 2.5z" fill="currentColor" stroke="none" /></Svg>);
+const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
+const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 const IcMail = ({ className }: IconProps) => (
   <Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.5 7.5 12 13l8.5-5.5" /></Svg>
 );
@@ -47,6 +49,11 @@ type CoverFont = "fredoka" | "baloo" | "lilita";
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
+const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
+  { img: "dica-boa.png", ok: true, focus: "center center" },
+  { img: "dica-multi.png", ok: false, focus: "68% 38%" },
+  { img: "dica-lado.png", ok: false, focus: "78% 32%" },
+];
 /** Hero FlipBook: only lifestyle books (child holding the book) from landing/ */
 const HERO_BOOKS = [
   { tab: "foto-martin-goleiro.jpg", cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", name: "Martin" },
@@ -209,6 +216,72 @@ const NAV_CAT_META = [
   },
 ] as const;
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
+
+function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
+  const face = "#f4c19a", hair = "#6b4a2b", eye = "#3a2b1c", mouth = "#a15a3a";
+  if (kind === "multi") {
+    return (
+      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+        <rect width="120" height="120" fill="#e7ecf4" />
+        <g>
+          <rect x="24" y="76" width="20" height="26" rx="10" fill="#8fb4dd" />
+          <circle cx="34" cy="58" r="16" fill={face} /><path d="M19 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill="#7a5230" />
+          <circle cx="29" cy="57" r="2.1" fill={eye} /><circle cx="39" cy="57" r="2.1" fill={eye} /><path d="M29 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
+        </g>
+        <g>
+          <rect x="76" y="76" width="20" height="26" rx="10" fill="#8ccdb0" />
+          <circle cx="86" cy="58" r="16" fill={face} /><path d="M71 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill={hair} />
+          <circle cx="81" cy="57" r="2.1" fill={eye} /><circle cx="91" cy="57" r="2.1" fill={eye} /><path d="M81 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
+        </g>
+        <g>
+          <rect x="47" y="72" width="26" height="34" rx="12" fill="#e79a9a" />
+          <circle cx="60" cy="52" r="19" fill="#eab98f" /><path d="M41 51q0-21 19-21t19 21q0-10-19-10t-19 10Z" fill="#4a3320" />
+          <circle cx="54" cy="51" r="2.4" fill={eye} /><circle cx="66" cy="51" r="2.4" fill={eye} /><path d="M54 58q6 5 12 0" stroke={mouth} strokeWidth="2.2" fill="none" strokeLinecap="round" />
+        </g>
+      </svg>
+    );
+  }
+  if (kind === "side") {
+    return (
+      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+        <rect width="120" height="120" fill="#e7ecf4" />
+        <rect x="50" y="88" width="16" height="18" rx="8" fill="#eeb086" />
+        <circle cx="56" cy="60" r="28" fill={face} />
+        <path d="M28 60q0-30 28-30 16 0 25 12l-12 3q-7-9-17-7-24 4-24 22Z" fill={hair} />
+        <path d="M30 62q-3 14 10 20-8-16-2-28-5 2-8 8Z" fill={hair} />
+        <circle cx="46" cy="63" r="4" fill="#eeb086" />
+        <path d="M83 57q7 4 0 9" fill={face} stroke="#e2a880" strokeWidth="1.4" />
+        <circle cx="71" cy="58" r="3.1" fill={eye} />
+        <path d="M70 72q7 3 12 0" stroke={mouth} strokeWidth="2.6" fill="none" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  if (kind === "covered") {
+    return (
+      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+        <rect width="120" height="120" fill="#e7ecf4" />
+        <rect x="52" y="88" width="16" height="18" rx="8" fill="#eeb086" />
+        <circle cx="60" cy="60" r="30" fill={face} />
+        <path d="M30 58q0-30 30-30t30 30q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
+        <circle cx="50" cy="56" r="3.3" fill={eye} /><circle cx="70" cy="56" r="3.3" fill={eye} />
+        <path d="M34 66q26-6 52 0l0 8q-26 18-52 0Z" fill="#7f9bc4" />
+        <path d="M34 66l-6 4M86 66l6 4" stroke="#7f9bc4" strokeWidth="3" strokeLinecap="round" />
+      </svg>
+    );
+  }
+  return (
+    <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
+      <rect width="120" height="120" fill="#ffe0b0" />
+      <circle cx="97" cy="23" r="15" fill="#fff2cf" opacity="0.85" />
+      <rect x="52" y="86" width="16" height="18" rx="8" fill="#eeb086" />
+      <circle cx="60" cy="62" r="30" fill={face} />
+      <path d="M30 60q0-32 30-32t30 32q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
+      <circle cx="50" cy="60" r="3.4" fill={eye} /><circle cx="70" cy="60" r="3.4" fill={eye} />
+      <circle cx="46" cy="70" r="4" fill="#f2a982" opacity=".6" /><circle cx="74" cy="70" r="4" fill="#f2a982" opacity=".6" />
+      <path d="M49 74q11 10 22 0" stroke={mouth} strokeWidth="3" fill="none" strokeLinecap="round" />
+    </svg>
+  );
+}
 
 /** Vídeo de exemplo: carrega e toca só quando entra na tela. */
 function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
@@ -443,6 +516,10 @@ const I18N = {
       { t: "Família, roupa e pets", p: "Para manter a roupa, uma foto dela inteira. Cada familiar: 2 a 3 fotos sozinho. O animal: frente, perfil e corpo inteiro, com pelagem e marcas visíveis." },
       { t: "Junto com as fotos", p: "Nome e idade, título, tema, quem aparece, idioma (português, espanhol ou inglês) e o que não pode mudar." },
     ],
+    shot_title: "Dicas para a foto perfeita",
+    cartoon_shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
+    cartoon_shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
+    cartoon_hiw_photo: "Uma foto da criança já basta para começar.",
     hero_books: [
       "Martin, o Grande Goleiro do Chile",
       "Emilia e os Primeiros Passos da Bailarina",
@@ -603,6 +680,10 @@ const I18N = {
       { t: "Family, clothes, and pets", p: "To keep the outfit, one photo of it in full. Each family member: 2 to 3 photos alone. The animal: front, profile, and full body, with fur and markings visible." },
       { t: "Along with the photos", p: "Name and age, title, theme, who appears, language (Portuguese, Spanish, or English), and what must not change." },
     ],
+    shot_title: "Tips for the perfect photo",
+    cartoon_shot_sub: "Upload a clear photo of your child with the face centered.",
+    cartoon_shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
+    cartoon_hiw_photo: "One photo of your child is all it takes to begin.",
     hero_books: [
       "Martin, the Great Goalkeeper of Chile",
       "Emilia and the Ballerina's First Steps",
@@ -763,6 +844,10 @@ const I18N = {
       { t: "Familia, ropa y mascotas", p: "Para mantener la ropa, una foto de ella completa. Cada familiar: 2 o 3 fotos solo. El animal: frente, perfil y cuerpo entero, con pelaje y marcas visibles." },
       { t: "Junto con las fotos", p: "Nombre y edad, título, tema, quién aparece, idioma (portugués, español o inglés) y lo que no puede cambiar." },
     ],
+    shot_title: "Consejos para la foto perfecta",
+    cartoon_shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
+    cartoon_shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
+    cartoon_hiw_photo: "Una foto del niño ya basta para empezar.",
     hero_books: [
       "Martin, el gran arquero de Chile",
       "Emilia y los primeros pasos de la bailarina",
@@ -859,7 +944,7 @@ const I18N = {
   },
 } as const;
 
-export function Landing() {
+export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const [navOpen, setNavOpen] = useState(false);
@@ -885,6 +970,10 @@ export function Landing() {
     return "fredoka";
   });
   const t = I18N[lang];
+  const classicHow = variant === "cartoon";
+  const hiwSteps = classicHow
+    ? t.hiw.map((h, i) => (i === 0 ? { ...h, p: t.cartoon_hiw_photo } : h))
+    : t.hiw;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const exampleBooks = HERO_BOOKS.map((b, i) => ({
     title: t.hero_books[i],
@@ -1143,19 +1232,45 @@ export function Landing() {
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
           <p className="ksub">{t.hiw_sub}</p>
-          <div className="shot-tips">
-            <p className="shot-sub">{t.shot_sub}</p>
-            <div className="shot-grid">
-              {t.shots.map((s) => (
-                <article className="shot" key={s.t}>
-                  <h3>{s.t}</h3>
-                  <p>{s.p}</p>
-                </article>
-              ))}
-            </div>
+          <div className={`shot-tips${classicHow ? " shot-tips-classic" : ""}`}>
+            {classicHow ? (
+              <>
+                <h3>{t.shot_title}</h3>
+                <p className="shot-sub">{t.cartoon_shot_sub}</p>
+                <div className="shot-grid">
+                  {SHOTS.map((s, i) => (
+                    <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
+                      <div className="shot-ava-wrap">
+                        <div className="shot-ava">
+                          {s.img ? (
+                            <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                          ) : (
+                            <ShotArt kind={s.art ?? "good"} />
+                          )}
+                        </div>
+                        <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+                      </div>
+                      {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="shot-sub">{t.shot_sub}</p>
+                <div className="shot-grid">
+                  {t.shots.map((s) => (
+                    <article className="shot" key={s.t}>
+                      <h3>{s.t}</h3>
+                      <p>{s.p}</p>
+                    </article>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
           <div className="howex">
-            {t.hiw.map((h, i) => (
+            {hiwSteps.map((h, i) => (
               <Fragment key={h.t}>
                 <figure className={`howex-card${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
                   <div className="howex-media">
