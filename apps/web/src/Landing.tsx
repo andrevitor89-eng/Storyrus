@@ -67,9 +67,9 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   },
   {
     name: "Amor de Mãe",
-    cover: heroAsset("capa-amordemae.jpg", "capa-amordemae-en.jpg", "capa-amordemae-es.jpg"),
-    page: heroAsset("pagina-amordemae-en.jpg", "pagina-amordemae-en.jpg", "pagina-amordemae-es.jpg"),
-    photo: heroAsset("foto-amordemae-en.jpg", "foto-amordemae-en.jpg", "foto-amordemae-es.jpg"),
+    cover: heroAsset("capa-amordemae.jpg"),
+    page: heroAsset("pagina-amordemae.jpg"),
+    photo: heroAsset("foto-amordemae.jpg"),
   },
   {
     name: "Mako",
