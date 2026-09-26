@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "./Landing";
@@ -321,31 +321,27 @@ describe("Landing — menu mobile e abas do hero", () => {
 
     const cover = await screen.findByTestId("landing-hero-slide-0");
     expect(cover).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
 
     const carousel = cover.closest(".hero-carousel") as HTMLElement;
-    const carouselSrcs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
-    expect(carouselSrcs.every((src) => /\/capa-/.test(src))).toBe(true);
-    const natalCovers = carouselSrcs.filter((src) => src.includes("capa-natalmemetata.jpg") && !src.includes("capa-natalmemetata-e"));
+    const natalCovers = [...carousel.querySelectorAll("img")].filter((img) => {
+      const src = img.getAttribute("src") ?? "";
+      return src.includes("capa-natalmemetata.jpg") && !src.includes("capa-natalmemetata-e");
+    });
     expect(natalCovers).toHaveLength(2);
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata.jpg"));
-
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
-    await waitFor(() => {
-      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
-    });
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
-    await waitFor(() => {
-      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
-    });
+    expect(screen.queryByRole("button", { name: /próxima página/i })).not.toBeInTheDocument();
 
     await user.click(screen.getByTestId("landing-hero-pick-1"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
 
     await user.click(screen.getByTestId("landing-lang-es"));
     expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata-es.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras-es.jpg"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras-es.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-es.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata-es.jpg"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-es.jpg"));
   });
 
   it("coloca o texto Uma foto abaixo do titulo Transforme", async () => {
