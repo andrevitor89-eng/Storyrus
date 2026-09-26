@@ -108,6 +108,39 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     photo: heroAsset("foto-facundo-motocross.jpg"),
   },
 ];
+/** Hero do /cartoon: só livros com visual de desenho. */
+const HERO_STRIP_CARTOON: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
+  {
+    name: "Floresta Encantada",
+    cover: heroAsset("capa-floresta.jpg"),
+    page: heroAsset("flor-2.jpg"),
+    photo: heroAsset("flor-6.jpg"),
+  },
+  {
+    name: "Dino",
+    cover: heroAsset("capa-dino2.jpg"),
+    page: heroAsset("dino-2.jpg"),
+    photo: heroAsset("dino-6.jpg"),
+  },
+  {
+    name: "Circo",
+    cover: heroAsset("capa-circo.jpg"),
+    page: heroAsset("circo-2.jpg"),
+    photo: heroAsset("circo-6.jpg"),
+  },
+  {
+    name: "Oceano",
+    cover: heroAsset("capa-oceano.jpg"),
+    page: heroAsset("mar-2.jpg"),
+    photo: heroAsset("mar-6.jpg"),
+  },
+  {
+    name: "Amazônia",
+    cover: heroAsset("capa-amazonia.jpg"),
+    page: heroAsset("amazonia-3.jpg"),
+    photo: heroAsset("amazonia-6.jpg"),
+  },
+];
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
@@ -188,10 +221,38 @@ const CATALOG_THEMES = [
 ];
 /** Catálogo da principal: no máximo 15, todos com a mesma capa, tamanho e preço. */
 const CATALOG_LIMIT = 15;
+/** Catálogo do /cartoon: só capas com visual de desenho. */
+const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[] = [
+  {
+    img: "capa-floresta.jpg",
+    theme: "fantasy",
+    t: { pt: "Floresta Encantada", en: "Enchanted Forest", es: "Bosque Encantado" },
+  },
+  {
+    img: "capa-dino2.jpg",
+    theme: "dinosaurs",
+    t: { pt: "Mundo dos Dinossauros", en: "Dinosaur World", es: "Mundo de los Dinosaurios" },
+  },
+  {
+    img: "capa-circo.jpg",
+    theme: "adventure",
+    t: { pt: "No Circo", en: "At the Circus", es: "En el Circo" },
+  },
+  {
+    img: "capa-oceano.jpg",
+    theme: "underwater",
+    t: { pt: "Fundo do Mar", en: "Under the Sea", es: "Fondo del Mar" },
+  },
+  {
+    img: "capa-amazonia.jpg",
+    theme: "adventure",
+    t: { pt: "Amazônia", en: "The Amazon", es: "La Amazonía" },
+  },
+];
 const CATALOG_DESC: Record<Lang, string> = {
-  pt: "Capa dura ou mole, 15 × 15 cm ou 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-  en: "Hardcover or softcover, 15 × 15 cm or 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
-  es: "Tapa dura o blanda, 15 × 15 cm o 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
+  pt: "Capa dura ou mole, 15 × 15 cm ou 20 × 20 cm. 16 páginas.",
+  en: "Hardcover or softcover, 15 × 15 cm or 20 × 20 cm. 16 pages.",
+  es: "Tapa dura o blanda, 15 × 15 cm o 20 × 20 cm. 16 páginas.",
 };
 const CATALOG_PRICE: Record<Lang, string> = {
   pt: "Sob consulta",
@@ -485,21 +546,22 @@ const I18N = {
     ba_title: "Antes e depois de verdade",
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
-    hiw_title: "Como funciona", hiw_sub: "Você envia a foto e nós transformamos seu filho em um personagem ilustrado, criando uma aventura personalizada.",
+    hiw_title: "Como funciona", hiw_sub: "Você manda as fotos. A gente faz o livro, com seu filho como personagem.",
     hiw: [
-      { t: "Você envia a foto", p: "Fotos nítidas da criança e de quem mais entra na história." },
-      { t: "Criamos o personagem e a história", p: "Ilustração fiel à foto e um texto só de vocês." },
-      { t: "Sua criança ganha o livro", p: "Páginas ilustradas para guardar para sempre." },
+      { t: "Envie as fotos", p: "Da criança e de quem entra na história." },
+      { t: "A gente cria o livro", p: "Um personagem parecido com a foto e uma história só de vocês." },
+      { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
-    shot_sub: "Quanto mais claras e variadas as fotos, mais parecidos ficam os personagens.",
+    shot_sub: "Fotos nítidas deixam o personagem mais parecido.",
     shots: [
-      { t: "A criança", p: "3 a 5 fotos recentes, nítidas e coloridas, com luz natural. Uma de frente, perto e centralizada, com olhos, cabelo, orelhas e o formato do rosto visíveis; também um leve perfil e o corpo inteiro. Sem filtro, chapéu, óculos escuros ou nada cobrindo o rosto." },
-      { t: "Família, roupa e pets", p: "Para manter a roupa, uma foto dela inteira. Cada familiar: 2 a 3 fotos sozinho. O animal: frente, perfil e corpo inteiro, com pelagem e marcas visíveis." },
-      { t: "Junto com as fotos", p: "Nome e idade, título, tema, quem aparece, idioma (português, espanhol ou inglês) e o que não pode mudar." },
+      { t: "A criança", p: "3 a 5 fotos recentes, de frente e com boa luz. Sem filtro, chapéu ou óculos escuros." },
+      { t: "Família e pets", p: "Cada pessoa: 2 ou 3 fotos sozinha. O pet: de frente e de corpo inteiro." },
+      { t: "O que contar", p: "Nome, idade, tema do livro e idioma." },
     ],
     shot_title: "Dicas para a foto perfeita",
     cartoon_shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
     cartoon_shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
+    cartoon_hiw_title: "Você envia a foto",
     cartoon_hiw_photo: "Uma foto da criança já basta para começar.",
     hero_books: [
       "Martin, o Grande Goleiro do Chile",
@@ -649,21 +711,22 @@ const I18N = {
     ba_title: "Real before and after",
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
-    hiw_title: "How it works", hiw_sub: "You send the photo and we turn your child into an illustrated character, creating a personalized adventure.",
+    hiw_title: "How it works", hiw_sub: "You send the photos. We make the book, with your child as the character.",
     hiw: [
-      { t: "You send the photo", p: "Clear photos of your child and of anyone else in the story." },
-      { t: "We create the character and story", p: "An illustration true to the photo and a story that's all yours." },
-      { t: "Your child gets the book", p: "Illustrated pages to keep forever." },
+      { t: "Send the photos", p: "Of your child and anyone else in the story." },
+      { t: "We make the book", p: "A character that looks like the photo, and a story just for you." },
+      { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
-    shot_sub: "The clearer and more varied the photos, the closer the characters will look.",
+    shot_sub: "Clear photos make the character look more like your child.",
     shots: [
-      { t: "The child", p: "3 to 5 recent, sharp, colorful photos in natural light. One close-up, centered and facing forward, with eyes, hair, ears, and the shape of the face visible; also a slight side angle and a full-body shot. No filters, hats, sunglasses, or anything covering the face." },
-      { t: "Family, clothes, and pets", p: "To keep the outfit, one photo of it in full. Each family member: 2 to 3 photos alone. The animal: front, profile, and full body, with fur and markings visible." },
-      { t: "Along with the photos", p: "Name and age, title, theme, who appears, language (Portuguese, Spanish, or English), and what must not change." },
+      { t: "The child", p: "3 to 5 recent photos, facing the camera, in good light. No filters, hats, or sunglasses." },
+      { t: "Family and pets", p: "Each person: 2 or 3 photos alone. Pets: front and full body." },
+      { t: "What to tell us", p: "Name, age, book theme, and language." },
     ],
     shot_title: "Tips for the perfect photo",
     cartoon_shot_sub: "Upload a clear photo of your child with the face centered.",
     cartoon_shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
+    cartoon_hiw_title: "You send the photo",
     cartoon_hiw_photo: "One photo of your child is all it takes to begin.",
     hero_books: [
       "Martin, the Great Goalkeeper of Chile",
@@ -813,21 +876,22 @@ const I18N = {
     ba_title: "Antes y después de verdad",
     ba_sub: "Fotos reales convertidas en personajes ilustrados.",
     ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
-    hiw_title: "Cómo funciona", hiw_sub: "Envías la foto y transformamos a tu hijo en un personaje ilustrado, creando una aventura personalizada.",
+    hiw_title: "Cómo funciona", hiw_sub: "Tú envías las fotos. Nosotros hacemos el libro, con tu hijo como personaje.",
     hiw: [
-      { t: "Tú envías la foto", p: "Fotos nítidas del niño y de quien más entra en la historia." },
-      { t: "Creamos el personaje y la historia", p: "Ilustración fiel a la foto y un texto solo de ustedes." },
-      { t: "Tu niño recibe el libro", p: "Páginas ilustradas para guardar para siempre." },
+      { t: "Envía las fotos", p: "Del niño y de quien más entra en la historia." },
+      { t: "Creamos el libro", p: "Un personaje parecido a la foto y una historia solo de ustedes." },
+      { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
-    shot_sub: "Cuanto más claras y variadas sean las fotos, más parecidos quedarán los personajes.",
+    shot_sub: "Fotos nítidas hacen que el personaje se parezca más.",
     shots: [
-      { t: "El niño", p: "De 3 a 5 fotos recientes, nítidas y a color, con luz natural. Una de frente, cerca y centrada, con ojos, cabello, orejas y la forma del rostro visibles; también un leve perfil y el cuerpo entero. Sin filtro, sombrero, gafas de sol ni nada que cubra el rostro." },
-      { t: "Familia, ropa y mascotas", p: "Para mantener la ropa, una foto de ella completa. Cada familiar: 2 o 3 fotos solo. El animal: frente, perfil y cuerpo entero, con pelaje y marcas visibles." },
-      { t: "Junto con las fotos", p: "Nombre y edad, título, tema, quién aparece, idioma (portugués, español o inglés) y lo que no puede cambiar." },
+      { t: "El niño", p: "De 3 a 5 fotos recientes, de frente y con buena luz. Sin filtro, sombrero ni gafas de sol." },
+      { t: "Familia y mascotas", p: "Cada persona: 2 o 3 fotos sola. La mascota: de frente y de cuerpo entero." },
+      { t: "Qué contarnos", p: "Nombre, edad, tema del libro e idioma." },
     ],
     shot_title: "Consejos para la foto perfecta",
     cartoon_shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
     cartoon_shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
+    cartoon_hiw_title: "Tú envías la foto",
     cartoon_hiw_photo: "Una foto del niño ya basta para empezar.",
     hero_books: [
       "Martin, el gran arquero de Chile",
@@ -1057,11 +1121,19 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const t = I18N[lang];
   const classicHow = variant === "cartoon";
   const hiwSteps = classicHow
-    ? t.hiw.map((h, i) => (i === 0 ? { ...h, p: t.cartoon_hiw_photo } : h))
+    ? t.hiw.map((h, i) => (i === 0 ? { ...h, t: t.cartoon_hiw_title, p: t.cartoon_hiw_photo } : h))
     : t.hiw;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const heroSlides = HERO_STRIP.map((book) => ({ src: book.cover[lang], alt: book.name }));
-  const picked = HERO_STRIP[heroBook];
+  const heroStrip = variant === "cartoon" ? HERO_STRIP_CARTOON : HERO_STRIP;
+  const catalogBooks = variant === "cartoon"
+    ? CATALOG_DRAWING.map((book) => ({ t: book.t[lang], img: book.img, theme: book.theme }))
+    : t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => ({
+        t: c.t,
+        img: catalogImgSrc(CATALOG_IMGS[i], lang),
+        theme: CATALOG_THEMES[i],
+      }));
+  const heroSlides = heroStrip.map((book) => ({ src: book.cover[lang], alt: book.name }));
+  const picked = heroStrip[heroBook] ?? heroStrip[0];
   const heroPages = [picked.cover[lang], picked.page[lang], picked.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
@@ -1383,12 +1455,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
-          {t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => {
-            return (
+          {catalogBooks.map((c) => (
             <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog">
               <div className="cat-display">
                 <div className="cat-book">
-                  <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
+                  <img src={exUrl(c.img)} alt={c.t} loading="lazy" />
                 </div>
               </div>
               <div className="cat-body">
@@ -1397,11 +1468,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </div>
                 <h3>{c.t}</h3>
                 <p>{CATALOG_DESC[lang]}</p>
-                <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
+                <Link to={`/app?tema=${c.theme}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
               </div>
             </div>
-            );
-          })}
+          ))}
         </div>
       </section>
 
