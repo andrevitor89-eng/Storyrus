@@ -187,7 +187,7 @@ describe("Landing — catálogo", () => {
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
       expect(within(card).getByText(desc)).toBeInTheDocument();
-      expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 39,00 ou R$ 59,00");
+      expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("Sob consulta");
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
     });
     expect(within(catalog).queryByText(/Goleiro que cai/i)).not.toBeInTheDocument();

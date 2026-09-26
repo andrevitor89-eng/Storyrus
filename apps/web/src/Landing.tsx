@@ -193,11 +193,10 @@ const CATALOG_DESC: Record<Lang, string> = {
   en: "Hardcover or softcover, 15 × 15 cm or 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
   es: "Tapa dura o blanda, 15 × 15 cm o 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
 };
-/** 20 × 20 cm: capa mole R$ 39,00 e capa dura R$ 59,00. 15 × 15 cm não foi cotado. */
 const CATALOG_PRICE: Record<Lang, string> = {
-  pt: "R$ 39,00 ou R$ 59,00",
-  en: "R$ 39,00 ou R$ 59,00",
-  es: "R$ 39,00 ou R$ 59,00",
+  pt: "Sob consulta",
+  en: "On request",
+  es: "Bajo consulta",
 };
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
