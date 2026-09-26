@@ -378,9 +378,8 @@ button.hero-slide {
   cursor: pointer;
 }
 button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
-.hero-slide.on img {
+.hero-slide.on .hero-slide-frame {
   box-shadow:
-    0 0 0 3px #fff,
     0 0 18px rgba(244,183,64,.72),
     0 12px 28px rgba(0,0,0,.32);
 }
@@ -388,20 +387,27 @@ button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
   display: block;
   height: 100%;
   line-height: 0;
+  box-sizing: border-box;
+  border: 3px solid var(--yellow);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--yellow);
+  box-shadow:
+    0 0 18px rgba(244,183,64,.32),
+    0 12px 28px rgba(0,0,0,.32);
 }
 .hero-slide-frame img {
   display: block;
   height: 100%;
   width: auto;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
   box-sizing: border-box;
-  border: 3px solid var(--yellow);
-  border-radius: 12px;
+  border: 0;
+  border-radius: 0;
   background: transparent;
-  box-shadow:
-    0 0 18px rgba(244,183,64,.32),
-    0 12px 28px rgba(0,0,0,.32);
+  box-shadow: none;
+  transform: scale(1.04);
 }
 .khero-flipbook {
   width: 100%;
@@ -409,15 +415,19 @@ button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
   justify-content: center;
   margin-top: 6px;
 }
+.khero-flipbook .flipbook { width: 100%; max-width: 100%; }
 .khero-flipbook .fb-stage {
-  width: min(560px, calc(100vw - 8rem));
+  width: auto;
+  height: auto;
   max-width: 100%;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: auto;
   background: transparent;
   overflow: hidden;
 }
 .khero-flipbook .fb-page,
 .khero-flipbook img.fb-page {
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   object-position: center center;
   background: transparent;
@@ -473,7 +483,7 @@ button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
   object-position: center;
   filter: none;
 }
-/* Todos os livros do catálogo no mesmo tamanho, com a brochura à esquerda. */
+/* Todos os livros do catálogo no mesmo tamanho, sem a barra da brochura. */
 #catalogo .cat-display {
   display: flex;
   align-items: flex-end;
@@ -487,29 +497,8 @@ button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
   inset: auto;
   width: var(--face);
   height: auto;
-  margin-left: calc(var(--face) * 0.075);
   overflow: visible;
   filter: drop-shadow(0 12px 14px rgba(0,0,0,.34));
-}
-#catalogo .cat-book::before {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 7.5%;
-  transform: translateX(-100%);
-  border-radius: 3px 0 0 3px;
-  background: linear-gradient(
-    90deg,
-    #10182c 0%,
-    #2a3a60 36%,
-    #f4f0e6 47%,
-    #f4f0e6 53%,
-    #243356 62%,
-    #121a30 100%
-  );
 }
 #catalogo .cat-book img {
   position: relative;
@@ -520,7 +509,7 @@ button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
   aspect-ratio: 1;
   object-fit: cover;
   object-position: center;
-  border-radius: 0 8px 8px 0;
+  border-radius: 8px;
 }
 .kbh-frame {
   position: relative; width: min(400px, 70vw, calc(50dvh * 3 / 4)); border-radius: 14px 6px 6px 14px;

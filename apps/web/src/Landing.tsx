@@ -49,9 +49,9 @@ const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
 const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
   {
     name: "Meme e Tata",
-    cover: heroAsset("capa-natalmemetata-en.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
-    page: heroAsset("pagina-natalmemetata-en.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
-    photo: heroAsset("foto-natalmemetata-en.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
+    cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
+    page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
+    photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
   },
   {
     name: "Nano",
@@ -941,7 +941,31 @@ function FlipBook({
 }) {
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(index);
+  const [frame, setFrame] = useState<{ w: number; h: number } | null>(null);
   const busy = useRef(false);
+  const pageSrc = pages[index];
+  useEffect(() => {
+    const img = new Image();
+    let alive = true;
+    const apply = () => {
+      if (!alive || !img.naturalWidth || !img.naturalHeight) return;
+      const maxW = Math.max(240, Math.min(img.naturalWidth, window.innerWidth - 160));
+      const maxH = Math.max(180, Math.min(img.naturalHeight, window.innerHeight * 0.72));
+      const scale = Math.min(maxW / img.naturalWidth, maxH / img.naturalHeight);
+      setFrame({
+        w: Math.round(img.naturalWidth * scale),
+        h: Math.round(img.naturalHeight * scale),
+      });
+    };
+    img.onload = apply;
+    img.src = exUrl(pageSrc);
+    if (img.complete) apply();
+    window.addEventListener("resize", apply);
+    return () => {
+      alive = false;
+      window.removeEventListener("resize", apply);
+    };
+  }, [pageSrc]);
   const flip = (dir: "next" | "prev") => {
     if (busy.current || pages.length < 2) return;
     const t = dir === "next" ? index + 1 : index - 1;
@@ -985,7 +1009,15 @@ function FlipBook({
   return (
     <div className="flipbook">
       <button className="fb-nav" type="button" onClick={() => flip("prev")} disabled={index === 0 || !!anim} aria-label={labels.prev}>‹</button>
-      <div className="fb-stage" onClick={onStage} onKeyDown={onStageKey} role="button" tabIndex={0} aria-label={labels.turn}>
+      <div
+        className="fb-stage"
+        onClick={onStage}
+        onKeyDown={onStageKey}
+        role="button"
+        tabIndex={0}
+        aria-label={labels.turn}
+        style={frame ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" } : undefined}
+      >
         <span className="fb-spine" />
         <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
         <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
