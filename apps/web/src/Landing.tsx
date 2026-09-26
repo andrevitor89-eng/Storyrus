@@ -195,14 +195,15 @@ const CATALOG_COMBOS = [
   { cover: "soft", size: "p" },
 ] as const;
 const CATALOG_COMBO_DESC: Record<Lang, readonly string[]> = {
-  pt: ["Capa dura e pequeno", "Capa mole e grande", "Capa dura e grande", "Capa mole e pequeno"],
-  en: ["Hardcover and small", "Softcover and large", "Hardcover and large", "Softcover and small"],
-  es: ["Tapa dura y pequeño", "Tapa blanda y grande", "Tapa dura y grande", "Tapa blanda y pequeño"],
+  pt: ["Capa dura, 15 × 15 cm", "Capa mole, 20 × 20 cm", "Capa dura, 20 × 20 cm", "Capa mole, 15 × 15 cm"],
+  en: ["Hardcover, 15 × 15 cm", "Softcover, 20 × 20 cm", "Hardcover, 20 × 20 cm", "Softcover, 15 × 15 cm"],
+  es: ["Tapa dura, 15 × 15 cm", "Tapa blanda, 20 × 20 cm", "Tapa dura, 20 × 20 cm", "Tapa blanda, 15 × 15 cm"],
 };
-const CATALOG_PRICE: Record<Lang, string> = {
-  pt: "Sob consulta",
-  en: "On request",
-  es: "Bajo consulta",
+/** Preço unitário da PrintStore só existe para 20 × 20 cm (16 páginas). 15 × 15 cm não foi cotado. */
+const CATALOG_PRICE: Record<Lang, readonly string[]> = {
+  pt: ["Sob consulta", "R$ 39,00", "R$ 59,00", "Sob consulta"],
+  en: ["On request", "R$ 39,00", "R$ 59,00", "On request"],
+  es: ["Bajo consulta", "R$ 39,00", "R$ 59,00", "Bajo consulta"],
 };
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -965,10 +966,10 @@ function FlipBook({
   const underIdx = anim === "next" ? target : index;
   const leafIdx = anim === "next" ? index : (anim === "prev" ? target : index);
   const pageKind = (idx: number) => (
-    idx === 0 ? "fb-page--cover" : idx === 1 ? "fb-page--spread" : "fb-page--photo"
+    idx === pages.length - 1 ? "fb-page--photo" : "fb-page--spread"
   );
   const pageLabel = (idx: number) => (
-    idx === 0 ? labels.cover : idx >= 2 ? labels.photo : `${idx} / ${Math.max(pages.length - 1, 1)}`
+    idx === pages.length - 1 ? labels.photo : `${idx + 1} / ${Math.max(pages.length - 1, 1)}`
   );
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -1015,7 +1016,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
-  const [heroPick, setHeroPick] = useState(0);
+  const [heroBook, setHeroBook] = useState(0);
+  const [heroPage, setHeroPage] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1029,18 +1031,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     ? t.hiw.map((h, i) => (i === 0 ? { ...h, p: t.cartoon_hiw_photo } : h))
     : t.hiw;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const heroSlides = HERO_STRIP.flatMap((book) => [
-    { src: book.cover[lang], alt: book.name },
-    { src: book.page[lang], alt: book.name },
-    { src: book.photo[lang], alt: book.name },
-  ]);
-  const heroBook = Math.floor(heroPick / 3);
-  const heroPage = heroPick % 3;
-  const heroPages = [
-    HERO_STRIP[heroBook].cover[lang],
-    HERO_STRIP[heroBook].page[lang],
-    HERO_STRIP[heroBook].photo[lang],
-  ];
+  const heroSlides = HERO_STRIP.map((book) => ({ src: book.cover[lang], alt: book.name }));
+  const picked = HERO_STRIP[heroBook];
+  const heroPages = [picked.page[lang], picked.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
@@ -1259,13 +1252,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             {[0, 1].map((copy) => heroSlides.map((slide, i) => (
               <button
                 type="button"
-                className={`hero-slide${i === heroPick ? " on" : ""}`}
+                className={`hero-slide${i === heroBook ? " on" : ""}`}
                 key={`${copy}-${slide.src}-${i}`}
                 aria-hidden={copy === 1 ? true : undefined}
-                aria-pressed={copy === 0 ? i === heroPick : undefined}
+                aria-pressed={copy === 0 ? i === heroBook : undefined}
                 aria-label={slide.alt}
                 tabIndex={copy === 1 ? -1 : 0}
-                onClick={() => setHeroPick(i)}
+                onClick={() => { setHeroBook(i); setHeroPage(0); }}
                 data-testid={copy === 0 ? `landing-hero-pick-${i}` : undefined}
               >
                 <span className="hero-slide-frame">
@@ -1281,9 +1274,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-flipbook">
           <FlipBook
+            key={`${heroBook}-${lang}`}
             pages={heroPages}
             index={heroPage}
-            onIndex={(page) => setHeroPick(heroBook * 3 + page)}
+            onIndex={setHeroPage}
             labels={flipLabels}
           />
         </div>
@@ -1371,7 +1365,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               </div>
               <div className="cat-body">
                 <div className="cat-badges">
-                  <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
+                  <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang][i % CATALOG_COMBOS.length]}</span>
                 </div>
                 <h3>{c.t}</h3>
                 <p>{CATALOG_COMBO_DESC[lang][i % CATALOG_COMBOS.length]}</p>
