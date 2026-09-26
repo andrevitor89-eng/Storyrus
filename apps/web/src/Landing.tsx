@@ -1056,6 +1056,7 @@ function FlipBook({
     if (idx === pages.length - 1) return labels.photo;
     return `${idx} / ${Math.max(pages.length - 2, 1)}`;
   };
+  const single = pages.length < 2;
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX - r.left > r.width / 2) flip("next"); else flip("prev");
@@ -1071,14 +1072,14 @@ function FlipBook({
   };
   return (
     <div className="flipbook">
-      <button className="fb-nav" type="button" onClick={() => flip("prev")} disabled={index === 0 || !!anim} aria-label={labels.prev}>‹</button>
+      {single ? null : <button className="fb-nav" type="button" onClick={() => flip("prev")} disabled={index === 0 || !!anim} aria-label={labels.prev}>‹</button>}
       <div
         className="fb-stage"
-        onClick={onStage}
-        onKeyDown={onStageKey}
-        role="button"
-        tabIndex={0}
-        aria-label={labels.turn}
+        onClick={single ? undefined : onStage}
+        onKeyDown={single ? undefined : onStageKey}
+        role={single ? "img" : "button"}
+        tabIndex={single ? undefined : 0}
+        aria-label={single ? pageLabel(index) : labels.turn}
         style={frame ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" } : undefined}
       >
         <span className="fb-spine" />
@@ -1087,7 +1088,7 @@ function FlipBook({
           <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(index)} data-testid="landing-hero-flip" />
         </div>
       </div>
-      <button className="fb-nav" type="button" onClick={() => flip("next")} disabled={index === pages.length - 1 || !!anim} aria-label={labels.next}>›</button>
+      {single ? null : <button className="fb-nav" type="button" onClick={() => flip("next")} disabled={index === pages.length - 1 || !!anim} aria-label={labels.next}>›</button>}
     </div>
   );
 }
@@ -1109,8 +1110,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
   });
-  const [heroBook, setHeroBook] = useState(0);
-  const [heroPage, setHeroPage] = useState(0);
+  const [heroPick, setHeroPick] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1132,9 +1132,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         img: catalogImgSrc(CATALOG_IMGS[i], lang),
         theme: CATALOG_THEMES[i],
       }));
-  const heroSlides = heroStrip.map((book) => ({ src: book.cover[lang], alt: book.name }));
-  const picked = heroStrip[heroBook] ?? heroStrip[0];
-  const heroPages = [picked.cover[lang], picked.page[lang], picked.photo[lang]];
+  const heroSlides = heroStrip.flatMap((book) => [
+    { src: book.cover[lang], alt: book.name },
+    { src: book.page[lang], alt: book.name },
+    { src: book.photo[lang], alt: book.name },
+  ]);
+  const heroSlide = heroSlides[heroPick] ?? heroSlides[0];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
@@ -1353,13 +1356,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             {[0, 1].map((copy) => heroSlides.map((slide, i) => (
               <button
                 type="button"
-                className={`hero-slide${i === heroBook ? " on" : ""}`}
+                className={`hero-slide${i === heroPick ? " on" : ""}`}
                 key={`${copy}-${slide.src}-${i}`}
                 aria-hidden={copy === 1 ? true : undefined}
-                aria-pressed={copy === 0 ? i === heroBook : undefined}
+                aria-pressed={copy === 0 ? i === heroPick : undefined}
                 aria-label={slide.alt}
                 tabIndex={copy === 1 ? -1 : 0}
-                onClick={() => { setHeroBook(i); setHeroPage(0); }}
+                onClick={() => setHeroPick(i)}
                 data-testid={copy === 0 ? `landing-hero-pick-${i}` : undefined}
               >
                 <span className="hero-slide-frame">
@@ -1375,10 +1378,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-flipbook">
           <FlipBook
-            key={`${heroBook}-${lang}`}
-            pages={heroPages}
-            index={heroPage}
-            onIndex={setHeroPage}
+            key={`${heroSlide.src}-${lang}`}
+            pages={[heroSlide.src]}
+            index={0}
+            onIndex={() => {}}
             labels={flipLabels}
           />
         </div>
