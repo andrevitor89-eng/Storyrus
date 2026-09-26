@@ -363,11 +363,18 @@ a.kcat-btn:active {
 .hero-carousel:focus-within .hero-carousel-track {
   animation-play-state: paused;
 }
-button.hero-slide {
+.hero-slide {
   height: 240px;
   width: auto;
   flex: 0 0 auto;
   margin: 0 12px 0 0;
+  display: flex;
+}
+.hero-shot {
+  height: 100%;
+  width: auto;
+  flex: 0 0 auto;
+  margin: 0;
   border: 0;
   border-radius: 0;
   padding: 0;
@@ -376,15 +383,19 @@ button.hero-slide {
   color: inherit;
   font: inherit;
   cursor: pointer;
+  line-height: 0;
+  overflow: hidden;
 }
-button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
+.hero-shot:hover:not(:disabled) { transform: none; box-shadow: none; }
 .hero-slide.on .hero-slide-frame {
   box-shadow:
     0 0 18px rgba(244,183,64,.72),
     0 12px 28px rgba(0,0,0,.32);
 }
 .hero-slide-frame {
-  display: block;
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
   height: 100%;
   line-height: 0;
   box-sizing: border-box;
@@ -625,7 +636,7 @@ button.hero-slide:hover:not(:disabled) { transform: none; box-shadow: none; }
 @media (max-width: 760px) {
   .kbanner-hero { padding: 4px var(--page-gutter) 12px; gap: 14px; }
   .khero-intro { gap: 32px; }
-  button.hero-slide { height: min(180px, 52vw); width: auto; flex-basis: auto; }
+  .hero-slide { height: min(180px, 52vw); width: auto; flex-basis: auto; }
   .kbh-frame { width: min(420px, 94vw); }
   .kbh-cover-title .cover-name { font-size: clamp(.85rem, 3.4vw, 1.15rem); }
   .kbh-cover-title .cover-story { font-size: clamp(1.05rem, 4.4vw, 1.45rem); }
@@ -1306,7 +1317,7 @@ img.ex-tab-cover {
     justify-content: center;
   }
   .rev-carousel .rev-photo { width: min(168px, 42vw); flex-basis: min(168px, 42vw); }
-  button.hero-slide { height: min(180px, 52vw); width: auto; flex-basis: auto; }
+  .hero-slide { height: min(180px, 52vw); width: auto; flex-basis: auto; }
 }
 .rev-photo {
   margin: 0;

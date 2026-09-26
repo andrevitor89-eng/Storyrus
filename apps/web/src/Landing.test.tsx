@@ -325,6 +325,11 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
     expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
 
+    const natalFrame = cover.closest(".hero-slide-frame") as HTMLElement;
+    expect(natalFrame).toContainElement(screen.getByTestId("landing-hero-slide-1"));
+    expect(natalFrame).toContainElement(screen.getByTestId("landing-hero-slide-2"));
+    expect(natalFrame).not.toContainElement(screen.getByTestId("landing-hero-slide-3"));
+
     const carousel = cover.closest(".hero-carousel") as HTMLElement;
     const natalCovers = [...carousel.querySelectorAll("img")].filter((img) => {
       const src = img.getAttribute("src") ?? "";
