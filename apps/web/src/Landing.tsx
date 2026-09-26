@@ -186,39 +186,18 @@ const CATALOG_THEMES = [
   "underwater",
   "dinosaurs",
 ];
-/** Catálogo da principal: no máximo 15, alternando capa e tamanho. */
+/** Catálogo da principal: no máximo 15, todos com a mesma capa, tamanho e preço. */
 const CATALOG_LIMIT = 15;
-const CATALOG_COMBOS = [
-  { cover: "hard", size: "p" },
-  { cover: "soft", size: "g" },
-  { cover: "hard", size: "g" },
-  { cover: "soft", size: "p" },
-] as const;
-const CATALOG_COMBO_DESC: Record<Lang, readonly string[]> = {
-  pt: [
-    "Capa dura, 15 × 15 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-    "Capa mole, 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-    "Capa dura, 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-    "Capa mole, 15 × 15 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-  ],
-  en: [
-    "Hardcover, 15 × 15 cm, rounded corners. 16 pages, not counting the cover.",
-    "Softcover, 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
-    "Hardcover, 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
-    "Softcover, 15 × 15 cm, rounded corners. 16 pages, not counting the cover.",
-  ],
-  es: [
-    "Tapa dura, 15 × 15 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
-    "Tapa blanda, 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
-    "Tapa dura, 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
-    "Tapa blanda, 15 × 15 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
-  ],
+const CATALOG_DESC: Record<Lang, string> = {
+  pt: "Capa dura ou mole, 15 × 15 cm ou 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
+  en: "Hardcover or softcover, 15 × 15 cm or 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
+  es: "Tapa dura o blanda, 15 × 15 cm o 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
 };
-/** Preço unitário da PrintStore só existe para 20 × 20 cm (16 páginas). 15 × 15 cm não foi cotado. */
-const CATALOG_PRICE: Record<Lang, readonly string[]> = {
-  pt: ["Sob consulta", "R$ 39,00", "R$ 59,00", "Sob consulta"],
-  en: ["On request", "R$ 39,00", "R$ 59,00", "On request"],
-  es: ["Bajo consulta", "R$ 39,00", "R$ 59,00", "Bajo consulta"],
+/** 20 × 20 cm: capa mole R$ 39,00 e capa dura R$ 59,00. 15 × 15 cm não foi cotado. */
+const CATALOG_PRICE: Record<Lang, string> = {
+  pt: "R$ 39,00 ou R$ 59,00",
+  en: "R$ 39,00 ou R$ 59,00",
+  es: "R$ 39,00 ou R$ 59,00",
 };
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
@@ -1374,20 +1353,19 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
           {t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => {
-            const combo = CATALOG_COMBOS[i % CATALOG_COMBOS.length];
             return (
-            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format={`${combo.cover}-${combo.size}`}>
+            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog">
               <div className="cat-display">
-                <div className={`cat-book cover-${combo.cover} size-${combo.size}`}>
+                <div className="cat-book">
                   <img src={exUrl(catalogImgSrc(CATALOG_IMGS[i], lang))} alt={c.t} loading="lazy" />
                 </div>
               </div>
               <div className="cat-body">
                 <div className="cat-badges">
-                  <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang][i % CATALOG_COMBOS.length]}</span>
+                  <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
                 </div>
                 <h3>{c.t}</h3>
-                <p>{CATALOG_COMBO_DESC[lang][i % CATALOG_COMBOS.length]}</p>
+                <p>{CATALOG_DESC[lang]}</p>
                 <Link to={`/app?tema=${CATALOG_THEMES[i]}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
               </div>
             </div>

@@ -177,29 +177,22 @@ describe("Landing — catálogo", () => {
     expect(imgs).toHaveLength(15);
   });
 
-  it("combina capa e tamanho, troca o tema pelo valor e não usa o resumo", async () => {
+  it("mostra os 15 livros com a mesma capa, o valor e sem o resumo", async () => {
     renderLanding();
 
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    const formats = ["hard-p", "soft-g", "hard-g", "soft-p"];
-    const desc = [
-      "Capa dura, 15 × 15 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-      "Capa mole, 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-      "Capa dura, 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-      "Capa mole, 15 × 15 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
-    ];
-    const prices = ["Sob consulta", "R$ 39,00", "R$ 59,00", "Sob consulta"];
+    const desc = "Capa dura ou mole, 15 × 15 cm ou 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.";
     expect(cards).toHaveLength(15);
-    cards.forEach((card, i) => {
-      expect(card).toHaveAttribute("data-format", formats[i % 4]);
-      expect(within(card).getByText(desc[i % 4])).toBeInTheDocument();
-      expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent(prices[i % 4]);
+    cards.forEach((card) => {
+      expect(card).toHaveAttribute("data-format", "catalog");
+      expect(within(card).getByText(desc)).toBeInTheDocument();
+      expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 39,00 ou R$ 59,00");
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
     });
     expect(within(catalog).queryByText(/Goleiro que cai/i)).not.toBeInTheDocument();
-    expect(cards[0].querySelector(".cover-hard.size-p img")).toHaveAttribute("src", expect.stringContaining("capa-martin-goleiro.jpg"));
-    expect(cards[1].querySelector(".cover-soft.size-g img")).toHaveAttribute("src", expect.stringContaining("capa-emilia-bailarina.jpg"));
+    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-martin-goleiro.jpg"));
+    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-emilia-bailarina.jpg"));
   });
 
   it("troca capas localizadas de Bruno e Ester ao mudar o idioma", async () => {
