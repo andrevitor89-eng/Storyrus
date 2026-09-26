@@ -195,9 +195,24 @@ const CATALOG_COMBOS = [
   { cover: "soft", size: "p" },
 ] as const;
 const CATALOG_COMBO_DESC: Record<Lang, readonly string[]> = {
-  pt: ["Capa dura, 15 × 15 cm", "Capa mole, 20 × 20 cm", "Capa dura, 20 × 20 cm", "Capa mole, 15 × 15 cm"],
-  en: ["Hardcover, 15 × 15 cm", "Softcover, 20 × 20 cm", "Hardcover, 20 × 20 cm", "Softcover, 15 × 15 cm"],
-  es: ["Tapa dura, 15 × 15 cm", "Tapa blanda, 20 × 20 cm", "Tapa dura, 20 × 20 cm", "Tapa blanda, 15 × 15 cm"],
+  pt: [
+    "Capa dura, 15 × 15 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
+    "Capa mole, 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
+    "Capa dura, 20 × 20 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
+    "Capa mole, 15 × 15 cm, cantos arredondados. 16 páginas, sem capa nem contracapa.",
+  ],
+  en: [
+    "Hardcover, 15 × 15 cm, rounded corners. 16 pages, not counting the cover.",
+    "Softcover, 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
+    "Hardcover, 20 × 20 cm, rounded corners. 16 pages, not counting the cover.",
+    "Softcover, 15 × 15 cm, rounded corners. 16 pages, not counting the cover.",
+  ],
+  es: [
+    "Tapa dura, 15 × 15 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
+    "Tapa blanda, 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
+    "Tapa dura, 20 × 20 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
+    "Tapa blanda, 15 × 15 cm, esquinas redondeadas. 16 páginas, sin contar la tapa.",
+  ],
 };
 /** Preço unitário da PrintStore só existe para 20 × 20 cm (16 páginas). 15 × 15 cm não foi cotado. */
 const CATALOG_PRICE: Record<Lang, readonly string[]> = {
@@ -965,12 +980,16 @@ function FlipBook({
   const leafSrc = anim === "next" ? pages[index] : (anim === "prev" ? pages[target] : pages[index]);
   const underIdx = anim === "next" ? target : index;
   const leafIdx = anim === "next" ? index : (anim === "prev" ? target : index);
-  const pageKind = (idx: number) => (
-    idx === pages.length - 1 ? "fb-page--photo" : "fb-page--spread"
-  );
-  const pageLabel = (idx: number) => (
-    idx === pages.length - 1 ? labels.photo : `${idx + 1} / ${Math.max(pages.length - 1, 1)}`
-  );
+  const pageKind = (idx: number) => {
+    if (idx === 0) return "fb-page--cover";
+    if (idx === pages.length - 1) return "fb-page--photo";
+    return "fb-page--spread";
+  };
+  const pageLabel = (idx: number) => {
+    if (idx === 0) return labels.cover;
+    if (idx === pages.length - 1) return labels.photo;
+    return `${idx} / ${Math.max(pages.length - 2, 1)}`;
+  };
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
     if (e.clientX - r.left > r.width / 2) flip("next"); else flip("prev");
@@ -1033,7 +1052,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroSlides = HERO_STRIP.map((book) => ({ src: book.cover[lang], alt: book.name }));
   const picked = HERO_STRIP[heroBook];
-  const heroPages = [picked.page[lang], picked.photo[lang]];
+  const heroPages = [picked.cover[lang], picked.page[lang], picked.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
