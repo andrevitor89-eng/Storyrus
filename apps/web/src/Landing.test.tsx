@@ -196,6 +196,29 @@ describe("Landing — catálogo", () => {
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-amordemae.png"));
   });
 
+  it("filtra o catálogo pelos botões M, P, Hard e Soft", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    for (const label of ["M", "P", "Hard", "Soft"]) {
+      expect(within(catalog).getByTestId(`landing-catalog-filter-${label}`)).toHaveTextContent(label);
+    }
+
+    await user.click(within(catalog).getByTestId("landing-catalog-filter-Hard"));
+    const hard = within(catalog).getAllByTestId("landing-catalog-card");
+    expect(hard.length).toBeGreaterThan(0);
+    hard.forEach((card) => expect(card).toHaveAttribute("data-cover", "hard"));
+
+    await user.click(within(catalog).getByTestId("landing-catalog-filter-P"));
+    const small = within(catalog).getAllByTestId("landing-catalog-card");
+    expect(small.length).toBeGreaterThan(0);
+    small.forEach((card) => expect(card).toHaveAttribute("data-size", "p"));
+
+    await user.click(within(catalog).getByTestId("landing-catalog-filter-P"));
+    expect(within(catalog).getAllByTestId("landing-catalog-card")).toHaveLength(9);
+  });
+
   it("troca capas localizadas de Amor de Mãe e Ester ao mudar o idioma", async () => {
     const user = userEvent.setup();
     renderLanding();
@@ -324,6 +347,8 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
     expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("src", expect.stringContaining("pagina-nanoaventuras.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-nanoaventuras.jpg"));
 
     const natalFrame = cover.closest(".hero-slide-frame") as HTMLElement;
     expect(natalFrame).toContainElement(screen.getByTestId("landing-hero-slide-1"));
@@ -401,55 +426,29 @@ describe("Landing — CTAs e links", () => {
     }
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
-    const cartoonLinks = screen.getAllByRole("link", { name: /^cartoon$/i });
-    expect(cartoonLinks.length).toBeGreaterThan(0);
-    for (const link of cartoonLinks) {
-      expect(link).toHaveAttribute("href", "/cartoon");
-    }
+    expect(screen.queryByRole("link", { name: /^cartoon$/i })).not.toBeInTheDocument();
     expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /você envia a foto e escolhe os detalhes/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /criamos o personagem e a história/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /você recebe e aprova o livro/i })).toBeInTheDocument();
+    const como = document.getElementById("como") as HTMLElement;
+    for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
+      expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
+    }
+    expect(como.querySelector(".howex-card-receive")).toBeTruthy();
   });
 
-  it("rota /cartoon renderiza a cópia da landing com o como funciona antigo", async () => {
+  it("rota /cartoon não abre a landing", async () => {
     render(
       <MemoryRouter initialEntries={["/cartoon"]}>
         <AppRoutes />
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId("landing-hero-cta")).toBeInTheDocument();
-    const cartoonLinks = screen.getAllByRole("link", { name: /^cartoon$/i });
-    expect(cartoonLinks.length).toBeGreaterThan(0);
-    for (const link of cartoonLinks) {
-      expect(link).toHaveAttribute("href", "/cartoon");
-    }
-    expect(screen.getByRole("heading", { name: /dicas para a foto perfeita/i })).toBeInTheDocument();
-    expect(screen.getByText(/nítida, bem iluminada e centralizada/i)).toBeInTheDocument();
-    expect(screen.getByText(/uma foto da criança já basta para começar/i)).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
-
-    const cover = screen.getByTestId("landing-hero-slide-0");
-    expect(cover).toHaveAttribute("src", expect.stringContaining("capa-floresta.jpg"));
-    const carousel = cover.closest(".hero-carousel") as HTMLElement;
-    const carouselSrcs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
-    for (const file of ["capa-floresta.jpg", "capa-dino2.jpg", "capa-circo.jpg", "capa-oceano.jpg", "capa-amazonia.jpg"]) {
-      expect(carouselSrcs.some((src) => src.includes(file))).toBe(true);
-    }
-    expect(carouselSrcs.some((src) => /capa-(natal|martin|emilia|nano|mako|amor|antonio|mariajesus|facundo)/.test(src))).toBe(false);
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-floresta.jpg"));
-
-    const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
-    const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    const drawingCovers = ["capa-floresta.jpg", "capa-dino2.jpg", "capa-circo.jpg", "capa-oceano.jpg", "capa-amazonia.jpg"];
-    expect(cards).toHaveLength(drawingCovers.length);
-    cards.forEach((card, i) => {
-      expect(card.querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining(drawingCovers[i]));
-    });
-    const catalogSrcs = within(catalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
-    expect(catalogSrcs.some((src) => /capa-(martin|emilia|antonio|sofia|bruno|cristobal|nicolas|amor|natal|nano|maya|mako|ester|raquel|rebeca|abigail|miriam|noe)/.test(src))).toBe(false);
-    expect(within(catalog).getAllByTestId("landing-personalize")[0]).toHaveAttribute("href", "/app?tema=fantasy");
-    expect(within(catalog).getAllByTestId("landing-personalize")[1]).toHaveAttribute("href", "/app?tema=dinosaurs");
-    expect(within(catalog).getAllByTestId("landing-personalize")[3]).toHaveAttribute("href", "/app?tema=underwater");
+    expect(await screen.findByTestId("not-found-title")).toHaveTextContent(/página não encontrada/i);
+    expect(screen.queryByTestId("landing-hero-cta")).not.toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /^cartoon$/i })).not.toBeInTheDocument();
   });
 });

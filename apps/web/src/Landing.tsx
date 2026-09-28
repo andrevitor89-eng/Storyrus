@@ -56,8 +56,8 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   {
     name: "Nano",
     cover: heroAsset("capa-nanoaventuras.jpg", "capa-nanoaventuras-en.jpg", "capa-nanoaventuras-es.jpg"),
-    page: heroAsset("pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
-    photo: heroAsset("foto-nanoaventuras-en.jpg", "foto-nanoaventuras-en.jpg", "foto-nanoaventuras-es.jpg"),
+    page: heroAsset("pagina-nanoaventuras.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
+    photo: heroAsset("foto-nanoaventuras.jpg", "foto-nanoaventuras-en.jpg", "foto-nanoaventuras-es.jpg"),
   },
   {
     name: "Amor de Bisavó",
@@ -144,6 +144,7 @@ const HERO_STRIP_CARTOON: { name: string; cover: HeroAsset; page: HeroAsset; pho
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
+const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
 const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
   { img: "dica-boa.png", ok: true, focus: "center center" },
   { img: "dica-multi.png", ok: false, focus: "68% 38%" },
@@ -221,6 +222,22 @@ const CATALOG_THEMES = [
 ];
 /** Catálogo da principal: no máximo 15, todos com a mesma capa, tamanho e preço. */
 const CATALOG_LIMIT = 15;
+/** Índices de capa em estilo desenho, fora do catálogo realista. */
+const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5]);
+const CATALOG_COMBOS = [
+  { cover: "hard", size: "p" },
+  { cover: "soft", size: "g" },
+  { cover: "hard", size: "g" },
+  { cover: "soft", size: "p" },
+] as const;
+const CATALOG_FILTERS = ["M", "P", "Hard", "Soft"] as const;
+type CatalogFilter = (typeof CATALOG_FILTERS)[number];
+function catalogMatches(combo: { cover: "hard" | "soft"; size: "p" | "g" }, filter: CatalogFilter): boolean {
+  if (filter === "Hard") return combo.cover === "hard";
+  if (filter === "Soft") return combo.cover === "soft";
+  if (filter === "P") return combo.size === "p";
+  return combo.size === "g";
+}
 /** Catálogo do /cartoon: só capas com visual de desenho. */
 const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[] = [
   {
@@ -497,7 +514,6 @@ const I18N = {
     reviews_link: "Avaliações",
     videos_link: "Vídeos",
     my_books: "Meus Livros",
-    our_story: "Cartoon",
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
     cats_label: "Categorias",
@@ -551,6 +567,11 @@ const I18N = {
       { t: "Envie as fotos", p: "Da criança e de quem entra na história." },
       { t: "A gente cria o livro", p: "Um personagem parecido com a foto e uma história só de vocês." },
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
+    ],
+    hiw_main: [
+      { t: "Você envia a foto e escolhe os detalhes", p: "Escolha o tema, informe o nome, idade, idioma e formato do livro." },
+      { t: "Criamos o personagem e a história", p: "O Story R Us gera a história completa, a capa e todas as páginas ilustradas com o mesmo rosto da criança." },
+      { t: "Você recebe e aprova o livro", p: "Visualize a prévia completa, aprove, e receba o livro físico pronto para impressão e entrega." },
     ],
     shot_sub: "Fotos nítidas deixam o personagem mais parecido.",
     shots: [
@@ -662,7 +683,6 @@ const I18N = {
     reviews_link: "Reviews",
     videos_link: "Videos",
     my_books: "My Books",
-    our_story: "Cartoon",
     see_all_books: "See all books",
     view_all: "View all",
     cats_label: "Categories",
@@ -716,6 +736,11 @@ const I18N = {
       { t: "Send the photos", p: "Of your child and anyone else in the story." },
       { t: "We make the book", p: "A character that looks like the photo, and a story just for you." },
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
+    ],
+    hiw_main: [
+      { t: "You send the photo and choose the details", p: "Pick the theme, and enter the name, age, language, and book format." },
+      { t: "We create the character and the story", p: "Story R Us creates the full story, the cover, and every illustrated page with the same face." },
+      { t: "You receive and approve the book", p: "See the full preview, approve it, and get the printed book ready for printing and delivery." },
     ],
     shot_sub: "Clear photos make the character look more like your child.",
     shots: [
@@ -827,7 +852,6 @@ const I18N = {
     reviews_link: "Reseñas",
     videos_link: "Videos",
     my_books: "Mis Libros",
-    our_story: "Cartoon",
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
     cats_label: "Categorías",
@@ -881,6 +905,11 @@ const I18N = {
       { t: "Envía las fotos", p: "Del niño y de quien más entra en la historia." },
       { t: "Creamos el libro", p: "Un personaje parecido a la foto y una historia solo de ustedes." },
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
+    ],
+    hiw_main: [
+      { t: "Envías la foto y eliges los detalles", p: "Elige el tema e indica el nombre, la edad, el idioma y el formato del libro." },
+      { t: "Creamos el personaje y la historia", p: "Story R Us genera la historia completa, la portada y todas las páginas ilustradas con el mismo rostro." },
+      { t: "Recibes y apruebas el libro", p: "Mira la vista previa completa, aprueba y recibe el libro físico listo para imprimir y entregar." },
     ],
     shot_sub: "Fotos nítidas hacen que el personaje se parezca más.",
     shots: [
@@ -1111,6 +1140,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "dark";
   });
   const [heroPick, setHeroPick] = useState(0);
+  const [catalogFilter, setCatalogFilter] = useState<CatalogFilter | null>(null);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1122,16 +1152,25 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const classicHow = variant === "cartoon";
   const hiwSteps = classicHow
     ? t.hiw.map((h, i) => (i === 0 ? { ...h, t: t.cartoon_hiw_title, p: t.cartoon_hiw_photo } : h))
-    : t.hiw;
+    : t.hiw_main;
+  const howImgs = classicHow ? HOW_IMGS : HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = variant === "cartoon" ? HERO_STRIP_CARTOON : HERO_STRIP;
   const catalogBooks = variant === "cartoon"
     ? CATALOG_DRAWING.map((book) => ({ t: book.t[lang], img: book.img, theme: book.theme }))
-    : t.catalog.slice(0, CATALOG_LIMIT).map((c, i) => ({
-        t: c.t,
-        img: catalogImgSrc(CATALOG_IMGS[i], lang),
-        theme: CATALOG_THEMES[i],
-      }));
+    : t.catalog
+        .map((c, i) => ({ c, i }))
+        .filter(({ i }) => i < CATALOG_LIMIT && !CATALOG_CARTOON_INDEXES.has(i))
+        .map(({ c, i }) => {
+          const combo = CATALOG_COMBOS[i % CATALOG_COMBOS.length];
+          return {
+            t: c.t,
+            img: catalogImgSrc(CATALOG_IMGS[i], lang),
+            theme: CATALOG_THEMES[i],
+            cover: combo.cover,
+            size: combo.size,
+          };
+        });
   const heroSlides = heroStrip.flatMap((book) => [
     { src: book.cover[lang], alt: book.name },
     { src: book.page[lang], alt: book.name },
@@ -1268,10 +1307,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
                   {t.videos_link}
                 </a>
-                <Link to="/cartoon" className="kcat-btn" onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: "#5ec4a8", boxShadow: "0 0 10px rgba(94,196,168,.9)" }} />
-                  {t.our_story}
-                </Link>
                 <a href="#reviews" className="kcat-btn" onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
@@ -1335,7 +1370,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <p className="kmobile-label">{t.quick_links}</p>
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
-            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>{t.our_story}</Link>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
@@ -1450,9 +1484,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="howex">
             {hiwSteps.map((h, i) => (
               <Fragment key={h.t}>
-                <figure className={`howex-card${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`}>
+                <figure className={`howex-card${classicHow
+                  ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
+                  : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
                   <div className="howex-media">
-                    <img src={exUrl(HOW_IMGS[i])} alt={h.t} loading="lazy" />
+                    <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                   </div>
                   <span className="howex-num">{i + 1}</span>
                   <figcaption>
@@ -1471,9 +1507,25 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
+        {variant === "photo" ? (
+          <div className="cat-filters" role="group" aria-label={t.cat_title}>
+            {CATALOG_FILTERS.map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={`cat-filter${catalogFilter === filter ? " on" : ""}`}
+                aria-pressed={catalogFilter === filter}
+                data-testid={`landing-catalog-filter-${filter}`}
+                onClick={() => setCatalogFilter((cur) => (cur === filter ? null : filter))}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
+        ) : null}
         <div className="cat-grid">
-          {catalogBooks.map((c) => (
-            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog">
+          {catalogBooks.filter((c) => !catalogFilter || !("cover" in c) || catalogMatches(c, catalogFilter)).map((c) => (
+            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog" data-cover={"cover" in c ? c.cover : undefined} data-size={"size" in c ? c.size : undefined}>
               <div className="cat-display">
                 <div className="cat-book">
                   <img src={exUrl(c.img)} alt={c.t} loading="lazy" />
