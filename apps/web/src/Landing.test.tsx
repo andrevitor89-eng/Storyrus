@@ -194,29 +194,11 @@ describe("Landing — catálogo", () => {
     expect(within(catalog).queryByText(/Aprendendo o Alfabeto/i)).not.toBeInTheDocument();
     expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-nicolas-maefilho.png"));
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-amordemae.png"));
-  });
-
-  it("filtra o catálogo pelos botões M, P, Hard e Soft", async () => {
-    const user = userEvent.setup();
-    renderLanding();
-
-    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
-    for (const label of ["M", "P", "Hard", "Soft"]) {
-      expect(within(catalog).getByTestId(`landing-catalog-filter-${label}`)).toHaveTextContent(label);
-    }
-
-    await user.click(within(catalog).getByTestId("landing-catalog-filter-Hard"));
-    const hard = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(hard.length).toBeGreaterThan(0);
-    hard.forEach((card) => expect(card).toHaveAttribute("data-cover", "hard"));
-
-    await user.click(within(catalog).getByTestId("landing-catalog-filter-P"));
-    const small = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(small.length).toBeGreaterThan(0);
-    small.forEach((card) => expect(card).toHaveAttribute("data-size", "p"));
-
-    await user.click(within(catalog).getByTestId("landing-catalog-filter-P"));
-    expect(within(catalog).getAllByTestId("landing-catalog-card")).toHaveLength(9);
+    expect(within(cards[0]).getByText("Soft")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("M")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Amor de mãe")).toBeInTheDocument();
+    expect(within(cards[4]).getByText("Hard")).toBeInTheDocument();
+    expect(within(cards[4]).getByText("Natal em família")).toBeInTheDocument();
   });
 
   it("troca capas localizadas de Amor de Mãe e Ester ao mudar o idioma", async () => {

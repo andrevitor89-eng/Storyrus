@@ -1380,14 +1380,6 @@ img.ex-tab-cover {
   background: linear-gradient(135deg, var(--purple), var(--blue)); color: #fff; font-family: 'Baloo 2', cursive; font-weight: 800; }
 
 /* ---------- Catálogo de livros ---------- */
-.cat-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 0 auto 22px; }
-.cat-filter {
-  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .92rem; line-height: 1; letter-spacing: .2px;
-  color: #1f3568; background: var(--yellow); border: 2px solid var(--yellow); border-radius: 999px;
-  padding: 7px 14px; cursor: pointer;
-}
-.cat-filter.on { box-shadow: 0 0 0 3px #1f3568; }
-[data-theme="light"] .kid .cat-filter.on { box-shadow: 0 0 0 3px #1f3568; }
 .cat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
 .cat-card,
 #catalogo .cat-card {

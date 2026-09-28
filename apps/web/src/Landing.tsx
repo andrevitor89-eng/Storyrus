@@ -224,20 +224,6 @@ const CATALOG_THEMES = [
 const CATALOG_LIMIT = 15;
 /** Índices de capa em estilo desenho, fora do catálogo realista. */
 const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5]);
-const CATALOG_COMBOS = [
-  { cover: "hard", size: "p" },
-  { cover: "soft", size: "g" },
-  { cover: "hard", size: "g" },
-  { cover: "soft", size: "p" },
-] as const;
-const CATALOG_FILTERS = ["M", "P", "Hard", "Soft"] as const;
-type CatalogFilter = (typeof CATALOG_FILTERS)[number];
-function catalogMatches(combo: { cover: "hard" | "soft"; size: "p" | "g" }, filter: CatalogFilter): boolean {
-  if (filter === "Hard") return combo.cover === "hard";
-  if (filter === "Soft") return combo.cover === "soft";
-  if (filter === "P") return combo.size === "p";
-  return combo.size === "g";
-}
 /** Catálogo do /cartoon: só capas com visual de desenho. */
 const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[] = [
   {
@@ -1140,7 +1126,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "dark";
   });
   const [heroPick, setHeroPick] = useState(0);
-  const [catalogFilter, setCatalogFilter] = useState<CatalogFilter | null>(null);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1161,16 +1146,14 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     : t.catalog
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => i < CATALOG_LIMIT && !CATALOG_CARTOON_INDEXES.has(i))
-        .map(({ c, i }) => {
-          const combo = CATALOG_COMBOS[i % CATALOG_COMBOS.length];
-          return {
-            t: c.t,
-            img: catalogImgSrc(CATALOG_IMGS[i], lang),
-            theme: CATALOG_THEMES[i],
-            cover: combo.cover,
-            size: combo.size,
-          };
-        });
+        .map(({ c, i }) => ({
+          t: c.t,
+          img: catalogImgSrc(CATALOG_IMGS[i], lang),
+          theme: CATALOG_THEMES[i],
+          cover: c.cover,
+          size: c.size,
+          tag: c.tag,
+        }));
   const heroSlides = heroStrip.flatMap((book) => [
     { src: book.cover[lang], alt: book.name },
     { src: book.page[lang], alt: book.name },
@@ -1507,25 +1490,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
-        {variant === "photo" ? (
-          <div className="cat-filters" role="group" aria-label={t.cat_title}>
-            {CATALOG_FILTERS.map((filter) => (
-              <button
-                key={filter}
-                type="button"
-                className={`cat-filter${catalogFilter === filter ? " on" : ""}`}
-                aria-pressed={catalogFilter === filter}
-                data-testid={`landing-catalog-filter-${filter}`}
-                onClick={() => setCatalogFilter((cur) => (cur === filter ? null : filter))}
-              >
-                {filter}
-              </button>
-            ))}
-          </div>
-        ) : null}
         <div className="cat-grid">
-          {catalogBooks.filter((c) => !catalogFilter || !("cover" in c) || catalogMatches(c, catalogFilter)).map((c) => (
-            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog" data-cover={"cover" in c ? c.cover : undefined} data-size={"size" in c ? c.size : undefined}>
+          {catalogBooks.map((c) => (
+            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog">
               <div className="cat-display">
                 <div className="cat-book">
                   <img src={exUrl(c.img)} alt={c.t} loading="lazy" />
@@ -1533,8 +1500,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               </div>
               <div className="cat-body">
                 <div className="cat-badges">
-                  <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
+                  {"cover" in c && typeof c.cover === "string" ? <span className="cat-cover-type">{c.cover}</span> : null}
+                  {"size" in c && typeof c.size === "string" ? <span className="cat-size">{c.size}</span> : null}
+                  {"tag" in c && typeof c.tag === "string" ? <span className="cat-tag">{c.tag}</span> : null}
                 </div>
+                <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
                 <h3>{c.t}</h3>
                 <p>{CATALOG_DESC[lang]}</p>
                 <Link to={`/app?tema=${c.theme}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
