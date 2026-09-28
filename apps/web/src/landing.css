@@ -350,7 +350,7 @@ a.kcat-btn:active {
   width: 100%;
   max-width: 100%;
   margin-top: 8px;
-  padding: 20px 0 18px;
+  padding: 14px 0 16px;
   box-sizing: border-box;
 }
 .hero-carousel-track {
@@ -390,25 +390,24 @@ a.kcat-btn:active {
 .hero-slide.on .hero-slide-frame {
   box-shadow:
     0 0 0 1px #fff,
-    0 0 10px 1px #fff,
-    0 0 22px 4px rgba(255,255,255,.95);
+    0 0 18px rgba(244,183,64,.72),
+    0 12px 28px rgba(0,0,0,.32);
 }
 .hero-slide-frame {
   display: flex;
   align-items: stretch;
-  gap: 2px;
+  gap: 3px;
   height: 100%;
   line-height: 0;
   box-sizing: border-box;
-  padding: 2px;
-  border: 1px solid #fff;
+  border: 3px solid var(--yellow);
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: var(--yellow);
   box-shadow:
     0 0 0 1px #fff,
-    0 0 8px 1px #fff,
-    0 0 18px 3px rgba(255,255,255,.85);
+    0 0 18px rgba(244,183,64,.32),
+    0 12px 28px rgba(0,0,0,.32);
 }
 .hero-slide-frame img {
   display: block;
