@@ -440,6 +440,11 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     const subs = document.querySelector("#cat-panel-0 .kcat-subs") as HTMLElement;
     const princesas = within(subs).getByRole("link", { name: /^princesas$/i });
+    const princesasHref = decodeURIComponent((princesas.getAttribute("href") ?? "").replace(/\+/g, " "));
+    expect(princesasHref).toContain("tema=princess");
+    expect(princesasHref).toContain("Emilia e os Primeiros Passos da Bailarina");
+    expect(princesasHref).toContain("heroi=Emilia");
+    expect(within(subs).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/app?tema=sport");
     fireEvent.mouseEnter(princesas);
     const feats = screen.getByTestId("landing-cat-feats-0");
     expect(within(feats).getByRole("link", { name: /emilia/i })).toBeInTheDocument();

@@ -41,6 +41,42 @@ describe("ProgressList", () => {
   });
 });
 
+describe("Studio — tema do banner", () => {
+  it("preenche título e história e troca o nome do exemplo pelo da criança", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=princess&titulo=Emilia%20e%20os%20Primeiros%20Passos&historia=Primeiros%20passos%20no%20ballet&heroi=Emilia",
+    );
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Emilia e os Primeiros Passos");
+    expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue("Primeiros passos no ballet");
+    expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
+    expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
+
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lia");
+    expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Lia e os Primeiros Passos");
+    expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
+  });
+
+  it("preenche um tema sem livro único e deixa os campos editáveis", async () => {
+    window.history.replaceState({}, "", "/app?tema=sport");
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    const title = screen.getByLabelText(/título do livro/i);
+    expect(title).toHaveValue("Uma história de esporte");
+    expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue(
+      "Esporte: treino, coragem e superação, com a criança no centro da própria história.",
+    );
+    await user.clear(title);
+    await user.type(title, "Lia no gol");
+    expect(title).toHaveValue("Lia no gol");
+  });
+});
+
 describe("Studio a11y", () => {
   it("marca fluxos principais com landmark, alert e tabs", async () => {
     state.credits = 10;

@@ -506,32 +506,32 @@ a.kcat-btn:active {
 }
 /* Todos os livros do catálogo no mesmo tamanho, sem a barra da brochura. */
 #catalogo .cat-display {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  aspect-ratio: auto;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   height: auto;
   padding: 0;
   overflow: hidden;
 }
 #catalogo .cat-book {
   --face: 100%;
-  position: relative;
-  inset: auto;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
+  height: 100%;
   overflow: hidden;
   filter: none;
 }
 #catalogo .cat-body { padding-left: 0; padding-right: 0; }
 #catalogo .cat-book img {
-  position: relative;
-  inset: auto;
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
-  height: auto;
-  aspect-ratio: auto;
-  object-fit: contain;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
   object-position: center;
   border-radius: 8px;
 }

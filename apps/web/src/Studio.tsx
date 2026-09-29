@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { api } from "./api";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
+import { themePreset } from "./studioPreset";
 import logo from "./assets/logo.png";
 import type { StudioAssets } from "./studio/assets";
 import { resolveThemeName } from "./studio/constants";
@@ -81,6 +82,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [assets, setAssets] = useState<StudioAssets | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
+  const titlePreset = useRef<{ hero: string; title: string } | null>(null);
+  const titleTouched = useRef(false);
+  const presetApplied = useRef(false);
   const [mediaConsent, setMediaConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [colorTheme, setColorTheme] = useState<"light" | "dark">(() => {
@@ -110,6 +114,23 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setPhotoUploaded(true);
     setJobs([]);
   }, [isDemo]);
+
+  useEffect(() => {
+    if (presetApplied.current || isDemo) return;
+    const q = new URLSearchParams(window.location.search);
+    const tema = q.get("tema");
+    const titulo = q.get("titulo");
+    const historia = q.get("historia");
+    const heroi = q.get("heroi");
+    if (!tema && !titulo && !historia) return;
+    presetApplied.current = true;
+    const fallback = tema ? themePreset(tema, lang) : null;
+    const title = titulo || fallback?.title || "";
+    const themeBody = historia || fallback?.theme || "";
+    if (title) setBookTitle(title);
+    if (themeBody) setThemeText(themeBody);
+    if (heroi && titulo) titlePreset.current = { hero: heroi, title: titulo };
+  }, [isDemo, lang]);
 
   const refreshCredits = useCallback(async () => {
     try {
@@ -461,7 +482,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <input
                 disabled={fieldsLocked}
                 value={childName}
-                onChange={(e) => setChildName(e.target.value)}
+                onChange={(e) => {
+                  const name = e.target.value;
+                  setChildName(name);
+                  const preset = titlePreset.current;
+                  if (!preset || titleTouched.current) return;
+                  const next = name.trim();
+                  setBookTitle(next ? preset.title.replaceAll(preset.hero, next) : preset.title);
+                }}
                 placeholder={t.childNamePh}
                 maxLength={80}
               />
@@ -491,7 +519,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <input
               disabled={fieldsLocked}
               value={bookTitle}
-              onChange={(e) => setBookTitle(e.target.value)}
+              onChange={(e) => {
+                titleTouched.current = true;
+                setBookTitle(e.target.value);
+              }}
               placeholder={t.bookTitlePh}
               maxLength={120}
             />

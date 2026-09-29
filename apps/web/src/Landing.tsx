@@ -368,6 +368,34 @@ function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
+/** Nome da criança no exemplo, para o estúdio trocar pelo nome que a família digitar. */
+const HERO_BY_CATALOG: Record<number, string> = {
+  0: "Martin",
+  1: "Emilia",
+  2: "Antonio",
+  3: "Sofia",
+  4: "Bruno",
+  5: "Cristobal",
+  6: "Nicolas",
+  8: "Matteo",
+  11: "Nano",
+  12: "Maya",
+  13: "Mako",
+  14: "Ester",
+  15: "Raquel",
+  16: "Rebeca",
+  17: "Abigail",
+  18: "Miriam",
+  19: "Noé",
+};
+function studioHref(opts: { tema: string; titulo?: string; historia?: string; heroi?: string }) {
+  const q = new URLSearchParams();
+  q.set("tema", opts.tema);
+  if (opts.titulo) q.set("titulo", opts.titulo);
+  if (opts.historia) q.set("historia", opts.historia);
+  if (opts.heroi) q.set("heroi", opts.heroi);
+  return `/app?${q.toString()}`;
+}
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
 function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
@@ -1340,21 +1368,41 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
   const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
+  const bookStudioHref = (theme: string, catalogI?: number) => {
+    if (catalogI === undefined) return `/app?tema=${theme}`;
+    const book = t.catalog[catalogI];
+    if (!book) return `/app?tema=${theme}`;
+    return studioHref({
+      tema: theme,
+      titulo: book.t,
+      historia: `${book.tag}. ${book.p}`,
+      heroi: HERO_BY_CATALOG[catalogI],
+    });
+  };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
     color: NAV_CAT_META[i].color,
-    subs: cat.subs.map((label, j) => ({ label, href: NAV_CAT_META[i].subs[j].href })),
-    feats: cat.feats.map((label, j) => ({
-      label,
-      href: NAV_CAT_META[i].feats[j].href,
-      img: catalogImgSrc(CATALOG_IMGS[NAV_CAT_META[i].feats[j].catalogI], lang),
-    })),
+    subs: cat.subs.map((label, j) => {
+      const base = NAV_CAT_META[i].subs[j].href;
+      const theme = themeFromHref(base);
+      const only = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
+      return { label, href: theme ? bookStudioHref(theme, only) : base };
+    }),
+    feats: cat.feats.map((label, j) => {
+      const meta = NAV_CAT_META[i].feats[j];
+      const theme = themeFromHref(meta.href) ?? "adventure";
+      return {
+        label,
+        href: bookStudioHref(theme, meta.catalogI),
+        img: catalogImgSrc(CATALOG_IMGS[meta.catalogI], lang),
+      };
+    }),
   }));
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: `/app?tema=${theme}`, img: catalogImgSrc(img, lang) }];
+    return [{ label: book.t, href: bookStudioHref(theme, i), img: catalogImgSrc(img, lang) }];
   });
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
