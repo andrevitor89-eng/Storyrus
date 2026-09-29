@@ -1,5 +1,5 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { Landing } from "./Landing";
@@ -331,6 +331,9 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
     expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("src", expect.stringContaining("pagina-nanoaventuras.jpg"));
     expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-nanoaventuras.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-6")).toHaveAttribute("src", expect.stringContaining("capa-amordebisavo.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-7")).toHaveAttribute("src", expect.stringContaining("pagina-amordebisavo.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-8")).toHaveAttribute("src", expect.stringContaining("foto-amordebisavo.jpg"));
 
     const natalFrame = cover.closest(".hero-slide-frame") as HTMLElement;
     expect(natalFrame).toContainElement(screen.getByTestId("landing-hero-slide-1"));
@@ -344,7 +347,17 @@ describe("Landing — menu mobile e abas do hero", () => {
     });
     expect(natalCovers).toHaveLength(2);
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata.jpg"));
-    expect(screen.queryByRole("button", { name: /próxima página/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await waitFor(() => {
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
+    }, { timeout: 2200 });
+    expect(screen.getByTestId("landing-hero-flip-dot-1")).toHaveAttribute("aria-selected", "true");
+
+    await user.click(screen.getByTestId("landing-hero-flip-dot-2"));
+    await waitFor(() => {
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
+    }, { timeout: 2200 });
 
     await user.click(screen.getByTestId("landing-hero-pick-1"));
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
@@ -412,7 +425,8 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /você envia a foto e escolhe os detalhes/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^dados do livro$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /criamos o personagem e a história/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /você recebe e aprova o livro/i })).toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;
@@ -420,6 +434,24 @@ describe("Landing — CTAs e links", () => {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
     expect(como.querySelector(".howex-card-receive")).toBeTruthy();
+  });
+
+  it("mostra os livros do tema ao passar o mouse no submenu", () => {
+    renderLanding();
+    const subs = document.querySelector("#cat-panel-0 .kcat-subs") as HTMLElement;
+    const princesas = within(subs).getByRole("link", { name: /^princesas$/i });
+    fireEvent.mouseEnter(princesas);
+    const feats = screen.getByTestId("landing-cat-feats-0");
+    expect(within(feats).getByRole("link", { name: /emilia/i })).toBeInTheDocument();
+    expect(within(feats).queryByRole("link", { name: /nano/i })).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(within(subs).getByRole("link", { name: /^esportes$/i }));
+    expect(within(feats).getByRole("link", { name: /martin/i })).toBeInTheDocument();
+    expect(within(feats).getByRole("link", { name: /cristobal/i })).toBeInTheDocument();
+    expect(within(feats).queryByRole("link", { name: /emilia/i })).not.toBeInTheDocument();
+
+    fireEvent.mouseEnter(within(subs).getByRole("link", { name: /^fantasia$/i }));
+    expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
   });
 
   it("rota /cartoon não abre a landing", async () => {

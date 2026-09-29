@@ -262,6 +262,9 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/foto-abigail.png
 !apps/web/public/exemplos/foto-miriam.png
 !apps/web/public/exemplos/foto-noe.png
+!apps/web/public/exemplos/como-envia.jpg
+!apps/web/public/exemplos/como-cria.jpg
+!apps/web/public/exemplos/como-recebe.jpg
 
 .vercel
 .env*

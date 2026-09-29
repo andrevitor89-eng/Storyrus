@@ -1,7 +1,8 @@
-import { Fragment, useEffect, useRef, useState, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
+import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
+import "./landing-flip-fold.css";
 
 type Lang = "pt" | "en" | "es";
 
@@ -62,8 +63,8 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   {
     name: "Amor de Bisavó",
     cover: heroAsset("capa-amordebisavo.jpg", "capa-amordebisavo-en.jpg", "capa-amordebisavo-es.jpg"),
-    page: heroAsset("pagina-amordebisavo-en.jpg", "pagina-amordebisavo-en.jpg", "pagina-amordebisavo-es.jpg"),
-    photo: heroAsset("foto-amordebisavo-en.jpg", "foto-amordebisavo-en.jpg", "foto-amordebisavo-es.jpg"),
+    page: heroAsset("pagina-amordebisavo.jpg", "pagina-amordebisavo-en.jpg", "pagina-amordebisavo-es.jpg"),
+    photo: heroAsset("foto-amordebisavo.jpg", "foto-amordebisavo-en.jpg", "foto-amordebisavo-es.jpg"),
   },
   {
     name: "Amor de Mãe",
@@ -345,6 +346,28 @@ const NAV_CAT_META = [
     feats: [],
   },
 ] as const;
+/** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
+const MENU_BOOKS: Record<string, readonly number[]> = {
+  adventure: [2, 11],
+  dinosaurs: [19],
+  underwater: [18],
+  space: [17],
+  princess: [1],
+  superhero: [16],
+  sport: [0, 5],
+  mothers_day: [6, 7],
+  fathers_day: [15],
+  grandparents_love: [9],
+  family_love: [8],
+  christmas: [10],
+  birthday: [14],
+  alfabetizacao_inicial: [3],
+  animais_sons: [4],
+};
+function themeFromHref(href: string): string | null {
+  const match = href.match(/[?&]tema=([^&]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
 function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
@@ -502,6 +525,7 @@ const I18N = {
     my_books: "Meus Livros",
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
+    cat_empty: "Ainda não temos um exemplo neste tema.",
     cats_label: "Categorias",
     quick_links: "Acessos rápidos",
     font_label: "Fonte do título",
@@ -555,15 +579,15 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Você envia a foto e escolhe os detalhes", p: "Escolha o tema, informe o nome, idade, idioma e formato do livro." },
+      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e informe o nome, a idade, o idioma e o formato do livro." },
       { t: "Criamos o personagem e a história", p: "O Story R Us gera a história completa, a capa e todas as páginas ilustradas com o mesmo rosto da criança." },
       { t: "Você recebe e aprova o livro", p: "Visualize a prévia completa, aprove, e receba o livro físico pronto para impressão e entrega." },
     ],
-    shot_sub: "Fotos nítidas deixam o personagem mais parecido.",
+    shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
-      { t: "A criança", p: "3 a 5 fotos recentes, de frente e com boa luz. Sem filtro, chapéu ou óculos escuros." },
-      { t: "Família e pets", p: "Cada pessoa: 2 ou 3 fotos sozinha. O pet: de frente e de corpo inteiro." },
-      { t: "O que contar", p: "Nome, idade, tema do livro e idioma." },
+      { t: "A criança", p: "Envie de 3 a 5 fotos recentes, de frente e bem iluminadas. O rosto deve aparecer por inteiro, sem filtro, chapéu ou óculos escuros." },
+      { t: "Família e pets", p: "Para cada pessoa da história, envie 2 ou 3 fotos sozinha. Para o pet, uma de frente e outra de corpo inteiro." },
+      { t: "Dados do livro", p: "Informe o nome e a idade da criança, o tema do livro e o idioma: português, espanhol ou inglês." },
     ],
     shot_title: "Dicas para a foto perfeita",
     cartoon_shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
@@ -671,6 +695,7 @@ const I18N = {
     my_books: "My Books",
     see_all_books: "See all books",
     view_all: "View all",
+    cat_empty: "We don't have an example for this theme yet.",
     cats_label: "Categories",
     quick_links: "Quick links",
     font_label: "Cover font",
@@ -724,15 +749,15 @@ const I18N = {
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "You send the photo and choose the details", p: "Pick the theme, and enter the name, age, language, and book format." },
+      { t: "Send the photo and set the details", p: "Choose the theme and enter the name, age, language, and book format." },
       { t: "We create the character and the story", p: "Story R Us creates the full story, the cover, and every illustrated page with the same face." },
       { t: "You receive and approve the book", p: "See the full preview, approve it, and get the printed book ready for printing and delivery." },
     ],
-    shot_sub: "Clear photos make the character look more like your child.",
+    shot_sub: "Send the photo and set the details.",
     shots: [
-      { t: "The child", p: "3 to 5 recent photos, facing the camera, in good light. No filters, hats, or sunglasses." },
-      { t: "Family and pets", p: "Each person: 2 or 3 photos alone. Pets: front and full body." },
-      { t: "What to tell us", p: "Name, age, book theme, and language." },
+      { t: "The child", p: "Send 3 to 5 recent photos, facing the camera and well lit. The whole face should be visible, with no filter, hat, or sunglasses." },
+      { t: "Family and pets", p: "For each person in the story, send 2 or 3 photos alone. For a pet, one facing forward and one full body." },
+      { t: "Book details", p: "Share the child’s name and age, the book theme, and the language: Portuguese, Spanish, or English." },
     ],
     shot_title: "Tips for the perfect photo",
     cartoon_shot_sub: "Upload a clear photo of your child with the face centered.",
@@ -840,6 +865,7 @@ const I18N = {
     my_books: "Mis Libros",
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
+    cat_empty: "Todavía no tenemos un ejemplo de este tema.",
     cats_label: "Categorías",
     quick_links: "Accesos rápidos",
     font_label: "Fuente del título",
@@ -893,15 +919,15 @@ const I18N = {
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Envías la foto y eliges los detalles", p: "Elige el tema e indica el nombre, la edad, el idioma y el formato del libro." },
+      { t: "Envía la foto y define los detalles", p: "Elige el tema e indica el nombre, la edad, el idioma y el formato del libro." },
       { t: "Creamos el personaje y la historia", p: "Story R Us genera la historia completa, la portada y todas las páginas ilustradas con el mismo rostro." },
       { t: "Recibes y apruebas el libro", p: "Mira la vista previa completa, aprueba y recibe el libro físico listo para imprimir y entregar." },
     ],
-    shot_sub: "Fotos nítidas hacen que el personaje se parezca más.",
+    shot_sub: "Envía la foto y define los detalles.",
     shots: [
-      { t: "El niño", p: "De 3 a 5 fotos recientes, de frente y con buena luz. Sin filtro, sombrero ni gafas de sol." },
-      { t: "Familia y mascotas", p: "Cada persona: 2 o 3 fotos sola. La mascota: de frente y de cuerpo entero." },
-      { t: "Qué contarnos", p: "Nombre, edad, tema del libro e idioma." },
+      { t: "El niño", p: "Envía de 3 a 5 fotos recientes, de frente y bien iluminadas. El rostro debe verse completo, sin filtro, sombrero ni gafas de sol." },
+      { t: "Familia y mascotas", p: "Para cada persona de la historia, envía 2 o 3 fotos sola. Para la mascota, una de frente y otra de cuerpo entero." },
+      { t: "Datos del libro", p: "Indica el nombre y la edad del niño, el tema del libro y el idioma: portugués, español o inglés." },
     ],
     shot_title: "Consejos para la foto perfecta",
     cartoon_shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
@@ -1004,7 +1030,43 @@ const I18N = {
   },
 } as const;
 
-const FLIP_MS = 600;
+/** "fold" = página dobrando (landing-flip-fold.css). "fade" = esmaecer. */
+const FLIP_FX: "fade" | "fold" = "fade";
+const FLIP_MS = FLIP_FX === "fold" ? 1100 : 700;
+const FLIP_AUTO_MS = 3600;
+const FLIP_HOLD_MS = 10000;
+const FOLD_N = 2;
+
+function FoldMesh({ src, kind }: { src: string; kind: string }) {
+  let node: ReactNode = null;
+  for (let i = FOLD_N - 1; i >= 0; i--) {
+    node = (
+      <div
+        className={`fb-seg${i === 0 ? " fb-seg-first" : ""}${i === FOLD_N - 1 ? " fb-seg-last" : ""}`}
+        style={{ "--k": String(i / Math.max(1, FOLD_N - 1)) } as CSSProperties}
+      >
+        <span className="fb-seg-front">
+          <img className={`fb-page ${kind}`} src={src} alt="" aria-hidden style={{ left: `${-i * 100}%` }} />
+        </span>
+        <span className="fb-seg-back" aria-hidden />
+        {node}
+      </div>
+    );
+  }
+  return (
+    <div className="fb-fold" style={{ "--folds": FOLD_N } as CSSProperties} aria-hidden>
+      {node}
+    </div>
+  );
+}
+
+function prefersReducedMotion() {
+  try {
+    return !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  } catch {
+    return false;
+  }
+}
 
 function FlipBook({
   pages,
@@ -1020,8 +1082,25 @@ function FlipBook({
   const [anim, setAnim] = useState<"next" | "prev" | null>(null);
   const [target, setTarget] = useState(index);
   const [frame, setFrame] = useState<{ w: number; h: number } | null>(null);
+  const [paused, setPaused] = useState(false);
   const busy = useRef(false);
+  const fromSelf = useRef(false);
+  const didMount = useRef(false);
+  const holdUntil = useRef(0);
+  const indexRef = useRef(index);
+  const onIndexRef = useRef(onIndex);
+  const pagesRef = useRef(pages);
+  indexRef.current = index;
+  onIndexRef.current = onIndex;
+  pagesRef.current = pages;
   const pageSrc = pages[index];
+  const pageKey = pages.join("|");
+  useEffect(() => {
+    pages.forEach((src) => {
+      const img = new Image();
+      img.src = exUrl(src);
+    });
+  }, [pageKey]);
   useEffect(() => {
     const img = new Image();
     let alive = true;
@@ -1044,23 +1123,79 @@ function FlipBook({
       window.removeEventListener("resize", apply);
     };
   }, [pageSrc]);
-  const flip = (dir: "next" | "prev") => {
-    if (busy.current || pages.length < 2) return;
-    const t = dir === "next" ? index + 1 : index - 1;
-    if (t < 0 || t >= pages.length) return;
-    busy.current = true;
-    setTarget(t);
-    setAnim(dir);
-    window.setTimeout(() => {
-      onIndex(t);
-      setAnim(null);
-      busy.current = false;
-    }, FLIP_MS);
+  useEffect(() => {
+    if (!didMount.current) {
+      didMount.current = true;
+      setTarget(index);
+      return;
+    }
+    if (fromSelf.current) {
+      fromSelf.current = false;
+      return;
+    }
+    busy.current = false;
+    setAnim(null);
+    setTarget(index);
+    holdUntil.current = Date.now() + FLIP_HOLD_MS;
+  }, [index]);
+  const commit = (next: number) => {
+    fromSelf.current = true;
+    onIndexRef.current(next);
   };
-  const underSrc = anim === "next" ? pages[target] : pages[index];
-  const leafSrc = anim === "next" ? pages[index] : (anim === "prev" ? pages[target] : pages[index]);
-  const underIdx = anim === "next" ? target : index;
-  const leafIdx = anim === "next" ? index : (anim === "prev" ? target : index);
+  const finish = (next: number) => {
+    if (!busy.current) return;
+    busy.current = false;
+    setAnim(null);
+    commit(next);
+  };
+  const flip = (dir: "next" | "prev", fromUser = false) => {
+    const list = pagesRef.current;
+    if (busy.current || list.length < 2) return;
+    const cur = indexRef.current;
+    const next = dir === "next" ? (cur + 1) % list.length : (cur - 1 + list.length) % list.length;
+    if (fromUser) holdUntil.current = Date.now() + FLIP_HOLD_MS;
+    if (prefersReducedMotion()) {
+      commit(next);
+      return;
+    }
+    busy.current = true;
+    setTarget(next);
+    setAnim(dir);
+  };
+  useEffect(() => {
+    if (pages.length < 2) return;
+    const tick = () => {
+      if (busy.current || paused || document.hidden) return;
+      if (Date.now() < holdUntil.current) return;
+      flip("next");
+    };
+    const id = window.setInterval(tick, FLIP_AUTO_MS);
+    return () => window.clearInterval(id);
+  }, [pageKey, paused]);
+  const onLeafEnd = (e: { animationName?: string; target?: EventTarget; currentTarget?: EventTarget }) => {
+    if (!anim) return;
+    if (e.target !== e.currentTarget) return;
+    if (e.animationName && !/^(fbPeel|fbFade)/.test(e.animationName)) return;
+    finish(target);
+  };
+  useEffect(() => {
+    if (!anim) return;
+    const id = window.setTimeout(() => finish(target), FLIP_MS + 80);
+    return () => window.clearTimeout(id);
+  }, [anim, target]);
+  const folding = FLIP_FX === "fold";
+  const underSrc = folding
+    ? (anim === "next" ? pages[target] : pages[index])
+    : (anim ? pages[target] : pages[index]);
+  const leafSrc = folding
+    ? (anim === "next" ? pages[index] : (anim === "prev" ? pages[target] : pages[index]))
+    : pages[index];
+  const underIdx = folding
+    ? (anim === "next" ? target : index)
+    : (anim ? target : index);
+  const leafIdx = folding
+    ? (anim === "next" ? index : (anim === "prev" ? target : index))
+    : index;
   const pageKind = (idx: number) => {
     if (idx === 0) return "fb-page--cover";
     if (idx === pages.length - 1) return "fb-page--photo";
@@ -1069,41 +1204,86 @@ function FlipBook({
   const pageLabel = (idx: number) => {
     if (idx === 0) return labels.cover;
     if (idx === pages.length - 1) return labels.photo;
-    return `${idx} / ${Math.max(pages.length - 2, 1)}`;
+    return labels.turn;
   };
   const single = pages.length < 2;
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
-    if (e.clientX - r.left > r.width / 2) flip("next"); else flip("prev");
+    if (e.clientX - r.left > r.width / 2) flip("next", true); else flip("prev", true);
   };
   const onStageKey = (e: RKeyboardEvent<HTMLDivElement>) => {
     if (e.key === "Enter" || e.key === " " || e.key === "ArrowRight") {
       e.preventDefault();
-      flip("next");
+      flip("next", true);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      flip("prev");
+      flip("prev", true);
     }
   };
+  const goTo = (i: number) => {
+    if (i === index || busy.current) return;
+    const wrapNext = index === pages.length - 1 && i === 0;
+    const wrapPrev = index === 0 && i === pages.length - 1;
+    const step = Math.abs(i - index) === 1 || wrapNext || wrapPrev;
+    if (step) {
+      flip(wrapPrev || i < index ? "prev" : "next", true);
+      return;
+    }
+    holdUntil.current = Date.now() + FLIP_HOLD_MS;
+    commit(i);
+  };
   return (
-    <div className="flipbook">
-      {single ? null : <button className="fb-nav" type="button" onClick={() => flip("prev")} disabled={index === 0 || !!anim} aria-label={labels.prev}>‹</button>}
-      <div
-        className="fb-stage"
-        onClick={single ? undefined : onStage}
-        onKeyDown={single ? undefined : onStageKey}
-        role={single ? "img" : "button"}
-        tabIndex={single ? undefined : 0}
-        aria-label={single ? pageLabel(index) : labels.turn}
-        style={frame ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" } : undefined}
-      >
-        <span className="fb-spine" />
-        <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
-        <div className={`fb-leaf${anim ? ` ${anim}` : ""}`}>
-          <img className={`fb-page ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(index)} data-testid="landing-hero-flip" />
+    <div
+      className="flipbook"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setPaused(false);
+      }}
+    >
+      <div className="fb-board">
+        {single ? null : <button className="fb-nav" type="button" onClick={() => flip("prev", true)} disabled={!!anim} aria-label={labels.prev}>‹</button>}
+        <div
+          className="fb-stage"
+          onClick={single ? undefined : onStage}
+          onKeyDown={single ? undefined : onStageKey}
+          role={single ? "img" : "button"}
+          tabIndex={single ? undefined : 0}
+          aria-label={single ? pageLabel(index) : labels.turn}
+          style={frame ? { width: frame.w, height: "auto", aspectRatio: `${frame.w} / ${frame.h}`, maxWidth: "100%" } : undefined}
+        >
+          <span className="fb-spine" />
+          <img className={`fb-page fb-under ${pageKind(underIdx)}`} src={exUrl(underSrc)} alt="" aria-hidden />
+          <span className="fb-under-shade" aria-hidden />
+          <div
+            className={`fb-leaf fb-fx-${FLIP_FX}${anim ? ` ${anim}` : ""}`}
+            onAnimationEnd={(e) => onLeafEnd(e)}
+          >
+            <img className={`fb-page fb-leaf-front ${pageKind(leafIdx)}`} src={exUrl(leafSrc)} alt={pageLabel(index)} data-testid="landing-hero-flip" />
+            {folding ? <FoldMesh src={exUrl(leafSrc)} kind={pageKind(leafIdx)} /> : null}
+            {folding ? <span className="fb-leaf-back" aria-hidden /> : null}
+            {folding ? <span className="fb-leaf-shade" aria-hidden /> : null}
+          </div>
         </div>
+        {single ? null : <button className="fb-nav" type="button" onClick={() => flip("next", true)} disabled={!!anim} aria-label={labels.next}>›</button>}
       </div>
-      {single ? null : <button className="fb-nav" type="button" onClick={() => flip("next")} disabled={index === pages.length - 1 || !!anim} aria-label={labels.next}>›</button>}
+      {single ? null : (
+        <div className="fb-dots" role="tablist" aria-label={labels.turn}>
+          {pages.map((_, i) => (
+            <button
+              key={pages[i]}
+              type="button"
+              className={`fb-dot${i === index ? " on" : ""}`}
+              role="tab"
+              aria-selected={i === index}
+              aria-label={pageLabel(i)}
+              data-testid={`landing-hero-flip-dot-${i}`}
+              onClick={() => goTo(i)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1113,6 +1293,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const headerRef = useRef<HTMLElement>(null);
   const [navOpen, setNavOpen] = useState(false);
   const [openCat, setOpenCat] = useState<number | null>(null);
+  const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
   const [lang, setLang] = useState<Lang>(() => {
     try {
@@ -1154,12 +1335,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           size: c.size,
           tag: c.tag,
         }));
-  const heroSlides = heroStrip.flatMap((book) => [
-    { src: book.cover[lang], alt: book.name },
-    { src: book.page[lang], alt: book.name },
-    { src: book.photo[lang], alt: book.name },
-  ]);
-  const heroSlide = heroSlides[heroPick] ?? heroSlides[0];
+  const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
+  const heroPage = heroPick % 3;
+  const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
+  const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
@@ -1171,6 +1350,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       img: catalogImgSrc(CATALOG_IMGS[NAV_CAT_META[i].feats[j].catalogI], lang),
     })),
   }));
+  const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
+    const book = t.catalog[i];
+    const img = CATALOG_IMGS[i];
+    if (!book || !img) return [];
+    return [{ label: book.t, href: `/app?tema=${theme}`, img: catalogImgSrc(img, lang) }];
+  });
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
@@ -1204,6 +1389,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         setNavOpen(false);
         setMobileCat(null);
         setOpenCat(null);
+        setSubHover(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1216,6 +1402,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const target = e.target as Node | null;
       if (target && headerRef.current?.contains(target)) return;
       setOpenCat(null);
+      setSubHover(null);
       setNavOpen(false);
       setMobileCat(null);
     };
@@ -1227,6 +1414,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     setNavOpen(false);
     setMobileCat(null);
     setOpenCat(null);
+    setSubHover(null);
   };
 
   return (
@@ -1249,11 +1437,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     key={cat.name}
                     className={`kcat${openCat === i ? " open" : ""}`}
                     onMouseEnter={() => setOpenCat(i)}
-                    onMouseLeave={() => setOpenCat(null)}
+                    onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
                   >
                     <button
                       type="button"
                       className="kcat-btn"
+                      style={{ "--cat": cat.color } as CSSProperties}
                       aria-expanded={openCat === i}
                       aria-haspopup="true"
                       aria-controls={`cat-panel-${i}`}
@@ -1264,33 +1453,51 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </button>
                     <div className="kcat-panel" id={`cat-panel-${i}`}>
                       <ul className="kcat-subs">
-                        {cat.subs.map((sub) => (
-                          <li key={sub.label}><Link to={sub.href} onClick={closeNav}>{sub.label}</Link></li>
+                        {cat.subs.map((sub, j) => (
+                          <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
+                            <Link
+                              to={sub.href}
+                              onClick={closeNav}
+                              onMouseEnter={() => setSubHover({ cat: i, sub: j })}
+                              onFocus={() => setSubHover({ cat: i, sub: j })}
+                            >{sub.label}</Link>
+                          </li>
                         ))}
                       </ul>
-                      <div className="kcat-feats">
-                        {cat.feats.map((feat) => (
-                          <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
-                            <span className="kcat-feat-cover">
-                              <img src={exUrl(feat.img)} alt="" />
-                            </span>
-                            <span>{feat.label}</span>
-                          </Link>
-                        ))}
-                        <Link to="/app" className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                      <div className="kcat-feats" data-testid={`landing-cat-feats-${i}`}>
+                        {(() => {
+                          const activeSub = subHover?.cat === i ? cat.subs[subHover.sub] : null;
+                          const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
+                          const shown = activeTheme ? menuBooks(activeTheme) : cat.feats;
+                          const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
+                          return (
+                            <>
+                              {shown.map((feat) => (
+                                <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                                  <span className="kcat-feat-cover">
+                                    <img src={exUrl(feat.img)} alt="" />
+                                  </span>
+                                  <span>{feat.label}</span>
+                                </Link>
+                              ))}
+                              {activeTheme && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
+                              <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   </div>
                 ))}
-                <a href="#como" className="kcat-btn" onClick={closeNav}>
+                <a href="#como" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
                   {t.hiw_title}
                 </a>
-                <a href="#videos" className="kcat-btn" onClick={closeNav}>
+                <a href="#videos" className="kcat-btn" style={{ "--cat": "#e07a9a" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
                   {t.videos_link}
                 </a>
-                <a href="#reviews" className="kcat-btn" onClick={closeNav}>
+                <a href="#reviews" className="kcat-btn" style={{ "--cat": "#f4b740" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
@@ -1409,10 +1616,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-flipbook">
           <FlipBook
-            key={`${heroSlide.src}-${lang}`}
-            pages={[heroSlide.src]}
-            index={0}
-            onIndex={() => {}}
+            key={`${heroBook.name}-${lang}`}
+            pages={heroPages}
+            index={heroPage}
+            onIndex={(next) => setHeroPick(heroSeries * 3 + next)}
             labels={flipLabels}
           />
         </div>
