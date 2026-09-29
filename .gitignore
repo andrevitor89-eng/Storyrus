@@ -277,6 +277,12 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/capa-enzo-primo.png
 !apps/web/public/exemplos/pagina-enzo-primo.png
 !apps/web/public/exemplos/foto-enzo-primo.png
+!apps/web/public/exemplos/capa-lucas-max.png
+!apps/web/public/exemplos/pagina-lucas-max.png
+!apps/web/public/exemplos/foto-lucas-max.png
+!apps/web/public/exemplos/capa-esther-higiene.png
+!apps/web/public/exemplos/pagina-esther-higiene.png
+!apps/web/public/exemplos/foto-esther-higiene.png
 
 .vercel
 .env*

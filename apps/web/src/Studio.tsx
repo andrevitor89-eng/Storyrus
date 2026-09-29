@@ -124,11 +124,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const heroi = q.get("heroi");
     if (!tema && !titulo && !historia) return;
     presetApplied.current = true;
+    const onlyTheme = q.get("campos") === "tema";
     const fallback = tema ? themePreset(tema, lang) : null;
-    const title = titulo || fallback?.title || "";
     const themeBody = historia || fallback?.theme || "";
-    if (title) setBookTitle(title);
     if (themeBody) setThemeText(themeBody);
+    if (onlyTheme) return;
+    const title = titulo || fallback?.title || "";
+    if (title) setBookTitle(title);
     if (heroi && titulo) titlePreset.current = { hero: heroi, title: titulo };
   }, [isDemo, lang]);
 

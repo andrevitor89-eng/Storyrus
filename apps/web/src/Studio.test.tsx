@@ -61,6 +61,15 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
   });
 
+  it("leva só o tema e deixa o nome da criança em branco", async () => {
+    window.history.replaceState({}, "", "/app?tema=mothers_day&campos=tema&historia=Amor+de+m%C3%A3e");
+    render(<Studio />);
+
+    expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
+    expect(screen.getByLabelText(/título do livro/i)).toHaveValue("");
+    expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue("Amor de mãe");
+  });
+
   it("preenche um tema sem livro único e deixa os campos editáveis", async () => {
     window.history.replaceState({}, "", "/app?tema=sport");
     const user = userEvent.setup();

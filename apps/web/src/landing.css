@@ -97,7 +97,7 @@
 }
 .khead-inner {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: end;
   max-width: none; width: 100%; margin: 0;
   padding: 0 var(--page-gutter); box-sizing: border-box;
@@ -105,7 +105,10 @@
 }
 .khead-main {
   grid-column: 2;
+  width: max-content;
+  max-width: 100%;
   min-width: 0;
+  justify-self: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -130,7 +133,8 @@
 .khead-actions {
   grid-column: 3;
   display: flex; align-items: center; justify-content: flex-end; gap: 12px;
-  flex: none; min-width: max-content; margin-left: 0;
+  flex: none; width: max-content; min-width: 0; margin-left: 0;
+  justify-self: end;
   align-self: end;
   z-index: 2;
 }
@@ -145,7 +149,8 @@
 .khead .kbrand {
   grid-column: 1;
   display: inline-flex; align-items: flex-end; justify-content: center;
-  justify-self: center; align-self: end;
+  justify-self: start; align-self: end;
+  min-width: 0;
   overflow: visible; padding: 0; margin: 0;
   flex: none; width: auto; max-width: 100%;
 }
@@ -176,7 +181,7 @@
 }
 .kcats {
   display: flex; align-items: center; justify-content: center;
-  gap: 6px; flex: 1; min-width: 0; flex-wrap: nowrap;
+  gap: 6px; flex: none; width: max-content; max-width: 100%; min-width: 0; flex-wrap: nowrap;
 }
 .kcat {
   position: static; flex: 0 0 auto; min-width: auto;
@@ -928,7 +933,8 @@ a.kcat-btn:active {
 
 /* ---------- seções ---------- */
 .ksection { position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto; padding: 50px var(--page-gutter); text-align: center; scroll-margin-top: 150px; }
-#como { padding-top: 24px; }
+#como { padding-top: 24px; padding-bottom: 0; }
+#catalogo { padding-top: 0; }
 #reviews, #catalogo, #promessa, #como, #videos, #faq { scroll-margin-top: 150px; }
 .soft-wrap { background: rgba(255,255,255,.6); border-radius: 40px; margin: 16px auto; }
 .ktitle { font-size: clamp(2rem, 4.6vw, 3rem); margin: 0 0 8px; color: var(--ink); }
@@ -1414,14 +1420,15 @@ img.ex-tab-cover {
 .cat-ia svg { width: 18px; height: 18px; }
 .cat-body { display: flex; flex-direction: column; flex: 1; padding: 14px 4px 8px; text-align: left; }
 .cat-body h3 {
-  margin: 0 0 4px; color: #e9eefb; font-size: 1.25rem; line-height: 1.25;
+  margin: 0 0 16px; color: #e9eefb; font-size: 1.25rem; line-height: 1.25;
   min-height: 2.5em; max-height: 2.5em;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .cat-body p {
-  margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.4;
-  min-height: 2.8em;
+  margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.45;
+  min-height: 4.8em;
 }
+#catalogo .cat-body p span { display: block; white-space: nowrap; }
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
 .cat-price span { display: block; font-size: .82rem; font-weight: 600; color: #9fabce; }
 .cat-body .kbtn { margin-top: auto; justify-content: center; }
