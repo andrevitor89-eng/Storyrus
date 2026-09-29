@@ -184,11 +184,13 @@
 }
 .kcat-btn {
   display: inline-flex; align-items: center; gap: 5px;
-  border: 1px solid var(--cat, #fff); background: #182343; cursor: pointer;
+  border: none; background: #182343; cursor: pointer;
   padding: 8px 10px; border-radius: 11px;
   color: #e9eefb; font-weight: 700; font-size: .75rem; font-family: inherit;
   white-space: nowrap; text-decoration: none;
-  box-shadow: none;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.35),
+    0 0 14px rgba(244,183,64,.22);
   transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 a.kcat-btn,
@@ -200,7 +202,9 @@ a.kcat-btn:active {
 }
 .kcat-btn:hover, .kcat-btn:focus-visible, .kcat.open .kcat-btn, .kcat:focus-within .kcat-btn {
   background: #1f2d55;
-  box-shadow: 0 0 10px color-mix(in srgb, var(--cat, #fff) 55%, transparent);
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.55),
+    0 0 24px rgba(244,183,64,.42);
   transform: translateY(-1px);
 }
 .kcat-dot {
@@ -375,7 +379,7 @@ a.kcat-btn:active {
   width: auto;
   flex: 0 0 auto;
   margin: 0;
-  border: 0;
+  border: 1px solid #fff;
   border-radius: 0;
   padding: 0;
   background: none;
@@ -387,9 +391,7 @@ a.kcat-btn:active {
   overflow: hidden;
 }
 .hero-shot:hover:not(:disabled) { transform: none; box-shadow: none; }
-.hero-shot.on {
-  box-shadow: inset 0 0 0 2px #fff;
-}
+.hero-shot.on { box-shadow: none; }
 .hero-slide.on .hero-slide-frame {
   box-shadow:
     0 0 0 1px #fff,
@@ -406,7 +408,7 @@ a.kcat-btn:active {
   border: 1px solid #fff;
   border-radius: 12px;
   overflow: hidden;
-  background: #fff;
+  background: #0b1226;
   box-shadow:
     0 0 0 1px #fff,
     0 8px 18px rgba(0,0,0,.16);
@@ -1318,7 +1320,7 @@ img.ex-tab-cover {
 .rev-carousel .rev-photo {
   width: 168px;
   flex: 0 0 168px;
-  margin-right: 2px;
+  margin-right: 8px;
   box-sizing: border-box;
 }
 @keyframes rev-marquee {
@@ -1351,13 +1353,13 @@ img.ex-tab-cover {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 12px;
-  border: 3px solid var(--yellow);
+  border: 3px solid #172140;
   overflow: hidden;
   background: #10182e;
   box-sizing: border-box;
   box-shadow:
     0 0 0 1px #fff,
-    0 0 18px rgba(244,183,64,.32),
+    0 0 18px rgba(23,33,64,.4),
     0 12px 28px rgba(0,0,0,.32);
 }
 .rev-photo-frame img {
