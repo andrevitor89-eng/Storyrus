@@ -488,7 +488,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   const preset = titlePreset.current;
                   if (!preset || titleTouched.current) return;
                   const next = name.trim();
-                  setBookTitle(next ? preset.title.replaceAll(preset.hero, next) : preset.title);
+                  setBookTitle(next ? preset.title.split(preset.hero).join(next) : preset.title);
                 }}
                 placeholder={t.childNamePh}
                 maxLength={80}
