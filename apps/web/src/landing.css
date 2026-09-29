@@ -1399,8 +1399,10 @@ img.ex-tab-cover {
 .cat-card,
 #catalogo .cat-card {
   display: flex; flex-direction: column; height: 100%; width: 100%; min-width: 0;
-  background: transparent; background-image: none;
-  border-radius: 0; overflow: visible; border: none; box-shadow: none;
+  background: #172140; background-image: none;
+  border: 1px solid #26315a; border-radius: 22px; overflow: hidden;
+  padding: 14px 14px 16px;
+  box-shadow: 0 14px 30px rgba(0,0,0,.4);
   transition: transform .18s ease;
 }
 .cat-card:hover { transform: translateY(-8px); }
@@ -1418,12 +1420,30 @@ img.ex-tab-cover {
 }
 .cat-body p {
   margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.4;
-  min-height: 5.6em;
+  min-height: 2.8em;
 }
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
 .cat-price span { display: block; font-size: .82rem; font-weight: 600; color: #9fabce; }
 .cat-body .kbtn { margin-top: auto; justify-content: center; }
-.cat-badges { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+#catalogo .cat-body .kbtn {
+  align-self: center;
+  width: auto;
+  margin-top: 12px;
+  padding: 7px 16px;
+  font-size: .88rem;
+  box-shadow: 0 5px 0 rgba(31,53,104,.12), 0 8px 14px rgba(58,95,174,.16);
+}
+.cat-badges { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 8px; }
+.cat-opt { display: flex; gap: 6px; }
+.cat-opt button {
+  font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px;
+  text-transform: uppercase; color: #c5d0ea; background: transparent;
+  border: 1.5px solid #3a4a78; padding: 3px 9px; border-radius: 999px; cursor: pointer;
+}
+.cat-opt button.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
+.cat-badges .cat-price { margin: 0 0 0 auto; }
+[data-theme="light"] .kid #catalogo .cat-opt button { color: #1f3568; border-color: #d5dced; }
+[data-theme="light"] .kid #catalogo .cat-opt button.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
 .cat-cover-type, .cat-size {
   font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px;
   text-transform: uppercase; color: #1f3568; background: var(--yellow); padding: 3px 9px; border-radius: 999px;
@@ -1475,13 +1495,15 @@ img.ex-tab-cover {
 
 /* tema claro para catálogo + FAQ */
 [data-theme="light"] .kid .faq-item { background: #fff; border-color: #e6ebf5; box-shadow: 0 12px 28px rgba(31,53,104,.08); }
-[data-theme="light"] .kid .cat-card,
-[data-theme="light"] .kid #catalogo .cat-card,
 [data-theme="light"] .kid #catalogo .cat-display,
 [data-theme="light"] .kid #catalogo .cat-book {
   background: transparent; background-image: none; border: none;
 }
-[data-theme="light"] .kid .cat-card { box-shadow: none; }
+[data-theme="light"] .kid #catalogo .cat-card {
+  background: #fff;
+  border: 1px solid #e6ebf5;
+  box-shadow: 0 12px 28px rgba(31,53,104,.08);
+}
 [data-theme="light"] .kid .cat-body h3, [data-theme="light"] .kid .faq-q { color: var(--ink); }
 [data-theme="light"] .kid .cat-body p, [data-theme="light"] .kid .cat-price span, [data-theme="light"] .kid .faq-a p { color: #6b6890; }
 [data-theme="light"] .kid .cat-price { color: var(--coral); }

@@ -79,34 +79,34 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     photo: heroAsset("foto-mako-amigofiel.jpg", "foto-mako-amigofiel-en.jpg", "foto-mako-amigofiel-es.jpg"),
   },
   {
-    name: "Martin",
-    cover: heroAsset("capa-martin-goleiro.jpg"),
-    page: heroAsset("pagina-martin-goleiro.jpg"),
-    photo: heroAsset("foto-martin-goleiro.jpg"),
-  },
-  {
-    name: "Emilia",
-    cover: heroAsset("capa-emilia-bailarina.jpg"),
-    page: heroAsset("pagina-emilia-bailarina.jpg"),
-    photo: heroAsset("foto-emilia-bailarina.jpg"),
-  },
-  {
-    name: "Antonio",
-    cover: heroAsset("capa-antonio-bicicleta.jpg"),
-    page: heroAsset("pagina-antonio-bicicleta.jpg"),
-    photo: heroAsset("foto-antonio-bicicleta.jpg"),
-  },
-  {
-    name: "Maria Jesus",
-    cover: heroAsset("capa-mariajesus-hockey.jpg"),
-    page: heroAsset("pagina-mariajesus-hockey.jpg"),
-    photo: heroAsset("foto-mariajesus-hockey.jpg"),
-  },
-  {
     name: "Facundo",
     cover: heroAsset("capa-facundo-motocross.jpg"),
     page: heroAsset("pagina-facundo-motocross.jpg"),
     photo: heroAsset("foto-facundo-motocross.jpg"),
+  },
+  {
+    name: "Amor de Tia",
+    cover: heroAsset("capa-amordetia.png"),
+    page: heroAsset("pagina-amordetia.png"),
+    photo: heroAsset("foto-amordetia.png"),
+  },
+  {
+    name: "Davi, o Menino Pastor",
+    cover: heroAsset("capa-davi-pastor.png"),
+    page: heroAsset("pagina-davi-pastor.png"),
+    photo: heroAsset("foto-davi-pastor.png"),
+  },
+  {
+    name: "Meu Pai, Meu Herói",
+    cover: heroAsset("capa-meupai-heroi.png"),
+    page: heroAsset("pagina-meupai-heroi.png"),
+    photo: heroAsset("foto-meupai-heroi.png"),
+  },
+  {
+    name: "Enzo, Meu Primo Predileto",
+    cover: heroAsset("capa-enzo-primo.png"),
+    page: heroAsset("pagina-enzo-primo.png"),
+    photo: heroAsset("foto-enzo-primo.png"),
   },
 ];
 /** Hero do /cartoon: só livros com visual de desenho. */
@@ -198,6 +198,10 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" },
   { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" },
   { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" },
+  { pt: "capa-amordetia.png", en: "capa-amordetia.png", es: "capa-amordetia.png" },
+  { pt: "capa-davi-pastor.png", en: "capa-davi-pastor.png", es: "capa-davi-pastor.png" },
+  { pt: "capa-meupai-heroi.png", en: "capa-meupai-heroi.png", es: "capa-meupai-heroi.png" },
+  { pt: "capa-enzo-primo.png", en: "capa-enzo-primo.png", es: "capa-enzo-primo.png" },
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -220,11 +224,17 @@ const CATALOG_THEMES = [
   "space",
   "underwater",
   "dinosaurs",
+  "family_love",
+  "adventure",
+  "fathers_day",
+  "family_love",
 ];
 /** Catálogo da principal: no máximo 15, todos com a mesma capa, tamanho e preço. */
 const CATALOG_LIMIT = 15;
-/** Índices de capa em estilo desenho, fora do catálogo realista. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5]);
+/** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
+const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5, 14]);
+/** Livros novos em português, depois do limite dos 15 primeiros. */
+const CATALOG_NEW_INDEXES = new Set([20, 21, 22, 23]);
 /** Catálogo do /cartoon: só capas com visual de desenho. */
 const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[] = [
   {
@@ -253,16 +263,33 @@ const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[]
     t: { pt: "Amazônia", en: "The Amazon", es: "La Amazonía" },
   },
 ];
-const CATALOG_DESC: Record<Lang, string> = {
-  pt: "Capa dura ou mole, 15 × 15 cm ou 20 × 20 cm. 16 páginas.",
-  en: "Hardcover or softcover, 15 × 15 cm or 20 × 20 cm. 16 pages.",
-  es: "Tapa dura o blanda, 15 × 15 cm o 20 × 20 cm. 16 páginas.",
+type CatalogCoverChoice = "soft" | "hard";
+type CatalogSizeChoice = "M" | "P";
+const CATALOG_SPEC: Record<Lang, Record<CatalogCoverChoice | CatalogSizeChoice | "pages", string>> = {
+  pt: { soft: "Capa mole", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
+  en: { soft: "Softcover", hard: "Hardcover", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 pages." },
+  es: { soft: "Tapa blanda", hard: "Tapa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
 };
 const CATALOG_PRICE: Record<Lang, string> = {
   pt: "Sob consulta",
   en: "On request",
   es: "Bajo consulta",
 };
+/** 20 × 20 cm cotado. 15 × 15 cm ainda sem valor unitário. */
+function catalogPrice(lang: Lang, cover: CatalogCoverChoice, size: CatalogSizeChoice): string {
+  if (size === "P") return CATALOG_PRICE[lang];
+  return cover === "soft" ? "R$ 39,00" : "R$ 59,00";
+}
+function catalogDesc(lang: Lang, cover: CatalogCoverChoice, size: CatalogSizeChoice): string {
+  const spec = CATALOG_SPEC[lang];
+  return `${spec[cover]}, ${spec[size]}. ${spec.pages}`;
+}
+function catalogCoverChoice(cover?: string): CatalogCoverChoice {
+  return cover === "Hard" ? "hard" : "soft";
+}
+function catalogSizeChoice(size?: string): CatalogSizeChoice {
+  return size === "P" ? "P" : "M";
+}
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
 const NAV_CAT_META = [
@@ -684,6 +711,10 @@ const I18N = {
       { t: "Abigail em uma Aventura pelo Espaço", p: "Foguetes, planetas e curiosidade: uma viagem estelar com o seu filho no comando.", cover: "Hard", size: "M", tag: "Espaço", quote: "Coragem, curiosidade e descobertas!" },
       { t: "Miriam e os Segredos do Fundo do Mar", p: "Tartarugas, corais e amizade: o seu filho explora o oceano com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do mar", quote: "Cuidar do mar é cuidar dos amigos." },
       { t: "Noé na Terra dos Dinossauros", p: "Fósseis, amigos gigantes e coragem: uma expedição pré-histórica com o seu filho.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Descobrir juntos é a melhor aventura." },
+      { t: "Amor de Tia", p: "O carinho da tia em cada página: colo, riso e um amor que a família guarda para sempre.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Tia é abraço que não acaba." },
+      { t: "Davi, o Menino Pastor", p: "Um menino, sua harpa e as ovelhas: coragem e fé numa história para guardar para sempre.", cover: "Hard", size: "M", tag: "Fé e coragem", quote: "Pequeno no campo, grande no coração." },
+      { t: "Meu Pai, Meu Herói", p: "Papai e o bebê, lado a lado: proteção, carinho e um herói só da família.", cover: "Hard", size: "M", tag: "Papai herói", quote: "Meu herói tem o colo do papai." },
+      { t: "Enzo, Meu Primo Predileto", p: "Dois primos, um abraço e o mar: amizade que a família nos dá, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "Primo é amigo que a família nos dá." },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -854,6 +885,10 @@ const I18N = {
       { t: "Abigail on a Space Adventure", p: "Rockets, planets and curiosity: a starry journey with your child at the helm.", cover: "Hard", size: "M", tag: "Space", quote: "Courage, curiosity and discovery!" },
       { t: "Miriam and the Secrets of the Deep Sea", p: "Turtles, coral and friendship: your child explores the ocean with care and wonder.", cover: "Hard", size: "M", tag: "Under the sea", quote: "Caring for the sea is caring for friends." },
       { t: "Noé in the Land of Dinosaurs", p: "Fossils, giant friends and courage: a prehistoric expedition with your child.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "Discovering together is the best adventure." },
+      { t: "An Aunt's Love", p: "An aunt's tenderness on every page: a hug, a laugh, and a love the family keeps forever.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "An aunt's hug never ends." },
+      { t: "David, the Shepherd Boy", p: "A boy, his harp and the sheep: courage and faith in a story to keep forever.", cover: "Hard", size: "M", tag: "Faith and courage", quote: "Small in the field, great in heart." },
+      { t: "My Dad, My Hero", p: "Dad and baby, side by side: protection, care, and a hero who belongs to the family.", cover: "Hard", size: "M", tag: "Dad the hero", quote: "My hero has Dad's arms." },
+      { t: "Enzo, My Favorite Cousin", p: "Two cousins, one hug and the sea: a friendship the family gives, to keep forever.", cover: "Hard", size: "M", tag: "Cousin love", quote: "A cousin is the friend family gives us." },
     ],
     promise_title: "Every detail crafted to feel special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1024,6 +1059,10 @@ const I18N = {
       { t: "Abigail en una Aventura por el Espacio", p: "Cohetes, planetas y curiosidad: un viaje estelar con tu hijo al mando.", cover: "Hard", size: "M", tag: "Espacio", quote: "¡Coraje, curiosidad y descubrimientos!" },
       { t: "Miriam y los Secretos del Fondo del Mar", p: "Tortugas, corales y amistad: tu hijo explora el océano con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del mar", quote: "Cuidar el mar es cuidar a los amigos." },
       { t: "Noé en la Tierra de los Dinosaurios", p: "Fósiles, amigos gigantes y coraje: una expedición prehistórica con tu hijo.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Descubrir juntos es la mejor aventura." },
+      { t: "El Amor de la Tía", p: "El cariño de la tía en cada página: abrazo, risa y un amor que la familia guarda para siempre.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "El abrazo de la tía no se acaba." },
+      { t: "David, el Niño Pastor", p: "Un niño, su arpa y las ovejas: coraje y fe en una historia para guardar para siempre.", cover: "Hard", size: "M", tag: "Fe y coraje", quote: "Pequeño en el campo, grande de corazón." },
+      { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé, lado a lado: protección, cariño y un héroe solo de la familia.", cover: "Hard", size: "M", tag: "Papá héroe", quote: "Mi héroe tiene los brazos de papá." },
+      { t: "Enzo, Mi Primo Favorito", p: "Dos primos, un abrazo y el mar: amistad que da la familia, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "El primo es el amigo que da la familia." },
     ],
     promise_title: "Cada detalle pensado para ser especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -1316,6 +1355,68 @@ function FlipBook({
   );
 }
 
+function CatalogBookCard({
+  book,
+  lang,
+  personalize,
+}: {
+  book: { t: string; img: string; theme: string; cover?: string; size?: string };
+  lang: Lang;
+  personalize: string;
+}) {
+  const selectable = typeof book.cover === "string" && typeof book.size === "string";
+  const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
+  const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
+  const spec = CATALOG_SPEC[lang];
+  return (
+    <div className="cat-card reveal" data-testid="landing-catalog-card" data-format="catalog">
+      <div className="cat-display">
+        <div className="cat-book">
+          <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
+        </div>
+      </div>
+      <div className="cat-body">
+        {selectable ? (
+          <div className="cat-badges">
+            <div className="cat-opt" role="group" aria-label={spec.soft}>
+              {(["soft", "hard"] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={cover === choice ? "is-on" : ""}
+                  aria-pressed={cover === choice}
+                  onClick={() => setCover(choice)}
+                >
+                  {choice === "soft" ? "Soft" : "Hard"}
+                </button>
+              ))}
+            </div>
+            <div className="cat-opt" role="group" aria-label={spec.M}>
+              {(["M", "P"] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={size === choice ? "is-on" : ""}
+                  aria-pressed={size === choice}
+                  onClick={() => setSize(choice)}
+                >
+                  {choice}
+                </button>
+              ))}
+            </div>
+            <span className="cat-price" data-testid="landing-catalog-price">{catalogPrice(lang, cover, size)}</span>
+          </div>
+        ) : (
+          <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
+        )}
+        <h3>{book.t}</h3>
+        <p>{selectable ? catalogDesc(lang, cover, size) : catalogDesc(lang, "soft", "M")}</p>
+        <Link to={`/app?tema=${book.theme}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{personalize}</Link>
+      </div>
+    </div>
+  );
+}
+
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
@@ -1354,7 +1455,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     ? CATALOG_DRAWING.map((book) => ({ t: book.t[lang], img: book.img, theme: book.theme }))
     : t.catalog
         .map((c, i) => ({ c, i }))
-        .filter(({ i }) => i < CATALOG_LIMIT && !CATALOG_CARTOON_INDEXES.has(i))
+        .filter(({ i }) => (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i))
         .map(({ c, i }) => ({
           t: c.t,
           img: catalogImgSrc(CATALOG_IMGS[i], lang),
@@ -1747,24 +1848,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
           {catalogBooks.map((c) => (
-            <div className="cat-card reveal" key={c.t} data-testid="landing-catalog-card" data-format="catalog">
-              <div className="cat-display">
-                <div className="cat-book">
-                  <img src={exUrl(c.img)} alt={c.t} loading="lazy" />
-                </div>
-              </div>
-              <div className="cat-body">
-                <div className="cat-badges">
-                  {"cover" in c && typeof c.cover === "string" ? <span className="cat-cover-type">{c.cover}</span> : null}
-                  {"size" in c && typeof c.size === "string" ? <span className="cat-size">{c.size}</span> : null}
-                  {"tag" in c && typeof c.tag === "string" ? <span className="cat-tag">{c.tag}</span> : null}
-                </div>
-                <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
-                <h3>{c.t}</h3>
-                <p>{CATALOG_DESC[lang]}</p>
-                <Link to={`/app?tema=${c.theme}`} className="kbtn kbtn-primary" data-testid="landing-personalize">{t.personalize}</Link>
-              </div>
-            </div>
+            <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} />
           ))}
         </div>
       </section>

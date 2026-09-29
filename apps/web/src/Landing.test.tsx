@@ -170,11 +170,15 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-bruno-animais.png"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-gael-es.png"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-matteo-rancho-es.png"))).toBe(false);
-    expect(srcs.some((src) => src.includes("capa-ester.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-ester.png"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-martin-goleiro.jpg"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-natalmemetata.jpg"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-amordetia.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-davi-pastor.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-meupai-heroi.png"))).toBe(true);
+    expect(srcs.some((src) => src.includes("capa-enzo-primo.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(9);
+    expect(imgs).toHaveLength(12);
   });
 
   it("mostra os livros realistas com a mesma capa, o valor e sem o resumo", async () => {
@@ -182,26 +186,53 @@ describe("Landing — catálogo", () => {
 
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    const desc = "Capa dura ou mole, 15 × 15 cm ou 20 × 20 cm. 16 páginas.";
-    expect(cards).toHaveLength(9);
+    const desc = "Capa mole, 20 × 20 cm. 16 páginas.";
+    expect(cards).toHaveLength(12);
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
-      expect(within(card).getByText(desc)).toBeInTheDocument();
-      expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("Sob consulta");
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
+      expect(within(card).queryByText(/amizade e cuidado/i)).not.toBeInTheDocument();
     });
+    expect(within(cards[0]).getByText(desc)).toBeInTheDocument();
+    expect(within(cards[0]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 39,00");
+    expect(within(cards[4]).getByText("Capa dura, 20 × 20 cm. 16 páginas.")).toBeInTheDocument();
+    expect(within(cards[4]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 59,00");
     expect(within(catalog).queryByText(/Martin, o Grande Goleiro/i)).not.toBeInTheDocument();
-    expect(within(catalog).queryByText(/Aprendendo o Alfabeto/i)).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/Aniversário Especial de Ester/i)).not.toBeInTheDocument();
+    expect(within(catalog).getByText("Amor de Tia")).toBeInTheDocument();
+    expect(within(catalog).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
+    expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
+    expect(within(catalog).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
     expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-nicolas-maefilho.png"));
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-amordemae.png"));
-    expect(within(cards[0]).getByText("Soft")).toBeInTheDocument();
-    expect(within(cards[0]).getByText("M")).toBeInTheDocument();
-    expect(within(cards[0]).getByText("Amor de mãe")).toBeInTheDocument();
-    expect(within(cards[4]).getByText("Hard")).toBeInTheDocument();
-    expect(within(cards[4]).getByText("Natal em família")).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "Soft", pressed: true })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "Hard", pressed: false })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "M", pressed: true })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "P", pressed: false })).toBeInTheDocument();
+    expect(within(cards[4]).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
   });
 
-  it("troca capas localizadas de Amor de Mãe e Ester ao mudar o idioma", async () => {
+  it("troca descrição e valor ao escolher capa e tamanho", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    const card = within(catalog).getAllByTestId("landing-catalog-card")[0];
+
+    await user.click(within(card).getByRole("button", { name: "Hard" }));
+    expect(within(card).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "Soft", pressed: false })).toBeInTheDocument();
+    expect(within(card).getByText("Capa dura, 20 × 20 cm. 16 páginas.")).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 59,00");
+
+    await user.click(within(card).getByRole("button", { name: "P" }));
+    expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "M", pressed: false })).toBeInTheDocument();
+    expect(within(card).getByText("Capa dura, 15 × 15 cm. 16 páginas.")).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("Sob consulta");
+  });
+
+  it("troca a capa localizada de Amor de Mãe ao mudar o idioma", async () => {
     const user = userEvent.setup();
     renderLanding();
 
@@ -214,13 +245,13 @@ describe("Landing — catálogo", () => {
     const enCatalog = (await screen.findByRole("heading", { name: /our books/i })).closest("section") as HTMLElement;
     const enSrcs = within(enCatalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
     expect(enSrcs.some((src) => src.includes("capa-amordemae-en.png"))).toBe(true);
-    expect(enSrcs.some((src) => src.includes("capa-ester-en.png"))).toBe(true);
+    expect(enSrcs.some((src) => src.includes("capa-ester-en.png"))).toBe(false);
 
     await user.click(screen.getByTestId("landing-lang-es"));
     const esCatalog = (await screen.findByRole("heading", { name: /nuestros libros/i })).closest("section") as HTMLElement;
     const esSrcs = within(esCatalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
     expect(esSrcs.some((src) => src.includes("capa-amordemae-es.png"))).toBe(true);
-    expect(esSrcs.some((src) => src.includes("capa-ester-es.png"))).toBe(true);
+    expect(esSrcs.some((src) => src.includes("capa-ester-es.png"))).toBe(false);
   });
 
   it("aponta os livros realistas para os temas existentes", async () => {
@@ -228,9 +259,11 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(9);
+    expect(personalize).toHaveLength(12);
     expect(personalize[0]).toHaveAttribute("href", "/app?tema=mothers_day");
-    expect(personalize[8]).toHaveAttribute("href", "/app?tema=birthday");
+    expect(personalize[7]).toHaveAttribute("href", "/app?tema=pets");
+    expect(personalize[8]).toHaveAttribute("href", "/app?tema=family_love");
+    expect(personalize[10]).toHaveAttribute("href", "/app?tema=fathers_day");
   });
 });
 
@@ -363,6 +396,16 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
 
     await user.click(screen.getByTestId("landing-lang-es"));
+    const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
+    expect(heroImgs.some((src) => src.includes("capa-martin-goleiro"))).toBe(false);
+    expect(heroImgs.some((src) => src.includes("capa-emilia-bailarina"))).toBe(false);
+    expect(heroImgs.some((src) => src.includes("capa-antonio-bicicleta"))).toBe(false);
+    expect(heroImgs.some((src) => src.includes("capa-mariajesus-hockey"))).toBe(false);
+    expect(heroImgs.some((src) => src.includes("capa-amordetia.png"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes("capa-davi-pastor.png"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes("capa-meupai-heroi.png"))).toBe(true);
+    expect(heroImgs.some((src) => src.includes("capa-enzo-primo.png"))).toBe(true);
+
     expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata-es.jpg"));
     expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-es.jpg"));
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata-es.jpg"));

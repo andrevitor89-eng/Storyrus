@@ -265,6 +265,18 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/como-envia.jpg
 !apps/web/public/exemplos/como-cria.jpg
 !apps/web/public/exemplos/como-recebe.jpg
+!apps/web/public/exemplos/capa-amordetia.png
+!apps/web/public/exemplos/pagina-amordetia.png
+!apps/web/public/exemplos/foto-amordetia.png
+!apps/web/public/exemplos/capa-davi-pastor.png
+!apps/web/public/exemplos/pagina-davi-pastor.png
+!apps/web/public/exemplos/foto-davi-pastor.png
+!apps/web/public/exemplos/capa-meupai-heroi.png
+!apps/web/public/exemplos/pagina-meupai-heroi.png
+!apps/web/public/exemplos/foto-meupai-heroi.png
+!apps/web/public/exemplos/capa-enzo-primo.png
+!apps/web/public/exemplos/pagina-enzo-primo.png
+!apps/web/public/exemplos/foto-enzo-primo.png
 
 .vercel
 .env*
