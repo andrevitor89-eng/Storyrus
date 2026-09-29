@@ -1031,7 +1031,7 @@ const I18N = {
 } as const;
 
 /** "fold" = página dobrando (landing-flip-fold.css). "fade" = esmaecer. */
-const FLIP_FX: "fade" | "fold" = "fade";
+const FLIP_FX = "fade" as "fade" | "fold";
 const FLIP_MS = FLIP_FX === "fold" ? 1100 : 700;
 const FLIP_AUTO_MS = 3600;
 const FLIP_HOLD_MS = 10000;
