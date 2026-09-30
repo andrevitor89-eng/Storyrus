@@ -176,6 +176,8 @@ class Project(Base):
     theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
     # Tamanho impresso escolhido na geração: M = 20×20 cm, P = 15×15 cm.
     book_size: Mapped[str | None] = mapped_column(String(1), nullable=True)
+    # Acabamento escolhido na geração: soft = capa mole, hard = capa dura.
+    cover_type: Mapped[str | None] = mapped_column(String(4), nullable=True)
     # Segundo tema opcional: combinado com `theme` na mesma história (máx. 2 temas).
     # `theme` continua sendo o principal (define vilão/cenário/arco); `extra_theme`
     # só soma objetivo de aprendizado extra — ver handle_story.
@@ -210,6 +212,9 @@ class Project(Base):
     )
     usage_events: Mapped[list["UsageEvent"]] = relationship(
         back_populates="project", cascade="all, delete-orphan"
+    )
+    order_ticket: Mapped["OrderTicket | None"] = relationship(
+        back_populates="project", cascade="all, delete-orphan", uselist=False
     )
 
 
@@ -269,6 +274,22 @@ class UsageEvent(Base):
 
     job: Mapped[Job | None] = relationship(back_populates="usage_events")
     project: Mapped[Project] = relationship(back_populates="usage_events")
+
+
+class OrderTicket(Base):
+    """Pedido lido pelo dono depois que a família cria o livro e a foto chega."""
+
+    __tablename__ = "order_tickets"
+    __table_args__ = (UniqueConstraint("project_id", name="uq_order_tickets_project_id"),)
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    summary: Mapped[str] = mapped_column(Text, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
+
+    project: Mapped[Project] = relationship(back_populates="order_ticket")
 
 
 class Asset(Base):

@@ -40,6 +40,10 @@ describe("Painel /gastos", () => {
     expect(screen.getAllByText(/matteo/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/página 3 — geração/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /extrato/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^pedidos$/i })).toBeInTheDocument();
+    expect(screen.getByText(/NOVO LIVRO STORY R US REALISTA/)).toBeInTheDocument();
+    expect(screen.getByText(/Fotos anexadas: 1 \(arquivo recebido\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Projeto p1/)).toBeInTheDocument();
   });
 
   it("mostra alerta de lockout quando a API devolve 429", async () => {

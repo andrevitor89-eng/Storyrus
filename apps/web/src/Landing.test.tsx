@@ -237,6 +237,10 @@ describe("Landing — catálogo", () => {
     expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
 
+    await user.click(within(card).getByRole("button", { name: "Soft" }));
+    expect(within(card).getByRole("button", { name: "Soft", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("capa=soft"));
+
     await user.click(within(card).getByRole("button", { name: "P" }));
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
     expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tamanho=P"));
@@ -277,6 +281,7 @@ describe("Landing — catálogo", () => {
     expect(personalize[0].getAttribute("href")).toContain("tema=fathers_day");
     expect(personalize[0].getAttribute("href")).toContain("campos=nome");
     expect(personalize[0].getAttribute("href")).toContain("tamanho=M");
+    expect(personalize[0].getAttribute("href")).toContain("capa=hard");
     expect(personalize[0].getAttribute("href")).toContain("modo=realista");
     expect(personalize[0].getAttribute("href")).toContain("titulo=");
     expect(personalize[0].getAttribute("href")).not.toContain("heroi=");

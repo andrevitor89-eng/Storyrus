@@ -142,6 +142,13 @@ export interface UsageEvent {
   created_at: string;
 }
 
+export interface OrderTicket {
+  id: string;
+  project_id: string;
+  summary: string;
+  created_at: string;
+}
+
 export interface UsageAnomaly {
   kind: string;
   severity: string;
@@ -168,6 +175,7 @@ export interface UsageReport {
   today_credits?: number;
   reserved_usd?: number;
   anomalies?: UsageAnomaly[];
+  orders?: OrderTicket[];
 }
 
 export interface UploadUrl {

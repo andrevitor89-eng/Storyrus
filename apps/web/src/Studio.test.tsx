@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
+import { api } from "./api";
 import { ProgressList, Studio } from "./Studio";
 import type { Job } from "./types";
 import { state } from "./test/server";
@@ -74,7 +75,7 @@ describe("Studio — tema do banner", () => {
     window.history.replaceState(
       {},
       "",
-      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&tamanho=P&modo=cartoon",
+      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&tamanho=P&capa=soft&modo=cartoon",
     );
     render(<Studio />);
 
@@ -85,7 +86,44 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
     expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
     expect(screen.getByRole("button", { name: /15 × 15 cm/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /capa mole/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
+    expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
+  });
+
+  it("manda o livro escolhido e os outros nomes no pedido, sem o bloco do dono", async () => {
+    state.credits = 10;
+    const upload = vi.spyOn(api, "uploadPhoto");
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&modo=cartoon",
+    );
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lia");
+    await user.type(screen.getByLabelText(/^idade$/i), "4");
+    await user.type(screen.getByTestId("studio-extra-names"), "Vovó, Totó");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/pedido enviado/i);
+    expect(screen.queryByText(/NOVO LIVRO STORY R US/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("studio-generate-story")).toBeEnabled());
+    expect(upload).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.any(File),
+      expect.objectContaining({
+        language: "pt-BR",
+        themeLabel: "Papai herói",
+        extraNames: "Vovó, Totó",
+      }),
+    );
   });
 
   it("preenche um tema sem livro único e deixa os campos editáveis", async () => {
@@ -128,7 +166,9 @@ describe("Studio a11y", () => {
     await user.click(screen.getByRole("button", { name: /criar livro/i }));
 
     expect(await screen.findByTestId("studio-project")).toBeInTheDocument();
-    expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-order-sent")).toHaveTextContent(/pedido enviado/i);
+    expect(screen.queryByText(/NOVO LIVRO STORY R US/)).not.toBeInTheDocument();
+    await waitFor(() => expect(screen.getByTestId("studio-generate-story")).toBeEnabled());
   });
 });
 

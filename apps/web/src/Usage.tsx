@@ -145,6 +145,27 @@ export function Usage() {
 
       {error && <p className="error">{error}</p>}
 
+      <section className="usage-panel" data-testid="owner-orders">
+        <h2>Pedidos</h2>
+        <p className="muted">
+          Livros pedidos pela família, depois que a foto chega. A imagem fica no projeto; aqui só o resumo.
+        </p>
+        {(data?.orders ?? []).length ? (
+          <div>
+            {(data?.orders ?? []).map((order) => (
+              <article key={order.id} className="usage-order">
+                <pre>{order.summary}</pre>
+                <small className="muted">
+                  {when(order.created_at)} · Projeto {order.project_id}
+                </small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">Nenhum pedido ainda.</p>
+        )}
+      </section>
+
       {(data?.anomalies?.length ?? 0) > 0 && (
         <section className="usage-anomalies" aria-live="polite">
           <h2>Alertas de custo</h2>

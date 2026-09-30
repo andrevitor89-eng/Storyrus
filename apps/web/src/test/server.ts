@@ -188,6 +188,21 @@ export const handlers = [
       today_credits: 2,
       reserved_usd: 0,
       anomalies: [],
+      orders: [
+        {
+          id: "order-1",
+          project_id: "p1",
+          summary: [
+            "NOVO LIVRO STORY R US REALISTA",
+            "Nome: Matteo",
+            "Idioma: Português",
+            "Tema: Matteo e o vale dos dinossauros",
+            "Personagens: Matteo",
+            "Fotos anexadas: 1 (arquivo recebido)",
+          ].join("\n"),
+          created_at: new Date().toISOString(),
+        },
+      ],
     });
   }),
 

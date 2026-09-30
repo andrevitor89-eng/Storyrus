@@ -433,6 +433,7 @@ function personalizeHref(opts: {
   historia?: string;
   heroi?: string;
   size: "M" | "P";
+  cover: "soft" | "hard";
   modo: "realista" | "cartoon";
 }) {
   const q = new URLSearchParams();
@@ -442,6 +443,7 @@ function personalizeHref(opts: {
   if (opts.historia) q.set("historia", opts.historia);
   if (opts.heroi) q.set("heroi", opts.heroi);
   q.set("tamanho", opts.size);
+  q.set("capa", opts.cover);
   q.set("modo", opts.modo);
   return `/app?${q.toString()}`;
 }
@@ -451,6 +453,7 @@ function studioHref(opts: {
   historia?: string;
   heroi?: string;
   size?: "M" | "P";
+  cover?: "soft" | "hard";
   modo?: "realista" | "cartoon";
 }) {
   const q = new URLSearchParams();
@@ -460,6 +463,7 @@ function studioHref(opts: {
   if (opts.historia) q.set("historia", opts.historia);
   if (opts.heroi) q.set("heroi", opts.heroi);
   q.set("tamanho", opts.size ?? "M");
+  q.set("capa", opts.cover ?? "hard");
   q.set("modo", opts.modo ?? "realista");
   return `/app?${q.toString()}`;
 }
@@ -1496,6 +1500,7 @@ function CatalogBookCard({
             historia: book.tag,
             heroi: book.heroi,
             size,
+            cover,
             modo: modo ?? "realista",
           })}
           className="kbtn kbtn-primary"
@@ -1577,6 +1582,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       titulo: book.t,
       historia: `${book.tag}. ${book.p}`,
       heroi: HERO_BY_CATALOG[catalogI],
+      cover: catalogCoverChoice(book.cover),
       modo: variant === "cartoon" ? "cartoon" : "realista",
     });
   };

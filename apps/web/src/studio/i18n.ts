@@ -42,6 +42,9 @@ export type StudioCopy = {
   bookSize: string;
   bookSizeM: string;
   bookSizeP: string;
+  coverType: string;
+  coverSoft: string;
+  coverHard: string;
   chosenBook: string;
   createProject: string;
   errMissingFields: string;
@@ -57,6 +60,10 @@ export type StudioCopy = {
   defaultVoiceName: string;
   consent: string;
   photoSent: string;
+  orderSent: string;
+  otherCharacters: string;
+  otherCharactersPh: string;
+  otherCharactersHint: string;
   sendPhoto: string;
   photoHint: string;
   extraCharsTitle: string;
@@ -285,6 +292,9 @@ const pt: StudioCopy = {
   bookSize: "Tamanho do livro",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
+  coverType: "Tipo de capa",
+  coverSoft: "Capa mole",
+  coverHard: "Capa dura",
   chosenBook: "Livro escolhido",
   createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
@@ -306,6 +316,10 @@ const pt: StudioCopy = {
   consent:
     "Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.",
   photoSent: "Foto enviada ✓",
+  orderSent: "Pedido enviado.",
+  otherCharacters: "Outros personagens (opcional)",
+  otherCharactersPh: "Ex.: mamãe, irmão, Totó",
+  otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
   sendPhoto: "Enviar foto",
   photoHint:
     "Melhor resultado: foto nítida, bem iluminada, um rosto de frente, testa e cabelo visíveis. Evite close de cima, de lado ou rosto tapado. A arte é fotográfica, com a criança igual à foto — o mesmo personagem nas páginas e no vídeo.",
@@ -446,6 +460,9 @@ const en: StudioCopy = {
   bookSize: "Book size",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
+  coverType: "Cover type",
+  coverSoft: "Softcover",
+  coverHard: "Hardcover",
   chosenBook: "Chosen book",
   createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
@@ -467,6 +484,10 @@ const en: StudioCopy = {
   consent:
     "I am the legal guardian and authorize use of this photo (and voice, if cloned) only to create this book. We do not use it for marketing.",
   photoSent: "Photo uploaded ✓",
+  orderSent: "Request sent.",
+  otherCharacters: "Other characters (optional)",
+  otherCharactersPh: "e.g. mom, brother, Toto",
+  otherCharactersHint: "Separate names with commas. The child is already the main character.",
   sendPhoto: "Upload photo",
   photoHint:
     "Best result: sharp, well-lit photo, one front-facing face, forehead and hair visible. Avoid top-down close-ups, side angles, or covered faces. The art is photographic — the same character on pages and in the video.",
@@ -607,6 +628,9 @@ const es: StudioCopy = {
   bookSize: "Tamaño del libro",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
+  coverType: "Tipo de tapa",
+  coverSoft: "Tapa blanda",
+  coverHard: "Tapa dura",
   chosenBook: "Libro elegido",
   createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
@@ -628,6 +652,10 @@ const es: StudioCopy = {
   consent:
     "Soy el responsable legal y autorizo el uso de esta foto (y de la voz, si se clona) solo para crear este libro. No la usamos para difusión.",
   photoSent: "Foto enviada ✓",
+  orderSent: "Pedido enviado.",
+  otherCharacters: "Otros personajes (opcional)",
+  otherCharactersPh: "Ej.: mamá, hermano, Totó",
+  otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",
   sendPhoto: "Enviar foto",
   photoHint:
     "Mejor resultado: foto nítida, bien iluminada, un rostro de frente, frente y cabello visibles. Evita close desde arriba, de lado o rostro tapado. El arte es fotográfico, con el niño/a igual a la foto — el mismo personaje en las páginas y en el video.",

@@ -36,6 +36,7 @@ def create_project(
         style=body.style.value,
         theme=body.theme,
         book_size=body.book_size,
+        cover_type=body.cover_type,
         extra_theme=(body.extra_theme or None),
         child_name=(body.child_name or None),
         child_age=body.child_age,

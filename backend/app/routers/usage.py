@@ -15,8 +15,9 @@ from sqlalchemy.orm import Session
 from app import rate_limit
 from app.config import settings
 from app.database import get_db
-from app.models import Job, Project, UsageEvent
+from app.models import Job, OrderTicket, Project, UsageEvent
 from app.schemas import (
+    OrderTicketOut,
     UsageAnomalyOut,
     UsageBookOut,
     UsageBucketOut,
@@ -270,6 +271,18 @@ def get_usage(
     )
 
     event_rows = _event_rows(db, range_start, range_end, rows)
+    order_rows = db.scalars(
+        select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
+    ).all()
+    orders = [
+        OrderTicketOut(
+            id=ticket.id,
+            project_id=ticket.project_id,
+            summary=ticket.summary,
+            created_at=_aware(ticket.created_at),
+        )
+        for ticket in order_rows
+    ]
 
     day = spend_guard.day_spend(db)
     flags = spend_guard.anomalies(db, today_usd=today_usd)
@@ -304,4 +317,5 @@ def get_usage(
         anomalies=[
             UsageAnomalyOut(kind=a.kind, severity=a.severity, message=a.message) for a in flags
         ],
+        orders=orders,
     )

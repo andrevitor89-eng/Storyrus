@@ -46,6 +46,8 @@ class ProjectCreateIn(BaseModel):
     theme: str | None = Field(default=None, max_length=32)
     # M = 20×20 cm, P = 15×15 cm. Vazio mantém o miolo atual.
     book_size: str | None = Field(default=None, pattern="^(M|P)$")
+    # soft = capa mole, hard = capa dura.
+    cover_type: str | None = Field(default=None, pattern="^(soft|hard)$")
     # Segundo tema opcional (máx. 2 na mesma história): `theme` continua definindo
     # vilão/cenário/arco; `extra_theme` só soma um objetivo de aprendizado extra.
     extra_theme: str | None = Field(default=None, max_length=32)
@@ -71,6 +73,7 @@ class ProjectOut(BaseModel):
     style: str | None
     theme: str | None
     book_size: str | None = None
+    cover_type: str | None = None
     extra_theme: str | None = None
     child_name: str | None
     child_age: int | None
@@ -228,6 +231,15 @@ class UsageAnomalyOut(BaseModel):
     message: str
 
 
+class OrderTicketOut(BaseModel):
+    """Resumo do pedido. A foto não vai neste payload — só o texto e o id do projeto."""
+
+    id: uuid.UUID
+    project_id: uuid.UUID
+    summary: str
+    created_at: datetime
+
+
 class UsageOut(BaseModel):
     timezone: str
     from_at: datetime
@@ -249,3 +261,4 @@ class UsageOut(BaseModel):
     today_credits: int = 0
     reserved_usd: float = 0.0
     anomalies: list[UsageAnomalyOut] = []
+    orders: list[OrderTicketOut] = []

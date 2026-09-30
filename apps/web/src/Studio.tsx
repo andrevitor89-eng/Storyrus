@@ -81,6 +81,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
   const [bookSize, setBookSize] = useState<"M" | "P">("M");
+  const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
+  const [extraNames, setExtraNames] = useState("");
+  const [orderSent, setOrderSent] = useState(false);
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
   const [assets, setAssets] = useState<StudioAssets | null>(null);
@@ -130,6 +133,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     presetApplied.current = true;
     if (tema) setTemaId(tema);
     if (q.get("tamanho") === "P" || q.get("tamanho") === "M") setBookSize(q.get("tamanho") as "M" | "P");
+    const capa = (q.get("capa") || "").toLowerCase();
+    if (capa === "soft" || capa === "hard") setCoverType(capa);
     if (q.get("modo") === "cartoon") setArtMode("cartoon");
     const onlyTheme = q.get("campos") === "tema" || q.get("campos") === "nome";
     if (q.get("campos") === "nome") setOnlyName(true);
@@ -297,6 +302,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const age = Number(childAge);
+      const language = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
+      const themeLabel = (onlyName ? bookTitle || themeText : themeText || bookTitle).trim();
       const p = await api.createProject({
         theme: temaId || themeText.trim(),
         childName,
@@ -304,13 +311,20 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         childAge: Number.isNaN(age) ? undefined : age,
         style: artMode === "cartoon" ? "cartoon" : "realistic",
         bookSize,
+        coverType,
+        language,
       });
       setProject(p);
       setJobs([]);
       setAssets(null);
       setMediaConsent(true);
-      await api.uploadPhoto(p.id, photo);
+      await api.uploadPhoto(p.id, photo, {
+        language,
+        themeLabel,
+        extraNames: extraNames.trim(),
+      });
       setPhotoUploaded(true);
+      setOrderSent(true);
       await api.startStep(p.id, "avatar", {});
       const js = await api.listJobs(p.id);
       setJobs(js);
@@ -338,6 +352,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setProject(null);
     setAssets(null);
     setPhotoUploaded(false);
+    setOrderSent(false);
+    setExtraNames("");
     setMediaConsent(false);
     setChildName("");
     setChildAge("");
@@ -590,6 +606,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
 
+          <div className="studio-field" role="group" aria-label={t.coverType}>
+            {t.coverType}
+            <div className="studio-actions">
+              {(["hard", "soft"] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={coverType === choice ? "kbtn kbtn-primary" : "kbtn kbtn-soft"}
+                  aria-pressed={coverType === choice}
+                  disabled={fieldsLocked}
+                  onClick={() => setCoverType(choice)}
+                >
+                  {choice === "hard" ? t.coverHard : t.coverSoft}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="studio-field" role="group" aria-label={t.bookSize}>
             {t.bookSize}
             <div className="studio-actions">
@@ -610,6 +644,18 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
+              <label className="studio-field">
+                {t.otherCharacters}
+                <input
+                  disabled={isDemo}
+                  value={extraNames}
+                  onChange={(e) => setExtraNames(e.target.value)}
+                  placeholder={t.otherCharactersPh}
+                  maxLength={300}
+                  data-testid="studio-extra-names"
+                />
+              </label>
+              <p className="muted field-hint">{t.otherCharactersHint}</p>
               <p className="studio-field">{t.photoField}</p>
               <p className="muted field-hint">{t.photoFieldHint}</p>
               <div className="studio-upload-row" role="group" aria-label={t.ariaPhotoGroup}>
@@ -664,6 +710,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             {photoUploaded && (
               <p className="muted" role="status">
                 {t.photoSent}
+              </p>
+            )}
+            {orderSent && (
+              <p className="muted" role="status" data-testid="studio-order-sent">
+                {t.orderSent}
               </p>
             )}
 

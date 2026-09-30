@@ -278,6 +278,8 @@ export const api = {
     childAge?: number;
     style?: "cgi_3d" | "realistic" | "cartoon";
     bookSize?: "M" | "P";
+    coverType?: "soft" | "hard";
+    language?: string;
   } = {}) {
     const theme = input.theme?.trim().slice(0, 32) || undefined;
     return req<Project>("/v1/projects", {
@@ -286,9 +288,11 @@ export const api = {
         style: input.style ?? "cgi_3d",
         theme,
         book_size: input.bookSize,
+        cover_type: input.coverType,
         child_name: input.childName?.trim() || undefined,
         child_age: input.childAge ?? undefined,
         dedication: input.dedication?.trim() || undefined,
+        language: input.language,
       }),
     });
   },
@@ -308,10 +312,17 @@ export const api = {
     }>(`/v1/projects/${id}/assets`);
   },
   // Upload da foto via API (servidor grava no storage). Evita PUT do navegador.
-  async uploadPhoto(id: string, file: File) {
+  async uploadPhoto(
+    id: string,
+    file: File,
+    meta?: { language?: string; themeLabel?: string; extraNames?: string },
+  ) {
     await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
+    if (meta?.language) fd.append("language", meta.language);
+    if (meta?.themeLabel) fd.append("theme_label", meta.themeLabel);
+    if (meta?.extraNames) fd.append("extra_names", meta.extraNames);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await fetch(`${BASE}/v1/projects/${id}/photo`, {

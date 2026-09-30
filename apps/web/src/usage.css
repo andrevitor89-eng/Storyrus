@@ -116,6 +116,21 @@
 .usage-anomalies li[data-severity="critical"] strong { color: #9b1c1c; }
 .usage-anomalies li[data-severity="warn"] strong { color: #9a6700; }
 .usage-anomalies li[data-severity="info"] strong { color: var(--muted); }
+.usage-order {
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+}
+.usage-order pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--navy);
+}
+.usage-order small { display: block; margin-top: 0.45rem; }
 @media (max-width: 720px) {
   .usage-cards { grid-template-columns: 1fr; }
   .usage-head { flex-wrap: wrap; }

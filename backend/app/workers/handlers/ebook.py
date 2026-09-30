@@ -267,7 +267,11 @@ async def handle_ebook(db: Session, job: Job) -> None:
             project_id=project.id,
             kind=AssetKind.EBOOK.value,
             storage_key=ebook_key,
-            meta={"mime": mime},
+            meta={
+                "mime": mime,
+                "book_size": project.book_size,
+                "cover_type": project.cover_type,
+            },
         )
     )
     project.ebook_url = ebook_key

@@ -4,14 +4,16 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import storage
 from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
-from app.models import Asset, AssetKind, User
+from app.models import Asset, AssetKind, OrderTicket, User
+from app.orders import build_book_order_summary, parse_extra_names
 from app.schemas import UploadUrlIn, UploadUrlOut
 
 from .common import get_owned_project
@@ -41,14 +43,68 @@ def request_photo_upload(
     )
 
 
+def _stored_extra_names(project) -> list[str]:
+    raw = project.extra_characters or []
+    if isinstance(raw, dict):
+        raw = [raw]
+    names: list[str] = []
+    if isinstance(raw, list):
+        for item in raw:
+            if isinstance(item, dict) and item.get("name"):
+                names.append(str(item["name"]))
+    return names
+
+
+def _register_order(
+    db: Session,
+    project,
+    *,
+    language: str,
+    theme_label: str,
+    extra_names: str,
+) -> None:
+    """Um pedido por projeto, só depois que a foto foi gravada."""
+    existing = db.scalar(select(OrderTicket).where(OrderTicket.project_id == project.id))
+    if existing is not None:
+        return
+    lang = (language or "").strip() or (project.language or "pt-BR")
+    if len(lang) <= 8:
+        project.language = lang
+    theme = (theme_label or "").strip()[:500] or (project.theme or "")
+    extras = parse_extra_names(extra_names) + parse_extra_names(", ".join(_stored_extra_names(project)))
+    photo_count = db.scalar(
+        select(func.count())
+        .select_from(Asset)
+        .where(
+            Asset.project_id == project.id,
+            Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
+        )
+    )
+    summary = build_book_order_summary(
+        style=project.style,
+        child_name=project.child_name,
+        language=lang,
+        theme=theme,
+        extra_names=extras,
+        photo_count=max(int(photo_count or 0), 1),
+    )
+    db.add(OrderTicket(project_id=project.id, summary=summary))
+
+
 @router.post("/{project_id}/photo", response_model=UploadUrlOut, status_code=201)
 async def upload_photo(
     project_id: uuid.UUID,
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
+    language: str = Form(""),
+    theme_label: str = Form(""),
+    extra_names: str = Form(""),
 ) -> UploadUrlOut:
-    """Upload da foto via API: o servidor grava direto no storage (sem PUT do navegador)."""
+    """Upload da foto via API: o servidor grava direto no storage (sem PUT do navegador).
+
+    Com a foto gravada, abre o pedido que o dono lê em /gastos. A imagem não entra no texto.
+    """
     project = get_owned_project(db, user, project_id)
     data = await file.read()
     if not data:
@@ -62,6 +118,14 @@ async def upload_photo(
     storage.put_bytes(key, data, file.content_type or "image/jpeg")
     asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
     db.add(asset)
+    db.flush()
+    _register_order(
+        db,
+        project,
+        language=language,
+        theme_label=theme_label,
+        extra_names=extra_names[:800],
+    )
     db.commit()
     db.refresh(asset)
     return UploadUrlOut(asset_id=asset.id, storage_key=key, upload_url="", expires_in=0)
