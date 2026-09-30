@@ -1,0 +1,41 @@
+{
+  "title": "Meu Pai, Meu Herói — impressão CMYK",
+  "colorspace": "CMYK",
+  "icc_profile": "FOGRA39L_coated.icc (ISO Coated / FOGRA39)",
+  "resolution_dpi": 300,
+  "trim_size_mm": [
+    200,
+    200
+  ],
+  "pixel_size": [
+    2362,
+    2362
+  ],
+  "pages": [
+    "01-capa.tif",
+    "02-pagina-02.tif",
+    "03-pagina-03.tif",
+    "04-pagina-04.tif",
+    "05-pagina-05.tif",
+    "06-pagina-06.tif",
+    "07-pagina-07.tif",
+    "08-pagina-08.tif",
+    "09-pagina-09.tif",
+    "10-pagina-10.tif",
+    "11-pagina-11.tif",
+    "12-pagina-12.tif",
+    "13-pagina-13.tif",
+    "14-pagina-14.tif",
+    "15-pagina-15.tif",
+    "16-pagina-16.tif",
+    "17-contracapa.tif"
+  ],
+  "pdf": "../ebook-meupai-heroi-cmyk-300dpi.pdf",
+  "notes": [
+    "Arquivos TIFF CMYK 8-bit com perfil FOGRA39 embutido.",
+    "PDF gerado com img2pdf em páginas 200×200 mm @ 300 dpi.",
+    "Sem sangria/marcas de corte — adequar à gráfica se precisar de bleed."
+  ],
+  "pdf_encoding": "CMYK JPEG quality 92 in PDF; TIFF Zip masters alongside",
+  "pdf_size_bytes": 37678928
+}
