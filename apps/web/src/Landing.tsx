@@ -46,14 +46,8 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 type CoverFont = "fredoka" | "baloo" | "lilita";
 type HeroAsset = Record<Lang, string>;
 const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
-/** Hero strip: capa, página aberta, criança lendo. Natal fica na abertura. */
+/** Hero strip: capa, página aberta, criança lendo. */
 const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
-  {
-    name: "Meme e Tata",
-    cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
-    page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
-    photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
-  },
   {
     name: "Nano",
     cover: heroAsset("capa-nanoaventuras.jpg", "capa-nanoaventuras-en.jpg", "capa-nanoaventuras-es.jpg"),
@@ -119,6 +113,12 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     cover: heroAsset("capa-esther-higiene.png"),
     page: heroAsset("pagina-esther-higiene.png"),
     photo: heroAsset("foto-esther-higiene.png"),
+  },
+  {
+    name: "Meme e Tata",
+    cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
+    page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
+    photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
   },
 ];
 /** Hero do /cartoon: só livros com visual de desenho. */
@@ -653,15 +653,15 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e informe o nome, a idade, o idioma e o formato do livro." },
-      { t: "Criamos o personagem e a história", p: "O Story R Us gera a história completa, a capa e todas as páginas ilustradas com o mesmo rosto da criança." },
-      { t: "Você recebe e aprova o livro", p: "Visualize a prévia completa, aprove, e receba o livro físico pronto para impressão e entrega." },
+      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
+      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
+      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
-      { t: "A criança", p: "Envie de 3 a 5 fotos recentes, de frente e bem iluminadas. O rosto deve aparecer por inteiro, sem filtro, chapéu ou óculos escuros." },
-      { t: "Família e pets", p: "Para cada pessoa da história, envie 2 ou 3 fotos sozinha. Para o pet, uma de frente e outra de corpo inteiro." },
-      { t: "Dados do livro", p: "Informe o nome e a idade da criança, o tema do livro e o idioma: português, espanhol ou inglês." },
+      { t: "A criança", p: "3 a 5 fotos de frente, bem iluminadas, com o rosto inteiro. Sem filtro, chapéu ou óculos." },
+      { t: "Família e pets", p: "2 ou 3 fotos de cada pessoa, sozinha. Do pet, uma de frente e outra de corpo inteiro." },
+      { t: "Dados do livro", p: "Nome, idade, tema e idioma: português, espanhol ou inglês." },
     ],
     shot_title: "Dicas para a foto perfeita",
     cartoon_shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
@@ -694,7 +694,7 @@ const I18N = {
       { t: "Vídeo narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
       { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
-    cat_title: "Nossos livros", cat_sub: "Cada tema se transforma em uma narrativa ilustrada, concebida para que seu filho seja o protagonista de sua própria história.",
+    cat_title: "Nossos livros", cat_sub: "Cada tema se transforma em uma história ilustrada, com seu filho como protagonista da própria história.",
     personalize: "Personalizar",
     a11y_theme: "Alternar tema claro/escuro",
     a11y_menu: "Menu",
@@ -829,15 +829,15 @@ const I18N = {
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Send the photo and set the details", p: "Choose the theme and enter the name, age, language, and book format." },
-      { t: "We create the character and the story", p: "Story R Us creates the full story, the cover, and every illustrated page with the same face." },
-      { t: "You receive and approve the book", p: "See the full preview, approve it, and get the printed book ready for printing and delivery." },
+      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
+      { t: "We create the character and the story", p: "Story, cover, and pages with the same face." },
+      { t: "You receive and approve the book", p: "See the preview, approve it, and get the printed book." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
-      { t: "The child", p: "Send 3 to 5 recent photos, facing the camera and well lit. The whole face should be visible, with no filter, hat, or sunglasses." },
-      { t: "Family and pets", p: "For each person in the story, send 2 or 3 photos alone. For a pet, one facing forward and one full body." },
-      { t: "Book details", p: "Share the child’s name and age, the book theme, and the language: Portuguese, Spanish, or English." },
+      { t: "The child", p: "3 to 5 front-facing, well-lit photos, with the full face. No filter, hat, or sunglasses." },
+      { t: "Family and pets", p: "2 or 3 photos of each person, alone. For a pet, one facing forward and one full body." },
+      { t: "Book details", p: "Name, age, theme, and language: Portuguese, Spanish, or English." },
     ],
     shot_title: "Tips for the perfect photo",
     cartoon_shot_sub: "Upload a clear photo of your child with the face centered.",
@@ -870,7 +870,7 @@ const I18N = {
       { t: "Narrated video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
       { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
-    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated narrative, designed so your child is the hero of their own story.",
+    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated story, with your child as the hero of their own story.",
     personalize: "Personalize",
     a11y_theme: "Toggle light/dark theme",
     a11y_menu: "Menu",
@@ -1005,15 +1005,15 @@ const I18N = {
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Envía la foto y define los detalles", p: "Elige el tema e indica el nombre, la edad, el idioma y el formato del libro." },
-      { t: "Creamos el personaje y la historia", p: "Story R Us genera la historia completa, la portada y todas las páginas ilustradas con el mismo rostro." },
-      { t: "Recibes y apruebas el libro", p: "Mira la vista previa completa, aprueba y recibe el libro físico listo para imprimir y entregar." },
+      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
+      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro." },
+      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
-      { t: "El niño", p: "Envía de 3 a 5 fotos recientes, de frente y bien iluminadas. El rostro debe verse completo, sin filtro, sombrero ni gafas de sol." },
-      { t: "Familia y mascotas", p: "Para cada persona de la historia, envía 2 o 3 fotos sola. Para la mascota, una de frente y otra de cuerpo entero." },
-      { t: "Datos del libro", p: "Indica el nombre y la edad del niño, el tema del libro y el idioma: portugués, español o inglés." },
+      { t: "El niño", p: "De 3 a 5 fotos de frente, bien iluminadas, con el rostro completo. Sin filtro, sombrero ni gafas." },
+      { t: "Familia y mascotas", p: "2 o 3 fotos de cada persona, sola. De la mascota, una de frente y otra de cuerpo entero." },
+      { t: "Datos del libro", p: "Nombre, edad, tema e idioma: portugués, español o inglés." },
     ],
     shot_title: "Consejos para la foto perfecta",
     cartoon_shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
@@ -1046,7 +1046,7 @@ const I18N = {
       { t: "Video narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear mi video", badge: "" },
       { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear animación", badge: "" },
     ],
-    cat_title: "Nuestros libros", cat_sub: "Cada tema se transforma en una narrativa ilustrada, concebida para que tu hijo sea el protagonista de su propia historia.",
+    cat_title: "Nuestros libros", cat_sub: "Cada tema se transforma en una historia ilustrada, con tu hijo como protagonista de su propia historia.",
     personalize: "Personalizar",
     a11y_theme: "Cambiar tema claro/oscuro",
     a11y_menu: "Menú",
@@ -1435,11 +1435,37 @@ function CatalogBookCard({
         ) : (
           <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
         )}
-        <p>
-          {lang === "en" ? "Softcover or hardcover. 16 pages." : lang === "es" ? "Tapa blanda o tapa dura. 16 páginas." : "Capa mole ou capa dura. 16 páginas."}
-          <span>{lang === "en" ? "15 × 15 cm: R$ 157.00." : "15 × 15 cm: R$ 157,00."}</span>
-          <span>{lang === "en" ? "20 × 20 cm: R$ 177.00." : "20 × 20 cm: R$ 177,00."}</span>
-        </p>
+        <div className="cat-notes">
+          <p className="cat-notes-lead">
+            {lang === "en" ? "Softcover or hardcover. 16 pages." : lang === "es" ? "Tapa blanda o tapa dura. 16 páginas." : "Capa mole ou capa dura. 16 páginas."}
+          </p>
+          <p className="cat-notes-sizes">
+            <span>{lang === "en" ? "15 × 15 cm: R$ 157.00." : "15 × 15 cm: R$ 157,00."}</span>
+            <span>{lang === "en" ? "20 × 20 cm: R$ 177.00." : "20 × 20 cm: R$ 177,00."}</span>
+          </p>
+          <div className="cat-note-grid">
+            <div>
+              <strong>{lang === "en" ? "Hardcover" : lang === "es" ? "Tapa rígida" : "Capa rígida"}</strong>
+              <p>
+                {lang === "en"
+                  ? "Heavier, sturdy and durable. Used for special or collectible editions."
+                  : lang === "es"
+                    ? "Más pesada, resistente y duradera. Usada en ediciones especiales o de colección."
+                    : "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis."}
+              </p>
+            </div>
+            <div>
+              <strong>{lang === "en" ? "Softcover (standard paperback)" : lang === "es" ? "Tapa blanda (común/rústica)" : "Capa macia (comum/brochura)"}</strong>
+              <p>
+                {lang === "en"
+                  ? "Lighter and flexible. Common in books and economical editions."
+                  : lang === "es"
+                    ? "Más ligera y flexible. Común en libros y ediciones económicas."
+                    : "Mais leve e flexível. Comum em livros e edições econômicas."}
+              </p>
+            </div>
+          </div>
+        </div>
         <Link to={personalizeHref(book.theme, book.tag)} className="kbtn kbtn-primary" data-testid="landing-personalize">{personalize}</Link>
       </div>
     </div>
@@ -1617,63 +1643,71 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
-                {navCats.map((cat, i) => (
-                  <div
-                    key={cat.name}
-                    className={`kcat${openCat === i ? " open" : ""}`}
-                    onMouseEnter={() => setOpenCat(i)}
-                    onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
+                <div
+                  className={`kcat${openCat === 0 ? " open" : ""}`}
+                  onMouseEnter={() => setOpenCat(0)}
+                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
+                >
+                  <button
+                    type="button"
+                    className="kcat-btn"
+                    style={{ "--cat": "#9b8cff" } as CSSProperties}
+                    aria-expanded={openCat === 0}
+                    aria-haspopup="true"
+                    aria-controls="cat-panel"
+                    onClick={() => setOpenCat(openCat === 0 ? null : 0)}
                   >
-                    <button
-                      type="button"
-                      className="kcat-btn"
-                      style={{ "--cat": cat.color } as CSSProperties}
-                      aria-expanded={openCat === i}
-                      aria-haspopup="true"
-                      aria-controls={`cat-panel-${i}`}
-                      onClick={() => setOpenCat(openCat === i ? null : i)}
-                    >
-                      <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 10px ${cat.color}` }} />
-                      {cat.name}
-                    </button>
-                    <div className="kcat-panel" id={`cat-panel-${i}`}>
-                      <ul className="kcat-subs">
-                        {cat.subs.map((sub, j) => (
-                          <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
-                            <Link
-                              to={sub.href}
-                              onClick={closeNav}
-                              onMouseEnter={() => setSubHover({ cat: i, sub: j })}
-                              onFocus={() => setSubHover({ cat: i, sub: j })}
-                            >{sub.label}</Link>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="kcat-feats" data-testid={`landing-cat-feats-${i}`}>
-                        {(() => {
-                          const activeSub = subHover?.cat === i ? cat.subs[subHover.sub] : null;
-                          const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
-                          const shown = activeTheme ? menuBooks(activeTheme) : cat.feats;
-                          const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
-                          return (
-                            <>
-                              {shown.map((feat) => (
-                                <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
-                                  <span className="kcat-feat-cover">
-                                    <img src={exUrl(feat.img)} alt="" />
-                                  </span>
-                                  <span>{feat.label}</span>
-                                </Link>
-                              ))}
-                              {activeTheme && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
-                              <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
-                            </>
-                          );
-                        })()}
-                      </div>
+                    <span className="kcat-dot" style={{ background: "#9b8cff", boxShadow: "0 0 10px #9b8cff" }} />
+                    {t.cats_label}
+                  </button>
+                  <div className="kcat-panel kcat-panel-all" id="cat-panel">
+                    <div className="kcat-groups">
+                      {navCats.map((cat, i) => (
+                        <div key={cat.name} className="kcat-group">
+                          <p className="kcat-group-name">
+                            <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
+                            {cat.name}
+                          </p>
+                          <ul className="kcat-subs">
+                            {cat.subs.map((sub, j) => (
+                              <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
+                                <Link
+                                  to={sub.href}
+                                  onClick={closeNav}
+                                  onMouseEnter={() => setSubHover({ cat: i, sub: j })}
+                                  onFocus={() => setSubHover({ cat: i, sub: j })}
+                                >{sub.label}</Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="kcat-feats" data-testid="landing-cat-feats">
+                      {(() => {
+                        const activeCat = subHover ? navCats[subHover.cat] : null;
+                        const activeSub = subHover && activeCat ? activeCat.subs[subHover.sub] : null;
+                        const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
+                        const shown = activeTheme ? menuBooks(activeTheme) : [];
+                        const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
+                        return (
+                          <>
+                            {shown.map((feat) => (
+                              <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                                <span className="kcat-feat-cover">
+                                  <img src={exUrl(feat.img)} alt="" />
+                                </span>
+                                <span>{feat.label}</span>
+                              </Link>
+                            ))}
+                            {activeTheme && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
+                            <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
-                ))}
+                </div>
                 <a href="#como" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
                   {t.hiw_title}
@@ -1819,53 +1853,47 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
           <p className="ksub">{t.hiw_sub}</p>
-          <div className={`shot-tips${classicHow ? " shot-tips-classic" : ""}`}>
-            {classicHow ? (
-              <>
-                <h3>{t.shot_title}</h3>
-                <p className="shot-sub">{t.cartoon_shot_sub}</p>
-                <div className="shot-grid">
-                  {SHOTS.map((s, i) => (
-                    <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
-                      <div className="shot-ava-wrap">
-                        <div className="shot-ava">
-                          {s.img ? (
-                            <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                          ) : (
-                            <ShotArt kind={s.art ?? "good"} />
-                          )}
-                        </div>
-                        <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+          {classicHow ? (
+          <div className="shot-tips shot-tips-classic">
+              <h3>{t.shot_title}</h3>
+              <p className="shot-sub">{t.cartoon_shot_sub}</p>
+              <div className="shot-grid">
+                {SHOTS.map((s, i) => (
+                  <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
+                    <div className="shot-ava-wrap">
+                      <div className="shot-ava">
+                        {s.img ? (
+                          <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                        ) : (
+                          <ShotArt kind={s.art ?? "good"} />
+                        )}
                       </div>
-                      {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
+                      <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="shot-sub">{t.shot_sub}</p>
-                <div className="shot-grid">
-                  {t.shots.map((s) => (
-                    <article className="shot" key={s.t}>
-                      <h3>{s.t}</h3>
-                      <p>{s.p}</p>
-                    </article>
-                  ))}
-                </div>
-              </>
-            )}
+                    {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
+                  </div>
+                ))}
+              </div>
           </div>
+          ) : null}
           <div className="howex">
-            {hiwSteps.map((h, i) => (
+            {hiwSteps.map((h, i) => {
+              const tip = classicHow ? null : t.shots[i];
+              return (
               <Fragment key={h.t}>
                 <figure className={`howex-card${classicHow
                   ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
                   : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
+                  {tip ? (
+                    <div className="howex-lead">
+                      <h3>{tip.t}</h3>
+                      <p>{tip.p}</p>
+                    </div>
+                  ) : null}
                   <div className="howex-media">
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
+                    <span className="howex-num">{i + 1}</span>
                   </div>
-                  <span className="howex-num">{i + 1}</span>
                   <figcaption>
                     <h3>{h.t}</h3>
                     <p>{h.p}</p>
@@ -1873,7 +1901,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </figure>
                 {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
