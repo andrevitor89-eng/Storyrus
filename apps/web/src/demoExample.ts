@@ -134,7 +134,7 @@ function meupaiDemo(): DemoExample {
     themeText: "Papai herói: proteção, carinho e aventuras juntos",
     project: {
       id: "demo-meupai-heroi",
-      status: "BOOK_READY",
+      status: "VIDEO_READY",
       style: "photoreal",
       theme: "fathers_day",
       extra_theme: null,
@@ -145,8 +145,8 @@ function meupaiDemo(): DemoExample {
       extra_characters: [],
       story_text: MEUPAI_STORY,
       ebook_url: ex("ebook-meupai-heroi.pdf"),
-      video_url: null,
-      narrated_video_url: null,
+      video_url: ex("video-meupai-heroi.mp4"),
+      narrated_video_url: ex("video-meupai-heroi.mp4"),
       character_approved_at: DEMO_AT,
       book_approved_at: DEMO_AT,
       print_requested_at: null,
@@ -159,8 +159,8 @@ function meupaiDemo(): DemoExample {
       extra_characters: [],
       page_images: MEUPAI_PAGES.map(ex),
       ebook_url: ex("ebook-meupai-heroi.pdf"),
-      video_url: null,
-      narrated_video_url: null,
+      video_url: ex("video-meupai-heroi.mp4"),
+      narrated_video_url: ex("video-meupai-heroi.mp4"),
     },
   };
 }
