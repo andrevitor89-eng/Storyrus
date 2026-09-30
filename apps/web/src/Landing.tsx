@@ -47,7 +47,36 @@ type CoverFont = "fredoka" | "baloo" | "lilita";
 type HeroAsset = Record<Lang, string>;
 const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
 /** Hero strip: capa, página aberta, criança lendo. Natal fica na abertura. */
-const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
+/** Páginas completas do livro "Meu Pai, Meu Herói" (capa → 16 → contracapa). */
+const MEUPAI_HEROI_PAGES = [
+  "meupai-heroi/capa.png",
+  "meupai-heroi/pagina-02.jpg",
+  "meupai-heroi/pagina-03.jpg",
+  "meupai-heroi/pagina-04.jpg",
+  "meupai-heroi/pagina-05.jpg",
+  "meupai-heroi/pagina-06.jpg",
+  "meupai-heroi/pagina-07.jpg",
+  "meupai-heroi/pagina-08.jpg",
+  "meupai-heroi/pagina-09.jpg",
+  "meupai-heroi/pagina-10.jpg",
+  "meupai-heroi/pagina-11.jpg",
+  "meupai-heroi/pagina-12.jpg",
+  "meupai-heroi/pagina-13.jpg",
+  "meupai-heroi/pagina-14.jpg",
+  "meupai-heroi/pagina-15.jpg",
+  "meupai-heroi/pagina-16.jpg",
+  "meupai-heroi/contracapa.jpg",
+];
+
+type HeroStripBook = {
+  name: string;
+  cover: HeroAsset;
+  page: HeroAsset;
+  photo: HeroAsset;
+  pages?: string[];
+};
+
+const HERO_STRIP: HeroStripBook[] = [
   {
     name: "Meme e Tata",
     cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
@@ -101,6 +130,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     cover: heroAsset("capa-meupai-heroi.png"),
     page: heroAsset("pagina-meupai-heroi.png"),
     photo: heroAsset("foto-meupai-heroi.png"),
+    pages: MEUPAI_HEROI_PAGES,
   },
   {
     name: "Enzo, Meu Primo Predileto",
@@ -122,7 +152,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
   },
 ];
 /** Hero do /cartoon: só livros com visual de desenho. */
-const HERO_STRIP_CARTOON: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
+const HERO_STRIP_CARTOON: HeroStripBook[] = [
   {
     name: "Floresta Encantada",
     cover: heroAsset("capa-floresta.jpg"),
@@ -1385,7 +1415,7 @@ function CatalogBookCard({
   lang,
   personalize,
 }: {
-  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string };
+  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; ebook?: string };
   lang: Lang;
   personalize: string;
 }) {
@@ -1440,7 +1470,14 @@ function CatalogBookCard({
           <span>{lang === "en" ? "15 × 15 cm: R$ 157.00." : "15 × 15 cm: R$ 157,00."}</span>
           <span>{lang === "en" ? "20 × 20 cm: R$ 177.00." : "20 × 20 cm: R$ 177,00."}</span>
         </p>
-        <Link to={personalizeHref(book.theme, book.tag)} className="kbtn kbtn-primary" data-testid="landing-personalize">{personalize}</Link>
+        <div className="cat-actions">
+          <Link to={personalizeHref(book.theme, book.tag)} className="kbtn kbtn-primary" data-testid="landing-personalize">{personalize}</Link>
+          {book.ebook ? (
+            <a className="kbtn kbtn-ghost" href={exUrl(book.ebook)} download data-testid="landing-ebook-download">
+              {lang === "en" ? "Download PDF" : lang === "es" ? "Descargar PDF" : "Baixar PDF"}
+            </a>
+          ) : null}
+        </div>
       </div>
     </div>
   );
@@ -1465,6 +1502,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "dark";
   });
   const [heroPick, setHeroPick] = useState(0);
+  const [heroFlipPage, setHeroFlipPage] = useState(0);
   const [coverFont] = useState<CoverFont>(() => {
     try {
       const s = localStorage.getItem("coverFont");
@@ -1499,12 +1537,27 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           cover: c.cover,
           size: c.size,
           tag: c.tag,
+          ebook: i === 22 ? "ebook-meupai-heroi.pdf" : undefined,
         }));
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
-  const heroPage = heroPick % 3;
+  const heroThumb = heroPick % 3;
   const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
-  const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
+  const heroPages = heroBook.pages?.length
+    ? heroBook.pages
+    : [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
+  // Com livro completo, os 3 thumbs saltam para capa / página 4 / contracapa.
+  const thumbToPage = (thumb: number, total: number) => {
+    if (!heroBook.pages?.length) return thumb;
+    if (thumb <= 0) return 0;
+    if (thumb === 1) return Math.min(3, total - 1);
+    return Math.max(total - 1, 0);
+  };
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
+  useEffect(() => {
+    setHeroFlipPage(thumbToPage(heroThumb, heroPages.length));
+    // Só reage a troca de livro/thumb — o FlipBook controla heroFlipPage ao folhear.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [heroPick, heroBook.name, heroPages.length]);
   const bookStudioHref = (theme: string, catalogI?: number) => {
     if (catalogI === undefined) return `/app?tema=${theme}`;
     const book = t.catalog[catalogI];
@@ -1803,8 +1856,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <FlipBook
             key={`${heroBook.name}-${lang}`}
             pages={heroPages}
-            index={heroPage}
-            onIndex={(next) => setHeroPick(heroSeries * 3 + next)}
+            index={heroFlipPage}
+            onIndex={setHeroFlipPage}
             labels={flipLabels}
           />
         </div>
