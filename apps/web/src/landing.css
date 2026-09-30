@@ -274,7 +274,14 @@ a.kcat-btn:active {
 .kcat-groups {
   display: grid;
   grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 8px 18px;
+  gap: 10px 12px;
+}
+.kcat-group {
+  border-radius: 14px;
+  padding: 10px 6px 8px;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.45),
+    0 0 12px rgba(244,183,64,.16);
 }
 .kcat-group-name {
   display: flex; align-items: center; gap: 6px;
@@ -1450,17 +1457,24 @@ img.ex-tab-cover {
 .cat-ia svg { width: 18px; height: 18px; }
 .cat-body { display: flex; flex-direction: column; flex: 1; padding: 14px 4px 8px; text-align: left; }
 .cat-body h3 {
-  margin: 0 0 4px; color: #e9eefb; font-size: 1.25rem; line-height: 1.15;
+  margin: 0 0 12px; color: #e9eefb; font-size: 1.25rem; line-height: 1.15;
   display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .cat-body p {
   margin: 0 0 10px; color: #9fabce; font-size: .98rem; line-height: 1.45;
 }
 .cat-notes {
-  margin: 4px 0 0;
+  margin: 22px 0 0;
   text-align: left;
 }
-.cat-notes-lead,
+.cat-notes-lead {
+  margin: 0;
+  color: var(--yellow);
+  font-family: inherit;
+  font-weight: 400;
+  font-size: .98rem;
+  line-height: 1.45;
+}
 .cat-notes p {
   margin: 0;
   color: #c5d0ea;
@@ -1483,7 +1497,6 @@ img.ex-tab-cover {
   font-size: 1.02rem;
 }
 .cat-note-grid p { color: #9fabce; }
-[data-theme="light"] .kid .cat-notes-lead,
 [data-theme="light"] .kid .cat-notes-sizes,
 [data-theme="light"] .kid .cat-note-grid p { color: #6b6890; }
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
@@ -1804,6 +1817,12 @@ img.ex-tab-cover {
   .kmobile-all:focus-visible { background: #eef4ff; transform: translateY(-1px); }
   .kmobile-all { color: var(--purple); }
   .kmobile .kbtn { justify-content: center; margin-top: 2px; }
+  .kmobile-cat {
+    border-radius: 14px;
+    box-shadow:
+      0 0 0 1px rgba(244,183,64,.45),
+      0 0 12px rgba(244,183,64,.16);
+  }
   .kmobile-cat-btn {
     width: 100%; display: flex; align-items: center; gap: 8px;
     border: none; background: none; cursor: pointer;

@@ -1437,25 +1437,25 @@ function CatalogBookCard({
         )}
         <div className="cat-notes">
           <p className="cat-notes-lead">
-            {lang === "en" ? "Softcover or hardcover. 16 pages." : lang === "es" ? "Tapa blanda o tapa dura. 16 páginas." : "Capa mole ou capa dura. 16 páginas."}
+            {lang === "en" ? "Book. 16 pages." : lang === "es" ? "Libro. 16 páginas." : "Livro 16 páginas"}
           </p>
           <p className="cat-notes-sizes">
-            <span>{lang === "en" ? "15 × 15 cm: R$ 157.00." : "15 × 15 cm: R$ 157,00."}</span>
-            <span>{lang === "en" ? "20 × 20 cm: R$ 177.00." : "20 × 20 cm: R$ 177,00."}</span>
+            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 177.00." : "M - 20 × 20 cm: R$ 177,00."}</span>
+            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 157.00." : "P - 15 × 15 cm: R$ 157,00."}</span>
           </p>
           <div className="cat-note-grid">
             <div>
-              <strong>{lang === "en" ? "Hardcover" : lang === "es" ? "Tapa rígida" : "Capa rígida"}</strong>
+              <strong>{lang === "en" ? "HARD - Hardcover" : lang === "es" ? "HARD - Tapa rígida" : "HARD - Capa rígida"}</strong>
               <p>
                 {lang === "en"
                   ? "Heavier, sturdy and durable. Used for special or collectible editions."
                   : lang === "es"
-                    ? "Más pesada, resistente y duradera. Usada en ediciones especiales o de colección."
+                    ? "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección."
                     : "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis."}
               </p>
             </div>
             <div>
-              <strong>{lang === "en" ? "Softcover (standard paperback)" : lang === "es" ? "Tapa blanda (común/rústica)" : "Capa macia (comum/brochura)"}</strong>
+              <strong>{lang === "en" ? "SOFT - Softcover" : lang === "es" ? "SOFT - Tapa blanda" : "SOFT - Capa macia"}</strong>
               <p>
                 {lang === "en"
                   ? "Lighter and flexible. Common in books and economical editions."
