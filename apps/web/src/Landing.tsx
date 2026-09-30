@@ -1415,7 +1415,7 @@ function CatalogBookCard({
   lang,
   personalize,
 }: {
-  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; ebook?: string };
+  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; ebook?: string; video?: string };
   lang: Lang;
   personalize: string;
 }) {
@@ -1475,6 +1475,11 @@ function CatalogBookCard({
           {book.ebook ? (
             <a className="kbtn kbtn-ghost" href={exUrl(book.ebook)} download data-testid="landing-ebook-download">
               {lang === "en" ? "Download PDF" : lang === "es" ? "Descargar PDF" : "Baixar PDF"}
+            </a>
+          ) : null}
+          {book.video ? (
+            <a className="kbtn kbtn-ghost" href={exUrl(book.video)} download data-testid="landing-video-download">
+              {lang === "en" ? "Download video" : lang === "es" ? "Descargar video" : "Baixar vídeo"}
             </a>
           ) : null}
         </div>
@@ -1538,6 +1543,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           size: c.size,
           tag: c.tag,
           ebook: i === 22 ? "ebook-meupai-heroi.pdf" : undefined,
+          video: i === 22 ? "video-meupai-heroi.mp4" : undefined,
         }));
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
   const heroThumb = heroPick % 3;
