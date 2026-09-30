@@ -44,6 +44,8 @@ class ProjectCreateIn(BaseModel):
     style: ProjectStyle = ProjectStyle.CGI_3D
     # Tema narrativo da história (aventura, princesas, espaco, ...). Aberto por design.
     theme: str | None = Field(default=None, max_length=32)
+    # M = 20×20 cm, P = 15×15 cm. Vazio mantém o miolo atual.
+    book_size: str | None = Field(default=None, pattern="^(M|P)$")
     # Segundo tema opcional (máx. 2 na mesma história): `theme` continua definindo
     # vilão/cenário/arco; `extra_theme` só soma um objetivo de aprendizado extra.
     extra_theme: str | None = Field(default=None, max_length=32)
@@ -68,6 +70,7 @@ class ProjectOut(BaseModel):
     status: str
     style: str | None
     theme: str | None
+    book_size: str | None = None
     extra_theme: str | None = None
     child_name: str | None
     child_age: int | None

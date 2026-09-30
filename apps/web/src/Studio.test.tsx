@@ -70,6 +70,24 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue("Amor de mãe");
   });
 
+  it("abre o livro escolhido e pede só nome e idade", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&tamanho=P&modo=cartoon",
+    );
+    render(<Studio />);
+
+    expect(screen.getByText(/livro escolhido/i)).toBeInTheDocument();
+    expect(screen.getByText(/papai herói/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/título do livro/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/insira o tema desejado/i)).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
+    expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
+    expect(screen.getByRole("button", { name: /15 × 15 cm/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
+  });
+
   it("preenche um tema sem livro único e deixa os campos editáveis", async () => {
     window.history.replaceState({}, "", "/app?tema=sport");
     const user = userEvent.setup();

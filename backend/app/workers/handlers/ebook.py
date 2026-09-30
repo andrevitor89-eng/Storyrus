@@ -11,6 +11,7 @@ from app import storage
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
+    book_art_direction,
 )
 from app.ai_clients.book_prompts import (
     costume_extras_for_theme,
@@ -181,6 +182,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         sem = asyncio.Semaphore(max(1, settings.ebook_page_concurrency))
         style_lock = asyncio.Lock()
         good_style: list[bytes] = []
+        art_style = book_art_direction(project.style)
 
         async def _one(item: tuple[int, str, dict, str]) -> tuple[int, ImageResult]:
             idx, caption, brief, layout = item
@@ -200,6 +202,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
                     bible=bible,
                     style_lock=style_lock,
                     good_style=good_style,
+                    art_style=art_style,
                 )
             await _store_finished(idx, result)
             return idx, result
@@ -254,6 +257,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         extra_characters=extra_chars or None,
         preview_pages=3,
         cover_palette=ebook_builder.cover_palette_for(template_id, project.theme),
+        page_cm=20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
     )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")

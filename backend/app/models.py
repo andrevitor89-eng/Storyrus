@@ -174,6 +174,8 @@ class Project(Base):
     )
     style: Mapped[str | None] = mapped_column(String(16), nullable=True)
     theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    # Tamanho impresso escolhido na geração: M = 20×20 cm, P = 15×15 cm.
+    book_size: Mapped[str | None] = mapped_column(String(1), nullable=True)
     # Segundo tema opcional: combinado com `theme` na mesma história (máx. 2 temas).
     # `theme` continua sendo o principal (define vilão/cenário/arco); `extra_theme`
     # só soma objetivo de aprendizado extra — ver handle_story.

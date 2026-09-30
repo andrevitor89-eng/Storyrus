@@ -239,6 +239,7 @@ describe("Landing — catálogo", () => {
 
     await user.click(within(card).getByRole("button", { name: "P" }));
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tamanho=P"));
     expect(within(card).getByRole("button", { name: "M", pressed: false })).toBeInTheDocument();
     expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
     expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
@@ -274,9 +275,11 @@ describe("Landing — catálogo", () => {
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize).toHaveLength(14);
     expect(personalize[0].getAttribute("href")).toContain("tema=fathers_day");
-    expect(personalize[0].getAttribute("href")).toContain("campos=tema");
+    expect(personalize[0].getAttribute("href")).toContain("campos=nome");
+    expect(personalize[0].getAttribute("href")).toContain("tamanho=M");
+    expect(personalize[0].getAttribute("href")).toContain("modo=realista");
+    expect(personalize[0].getAttribute("href")).toContain("titulo=");
     expect(personalize[0].getAttribute("href")).not.toContain("heroi=");
-    expect(personalize[0].getAttribute("href")).not.toContain("titulo=");
     expect(decodeURIComponent((personalize[0].getAttribute("href") ?? "").replace(/\+/g, " "))).toContain("Papai herói");
     expect(personalize[1].getAttribute("href")).toContain("tema=adventure");
     expect(personalize[2].getAttribute("href")).toContain("tema=family_love");
@@ -485,7 +488,7 @@ describe("Landing — CTAs e links", () => {
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
     expect(screen.queryByRole("link", { name: /^cartoon$/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
+    expect(screen.getByText(/escolha o tema e o formato do livro/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();

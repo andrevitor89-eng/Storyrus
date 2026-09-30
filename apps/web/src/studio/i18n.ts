@@ -39,6 +39,10 @@ export type StudioCopy = {
   photoFieldHint: string;
   dedication: string;
   dedicationPh: string;
+  bookSize: string;
+  bookSizeM: string;
+  bookSizeP: string;
+  chosenBook: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
@@ -278,6 +282,10 @@ const pt: StudioCopy = {
   photoFieldHint: "Insira a foto desejada, baseada na história que deseja contar.",
   dedication: "Dedicatória (2ª página do livro)",
   dedicationPh: "Ex.: Para a Lila, com todo o amor da mamãe.",
+  bookSize: "Tamanho do livro",
+  bookSizeM: "M — 20 × 20 cm",
+  bookSizeP: "P — 15 × 15 cm",
+  chosenBook: "Livro escolhido",
   createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
@@ -435,6 +443,10 @@ const en: StudioCopy = {
   photoFieldHint: "Upload the photo you want, based on the story you want to tell.",
   dedication: "Dedication (book page 2)",
   dedicationPh: "e.g. For Lila, with all of Mom's love.",
+  bookSize: "Book size",
+  bookSizeM: "M — 20 × 20 cm",
+  bookSizeP: "P — 15 × 15 cm",
+  chosenBook: "Chosen book",
   createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
@@ -592,6 +604,10 @@ const es: StudioCopy = {
   photoFieldHint: "Sube la foto que quieras, según la historia que deseas contar.",
   dedication: "Dedicatoria (2.ª página del libro)",
   dedicationPh: "Ej.: Para Lila, con todo el amor de mamá.",
+  bookSize: "Tamaño del libro",
+  bookSizeM: "M — 20 × 20 cm",
+  bookSizeP: "P — 15 × 15 cm",
+  chosenBook: "Libro elegido",
   createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",

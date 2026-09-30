@@ -427,19 +427,40 @@ const HERO_BY_CATALOG: Record<number, string> = {
   18: "Miriam",
   19: "Noé",
 };
-function personalizeHref(theme: string, tag?: string) {
+function personalizeHref(opts: {
+  theme: string;
+  title: string;
+  historia?: string;
+  heroi?: string;
+  size: "M" | "P";
+  modo: "realista" | "cartoon";
+}) {
   const q = new URLSearchParams();
-  q.set("tema", theme);
-  q.set("campos", "tema");
-  if (tag) q.set("historia", tag);
+  q.set("tema", opts.theme);
+  q.set("campos", "nome");
+  q.set("titulo", opts.title);
+  if (opts.historia) q.set("historia", opts.historia);
+  if (opts.heroi) q.set("heroi", opts.heroi);
+  q.set("tamanho", opts.size);
+  q.set("modo", opts.modo);
   return `/app?${q.toString()}`;
 }
-function studioHref(opts: { tema: string; titulo?: string; historia?: string; heroi?: string }) {
+function studioHref(opts: {
+  tema: string;
+  titulo?: string;
+  historia?: string;
+  heroi?: string;
+  size?: "M" | "P";
+  modo?: "realista" | "cartoon";
+}) {
   const q = new URLSearchParams();
   q.set("tema", opts.tema);
+  q.set("campos", "nome");
   if (opts.titulo) q.set("titulo", opts.titulo);
   if (opts.historia) q.set("historia", opts.historia);
   if (opts.heroi) q.set("heroi", opts.heroi);
+  q.set("tamanho", opts.size ?? "M");
+  q.set("modo", opts.modo ?? "realista");
   return `/app?${q.toString()}`;
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
@@ -1384,10 +1405,12 @@ function CatalogBookCard({
   book,
   lang,
   personalize,
+  modo = "realista",
 }: {
-  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string };
+  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; heroi?: string };
   lang: Lang;
   personalize: string;
+  modo?: "realista" | "cartoon";
 }) {
   const selectable = typeof book.cover === "string" && typeof book.size === "string";
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
@@ -1466,7 +1489,20 @@ function CatalogBookCard({
             </div>
           </div>
         </div>
-        <Link to={personalizeHref(book.theme, book.tag)} className="kbtn kbtn-primary" data-testid="landing-personalize">{personalize}</Link>
+        <Link
+          to={personalizeHref({
+            theme: book.theme,
+            title: book.t,
+            historia: book.tag,
+            heroi: book.heroi,
+            size,
+            modo: modo ?? "realista",
+          })}
+          className="kbtn kbtn-primary"
+          data-testid="landing-personalize"
+        >
+          {personalize}
+        </Link>
       </div>
     </div>
   );
@@ -1525,6 +1561,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           cover: c.cover,
           size: c.size,
           tag: c.tag,
+          heroi: HERO_BY_CATALOG[i],
         }));
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
   const heroPage = heroPick % 3;
@@ -1540,6 +1577,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       titulo: book.t,
       historia: `${book.tag}. ${book.p}`,
       heroi: HERO_BY_CATALOG[catalogI],
+      modo: variant === "cartoon" ? "cartoon" : "realista",
     });
   };
   const navCats = t.cats.map((cat, i) => ({
@@ -1913,7 +1951,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
           {catalogBooks.map((c) => (
-            <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} />
+            <CatalogBookCard
+              key={c.t}
+              book={c}
+              lang={lang}
+              personalize={t.personalize}
+              modo={variant === "cartoon" ? "cartoon" : "realista"}
+            />
           ))}
         </div>
       </section>

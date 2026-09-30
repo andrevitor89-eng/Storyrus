@@ -28,6 +28,7 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
+    book_art_direction,
 )
 from app.ai_clients.identity_lock import (
     IDENTITY_MISMATCH_ERROR,
@@ -775,6 +776,14 @@ async def handle_story(db: Session, job: Job) -> None:
                 )
             )
 
+    size_cm = "20×20 cm" if project.book_size == "M" else "15×15 cm" if project.book_size == "P" else "20×20 cm"
+    brief += (
+        " FORMATO: livro quadrado "
+        + size_cm
+        + ", corte reto, páginas em sangria total. Cada página é uma estrofe curta, "
+        "educativa, com leve rima só quando sair natural. "
+        + book_art_direction(project.style)
+    )
     update_trace(
         metadata={
             **job_metadata(job),
@@ -788,7 +797,7 @@ async def handle_story(db: Session, job: Job) -> None:
     provider = _pkg().get_text_provider(job.provider)
     result = await provider.generate_story(
         brief=brief,
-        style=BOOK_STYLE,
+        style=book_art_direction(project.style),
         pages=settings.ebook_pages,
         language=language,
         age=project.child_age,
@@ -1238,6 +1247,7 @@ async def _illustrate_page(
     bible: dict[str, bytes],
     style_lock: asyncio.Lock,
     good_style: list[bytes],
+    art_style: str = BOOK_STYLE,
 ) -> ImageResult:
     """Cena no avatar; refine_scene OpenAI se o juiz achar o rosto fraco."""
     prompt = build_scene_prompt(
@@ -1286,7 +1296,7 @@ async def _illustrate_page(
         scene = await provider.generate_scene(
             prompt=prompt,
             character_ref=char_bytes,
-            style=BOOK_STYLE,
+            style=art_style,
             extra_refs=extra_refs or None,
         )
         _tag_image(

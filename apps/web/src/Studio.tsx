@@ -78,6 +78,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [childAge, setChildAge] = useState<string>("");
   const [bookTitle, setBookTitle] = useState("");
   const [themeText, setThemeText] = useState("");
+  const [temaId, setTemaId] = useState("");
+  const [onlyName, setOnlyName] = useState(false);
+  const [bookSize, setBookSize] = useState<"M" | "P">("M");
+  const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
   const [assets, setAssets] = useState<StudioAssets | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -124,10 +128,18 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const heroi = q.get("heroi");
     if (!tema && !titulo && !historia) return;
     presetApplied.current = true;
-    const onlyTheme = q.get("campos") === "tema";
+    if (tema) setTemaId(tema);
+    if (q.get("tamanho") === "P" || q.get("tamanho") === "M") setBookSize(q.get("tamanho") as "M" | "P");
+    if (q.get("modo") === "cartoon") setArtMode("cartoon");
+    const onlyTheme = q.get("campos") === "tema" || q.get("campos") === "nome";
+    if (q.get("campos") === "nome") setOnlyName(true);
     const fallback = tema ? themePreset(tema, lang) : null;
     const themeBody = historia || fallback?.theme || "";
     if (themeBody) setThemeText(themeBody);
+    if (q.get("campos") === "nome" && titulo) {
+      setBookTitle(titulo);
+      if (heroi) titlePreset.current = { hero: heroi, title: titulo };
+    }
     if (onlyTheme) return;
     const title = titulo || fallback?.title || "";
     if (title) setBookTitle(title);
@@ -161,26 +173,35 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const name = childName.trim();
     const title = bookTitle.trim();
     const theme = themeText.trim();
+    const cm = bookSize === "P" ? "15×15 cm" : "20×20 cm";
+    const look =
+      artMode === "cartoon"
+        ? "Estilo cartoon premium, traços desenhados, formas arredondadas, sem anime nem chibi."
+        : "Estilo editorial suavemente realista: pele com luz suave, íris na fração da foto, cabelo fio a fio, sem cartoon.";
+    const format = `Livro quadrado ${cm}, corte reto, página em sangria total, estrofe curta na faixa calma. ${look}`;
     if (lang === "en") {
       return (
         `Invent an original children's story. The book title must be: "${title}". ` +
         `Theme and ideas from the guardian: ${theme}. ` +
-        (name ? `The hero's name is ${name}.` : "")
+        (name ? `The hero's name is ${name}. ` : "") +
+        format
       );
     }
     if (lang === "es") {
       return (
         `Inventa una historia infantil original. El título del libro debe ser: "${title}". ` +
         `Tema e ideas del responsable: ${theme}. ` +
-        (name ? `El protagonista se llama ${name}.` : "")
+        (name ? `El protagonista se llama ${name}. ` : "") +
+        format
       );
     }
     return (
       `Invente uma história infantil original. O título do livro deve ser: "${title}". ` +
       `Tema e ideias do responsável: ${theme}. ` +
-      (name ? `O protagonista se chama ${name}.` : "")
+      (name ? `O protagonista se chama ${name}. ` : "") +
+      format
     );
-  }, [bookTitle, childName, lang, themeText]);
+  }, [artMode, bookSize, bookTitle, childName, lang, themeText]);
 
   async function submitUpgrade(e: FormEvent) {
     e.preventDefault();
@@ -255,7 +276,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   async function start() {
     if (isDemo) return;
-    if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "") {
+    if (onlyName) {
+      if (!childName.trim() || childAge.trim() === "") {
+        setError(t.errMissingFields);
+        return;
+      }
+    } else if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "") {
       setError(t.errMissingFields);
       return;
     }
@@ -272,10 +298,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const age = Number(childAge);
       const p = await api.createProject({
-        theme: themeText.trim(),
+        theme: temaId || themeText.trim(),
         childName,
         dedication,
         childAge: Number.isNaN(age) ? undefined : age,
+        style: artMode === "cartoon" ? "cartoon" : "realistic",
+        bookSize,
       });
       setProject(p);
       setJobs([]);
@@ -516,43 +544,69 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </label>
           </div>
 
-          <label className="studio-field">
-            {t.bookTitle}
-            <input
-              disabled={fieldsLocked}
-              value={bookTitle}
-              onChange={(e) => {
-                titleTouched.current = true;
-                setBookTitle(e.target.value);
-              }}
-              placeholder={t.bookTitlePh}
-              maxLength={120}
-            />
-          </label>
+          {onlyName ? (
+            <p className="studio-meta" role="status">
+              {t.chosenBook}: <b>{bookTitle || themeText}</b>
+            </p>
+          ) : (
+            <>
+              <label className="studio-field">
+                {t.bookTitle}
+                <input
+                  disabled={fieldsLocked}
+                  value={bookTitle}
+                  onChange={(e) => {
+                    titleTouched.current = true;
+                    setBookTitle(e.target.value);
+                  }}
+                  placeholder={t.bookTitlePh}
+                  maxLength={120}
+                />
+              </label>
 
-          <label className="studio-field">
-            {t.themeFree}
-            <textarea
-              disabled={fieldsLocked}
-              value={themeText}
-              onChange={(e) => setThemeText(e.target.value)}
-              placeholder={t.themeFreePh}
-              maxLength={500}
-              rows={3}
-            />
-          </label>
-          <p className="muted field-hint">{t.themeHint}</p>
+              <label className="studio-field">
+                {t.themeFree}
+                <textarea
+                  disabled={fieldsLocked}
+                  value={themeText}
+                  onChange={(e) => setThemeText(e.target.value)}
+                  placeholder={t.themeFreePh}
+                  maxLength={500}
+                  rows={3}
+                />
+              </label>
+              <p className="muted field-hint">{t.themeHint}</p>
 
-          <label className="studio-field">
-            {t.dedication}
-            <input
-              disabled={fieldsLocked}
-              value={dedication}
-              onChange={(e) => setDedication(e.target.value)}
-              placeholder={t.dedicationPh}
-              maxLength={200}
-            />
-          </label>
+              <label className="studio-field">
+                {t.dedication}
+                <input
+                  disabled={fieldsLocked}
+                  value={dedication}
+                  onChange={(e) => setDedication(e.target.value)}
+                  placeholder={t.dedicationPh}
+                  maxLength={200}
+                />
+              </label>
+            </>
+          )}
+
+          <div className="studio-field" role="group" aria-label={t.bookSize}>
+            {t.bookSize}
+            <div className="studio-actions">
+              {(["M", "P"] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={bookSize === choice ? "kbtn kbtn-primary" : "kbtn kbtn-soft"}
+                  aria-pressed={bookSize === choice}
+                  disabled={fieldsLocked}
+                  onClick={() => setBookSize(choice)}
+                >
+                  {choice === "M" ? t.bookSizeM : t.bookSizeP}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {!fieldsLocked && (
             <>

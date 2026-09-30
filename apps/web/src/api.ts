@@ -276,13 +276,16 @@ export const api = {
     childName?: string;
     dedication?: string;
     childAge?: number;
+    style?: "cgi_3d" | "realistic" | "cartoon";
+    bookSize?: "M" | "P";
   } = {}) {
     const theme = input.theme?.trim().slice(0, 32) || undefined;
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
-        style: "cgi_3d",
+        style: input.style ?? "cgi_3d",
         theme,
+        book_size: input.bookSize,
         child_name: input.childName?.trim() || undefined,
         child_age: input.childAge ?? undefined,
         dedication: input.dedication?.trim() || undefined,
