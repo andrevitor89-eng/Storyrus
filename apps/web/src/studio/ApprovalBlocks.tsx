@@ -1,4 +1,5 @@
 import { useStudioI18n } from "./useStudioI18n";
+import { PrintCheckout } from "./PrintCheckout";
 
 type CharacterProps = {
   characterUrl: string;
@@ -55,6 +56,7 @@ type BookProps = {
   locked: boolean;
   canMountEbook: boolean;
   printRequested: boolean;
+  projectId?: string | null;
   onApprove: () => void;
   onRegenerate: () => void;
   onRequestPrint: () => void;
@@ -67,6 +69,7 @@ export function BookApprovalBlock({
   locked,
   canMountEbook,
   printRequested,
+  projectId,
   onApprove,
   onRegenerate,
   onRequestPrint,
@@ -123,9 +126,12 @@ export function BookApprovalBlock({
             {t.printTitle}
           </h3>
           {printRequested ? (
-            <p className="muted" role="status">
-              {t.printRequested}
-            </p>
+            <>
+              <p className="muted" role="status">
+                {t.printRequested}
+              </p>
+              {projectId && <PrintCheckout projectId={projectId} />}
+            </>
           ) : (
             <button type="button" disabled={locked} onClick={onRequestPrint}>
               {t.requestPrint}

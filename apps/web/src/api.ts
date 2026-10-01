@@ -2,6 +2,8 @@ import type {
   Job,
   JobAccepted,
   Project,
+  PrintAddress,
+  PrintOrder,
   StoryTemplate,
   UploadUrl,
   UsageReport,
@@ -330,6 +332,7 @@ export const api = {
       clientPhone?: string;
       clientAddress?: string;
       clientNotes?: string;
+      finalize?: boolean;
     },
   ) {
     await ensureGuest();
@@ -349,6 +352,7 @@ export const api = {
     if (meta?.clientAddress) fd.append("client_address", meta.clientAddress);
     if (meta?.clientNotes) fd.append("client_notes", meta.clientNotes);
     if (meta?.quantity) fd.append("quantity", meta.quantity);
+    if (meta?.finalize === false) fd.append("finalize", "0");
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await fetch(`${BASE}/v1/projects/${id}/photo`, {
@@ -502,6 +506,30 @@ export const api = {
   async requestPrint(id: string) {
     return req<Project>(`/v1/projects/${id}/print-request`, { method: "POST" });
   },
+  async printOrder(id: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order`);
+  },
+  async savePrintAddress(id: string, body: PrintAddress) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/address`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  },
+  async quotePrintFreight(id: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/freight`, { method: "POST" });
+  },
+  async selectPrintFreight(id: string, serviceId: number) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/freight/select`, {
+      method: "POST",
+      body: JSON.stringify({ service_id: serviceId }),
+    });
+  },
+  async checkoutPrint(id: string, installments: number) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/checkout`, {
+      method: "POST",
+      body: JSON.stringify({ installments }),
+    });
+  },
   // Upload de foto de personagem extra
   async uploadExtraCharacter(id: string, file: File, name: string) {
     await ensureGuest();
@@ -546,5 +574,32 @@ export const api = {
       throw err;
     }
     return (await resp.json()) as UsageReport;
+  },
+  async downloadPrintPackage(password: string, id: string) {
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    const resp = await fetch(`${BASE}/v1/print-orders/${id}/package`, { headers });
+    if (!resp.ok) throw new Error("Pacote de produção indisponível.");
+    return resp.blob();
+  },
+  async setPrintValidation(password: string, id: string, next: string) {
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    headers.set("Content-Type", "application/json");
+    const resp = await fetch(`${BASE}/v1/print-orders/${id}/validation`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ status: next }),
+    });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      throw new Error(typeof detail === "string" ? detail : "Não foi possível atualizar a validação.");
+    }
+    return (await resp.json()) as PrintOrder;
   },
 };

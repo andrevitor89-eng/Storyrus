@@ -28,6 +28,8 @@ describe("Pedidos", () => {
     expect(detail).toHaveTextContent("M — 20 × 20 cm");
     expect(detail).toHaveTextContent("Capa dura");
     expect(detail).toHaveTextContent("Realista");
+    expect(detail).toHaveTextContent("SR-TESTE001");
+    expect(detail).toHaveTextContent("AA123BR");
     expect(detail.querySelector("img")).toHaveAttribute("src", "https://fotos.test/crianca.jpg");
     expect(detail.querySelector("a")).toHaveAttribute("href", "https://fotos.test/crianca.jpg");
   });

@@ -41,11 +41,11 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
               Ao usar storyrus.ai você concorda com estes termos.
             </p>
             <h2>O serviço</h2>
-            <p>Geramos histórias e ilustrações com IA. O resultado pode variar. Você revisa a prévia antes de baixar o PDF ou pedir cotação do impresso.</p>
+            <p>Geramos histórias e ilustrações com IA. O resultado pode variar. Você revisa a prévia antes de baixar o PDF ou pedir o livro impresso.</p>
             <h2>Responsável legal</h2>
             <p>Só envie foto de criança se você for o responsável e autorizar o uso para criar este livro.</p>
             <h2>Créditos</h2>
-            <p>Etapas pagas consomem créditos da conta. Impressão é sob consulta, não um checkout automático.</p>
+            <p>Etapas pagas consomem créditos da conta. O livro impresso é cobrado à parte, pelo tamanho e pelo frete. O parcelamento no cartão abre quando o gateway de pagamento estiver ligado. Até lá, o pedido de impresso segue como cotação.</p>
             <h2>Propriedade</h2>
             <p>Você pode usar o livro gerado para uso pessoal e familiar. Não redistribua o software nem abuse da API.</p>
             <h2>Contato</h2>

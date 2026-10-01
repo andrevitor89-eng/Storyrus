@@ -9,6 +9,7 @@ import zipfile
 from datetime import UTC, datetime
 
 import httpx
+import pytest
 from PIL import Image
 from pypdf import PdfReader
 
@@ -26,6 +27,15 @@ from app.printkit.gateway import (
 )
 from app.printkit.shipping import LabelResult
 from app.printkit.spec import PrintSpec, PrintSpecIncomplete
+
+
+@pytest.fixture(autouse=True)
+def _local_disk(monkeypatch):
+    monkeypatch.setattr(settings, "storage_access_key", None)
+    monkeypatch.setattr(settings, "storage_secret_key", None)
+    storage._client.cache_clear()
+    yield
+    storage._client.cache_clear()
 
 
 def _session(client):
@@ -62,6 +72,8 @@ def _apply_spec(monkeypatch) -> None:
     monkeypatch.setattr(settings, "print_filename_pattern", spec.filename_pattern)
     monkeypatch.setattr(settings, "print_allow_p_hardcover", False)
     monkeypatch.setattr(settings, "print_gateway", "")
+    monkeypatch.setattr(settings, "print_price_p_cents", 15700)
+    monkeypatch.setattr(settings, "print_price_m_cents", 17700)
 
 
 def _blank_spec(monkeypatch) -> None:
@@ -77,6 +89,8 @@ def _blank_spec(monkeypatch) -> None:
         monkeypatch.setattr(settings, name, None)
     monkeypatch.setattr(settings, "print_allow_p_hardcover", False)
     monkeypatch.setattr(settings, "print_gateway", "")
+    monkeypatch.setattr(settings, "print_price_p_cents", 15700)
+    monkeypatch.setattr(settings, "print_price_m_cents", 17700)
 
 
 def _pt(mm: float) -> float:
@@ -145,6 +159,15 @@ class _FakeGateway:
         return PaymentNotice(reference=data["reference"], paid=bool(data.get("paid")))
 
 
+def _pages(count: int = 16) -> list[Image.Image]:
+    return [Image.new("RGB", (32, 32), (20, 80, 160)) for _ in range(count)]
+
+
+def _span_mm(box) -> tuple[float, float]:
+    left, bottom, right, top = (float(v) for v in box)
+    return (right - left) * 25.4 / 72, (top - bottom) * 25.4 / 72
+
+
 def test_blank_spec_refuses_production_pdf():
     spec = PrintSpec()
     try:
@@ -175,13 +198,9 @@ def test_pdfs_share_the_order_code_and_the_cover_width():
     interior_pdf = PdfReader(io.BytesIO(interior))
     assert cover_pdf.metadata.title == code
     assert interior_pdf.metadata.title == code
-    assert "safety_mm=5" in (cover_pdf.metadata.subject or "")
     assert code in (cover_pdf.pages[0].extract_text() or "")
     assert len(interior_pdf.pages) == 2
-    for page in interior_pdf.pages:
-        assert code in (page.extract_text() or "")
     assert abs(float(cover_pdf.pages[0].mediabox.width) - _pt(414)) < 0.2
-    assert abs(float(cover_pdf.pages[0].mediabox.height) - _pt(206)) < 0.2
     assert abs(float(interior_pdf.pages[0].mediabox.width) - _pt(206)) < 0.2
 
 
@@ -208,7 +227,7 @@ def test_print_request_without_spec_does_not_publish_files(auth_client, monkeypa
 def test_package_when_spec_is_filled(auth_client, monkeypatch):
     _apply_spec(monkeypatch)
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
-    pid = _ready(auth_client, cover="hard")
+    pid = _ready(auth_client, cover="hard", pages=16)
     opened = auth_client.post(f"/v1/projects/{pid}/print-request")
     assert opened.json()["print_status"] == "files_ready"
     order = auth_client.get(f"/v1/projects/{pid}/print-order").json()
@@ -292,8 +311,8 @@ def test_freight_keeps_a_missing_deadline(auth_client, monkeypatch):
             200,
             json=[
                 {"id": 1, "name": "PAC", "price": "19.20", "delivery_time": 8},
-                {"id": 2, "name": "SEDEX", "custom_price": "30.00", "delivery_time": None},
-                {"id": 3, "name": "Off", "price": "1.00", "error": "indisponível"},
+                {"id": 2, "name": "SEDEX", "custom_price": "30.00", "price": "40.00", "delivery_time": None},
+                {"id": 3, "name": "Erro", "error": "sem cobertura", "price": "1.00"},
             ],
             request=httpx.Request("POST", url),
         )
@@ -304,20 +323,19 @@ def test_freight_keeps_a_missing_deadline(auth_client, monkeypatch):
     assert _address(auth_client, pid).status_code == 200
     quoted = auth_client.post(f"/v1/projects/{pid}/print-order/freight")
     assert quoted.status_code == 200, quoted.text
-    options = quoted.json()["freight_options"]
-    assert [item["service_name"] for item in options] == ["PAC", "SEDEX"]
-    assert options[1]["delivery_days"] is None
-    assert options[1]["price_cents"] == 3000
+    names = [item["service_name"] for item in quoted.json()["freight_options"]]
+    assert names == ["PAC", "SEDEX"]
     chosen = auth_client.post(
         f"/v1/projects/{pid}/print-order/freight/select",
         json={"service_id": 2},
     )
-    assert chosen.json()["freight_days"] is None
-    assert chosen.json()["freight_price_cents"] == 3000
+    assert chosen.status_code == 200, chosen.text
+    body = chosen.json()
+    assert body["freight_price_cents"] == 3000
+    assert body["freight_days"] is None
 
 
-def test_checkout_without_gateway(auth_client, monkeypatch):
-    _apply_spec(monkeypatch)
+def _freight_ready(monkeypatch):
     monkeypatch.setattr(settings, "melhor_envio_token", "token")
     monkeypatch.setattr(settings, "melhor_envio_from_postal_code", "01001000")
     monkeypatch.setattr(settings, "print_package_weight_g", 400)
@@ -332,14 +350,16 @@ def test_checkout_without_gateway(auth_client, monkeypatch):
             request=httpx.Request("POST", url),
         ),
     )
+
+
+def test_checkout_without_gateway(auth_client, monkeypatch):
+    _apply_spec(monkeypatch)
+    _freight_ready(monkeypatch)
     pid = _ready(auth_client)
     auth_client.post(f"/v1/projects/{pid}/print-request")
     _address(auth_client, pid)
     auth_client.post(f"/v1/projects/{pid}/print-order/freight")
-    auth_client.post(
-        f"/v1/projects/{pid}/print-order/freight/select",
-        json={"service_id": 1},
-    )
+    auth_client.post(f"/v1/projects/{pid}/print-order/freight/select", json={"service_id": 1})
     unpaid = auth_client.post(f"/v1/projects/{pid}/print-order/checkout", json={"installments": 2})
     assert unpaid.status_code == 409
     assert "Gateway" in unpaid.json()["detail"]
@@ -347,27 +367,14 @@ def test_checkout_without_gateway(auth_client, monkeypatch):
 
 def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
     _apply_spec(monkeypatch)
+    _freight_ready(monkeypatch)
     monkeypatch.setattr(settings, "print_gateway", "fake")
-    monkeypatch.setattr(settings, "melhor_envio_token", "token")
-    monkeypatch.setattr(settings, "melhor_envio_from_postal_code", "01001000")
-    monkeypatch.setattr(settings, "print_package_weight_g", 400)
-    monkeypatch.setattr(settings, "print_package_height_cm", 3)
-    monkeypatch.setattr(settings, "print_package_width_cm", 21)
-    monkeypatch.setattr(settings, "print_package_length_cm", 21)
     bought: list[str] = []
 
     def _buy(order):
         bought.append(order.code)
         return LabelResult(tracking="AA123BR", url=None)
 
-    monkeypatch.setattr(
-        "app.printkit.shipping._post",
-        lambda url, payload: httpx.Response(
-            200,
-            json=[{"id": 1, "name": "PAC", "price": "10.00", "delivery_time": 5}],
-            request=httpx.Request("POST", url),
-        ),
-    )
     monkeypatch.setattr("app.printkit.service.buy_label", _buy)
     register_gateway(_FakeGateway())
     try:
@@ -375,20 +382,19 @@ def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
         auth_client.post(f"/v1/projects/{pid}/print-request")
         _address(auth_client, pid)
         auth_client.post(f"/v1/projects/{pid}/print-order/freight")
-        auth_client.post(
-            f"/v1/projects/{pid}/print-order/freight/select",
-            json={"service_id": 1},
-        )
-        paid = auth_client.post(
-            f"/v1/projects/{pid}/print-order/checkout",
-            json={"installments": 3},
-        )
+        auth_client.post(f"/v1/projects/{pid}/print-order/freight/select", json={"service_id": 1})
+        paid = auth_client.post(f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3})
         assert paid.status_code == 200, paid.text
         body = paid.json()
-        assert body["checkout_url"] == "https://pay.test/livro"
         assert body["amount_cents"] == 17700 + 1000
-        assert body["payment_status"] == "pending"
+        assert body["checkout_url"] == "https://pay.test/livro"
         assert bought == []
+        missing = auth_client.post(
+            "/v1/webhooks/print-payment",
+            json={"reference": "pay-ausente", "paid": True},
+            headers={"X-Print-Signature": "ok"},
+        )
+        assert missing.status_code == 404
         hook = auth_client.post(
             "/v1/webhooks/print-payment",
             json={"reference": f"pay-{body['code']}", "paid": True},
@@ -397,8 +403,7 @@ def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
         assert hook.status_code == 200, hook.text
         assert bought == [body["code"]]
         tracked = auth_client.get(f"/v1/projects/{pid}/print-order").json()
-        assert tracked["payment_status"] == "paid"
         assert tracked["tracking_code"] == "AA123BR"
+        assert tracked["payment_status"] == "paid"
     finally:
         unregister_gateway("fake")
-

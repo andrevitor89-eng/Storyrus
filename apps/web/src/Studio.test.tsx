@@ -100,6 +100,8 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/^quantidade$/i)).toHaveValue(1);
     expect(screen.getByText(/lembrancinha de aniversário, casamento ou festa/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/arraste, cole ou clique/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/mais de uma foto/i);
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
   });
 
@@ -148,6 +150,44 @@ describe("Studio — tema do banner", () => {
         clientAddress: "Rua A, 10",
         clientNotes: "entregar à tarde",
       }),
+    );
+  });
+
+  it("envia cada foto e só fecha o pedido na última", async () => {
+    state.credits = 10;
+    const upload = vi.spyOn(api, "uploadPhoto");
+    window.history.replaceState({}, "", "/app");
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await fillClient(user);
+    await user.upload(screen.getByTestId("studio-photo-input"), [
+      new File(["a"], "frente.jpg", { type: "image/jpeg" }),
+      new File(["b"], "sorriso.jpg", { type: "image/jpeg" }),
+    ]);
+    expect(screen.getByText("frente.jpg")).toBeInTheDocument();
+    expect(screen.getByText("sorriso.jpg")).toBeInTheDocument();
+    expect(screen.getByText(/2 fotos selecionadas/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
+    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+
+    await screen.findByTestId("studio-order-sent");
+    expect(upload).toHaveBeenNthCalledWith(
+      1,
+      expect.any(String),
+      expect.objectContaining({ name: "frente.jpg" }),
+      expect.objectContaining({ finalize: false }),
+    );
+    expect(upload).toHaveBeenNthCalledWith(
+      2,
+      expect.any(String),
+      expect.objectContaining({ name: "sorriso.jpg" }),
+      expect.objectContaining({ finalize: true }),
     );
   });
 

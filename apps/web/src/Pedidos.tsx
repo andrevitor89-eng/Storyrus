@@ -43,6 +43,21 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
       value: order.style === "cartoon" ? "Cartoon" : "Realista",
     });
   }
+  if (order.print_code) rows.push({ label: "Código do impresso", value: order.print_code });
+  if (order.print_status) {
+    const labels: Record<string, string> = {
+      awaiting_spec: "Aguardando especificação",
+      awaiting_pages: "Aguardando páginas",
+      held: "Formato ainda não liberado",
+      files_ready: "Arquivos prontos",
+      sent_for_validation: "Enviado para validação",
+      approved: "Aprovado",
+      rejected: "Recusado",
+    };
+    rows.push({ label: "Produção", value: labels[order.print_status] ?? order.print_status });
+  }
+  if (order.payment_status) rows.push({ label: "Pagamento", value: order.payment_status });
+  if (order.tracking_code) rows.push({ label: "Rastreio", value: order.tracking_code });
   return rows;
 }
 
@@ -194,6 +209,65 @@ export function Pedidos() {
               <p className="muted">
                 {when(current.created_at)} · Projeto {current.project_id}
               </p>
+              {current.print_order_id && current.print_status === "files_ready" && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    void api
+                      .setPrintValidation(password, current.print_order_id as string, "sent_for_validation")
+                      .then(() => load(password))
+                      .catch((err: Error) => setError(err.message))
+                  }
+                >
+                  Enviar para validação
+                </button>
+              )}
+              {current.print_order_id && current.print_status === "sent_for_validation" && (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void api
+                        .setPrintValidation(password, current.print_order_id as string, "approved")
+                        .then(() => load(password))
+                        .catch((err: Error) => setError(err.message))
+                    }
+                  >
+                    Aprovar produção
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void api
+                        .setPrintValidation(password, current.print_order_id as string, "rejected")
+                        .then(() => load(password))
+                        .catch((err: Error) => setError(err.message))
+                    }
+                  >
+                    Recusar produção
+                  </button>
+                </div>
+              )}
+              {current.print_order_id &&
+                ["files_ready", "sent_for_validation", "approved", "rejected"].includes(
+                  current.print_status ?? "",
+                ) && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      void api.downloadPrintPackage(password, current.print_order_id as string).then((blob) => {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement("a");
+                        link.href = url;
+                        link.download = `${current.print_code ?? "impresso"}.zip`;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                      })
+                    }
+                  >
+                    Baixar pacote
+                  </button>
+                )}
             </article>
           )}
         </div>

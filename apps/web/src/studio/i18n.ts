@@ -37,6 +37,10 @@ export type StudioCopy = {
   themeHint: string;
   photoField: string;
   photoFieldHint: string;
+  photoDrop: string;
+  photoDropHint: string;
+  photoRemove: string;
+  photoSelected: (n: number) => string;
   dedication: string;
   dedicationPh: string;
   bookSize: string;
@@ -310,7 +314,11 @@ const pt: StudioCopy = {
   themeHint:
     "Quer incluir mais alguém na história (papai, mamãe, irmãos, o pet da família)? Descreva aqui e envie, no campo de foto abaixo, uma imagem que mostre essas pessoas ou animais.",
   photoField: "Foto do protagonista",
-  photoFieldHint: "Insira a foto desejada, baseada na história que deseja contar.",
+  photoFieldHint: "Envie mais de uma foto.",
+  photoDrop: "Arraste, cole ou clique para escolher",
+  photoDropHint: "Envie mais de uma foto: de frente, sorrindo e de corpo inteiro. Pode arrastar do computador ou colar com Ctrl+V.",
+  photoRemove: "Remover",
+  photoSelected: (n) => (n === 1 ? "1 foto selecionada. Pode enviar mais." : `${n} fotos selecionadas.`),
   dedication: "Dedicatória (2ª página do livro)",
   dedicationPh: "Ex.: Para a Lila, com todo o amor da mamãe.",
   bookSize: "Tamanho do livro",
@@ -342,7 +350,7 @@ const pt: StudioCopy = {
   metaBookTitle: "Título",
   howTitle: "Como funciona",
   how: [
-    "Preencha os dados e envie uma foto de frente (um rosto, luz boa).",
+    "Preencha os dados e envie mais de uma foto: de frente, sorrindo e de corpo inteiro.",
     "Aprove o personagem ilustrado.",
     "Gere a história com IA a partir do seu tema.",
     "Aprove capa e páginas, depois baixe ou peça o impresso.",
@@ -446,7 +454,8 @@ const pt: StudioCopy = {
   approveBook: "Aprovar livro",
   regeneratePages: "Regenerar páginas",
   printTitle: "Livro impresso",
-  printRequested: "Pedido registrado — em até 24h enviamos a cotação e o prazo.",
+  printRequested:
+    "Pedido registrado. O impresso é cobrado pelo tamanho e pelo frete. O parcelamento no cartão abre quando o pagamento estiver ligado.",
   requestPrint: "Pedir livro impresso",
   illustrating: (done, total) => `Ilustrando ${done}/${total}`,
   attempt: "tent.",
@@ -499,7 +508,11 @@ const en: StudioCopy = {
   themeHint:
     "Want to include someone else in the story (dad, mom, siblings, the family pet)? Describe it here and upload a photo below that shows them.",
   photoField: "Hero photo",
-  photoFieldHint: "Upload the photo you want, based on the story you want to tell.",
+  photoFieldHint: "Send more than one photo.",
+  photoDrop: "Drag, paste, or click to choose",
+  photoDropHint: "Send more than one photo: facing forward, smiling, and full body. Drag them from your computer or paste with Ctrl+V.",
+  photoRemove: "Remove",
+  photoSelected: (n) => (n === 1 ? "1 photo selected. You can add more." : `${n} photos selected.`),
   dedication: "Dedication (book page 2)",
   dedicationPh: "e.g. For Lila, with all of Mom's love.",
   bookSize: "Book size",
@@ -531,7 +544,7 @@ const en: StudioCopy = {
   metaBookTitle: "Title",
   howTitle: "How it works",
   how: [
-    "Fill in the details and upload a front-facing photo (one face, good light).",
+    "Fill in the details and send more than one photo: facing forward, smiling, and full body.",
     "Approve the illustrated character.",
     "Generate the story with AI from your theme.",
     "Approve cover and pages, then download or request print.",
@@ -635,7 +648,8 @@ const en: StudioCopy = {
   approveBook: "Approve book",
   regeneratePages: "Regenerate pages",
   printTitle: "Printed book",
-  printRequested: "Request logged — within 24h we send the quote and timeline.",
+  printRequested:
+    "Request logged. The printed book is charged by size and shipping. Card installments open when payment is connected.",
   requestPrint: "Request printed book",
   illustrating: (done, total) => `Illustrating ${done}/${total}`,
   attempt: "att.",
@@ -688,7 +702,11 @@ const es: StudioCopy = {
   themeHint:
     "¿Quieres incluir a alguien más en la historia (papá, mamá, hermanos, la mascota)? Descríbelo aquí y sube abajo una foto que los muestre.",
   photoField: "Foto del protagonista",
-  photoFieldHint: "Sube la foto que quieras, según la historia que deseas contar.",
+  photoFieldHint: "Envía más de una foto.",
+  photoDrop: "Arrastra, pega o haz clic para elegir",
+  photoDropHint: "Envía más de una foto: de frente, sonriendo y de cuerpo entero. Puedes arrastrarlas o pegarlas con Ctrl+V.",
+  photoRemove: "Quitar",
+  photoSelected: (n) => (n === 1 ? "1 foto seleccionada. Puedes enviar más." : `${n} fotos seleccionadas.`),
   dedication: "Dedicatoria (2.ª página del libro)",
   dedicationPh: "Ej.: Para Lila, con todo el amor de mamá.",
   bookSize: "Tamaño del libro",
@@ -720,7 +738,7 @@ const es: StudioCopy = {
   metaBookTitle: "Título",
   howTitle: "Cómo funciona",
   how: [
-    "Completa los datos y envía una foto de frente (un rostro, buena luz).",
+    "Completa los datos y envía más de una foto: de frente, sonriendo y de cuerpo entero.",
     "Aprueba el personaje ilustrado.",
     "Genera la historia con IA a partir de tu tema.",
     "Aprueba portada y páginas, luego descarga o pide el impreso.",
@@ -824,7 +842,8 @@ const es: StudioCopy = {
   approveBook: "Aprobar libro",
   regeneratePages: "Regenerar páginas",
   printTitle: "Libro impreso",
-  printRequested: "Pedido registrado — en hasta 24h enviamos la cotización y el plazo.",
+  printRequested:
+    "Pedido registrado. El impreso se cobra por tamaño y envío. El pago en cuotas abre cuando el pago esté conectado.",
   requestPrint: "Pedir libro impreso",
   illustrating: (done, total) => `Ilustrando ${done}/${total}`,
   attempt: "int.",

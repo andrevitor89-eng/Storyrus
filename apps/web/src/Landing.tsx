@@ -36,6 +36,8 @@ const IcInstagram = ({ className }: IconProps) => (
     <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
   </Svg>
 );
+const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
+const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 
 const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
@@ -119,7 +121,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
   },
 ];
-/** Trocas da /cartoon: mesma vitrine da principal, com capa, página e foto em desenho quando existem. */
+/** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
 const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
   Nano: { cover: "cartoon-capa-nano.jpg", page: "cartoon-pagina-nano.jpg" },
   "Amor de Bisavó": { cover: "cartoon-capa-bisavo.jpg", page: "cartoon-pagina-bisavo.jpg", photo: "cartoon-foto-bisavo.jpg" },
@@ -149,7 +151,13 @@ const CARTOON_REVIEW: Record<string, string> = {
 };
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
+const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
+const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
+  { img: "dica-boa.png", ok: true, focus: "center center" },
+  { img: "dica-multi.png", ok: false, focus: "68% 38%" },
+  { img: "dica-lado.png", ok: false, focus: "78% 32%" },
+];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -1556,23 +1564,28 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
-  const hiwSteps = t.hiw_main;
-  const howImgs = HOW_SCENE_IMGS;
+  const classicHow = variant === "cartoon";
+  const hiwSteps = classicHow
+    ? t.hiw.map((h, i) => (i === 0 ? { ...h, t: t.cartoon_hiw_title, p: t.cartoon_hiw_photo } : h))
+    : t.hiw_main;
+  const howImgs = classicHow ? HOW_IMGS : HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const heroStrip = HERO_STRIP.map((book) => {
-    if (variant !== "cartoon") return book;
+  const heroStrip = HERO_STRIP.flatMap((book) => {
+    if (variant !== "cartoon") return [book];
     const shot = CARTOON_HERO[book.name];
-    if (!shot) return book;
-    return {
+    if (!shot) return [];
+    return [{
       ...book,
       cover: shot.cover ? heroAsset(shot.cover) : book.cover,
       page: shot.page ? heroAsset(shot.page) : book.page,
       photo: shot.photo ? heroAsset(shot.photo) : book.photo,
-    };
+    }];
   });
   const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
-        .filter(({ i }) => (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i))
+        .filter(({ i }) => (variant === "cartoon"
+          ? Boolean(CARTOON_COVER[i])
+          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i)))
         .sort((a, b) => {
           const rank = (i: number) => {
             const lead = CATALOG_LEAD.indexOf(i);
@@ -1590,9 +1603,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           heroi: HERO_BY_CATALOG[i],
           catalogI: i,
         }));
-  const reviewPhotos = REVIEW_PHOTOS.map((photo) =>
-    variant === "cartoon" && CARTOON_REVIEW[photo.name] ? { ...photo, tab: CARTOON_REVIEW[photo.name] } : photo,
-  );
+  const reviewPhotos = REVIEW_PHOTOS.flatMap((photo) => {
+    if (variant !== "cartoon") return [photo];
+    const tab = CARTOON_REVIEW[photo.name];
+    return tab ? [{ ...photo, tab }] : [];
+  });
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
   const heroPage = heroPick % 3;
   const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
@@ -1618,21 +1633,24 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     subs: cat.subs.map((label, j) => {
       const base = NAV_CAT_META[i].subs[j].href;
       const theme = themeFromHref(base);
-      const only = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
+      const rawOnly = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
+      const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
       return { label, href: bookTheme ? bookStudioHref(bookTheme, only) : base };
     }),
-    feats: cat.feats.map((label, j) => {
+    feats: cat.feats.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
+      if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
       const theme = themeFromHref(meta.href) ?? "adventure";
-      return {
+      return [{
         label,
         href: bookStudioHref(theme, meta.catalogI),
         img: catalogCoverFile(meta.catalogI, lang, variant),
-      };
+      }];
     }),
   }));
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
+    if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
@@ -1929,12 +1947,37 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
           <p className="ksub">{t.hiw_sub}</p>
+          {classicHow ? (
+          <div className="shot-tips shot-tips-classic">
+              <h3>{t.shot_title}</h3>
+              <p className="shot-sub">{t.cartoon_shot_sub}</p>
+              <div className="shot-grid">
+                {SHOTS.map((s, i) => (
+                  <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
+                    <div className="shot-ava-wrap">
+                      <div className="shot-ava">
+                        {s.img ? (
+                          <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
+                        ) : (
+                          <ShotArt kind={s.art ?? "good"} />
+                        )}
+                      </div>
+                      <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+                    </div>
+                    {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
+                  </div>
+                ))}
+              </div>
+          </div>
+          ) : null}
           <div className="howex">
             {hiwSteps.map((h, i) => {
-              const tip = t.shots[i];
+              const tip = classicHow ? null : t.shots[i];
               return (
               <Fragment key={h.t}>
-                <figure className={`howex-card howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}>
+                <figure className={`howex-card${classicHow
+                  ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
+                  : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
                   {tip ? (
                     <div className="howex-lead">
                       <h3>{tip.t}</h3>

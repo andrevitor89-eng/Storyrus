@@ -206,6 +206,11 @@ export const handlers = [
           cover_type: "hard",
           style: "realistic",
           photo_urls: ["https://fotos.test/crianca.jpg"],
+          print_order_id: "print-1",
+          print_code: "SR-TESTE001",
+          print_status: "files_ready",
+          tracking_code: "AA123BR",
+          payment_status: "paid",
         },
       ],
     });

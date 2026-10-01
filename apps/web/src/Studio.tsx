@@ -33,6 +33,27 @@ import "./studio.css";
 
 export { ProgressList } from "./studio/ProgressList";
 
+const PHOTO_LIMIT = 8;
+
+function photoKey(file: File): string {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
+function previewUrl(file: File): string {
+  if (typeof URL.createObjectURL !== "function") return "";
+  return URL.createObjectURL(file);
+}
+
+function releasePreview(url: string) {
+  if (url && typeof URL.revokeObjectURL === "function") URL.revokeObjectURL(url);
+}
+
+function imageFiles(list: Iterable<File>): File[] {
+  return [...list].filter(
+    (file) => file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|heic|heif)$/i.test(file.name),
+  );
+}
+
 function oneLine(value: string): string {
   return value.replace(/\s+/g, " ").trim();
 }
@@ -89,7 +110,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [upgradeBusy, setUpgradeBusy] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<{ key: string; file: File; url: string }[]>([]);
+  const [dragOver, setDragOver] = useState(false);
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
@@ -345,7 +367,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setError(t.errMissingFields);
       return;
     }
-    if (!photo) {
+    if (photos.length === 0) {
       setError(t.errPhotoRequired);
       return;
     }
@@ -373,7 +395,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setJobs([]);
       setAssets(null);
       setMediaConsent(true);
-      await api.uploadPhoto(p.id, photo, {
+      const uploadMeta = {
         language,
         themeLabel,
         extraNames: extraNames.trim(),
@@ -388,7 +410,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         clientPhone: buyerPhone,
         clientAddress: buyerAddress,
         clientNotes: buyerNotes || undefined,
-      });
+      };
+      for (let i = 0; i < photos.length; i += 1) {
+        await api.uploadPhoto(p.id, photos[i].file, {
+          ...uploadMeta,
+          finalize: i === photos.length - 1,
+        });
+      }
       setPhotoUploaded(true);
       setOrderSent(true);
     } catch (e) {
@@ -414,6 +442,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setProject(null);
     setAssets(null);
     setPhotoUploaded(false);
+    setPhotos((cur) => {
+      cur.forEach((item) => releasePreview(item.url));
+      return [];
+    });
     setOrderSent(false);
     setExtraNames("");
     setMediaConsent(false);
@@ -443,6 +475,43 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   const fieldsLocked = !!project;
+
+  const addPhotos = useCallback((list: Iterable<File>) => {
+    const incoming = imageFiles(list);
+    if (!incoming.length) return;
+    setPhotos((cur) => {
+      const next = [...cur];
+      for (const file of incoming) {
+        if (next.length >= PHOTO_LIMIT) break;
+        const key = photoKey(file);
+        if (next.some((item) => item.key === key)) continue;
+        next.push({ key, file, url: previewUrl(file) });
+      }
+      return next;
+    });
+  }, []);
+
+  function removePhoto(key: string) {
+    setPhotos((cur) => {
+      const found = cur.find((item) => item.key === key);
+      if (found) releasePreview(found.url);
+      return cur.filter((item) => item.key !== key);
+    });
+  }
+
+  useEffect(() => {
+    function onPaste(event: ClipboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      const files = imageFiles(event.clipboardData?.files ?? []);
+      if (!files.length) return;
+      event.preventDefault();
+      addPhotos(files);
+    }
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [addPhotos]);
   const primary = subjectCopy(lang, castWho, gender);
   const companionCopy = alsoWho ? subjectCopy(lang, alsoWho, alsoGender) : null;
   const maxAge = ageLimit(castWho);
@@ -895,17 +964,51 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               </label>
               <p className="muted field-hint">{primary.extras}</p>
               <p className="studio-field">{companionCopy ? `${primary.photo} · ${companionCopy.photo}` : primary.photo}</p>
-              <p className="muted field-hint">{t.photoFieldHint}</p>
-              <div className="studio-upload-row" role="group" aria-label={t.ariaPhotoGroup}>
+              <div
+                className={dragOver ? "studio-drop is-over" : "studio-drop"}
+                data-testid="studio-photo-drop"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!isDemo) setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  if (!isDemo) addPhotos(e.dataTransfer.files);
+                }}
+              >
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   disabled={isDemo}
                   data-testid="studio-photo-input"
                   aria-label={t.ariaSelectPhoto}
-                  onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                  onChange={(e) => {
+                    addPhotos(e.target.files ?? []);
+                    e.target.value = "";
+                  }}
                 />
+                <span className="studio-drop-title">{t.photoDrop}</span>
+                <span className="studio-drop-hint">{t.photoDropHint}</span>
               </div>
+              {photos.length > 0 ? (
+                <>
+                  <p className="muted field-hint">{t.photoSelected(photos.length)}</p>
+                  <ul className="studio-photo-list">
+                    {photos.map((item) => (
+                      <li key={item.key}>
+                        <img src={item.url} alt="" />
+                        <span>{item.file.name}</span>
+                        <button type="button" onClick={() => removePhoto(item.key)}>
+                          {t.photoRemove}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
               <label className="studio-consent">
                 <input
                   type="checkbox"
@@ -1022,6 +1125,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   locked={locked}
                   canMountEbook={canMountEbook}
                   printRequested={printRequested}
+                  projectId={project.id}
                   onApprove={approveBook}
                   onRegenerate={() => runStep("ebook")}
                   onRequestPrint={requestPrint}

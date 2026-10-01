@@ -143,6 +143,7 @@ async def upload_photo(
     client_phone: str = Form(""),
     client_address: str = Form(""),
     client_notes: str = Form(""),
+    finalize: str = Form("1"),
 ) -> UploadUrlOut:
     """Upload da foto via API: o servidor grava direto no storage (sem PUT do navegador).
 
@@ -171,24 +172,25 @@ async def upload_photo(
     asset = Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key=key)
     db.add(asset)
     db.flush()
-    _register_order(
-        db,
-        project,
-        language=language,
-        theme_label=theme_label,
-        extra_names=extra_names[:800],
-        gender=gender,
-        subject=subject,
-        also_name=also_name,
-        also_gender=also_gender,
-        also_subject=also_subject,
-        quantity=quantity,
-        client_name=buyer["name"],
-        client_email=buyer["email"],
-        client_phone=buyer["phone"],
-        client_address=buyer["address"],
-        client_notes=buyer["notes"],
-    )
+    if finalize.strip().lower() not in {"0", "false", "no"}:
+        _register_order(
+            db,
+            project,
+            language=language,
+            theme_label=theme_label,
+            extra_names=extra_names[:800],
+            gender=gender,
+            subject=subject,
+            also_name=also_name,
+            also_gender=also_gender,
+            also_subject=also_subject,
+            quantity=quantity,
+            client_name=buyer["name"],
+            client_email=buyer["email"],
+            client_phone=buyer["phone"],
+            client_address=buyer["address"],
+            client_notes=buyer["notes"],
+        )
     db.commit()
     db.refresh(asset)
     return UploadUrlOut(asset_id=asset.id, storage_key=key, upload_url="", expires_in=0)

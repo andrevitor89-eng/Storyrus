@@ -244,6 +244,36 @@ def test_photo_without_registration_does_not_open_an_order(auth_client, monkeypa
     assert owner.json()["orders"] == []
 
 
+def test_several_photos_count_together_on_one_order(auth_client, monkeypatch):
+    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
+    monkeypatch.setattr("app.storage.presign_get", lambda key: f"https://fotos.test/{key}")
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    pid = _create(auth_client)
+    first = _photo(auth_client, pid, finalize="0")
+    assert first.status_code == 201, first.text
+    waiting = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert waiting.json()["orders"] == []
+    second = auth_client.post(
+        f"/v1/projects/{pid}/photo",
+        files={"file": ("lado.jpg", b"\xff\xd8\xff\xd9", "image/jpeg")},
+        data={
+            "language": "pt-BR",
+            "theme_label": "Papai herói",
+            "client_name": "Ana Souza",
+            "client_email": "ana@email.com",
+            "client_phone": "11999999999",
+            "client_address": "Rua A, 10",
+        },
+    )
+    assert second.status_code == 201, second.text
+    owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    orders = owner.json()["orders"]
+    assert len(orders) == 1
+    assert "Fotos anexadas: 2 (arquivos recebidos)" in orders[0]["summary"]
+    assert len(orders[0]["photo_urls"]) == 2
+
+
 def test_empty_photo_does_not_open_an_order(auth_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
