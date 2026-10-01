@@ -201,6 +201,9 @@ export const handlers = [
             "Fotos anexadas: 1 (arquivo recebido)",
           ].join("\n"),
           created_at: new Date().toISOString(),
+          child_age: 6,
+          book_size: "M",
+          cover_type: "hard",
         },
       ],
     });

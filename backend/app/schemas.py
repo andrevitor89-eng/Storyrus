@@ -238,6 +238,9 @@ class OrderTicketOut(BaseModel):
     project_id: uuid.UUID
     summary: str
     created_at: datetime
+    child_age: int | None = None
+    book_size: str | None = None
+    cover_type: str | None = None
 
 
 class UsageOut(BaseModel):

@@ -147,6 +147,9 @@ export interface OrderTicket {
   project_id: string;
   summary: string;
   created_at: string;
+  child_age?: number | null;
+  book_size?: string | null;
+  cover_type?: string | null;
 }
 
 export interface UsageAnomaly {

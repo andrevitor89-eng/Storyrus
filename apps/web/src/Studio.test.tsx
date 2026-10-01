@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
 import { api } from "./api";
@@ -112,9 +112,11 @@ describe("Studio — tema do banner", () => {
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /criar livro/i }));
 
-    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/pedido enviado/i);
-    expect(screen.queryByText(/NOVO LIVRO STORY R US/)).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByTestId("studio-generate-story")).toBeEnabled());
+    const sent = await screen.findByTestId("studio-order-sent");
+    expect(sent).toHaveTextContent(/pedido enviado/i);
+    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/nome da criança/i)).not.toBeInTheDocument();
     expect(upload).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(File),
@@ -165,10 +167,10 @@ describe("Studio a11y", () => {
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /criar livro/i }));
 
-    expect(await screen.findByTestId("studio-project")).toBeInTheDocument();
-    expect(screen.getByTestId("studio-order-sent")).toHaveTextContent(/pedido enviado/i);
-    expect(screen.queryByText(/NOVO LIVRO STORY R US/)).not.toBeInTheDocument();
-    await waitFor(() => expect(screen.getByTestId("studio-generate-story")).toBeEnabled());
+    const sent = await screen.findByTestId("studio-order-sent");
+    expect(sent).toHaveTextContent(/pedido enviado/i);
+    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
   });
 });
 
@@ -186,13 +188,10 @@ describe("Polling do estúdio", () => {
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(await screen.findByRole("button", { name: /criar livro/i }));
-    await user.click(screen.getByRole("button", { name: /gerar história com ia/i }));
-    expect(await screen.findByText("STORY")).toBeInTheDocument();
-
-    await waitFor(
-      () => expect(screen.getByText(/pagina 1: ola/i)).toBeInTheDocument(),
-      { timeout: 9000 },
-    );
+    const sent = await screen.findByTestId("studio-order-sent");
+    expect(sent).toHaveTextContent(/pedido enviado/i);
+    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
 
     const pollTimers = spy.mock.calls.filter((c) => c[1] === 2500);
     expect(pollTimers.length).toBeLessThanOrEqual(2);

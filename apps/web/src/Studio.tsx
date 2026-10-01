@@ -325,10 +325,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       });
       setPhotoUploaded(true);
       setOrderSent(true);
-      await api.startStep(p.id, "avatar", {});
-      const js = await api.listJobs(p.id);
-      setJobs(js);
-      refreshCredits();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -417,6 +413,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       {colorTheme === "dark" ? t.themeToLight : t.themeToDark}
                     </span>
                   </button>
+                  <a className="kutil" href="/pedidos">
+                    Pedidos
+                  </a>
                   <span className="studio-credits-pill" data-testid="studio-credits" aria-live="polite">
                     {t.credits}: {credits ?? "…"}
                   </span>
@@ -445,6 +444,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       </header>
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
+        {orderSent ? (
+          <section className="studio-card studio-order" role="status" data-testid="studio-order-sent">
+            <h2>{t.orderSent}</h2>
+            <p>{t.orderFollowup}</p>
+          </section>
+        ) : (
+          <>
         {showUpgrade && isGuest && (
           <form
             id="studio-upgrade-form"
@@ -712,12 +718,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 {t.photoSent}
               </p>
             )}
-            {orderSent && (
-              <p className="muted" role="status" data-testid="studio-order-sent">
-                {t.orderSent}
-              </p>
-            )}
-
             <div className="studio-actions">
               <button
                 type="button"
@@ -867,6 +867,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {isDemo ? t.createMyStory : t.newProject}
             </button>
           </section>
+        )}
+          </>
         )}
       </main>
     </div>

@@ -280,6 +280,9 @@ def get_usage(
             project_id=ticket.project_id,
             summary=ticket.summary,
             created_at=_aware(ticket.created_at),
+            child_age=ticket.project.child_age if ticket.project else None,
+            book_size=ticket.project.book_size if ticket.project else None,
+            cover_type=ticket.project.cover_type if ticket.project else None,
         )
         for ticket in order_rows
     ]

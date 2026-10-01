@@ -131,7 +131,56 @@
   color: var(--navy);
 }
 .usage-order small { display: block; margin-top: 0.45rem; }
+.usage-orders {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.usage-order-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.usage-order-list button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 0.75rem 0.85rem;
+  cursor: pointer;
+  display: grid;
+  gap: 0.2rem;
+}
+.usage-order-list button.is-on { border-color: var(--navy); }
+.usage-order-list strong { color: var(--navy); font-size: 0.92rem; }
+.usage-order-list span { color: var(--muted); font-size: 0.78rem; }
+.usage-order-detail {
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  background: var(--panel);
+  padding: 1.1rem 1.2rem;
+}
+.usage-order-detail h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  color: var(--navy);
+}
+.usage-order-detail dl { margin: 0; display: grid; gap: 0.65rem; }
+.usage-order-detail div { display: grid; gap: 0.1rem; }
+.usage-order-detail dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.usage-order-detail dd { margin: 0; color: var(--navy); font-size: 1rem; }
 @media (max-width: 720px) {
   .usage-cards { grid-template-columns: 1fr; }
   .usage-head { flex-wrap: wrap; }
+  .usage-orders { grid-template-columns: 1fr; }
 }

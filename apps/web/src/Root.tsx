@@ -10,6 +10,9 @@ const App = lazy(() => import("./App").then((m) => ({ default: m.App })));
 const Usage = lazy(() =>
   import("./Usage").then((m) => ({ default: m.Usage })),
 );
+const Pedidos = lazy(() =>
+  import("./Pedidos").then((m) => ({ default: m.Pedidos })),
+);
 
 /**
  * Roteamento do site:
@@ -31,6 +34,7 @@ export function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
+        <Route path="/pedidos" element={<Pedidos />} />
         <Route path="/landing" element={<Landing />} />
         <Route path="/privacidade" element={<Legal kind="privacy" />} />
         <Route path="/privacy" element={<Legal kind="privacy" />} />

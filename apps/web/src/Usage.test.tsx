@@ -4,6 +4,31 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AppRoutes } from "./Root";
 import { Usage } from "./Usage";
+import { Pedidos } from "./Pedidos";
+
+describe("Pedidos", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  it("abre o pedido detalhado depois da senha", async () => {
+    const user = userEvent.setup();
+    render(<Pedidos />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+
+    expect(await screen.findByRole("heading", { name: /novo livro story r us realista/i })).toBeInTheDocument();
+    const detail = screen.getByTestId("order-detail");
+    expect(detail).toHaveTextContent("Matteo");
+    expect(detail).toHaveTextContent("Português");
+    expect(detail).toHaveTextContent("Matteo e o vale dos dinossauros");
+    expect(detail).toHaveTextContent("Fotos anexadas");
+    expect(detail).toHaveTextContent("Idade");
+    expect(detail).toHaveTextContent("6");
+    expect(detail).toHaveTextContent("M — 20 × 20 cm");
+    expect(detail).toHaveTextContent("Capa dura");
+  });
+});
 
 describe("Painel /gastos", () => {
   beforeEach(() => {

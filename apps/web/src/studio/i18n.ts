@@ -61,6 +61,7 @@ export type StudioCopy = {
   consent: string;
   photoSent: string;
   orderSent: string;
+  orderFollowup: string;
   otherCharacters: string;
   otherCharactersPh: string;
   otherCharactersHint: string;
@@ -317,6 +318,7 @@ const pt: StudioCopy = {
     "Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.",
   photoSent: "Foto enviada ✓",
   orderSent: "Pedido enviado.",
+  orderFollowup: "Nossa equipe entrará em contato.",
   otherCharacters: "Outros personagens (opcional)",
   otherCharactersPh: "Ex.: mamãe, irmão, Totó",
   otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
@@ -485,6 +487,7 @@ const en: StudioCopy = {
     "I am the legal guardian and authorize use of this photo (and voice, if cloned) only to create this book. We do not use it for marketing.",
   photoSent: "Photo uploaded ✓",
   orderSent: "Request sent.",
+  orderFollowup: "Our team will be in touch.",
   otherCharacters: "Other characters (optional)",
   otherCharactersPh: "e.g. mom, brother, Toto",
   otherCharactersHint: "Separate names with commas. The child is already the main character.",
@@ -653,6 +656,7 @@ const es: StudioCopy = {
     "Soy el responsable legal y autorizo el uso de esta foto (y de la voz, si se clona) solo para crear este libro. No la usamos para difusión.",
   photoSent: "Foto enviada ✓",
   orderSent: "Pedido enviado.",
+  orderFollowup: "Nuestro equipo se pondrá en contacto.",
   otherCharacters: "Otros personajes (opcional)",
   otherCharactersPh: "Ej.: mamá, hermano, Totó",
   otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",
