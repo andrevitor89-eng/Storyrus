@@ -37,6 +37,12 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
       value: order.cover_type === "soft" ? "Capa mole" : "Capa dura",
     });
   }
+  if (order.style) {
+    rows.push({
+      label: "Estilo",
+      value: order.style === "cartoon" ? "Cartoon" : "Realista",
+    });
+  }
   return rows;
 }
 

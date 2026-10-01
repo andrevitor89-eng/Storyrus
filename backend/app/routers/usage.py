@@ -305,6 +305,7 @@ def get_usage(
             child_age=ticket.project.child_age if ticket.project else None,
             book_size=ticket.project.book_size if ticket.project else None,
             cover_type=ticket.project.cover_type if ticket.project else None,
+            style=ticket.project.style if ticket.project else None,
             photo_urls=photos_by_project.get(ticket.project_id, []),
         )
         for ticket in order_rows

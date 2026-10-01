@@ -45,6 +45,9 @@ export type StudioCopy = {
   coverType: string;
   coverSoft: string;
   coverHard: string;
+  artStyle: string;
+  artRealistic: string;
+  artCartoon: string;
   chosenBook: string;
   createProject: string;
   errMissingFields: string;
@@ -296,6 +299,9 @@ const pt: StudioCopy = {
   coverType: "Tipo de capa",
   coverSoft: "Capa mole",
   coverHard: "Capa dura",
+  artStyle: "Estilo do livro",
+  artRealistic: "Realista",
+  artCartoon: "Cartoon",
   chosenBook: "Livro escolhido",
   createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
@@ -465,6 +471,9 @@ const en: StudioCopy = {
   coverType: "Cover type",
   coverSoft: "Softcover",
   coverHard: "Hardcover",
+  artStyle: "Book style",
+  artRealistic: "Realistic",
+  artCartoon: "Cartoon",
   chosenBook: "Chosen book",
   createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
@@ -634,6 +643,9 @@ const es: StudioCopy = {
   coverType: "Tipo de tapa",
   coverSoft: "Tapa blanda",
   coverHard: "Tapa dura",
+  artStyle: "Estilo del libro",
+  artRealistic: "Realista",
+  artCartoon: "Cartoon",
   chosenBook: "Libro elegido",
   createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",

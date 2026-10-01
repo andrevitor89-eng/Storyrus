@@ -87,6 +87,7 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
     expect(screen.getByRole("button", { name: /15 × 15 cm/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /capa mole/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
   });

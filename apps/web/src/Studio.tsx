@@ -612,6 +612,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
 
+          <div className="studio-field" role="group" aria-label={t.artStyle}>
+            {t.artStyle}
+            <div className="studio-actions">
+              {(["realista", "cartoon"] as const).map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className={artMode === choice ? "kbtn kbtn-primary" : "kbtn kbtn-soft"}
+                  aria-pressed={artMode === choice}
+                  disabled={fieldsLocked}
+                  onClick={() => setArtMode(choice)}
+                >
+                  {choice === "cartoon" ? t.artCartoon : t.artRealistic}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="studio-field" role="group" aria-label={t.coverType}>
             {t.coverType}
             <div className="studio-actions">

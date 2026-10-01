@@ -204,6 +204,7 @@ export const handlers = [
           child_age: 6,
           book_size: "M",
           cover_type: "hard",
+          style: "realistic",
           photo_urls: ["https://fotos.test/crianca.jpg"],
         },
       ],

@@ -241,6 +241,7 @@ class OrderTicketOut(BaseModel):
     child_age: int | None = None
     book_size: str | None = None
     cover_type: str | None = None
+    style: str | None = None
     photo_urls: list[str] = []
 
 
