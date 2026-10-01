@@ -3,7 +3,6 @@ import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
-import { CAST_BY_CATALOG } from "./studioSubject";
 
 type Lang = "pt" | "en" | "es";
 
@@ -405,15 +404,6 @@ const HERO_BY_CATALOG: Record<number, string> = {
   19: "Noé",
   21: "Davi",
 };
-function appendCast(q: URLSearchParams, catalogI?: number) {
-  if (catalogI === undefined) return;
-  const cast = CAST_BY_CATALOG[catalogI] ?? { quem: "crianca", genero: "f" as const };
-  q.set("quem", cast.quem);
-  q.set("genero", cast.genero);
-  if (cast.quem2) q.set("quem2", cast.quem2);
-  if (cast.genero2) q.set("genero2", cast.genero2);
-  if (cast.heroi2) q.set("heroi2", cast.heroi2);
-}
 function personalizeHref(opts: {
   theme: string;
   title: string;
@@ -433,7 +423,6 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
-  appendCast(q, opts.catalogI);
   return `/app?${q.toString()}`;
 }
 function studioHref(opts: {
@@ -455,7 +444,6 @@ function studioHref(opts: {
   q.set("tamanho", opts.size ?? "M");
   q.set("capa", opts.cover ?? "hard");
   q.set("modo", opts.modo ?? "realista");
-  appendCast(q, opts.catalogI);
   return `/app?${q.toString()}`;
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
