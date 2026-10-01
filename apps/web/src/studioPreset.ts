@@ -59,6 +59,11 @@ const PRESETS: Record<string, Record<StudioLang, Preset>> = {
     en: { title: "A great-grandparent story", theme: "Grandparents: hugs, warmth and stories that cross generations." },
     es: { title: "Una historia de bisabuela", theme: "Abuelos: abrazos, cariño e historias que cruzan generaciones." },
   },
+  pets: {
+    pt: { title: "Uma história com o pet", theme: "Pets: o carinho do animal de estimação, cuidado e companhia numa história só da criança." },
+    en: { title: "A story with a pet", theme: "Pets: a pet's affection, care and company in a story just for the child." },
+    es: { title: "Una historia con la mascota", theme: "Mascotas: el cariño de la mascota, cuidado y compañía en una historia solo del niño." },
+  },
   family_love: {
     pt: { title: "Uma história da nossa família", theme: "Família: o carinho de quem ama a criança, reunido numa história só deles." },
     en: { title: "A story of our family", theme: "Family: the love around the child, gathered in a story of their own." },
@@ -143,6 +148,11 @@ const PRESETS: Record<string, Record<StudioLang, Preset>> = {
     pt: { title: "Conhecendo o meu corpo", theme: "Corpo: perceber o corpo, mover-se e cuidar de si com curiosidade." },
     en: { title: "Getting to know my body", theme: "Body: noticing the body, moving and taking care with curiosity." },
     es: { title: "Conociendo mi cuerpo", theme: "Cuerpo: notar el cuerpo, moverse y cuidarse con curiosidad." },
+  },
+  biblico: {
+    pt: { title: "Uma história bíblica", theme: "Bíblico: fé, coragem e cuidado, com a criança no centro da própria história." },
+    en: { title: "A biblical story", theme: "Biblical: faith, courage and care, with the child at the center of the story." },
+    es: { title: "Una historia bíblica", theme: "Bíblico: fe, coraje y cuidado, con el niño en el centro de la historia." },
   },
 };
 

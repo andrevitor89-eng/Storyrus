@@ -97,8 +97,9 @@
 .studio-app label.studio-field textarea {
   display: block;
   width: 100%;
-  margin-top: 0.35rem;
-  padding: 0.7rem 0.85rem;
+  margin-top: 0.45rem;
+  padding: 0.95rem 1rem;
+  font-size: 1.05rem;
   border: 1.5px solid var(--studio-input-border);
   border-radius: 14px;
   background: var(--studio-input-bg);
@@ -143,13 +144,15 @@
 }
 
 .studio-app .studio-upload-row input[type="file"] {
-  flex: 1 1 200px;
+  flex: 1 1 100%;
   min-width: 0;
-  padding: 0.55rem;
-  border-radius: 12px;
+  min-height: 64px;
+  padding: 1rem;
+  border-radius: 16px;
   border: 1.5px dashed var(--studio-input-border);
   background: var(--studio-input-bg);
   color: var(--studio-muted);
+  font-size: 1rem;
 }
 
 .studio-app .studio-consent {
@@ -163,8 +166,10 @@
 }
 
 .studio-app .studio-consent input {
-  margin-top: 0.2rem;
-  width: auto;
+  margin-top: 0.15rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
 }
 
 .studio-app .studio-meta {
@@ -183,6 +188,154 @@
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
+}
+
+.studio-app .studio-choices {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 900px) {
+  .studio-app .studio-choices {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.studio-app .studio-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: 18px;
+  border: 1px solid var(--studio-surface-border);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.studio-app .studio-choice-label {
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-label);
+}
+
+.studio-app .studio-choice .studio-actions {
+  margin-top: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.studio-app .studio-pick {
+  min-height: 64px;
+  width: 100%;
+  padding: 12px 10px;
+  border-radius: 16px;
+  border: 1.5px solid var(--studio-input-border);
+  background: var(--studio-input-bg);
+  color: var(--ink);
+  font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.15;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.studio-app .studio-pick.is-on {
+  border-color: transparent;
+  color: #fff;
+  background: linear-gradient(135deg, var(--coral), var(--yellow));
+  box-shadow: 0 8px 18px rgba(244, 140, 90, 0.28);
+}
+
+.studio-app .studio-pick:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.studio-app .studio-chosen {
+  margin: 1.25rem 0 0;
+  padding: 1rem 1.1rem;
+  border-radius: 16px;
+  background: rgba(127, 178, 227, 0.12);
+  border: 1px solid rgba(127, 178, 227, 0.28);
+}
+
+.studio-app .studio-chosen span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--studio-muted);
+}
+
+.studio-app .studio-chosen b {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.studio-app .studio-create {
+  width: 100%;
+  justify-content: center;
+  min-height: 68px;
+  margin-top: 0.25rem;
+  padding: 18px 28px;
+  font-size: 1.35rem;
+}
+
+.studio-app .studio-card.studio-order {
+  text-align: center;
+  padding: 3.5rem 1.75rem;
+}
+
+.studio-app .studio-card.studio-order h2 {
+  font-size: 2rem;
+  margin-bottom: 0.6rem;
+}
+
+.studio-app .studio-card.studio-order p {
+  margin: 0 auto;
+  max-width: 28rem;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--studio-muted);
+}
+
+.studio-app .how ol {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: studio-step;
+}
+
+.studio-app .how li {
+  counter-increment: studio-step;
+  display: grid;
+  grid-template-columns: 1.7rem minmax(0, 1fr);
+  gap: 0.55rem;
+  align-items: start;
+  color: var(--studio-muted);
+  line-height: 1.4;
+}
+
+.studio-app .how li::before {
+  content: counter(studio-step);
+  width: 1.7rem;
+  height: 1.7rem;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  background: rgba(127, 178, 227, 0.18);
+  color: var(--ink);
+  font-weight: 800;
+  font-size: 0.85rem;
 }
 
 .studio-app .studio-credits-pill {
@@ -288,6 +441,18 @@
 [data-theme="light"] .studio-app .studio-card {
   background: var(--studio-surface);
   box-shadow: 0 18px 48px rgba(31, 53, 104, 0.1);
+}
+
+[data-theme="light"] .studio-app .studio-choice {
+  background: #fffaf3;
+}
+
+[data-theme="light"] .studio-app .studio-pick {
+  background: #fff;
+}
+
+[data-theme="light"] .studio-app .studio-chosen {
+  background: #f3f8ff;
 }
 
 [data-theme="light"] .studio-app label.studio-field input,

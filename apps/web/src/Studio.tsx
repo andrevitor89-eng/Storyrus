@@ -567,8 +567,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           </div>
 
           {onlyName ? (
-            <p className="studio-meta" role="status">
-              {t.chosenBook}: <b>{bookTitle || themeText}</b>
+            <p className="studio-chosen" role="status">
+              <span>{t.chosenBook}</span>
+              <b>{bookTitle || themeText}</b>
             </p>
           ) : (
             <>
@@ -612,57 +613,59 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           )}
 
-          <div className="studio-field" role="group" aria-label={t.artStyle}>
-            {t.artStyle}
-            <div className="studio-actions">
-              {(["realista", "cartoon"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={artMode === choice ? "kbtn kbtn-primary" : "kbtn kbtn-soft"}
-                  aria-pressed={artMode === choice}
-                  disabled={fieldsLocked}
-                  onClick={() => setArtMode(choice)}
-                >
-                  {choice === "cartoon" ? t.artCartoon : t.artRealistic}
-                </button>
-              ))}
+          <div className="studio-choices">
+            <div className="studio-choice" role="group" aria-label={t.artStyle}>
+              <span className="studio-choice-label">{t.artStyle}</span>
+              <div className="studio-actions">
+                {(["realista", "cartoon"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={artMode === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={artMode === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setArtMode(choice)}
+                  >
+                    {choice === "cartoon" ? t.artCartoon : t.artRealistic}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="studio-field" role="group" aria-label={t.coverType}>
-            {t.coverType}
-            <div className="studio-actions">
-              {(["hard", "soft"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={coverType === choice ? "kbtn kbtn-primary" : "kbtn kbtn-soft"}
-                  aria-pressed={coverType === choice}
-                  disabled={fieldsLocked}
-                  onClick={() => setCoverType(choice)}
-                >
-                  {choice === "hard" ? t.coverHard : t.coverSoft}
-                </button>
-              ))}
+            <div className="studio-choice" role="group" aria-label={t.coverType}>
+              <span className="studio-choice-label">{t.coverType}</span>
+              <div className="studio-actions">
+                {(["hard", "soft"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={coverType === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={coverType === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setCoverType(choice)}
+                  >
+                    {choice === "hard" ? t.coverHard : t.coverSoft}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
 
-          <div className="studio-field" role="group" aria-label={t.bookSize}>
-            {t.bookSize}
-            <div className="studio-actions">
-              {(["M", "P"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={bookSize === choice ? "kbtn kbtn-primary" : "kbtn kbtn-soft"}
-                  aria-pressed={bookSize === choice}
-                  disabled={fieldsLocked}
-                  onClick={() => setBookSize(choice)}
-                >
-                  {choice === "M" ? t.bookSizeM : t.bookSizeP}
-                </button>
-              ))}
+            <div className="studio-choice" role="group" aria-label={t.bookSize}>
+              <span className="studio-choice-label">{t.bookSize}</span>
+              <div className="studio-actions">
+                {(["M", "P"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={bookSize === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={bookSize === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setBookSize(choice)}
+                  >
+                    {choice === "M" ? t.bookSizeM : t.bookSizeP}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -705,7 +708,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <div className="studio-actions">
                 <button
                   type="button"
-                  className="kbtn kbtn-go"
+                  className="kbtn kbtn-go studio-create"
                   disabled={locked}
                   onClick={start}
                   data-testid="studio-create-project"

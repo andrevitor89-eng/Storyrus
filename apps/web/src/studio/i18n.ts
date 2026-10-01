@@ -189,6 +189,7 @@ const THEMES_PT: Record<Theme, string> = {
   animais_sons: "Animais e Sons",
   transporte_ajudantes: "Transporte",
   clima_estacoes: "Clima e Estações",
+  biblico: "Bíblico",
 };
 
 const THEMES_EN: Record<Theme, string> = {
@@ -220,6 +221,7 @@ const THEMES_EN: Record<Theme, string> = {
   animais_sons: "Animals and sounds",
   transporte_ajudantes: "Transport",
   clima_estacoes: "Weather and seasons",
+  biblico: "Biblical",
 };
 
 const THEMES_ES: Record<Theme, string> = {
@@ -251,6 +253,7 @@ const THEMES_ES: Record<Theme, string> = {
   animais_sons: "Animales y sonidos",
   transporte_ajudantes: "Transporte",
   clima_estacoes: "Clima y estaciones",
+  biblico: "Bíblico",
 };
 
 const pt: StudioCopy = {

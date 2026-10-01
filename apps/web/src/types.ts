@@ -32,7 +32,8 @@ export type Theme =
   // Temas educativos (Descoberta & Exploração do Mundo)
   | "animais_sons"
   | "transporte_ajudantes"
-  | "clima_estacoes";
+  | "clima_estacoes"
+  | "biblico";
 
 // História pronta do catálogo (template traduzido, personalizado com o nome).
 export interface StoryTemplate {

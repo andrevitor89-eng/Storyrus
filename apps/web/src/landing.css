@@ -273,7 +273,7 @@ a.kcat-btn:active {
 .kcat-panel-all { grid-template-columns: 1fr; }
 .kcat-groups {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px 12px;
 }
 .kcat-group {
@@ -385,6 +385,7 @@ a.kcat-btn:active {
   margin-top: 8px;
   padding: 14px 0 16px;
   box-sizing: border-box;
+  container-type: inline-size;
 }
 .hero-carousel-track {
   display: flex;
@@ -403,6 +404,7 @@ a.kcat-btn:active {
   margin: 0 12px 0 0;
   display: flex;
 }
+.hero-slide.is-lead { margin-left: max(12px, calc(50cqw - 362px)); }
 .hero-shot {
   height: 100%;
   width: auto;

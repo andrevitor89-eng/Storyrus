@@ -49,6 +49,12 @@ const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
 /** Hero strip: capa, página aberta, criança lendo. */
 const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
   {
+    name: "Meu Pai, Meu Herói",
+    cover: heroAsset("capa-meupai-heroi.png"),
+    page: heroAsset("pagina-meupai-heroi.png"),
+    photo: heroAsset("foto-meupai-heroi.png"),
+  },
+  {
     name: "Nano",
     cover: heroAsset("capa-nanoaventuras.jpg", "capa-nanoaventuras-en.jpg", "capa-nanoaventuras-es.jpg"),
     page: heroAsset("pagina-nanoaventuras.jpg", "pagina-nanoaventuras-en.jpg", "pagina-nanoaventuras-es.jpg"),
@@ -89,12 +95,6 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     cover: heroAsset("capa-davi-pastor.png"),
     page: heroAsset("pagina-davi-pastor.png"),
     photo: heroAsset("foto-davi-pastor.png"),
-  },
-  {
-    name: "Meu Pai, Meu Herói",
-    cover: heroAsset("capa-meupai-heroi.png"),
-    page: heroAsset("pagina-meupai-heroi.png"),
-    photo: heroAsset("foto-meupai-heroi.png"),
   },
   {
     name: "Enzo, Meu Primo Predileto",
@@ -239,7 +239,7 @@ const CATALOG_THEMES = [
   "underwater",
   "dinosaurs",
   "family_love",
-  "adventure",
+  "biblico",
   "fathers_day",
   "family_love",
   "pets",
@@ -332,6 +332,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=grandparents_love" },
       { href: "/app?tema=family_love" },
       { href: "/app" },
+      { href: "/app?tema=pets" },
     ],
     feats: [
       { href: "/app?tema=mothers_day", catalogI: 6 },
@@ -384,6 +385,15 @@ const NAV_CAT_META = [
     ],
     feats: [],
   },
+  {
+    color: "#c9a227",
+    subs: [
+      { href: "/app?tema=biblico" },
+    ],
+    feats: [
+      { href: "/app?tema=biblico", catalogI: 21 },
+    ],
+  },
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
@@ -398,10 +408,12 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   fathers_day: [15],
   grandparents_love: [9],
   family_love: [8],
+  pets: [12, 13, 24],
   christmas: [10],
   birthday: [14],
   alfabetizacao_inicial: [3],
   animais_sons: [4],
+  biblico: [21],
 };
 function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
@@ -420,12 +432,14 @@ const HERO_BY_CATALOG: Record<number, string> = {
   11: "Nano",
   12: "Maya",
   13: "Mako",
+  24: "Lucas",
   14: "Ester",
   15: "Raquel",
   16: "Rebeca",
   17: "Abigail",
   18: "Miriam",
   19: "Noé",
+  21: "Davi",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -644,7 +658,7 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
       },
       {
@@ -661,6 +675,11 @@ const I18N = {
         name: "Sentimentos",
         subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
         feats: [],
+      },
+      {
+        name: "Bíblico",
+        subs: ["Bíblico"],
+        feats: ["Davi, o Menino Pastor"],
       },
     ],
     cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -820,7 +839,7 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins", "Pets"],
         feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
       },
       {
@@ -837,6 +856,11 @@ const I18N = {
         name: "Feelings",
         subs: ["Feelings", "Bedtime", "Sharing", "Body"],
         feats: [],
+      },
+      {
+        name: "Biblical",
+        subs: ["Biblical"],
+        feats: ["David, the Shepherd Boy"],
       },
     ],
     cat_below: "Preserve moments. Gift your family an unforgettable story.",
@@ -996,7 +1020,7 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
@@ -1013,6 +1037,11 @@ const I18N = {
         name: "Sentimientos",
         subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
         feats: [],
+      },
+      {
+        name: "Bíblico",
+        subs: ["Bíblico"],
+        feats: ["David, el Niño Pastor"],
       },
     ],
     cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
@@ -1845,7 +1874,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               const seriesOn = Math.floor(heroPick / 3) === seriesIndex;
               return (
                 <div
-                  className={`hero-slide${seriesOn ? " on" : ""}`}
+                  className={`hero-slide${seriesOn ? " on" : ""}${seriesIndex === 0 ? " is-lead" : ""}`}
                   key={`${copy}-${book.name}-${seriesIndex}`}
                   aria-hidden={copy === 1 ? true : undefined}
                 >
