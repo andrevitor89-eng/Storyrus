@@ -153,7 +153,7 @@ const CARTOON_REVIEW: Record<string, string> = {
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
+const SHOTS: { img: string; ok: boolean; focus?: string }[] = [
   { img: "dica-boa.png", ok: true, focus: "center center" },
   { img: "dica-multi.png", ok: false, focus: "68% 38%" },
   { img: "dica-lado.png", ok: false, focus: "78% 32%" },
@@ -1956,11 +1956,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
                     <div className="shot-ava-wrap">
                       <div className="shot-ava">
-                        {s.img ? (
-                          <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                        ) : (
-                          <ShotArt kind={s.art ?? "good"} />
-                        )}
+                        <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
                       </div>
                       <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                     </div>
