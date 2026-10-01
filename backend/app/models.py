@@ -316,7 +316,8 @@ class PrintOrder(Base):
     # sent_for_validation | approved | rejected
     status: Mapped[str] = mapped_column(String(32), nullable=False, default="awaiting_spec")
     block_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
-    file_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    cover_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    interior_key: Mapped[str | None] = mapped_column(Text, nullable=True)
     recipient_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
     postal_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
     street: Mapped[str | None] = mapped_column(String(160), nullable=True)

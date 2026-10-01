@@ -190,8 +190,8 @@ describe("Landing — catálogo", () => {
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     expect(within(cards[0]).queryByText(/capa mole ou capa dura/i)).not.toBeInTheDocument();
     expect(within(cards[0]).getByText("Livro 16 páginas")).toBeInTheDocument();
-    expect(within(cards[0]).getByText("M - 20 × 20 cm: R$ 149,00.")).toBeInTheDocument();
-    expect(within(cards[0]).getByText("P - 15 × 15 cm: R$ 129,00.")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(cards[0]).getByText("HARD - Capa rígida")).toBeInTheDocument();
     expect(within(cards[0]).getByText(/mais pesada, resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getByText("SOFT - Capa flexível")).toBeInTheDocument();
@@ -206,8 +206,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
     expect(within(cards[1]).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
     expect(within(cards[2]).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
-    expect(within(cards[0]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 149,00");
-    expect(within(cards[4]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 149,00");
+    expect(within(cards[0]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
+    expect(within(cards[4]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
     expect(within(catalog).queryByText(/Martin, o Grande Goleiro/i)).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/Aniversário Especial de Ester/i)).not.toBeInTheDocument();
     expect(within(catalog).getByText("Amor de Tia")).toBeInTheDocument();
@@ -233,9 +233,9 @@ describe("Landing — catálogo", () => {
     await user.click(within(card).getByRole("button", { name: "Hard" }));
     expect(within(card).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: "Soft", pressed: false })).toBeInTheDocument();
-    expect(within(card).getByText("M - 20 × 20 cm: R$ 149,00.")).toBeInTheDocument();
-    expect(within(card).getByText("P - 15 × 15 cm: R$ 129,00.")).toBeInTheDocument();
-    expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 149,00");
+    expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
 
     await user.click(within(card).getByRole("button", { name: "Soft" }));
     expect(within(card).getByRole("button", { name: "Soft", pressed: true })).toBeInTheDocument();
@@ -245,8 +245,8 @@ describe("Landing — catálogo", () => {
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
     expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tamanho=P"));
     expect(within(card).getByRole("button", { name: "M", pressed: false })).toBeInTheDocument();
-    expect(within(card).getByText("M - 20 × 20 cm: R$ 149,00.")).toBeInTheDocument();
-    expect(within(card).getByText("P - 15 × 15 cm: R$ 129,00.")).toBeInTheDocument();
+    expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 129,00");
   });
 

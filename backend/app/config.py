@@ -107,22 +107,22 @@ class Settings(BaseSettings):
     price_kling_per_second_usd: float = 0.10
     price_openai_image_usd: float = 0.04
 
-    # Impresso. Sangria e lombada medidas nas bases da PrintStore.
-    # Preço de venda: P R$ 129, M R$ 149. A capa não altera o valor.
-    print_bleed_mm: float | None = 5.0
-    print_safety_mm: float | None = 5.0
-    print_spine_mm: float | None = 13.0
-    print_score_mm: float | None = 0.0
+    # Impresso. Milímetros, perfil e pacote ficam vazios até a gráfica e a Ana
+    # enviarem os números. Preço atual da vitrine: P R$ 157, M R$ 177.
+    print_bleed_mm: float | None = None
+    print_safety_mm: float | None = None
+    print_spine_mm: float | None = None
+    print_score_mm: float | None = None
     print_pdf_x: str | None = None
     print_color_profile: str | None = None
-    print_filename_pattern: str | None = "{code}.pdf"
+    print_filename_pattern: str | None = None
     print_package_weight_g: int | None = None
     print_package_height_cm: float | None = None
     print_package_width_cm: float | None = None
     print_package_length_cm: float | None = None
-    print_price_p_cents: int = 12900
-    print_price_m_cents: int = 14900
-    print_allow_p_hardcover: bool = True
+    print_price_p_cents: int = 15700
+    print_price_m_cents: int = 17700
+    print_allow_p_hardcover: bool = False
     print_gateway: str = ""
     melhor_envio_token: str = ""
     melhor_envio_sandbox: bool = True

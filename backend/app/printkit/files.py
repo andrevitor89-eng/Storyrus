@@ -1,80 +1,42 @@
-"""Um PDF de produção: capa e miolo de 16 páginas na mesma folha da PrintStore."""
+"""Dois PDFs de produção: capa (lâmina) e miolo. Sem medida chutada."""
 
 from __future__ import annotations
 
 import io
 
-from pypdf import PdfReader, PdfWriter
-from pypdf.generic import RectangleObject
 from reportlab.lib.utils import ImageReader
 from reportlab.pdfgen import canvas
 
-from app.printkit.spec import (
-    INTERIOR_PAGES,
-    PrintPagesMissing,
-    PrintSpec,
-    PrintSpecIncomplete,
-    Sheet,
-    sheet_for,
-    trim_mm,
-)
+from app.printkit.spec import PrintPagesMissing, PrintSpec, PrintSpecIncomplete, trim_mm
 
 
 def _pt(mm: float) -> float:
     return mm * 72.0 / 25.4
 
 
-def _boxes(page, sheet: Sheet, bleed_mm: float) -> None:
-    media = RectangleObject((0, 0, _pt(sheet.media_w_mm), _pt(sheet.media_h_mm)))
-    trim = RectangleObject(
-        (
-            _pt(sheet.trim_x_mm),
-            _pt(sheet.trim_y_mm),
-            _pt(sheet.trim_x_mm + sheet.trim_w_mm),
-            _pt(sheet.trim_y_mm + sheet.trim_h_mm),
-        )
-    )
-    bleed = RectangleObject(
-        (
-            _pt(sheet.trim_x_mm - bleed_mm),
-            _pt(sheet.trim_y_mm - bleed_mm),
-            _pt(sheet.trim_x_mm + sheet.trim_w_mm + bleed_mm),
-            _pt(sheet.trim_y_mm + sheet.trim_h_mm + bleed_mm),
-        )
-    )
-    page.mediabox = media
-    page.trimbox = trim
-    page.bleedbox = bleed
-    page.cropbox = media
-
-
-def _crop_marks(c: canvas.Canvas, sheet: Sheet) -> None:
-    gap = _pt(2)
-    length = _pt(4)
-    x0 = _pt(sheet.trim_x_mm)
-    y0 = _pt(sheet.trim_y_mm)
-    x1 = _pt(sheet.trim_x_mm + sheet.trim_w_mm)
-    y1 = _pt(sheet.trim_y_mm + sheet.trim_h_mm)
-    c.setStrokeColorRGB(0, 0, 0)
-    c.setLineWidth(0.3)
-    for x, y, sx, sy in (
-        (x0, y0, -1, -1),
-        (x1, y0, 1, -1),
-        (x0, y1, -1, 1),
-        (x1, y1, 1, 1),
-    ):
-        c.line(x + sx * gap, y, x + sx * (gap + length), y)
-        c.line(x, y + sy * gap, x, y + sy * (gap + length))
-
-
-def _slug(c: canvas.Canvas, text: str) -> None:
+def _draw_order_code(c: canvas.Canvas, code: str, bleed_pt: float) -> None:
+    """Mesmo canto, mesma folga, nos dois arquivos: dentro da sangria, fora do corte."""
+    pad = bleed_pt / 5.0
+    font = max(3.0, bleed_pt * 0.35)
+    c.setFont("Helvetica", font)
+    width = c.stringWidth(code, "Helvetica", font) + pad * 2
+    height = font + pad
+    c.setFillColorRGB(1, 1, 1)
+    c.rect(pad, pad, width, height, fill=1, stroke=0)
     c.setFillColorRGB(0, 0, 0)
-    c.setFont("Helvetica", 8)
-    c.drawString(_pt(8), _pt(8), text)
+    c.drawString(pad * 2, pad * 1.2, code)
+
+
+def _stamp(c: canvas.Canvas, code: str, spec: PrintSpec) -> None:
+    c.setTitle(code)
+    c.setAuthor("StoryUS")
+    c.setSubject(
+        f"safety_mm={spec.safety_mm}; pdf_x={spec.pdf_x}; color_profile={spec.color_profile}"
+    )
 
 
 def _paint(c: canvas.Canvas, image: bytes | None, x: float, y: float, w: float, h: float) -> None:
-    if not image or w <= 0 or h <= 0:
+    if not image:
         return
     c.drawImage(
         ImageReader(io.BytesIO(image)),
@@ -82,47 +44,13 @@ def _paint(c: canvas.Canvas, image: bytes | None, x: float, y: float, w: float, 
         y,
         w,
         h,
-        preserveAspectRatio=False,
+        preserveAspectRatio=True,
         anchor="c",
         mask="auto",
     )
 
 
-def _place_spread(
-    c: canvas.Canvas,
-    sheet: Sheet,
-    *,
-    page_mm: float,
-    bleed_mm: float,
-    left: bytes | None,
-    right: bytes | None,
-) -> None:
-    spine = sheet.trim_w_mm - page_mm * 2
-    extra_y = (sheet.trim_h_mm - page_mm) / 2
-    bleed = _pt(bleed_mm)
-    cell = _pt(page_mm)
-    y = _pt(sheet.trim_y_mm + extra_y) - bleed
-    height = cell + bleed * 2
-    left_x = _pt(sheet.trim_x_mm) - bleed
-    right_x = _pt(sheet.trim_x_mm + page_mm + max(spine, 0))
-    _paint(c, left, left_x, y, cell + bleed, height)
-    _paint(c, right, right_x, y, cell + bleed, height)
-    if spine <= 0:
-        center = _pt(sheet.trim_x_mm + sheet.trim_w_mm / 2)
-        c.setStrokeColorRGB(0, 0, 0)
-        c.setLineWidth(0.4)
-        c.line(center, 0, center, _pt(sheet.trim_y_mm))
-        c.line(center, _pt(sheet.trim_y_mm + sheet.trim_h_mm), center, _pt(sheet.media_h_mm))
-
-
-def _saddle(index: int, total: int) -> tuple[int, int]:
-    """Pares da base do miolo: folha 0 é total|1, folha 1 é 2|total-1."""
-    if index % 2 == 0:
-        return total - index, index + 1
-    return index + 1, total - index
-
-
-def build_print_pdf(
+def build_print_pdfs(
     *,
     order_code: str,
     book_size: str,
@@ -131,63 +59,47 @@ def build_print_pdf(
     interior_pages: list[bytes],
     front_cover: bytes | None = None,
     back_cover: bytes | None = None,
-) -> bytes:
+) -> tuple[bytes, bytes]:
     gaps = spec.missing(cover_type)
     if gaps:
         raise PrintSpecIncomplete(gaps)
-    if len(interior_pages) != INTERIOR_PAGES:
+    if not interior_pages:
         raise PrintPagesMissing()
 
-    page_mm = trim_mm(book_size)
+    trim = trim_mm(book_size)
     bleed = float(spec.bleed_mm or 0)
-    cover = sheet_for(book_size, cover_type)
-    interior = sheet_for(book_size, "soft")
+    hinge = float(spec.spine_mm if cover_type == "hard" else spec.score_mm or 0)
+    bleed_pt = _pt(bleed)
+    trim_pt = _pt(trim)
+    hinge_pt = _pt(hinge)
     front = front_cover if front_cover is not None else interior_pages[0]
     back = back_cover if back_cover is not None else interior_pages[-1]
 
-    buf = io.BytesIO()
-    c = canvas.Canvas(buf, pagesize=(_pt(cover.media_w_mm), _pt(cover.media_h_mm)))
-    c.setTitle(order_code)
-    c.setAuthor("StoryUS")
-    roles: list[Sheet] = []
+    cover_w = bleed_pt + trim_pt + hinge_pt + trim_pt + bleed_pt
+    cover_h = bleed_pt + trim_pt + bleed_pt
+    cover_buf = io.BytesIO()
+    cover = canvas.Canvas(cover_buf, pagesize=(cover_w, cover_h))
+    _stamp(cover, order_code, spec)
+    _paint(cover, back, bleed_pt, bleed_pt, trim_pt, trim_pt)
+    _paint(cover, front, bleed_pt + trim_pt + hinge_pt, bleed_pt, trim_pt, trim_pt)
+    if cover_type == "soft":
+        cover.setStrokeColorRGB(0, 0, 0)
+        cover.setLineWidth(0.4)
+        for x in (bleed_pt + trim_pt, bleed_pt + trim_pt + hinge_pt):
+            cover.line(x, 0, x, bleed_pt)
+            cover.line(x, cover_h - bleed_pt, x, cover_h)
+    _draw_order_code(cover, order_code, bleed_pt)
+    cover.save()
 
-    def open_page(sheet: Sheet) -> None:
-        if roles:
-            c.showPage()
-        roles.append(sheet)
-        c.setTitle(order_code)
-
-    open_page(cover)
-    _place_spread(c, cover, page_mm=page_mm, bleed_mm=bleed, left=back, right=front)
-    _crop_marks(c, cover)
-    _slug(c, f"{order_code} CAPA")
-
-    open_page(cover)
-    _crop_marks(c, cover)
-    _slug(c, f"{order_code} CAPA")
-
-    for index in range(INTERIOR_PAGES // 2):
-        left_no, right_no = _saddle(index, INTERIOR_PAGES)
-        open_page(interior)
-        _place_spread(
-            c,
-            interior,
-            page_mm=page_mm,
-            bleed_mm=bleed,
-            left=interior_pages[left_no - 1],
-            right=interior_pages[right_no - 1],
-        )
-        _crop_marks(c, interior)
-        _slug(c, f"{order_code} MIOLO {left_no}|{right_no}")
-
-    c.save()
-
-    reader = PdfReader(io.BytesIO(buf.getvalue()))
-    for page, sheet in zip(reader.pages, roles, strict=True):
-        _boxes(page, sheet, bleed)
-    writer = PdfWriter()
-    for page in reader.pages:
-        writer.add_page(page)
-    final = io.BytesIO()
-    writer.write(final)
-    return final.getvalue()
+    page = trim_pt + bleed_pt * 2
+    interior_buf = io.BytesIO()
+    interior = canvas.Canvas(interior_buf, pagesize=(page, page))
+    _stamp(interior, order_code, spec)
+    for index, image in enumerate(interior_pages):
+        if index:
+            interior.showPage()
+            _stamp(interior, order_code, spec)
+        _paint(interior, image, 0, 0, page, page)
+        _draw_order_code(interior, order_code, bleed_pt)
+    interior.save()
+    return cover_buf.getvalue(), interior_buf.getvalue()

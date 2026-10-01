@@ -256,8 +256,8 @@ const CATALOG_PRICE: Record<Lang, string> = {
   en: "On request",
   es: "Bajo consulta",
 };
-/** 15 × 15 cm (P) R$ 129 e 20 × 20 cm (M) R$ 149. A capa dura não altera o valor. */
-const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "129", M: "149" };
+/** 15 × 15 cm (P) R$ 157 e 20 × 20 cm (M) R$ 177. A capa não altera o valor. */
+const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "157", M: "177" };
 function catalogPrice(size: CatalogSizeChoice): string {
   return `R$ ${CATALOG_AMOUNT[size]},00`;
 }
@@ -1482,8 +1482,8 @@ function CatalogBookCard({
             {lang === "en" ? "Book. 16 pages." : lang === "es" ? "Libro. 16 páginas." : "Livro 16 páginas"}
           </p>
           <p className="cat-notes-sizes">
-            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 149.00." : "M - 20 × 20 cm: R$ 149,00."}</span>
-            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 129.00." : "P - 15 × 15 cm: R$ 129,00."}</span>
+            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 177.00." : "M - 20 × 20 cm: R$ 177,00."}</span>
+            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 157.00." : "P - 15 × 15 cm: R$ 157,00."}</span>
           </p>
           <div className="cat-note-grid">
             <div>
