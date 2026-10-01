@@ -11,6 +11,7 @@ from app import storage
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
+    book_art_direction,
 )
 from app.ai_clients.book_prompts import (
     costume_extras_for_theme,
@@ -25,6 +26,7 @@ from app.observability.opik_trace import job_metadata, update_trace
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.story_templates import illustration_notes, page_layouts
+from app.printkit.service import invalidate_print
 from app.workers import ebook as ebook_builder
 
 from .common import (
@@ -66,8 +68,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     if not project.character_ref:
         raise ProviderError("Personagem ausente: rode AVATAR antes", transient=False)
     project.book_approved_at = None
-    project.print_requested_at = None
-    project.print_status = None
+    invalidate_print(db, project)
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
     char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))
@@ -181,6 +182,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         sem = asyncio.Semaphore(max(1, settings.ebook_page_concurrency))
         style_lock = asyncio.Lock()
         good_style: list[bytes] = []
+        art_style = book_art_direction(project.style)
 
         async def _one(item: tuple[int, str, dict, str]) -> tuple[int, ImageResult]:
             idx, caption, brief, layout = item
@@ -200,6 +202,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
                     bible=bible,
                     style_lock=style_lock,
                     good_style=good_style,
+                    art_style=art_style,
                 )
             await _store_finished(idx, result)
             return idx, result
@@ -254,6 +257,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         extra_characters=extra_chars or None,
         preview_pages=3,
         cover_palette=ebook_builder.cover_palette_for(template_id, project.theme),
+        page_cm=20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
     )
     mime = "application/pdf"
     ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
@@ -263,7 +267,11 @@ async def handle_ebook(db: Session, job: Job) -> None:
             project_id=project.id,
             kind=AssetKind.EBOOK.value,
             storage_key=ebook_key,
-            meta={"mime": mime},
+            meta={
+                "mime": mime,
+                "book_size": project.book_size,
+                "cover_type": project.cover_type,
+            },
         )
     )
     project.ebook_url = ebook_key

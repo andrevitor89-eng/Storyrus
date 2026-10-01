@@ -4,6 +4,36 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AppRoutes } from "./Root";
 import { Usage } from "./Usage";
+import { Pedidos } from "./Pedidos";
+
+describe("Pedidos", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  it("abre o pedido detalhado depois da senha", async () => {
+    const user = userEvent.setup();
+    render(<Pedidos />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+
+    expect(await screen.findByRole("heading", { name: /novo livro story r us realista/i })).toBeInTheDocument();
+    const detail = screen.getByTestId("order-detail");
+    expect(detail).toHaveTextContent("Matteo");
+    expect(detail).toHaveTextContent("Português");
+    expect(detail).toHaveTextContent("Matteo e o vale dos dinossauros");
+    expect(detail).toHaveTextContent("Fotos anexadas");
+    expect(detail).toHaveTextContent("Idade");
+    expect(detail).toHaveTextContent("6");
+    expect(detail).toHaveTextContent("M — 20 × 20 cm");
+    expect(detail).toHaveTextContent("Capa dura");
+    expect(detail).toHaveTextContent("Realista");
+    expect(detail).toHaveTextContent("SR-TESTE001");
+    expect(detail).toHaveTextContent("AA123BR");
+    expect(detail.querySelector("img")).toHaveAttribute("src", "https://fotos.test/crianca.jpg");
+    expect(detail.querySelector("a")).toHaveAttribute("href", "https://fotos.test/crianca.jpg");
+  });
+});
 
 describe("Painel /gastos", () => {
   beforeEach(() => {
@@ -40,6 +70,10 @@ describe("Painel /gastos", () => {
     expect(screen.getAllByText(/matteo/i).length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText(/página 3 — geração/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /extrato/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^pedidos$/i })).toBeInTheDocument();
+    expect(screen.getByText(/NOVO LIVRO STORY R US REALISTA/)).toBeInTheDocument();
+    expect(screen.getByText(/Fotos anexadas: 1 \(arquivo recebido\)/)).toBeInTheDocument();
+    expect(screen.getByText(/Projeto p1/)).toBeInTheDocument();
   });
 
   it("mostra alerta de lockout quando a API devolve 429", async () => {

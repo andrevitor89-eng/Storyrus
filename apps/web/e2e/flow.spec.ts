@@ -135,6 +135,10 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await page.getByLabel("Idade").fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
+  await page.getByLabel("Nome do cliente").fill("Ana Souza");
+  await page.getByLabel("E-mail").fill("ana@email.com");
+  await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
+  await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
@@ -166,6 +170,10 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await page.getByLabel("Idade").fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
+  await page.getByLabel("Nome do cliente").fill("Ana Souza");
+  await page.getByLabel("E-mail").fill("ana@email.com");
+  await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
+  await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",

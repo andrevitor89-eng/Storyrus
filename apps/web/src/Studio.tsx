@@ -3,6 +3,15 @@ import { api } from "./api";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import { themePreset } from "./studioPreset";
+import {
+  ageLimit,
+  castFromQuery,
+  emptyCast,
+  subjectCode,
+  subjectCopy,
+  type StudioGender,
+  type StudioWho,
+} from "./studioSubject";
 import logo from "./assets/logo.png";
 import type { StudioAssets } from "./studio/assets";
 import { resolveThemeName } from "./studio/constants";
@@ -23,6 +32,35 @@ import "./landing.css";
 import "./studio.css";
 
 export { ProgressList } from "./studio/ProgressList";
+
+const PHOTO_LIMIT = 8;
+
+function photoKey(file: File): string {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
+
+function previewUrl(file: File): string {
+  if (typeof URL.createObjectURL !== "function") return "";
+  return URL.createObjectURL(file);
+}
+
+function releasePreview(url: string) {
+  if (url && typeof URL.revokeObjectURL === "function") URL.revokeObjectURL(url);
+}
+
+function imageFiles(list: Iterable<File>): File[] {
+  return [...list].filter(
+    (file) => file.type.startsWith("image/") || /\.(png|jpe?g|webp|gif|heic|heif)$/i.test(file.name),
+  );
+}
+
+function oneLine(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function validEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -66,19 +104,43 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const { lang, setLang, t, langs } = useStudioI18n();
   const [credits, setCredits] = useState<number | null>(null);
   const [isGuest, setIsGuest] = useState(true);
+  const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
+  const [accountEmail, setAccountEmail] = useState("");
+  const [clientDone, setClientDone] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeEmail, setUpgradeEmail] = useState("");
   const [upgradePassword, setUpgradePassword] = useState("");
   const [upgradeBusy, setUpgradeBusy] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [photo, setPhoto] = useState<File | null>(null);
+  const [photos, setPhotos] = useState<{ key: string; file: File; url: string }[]>([]);
+  const [dragOver, setDragOver] = useState(false);
   const [photoUploaded, setPhotoUploaded] = useState(false);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [bookTitle, setBookTitle] = useState("");
   const [themeText, setThemeText] = useState("");
+  const [temaId, setTemaId] = useState("");
+  const [onlyName, setOnlyName] = useState(false);
+  const [bookSize, setBookSize] = useState<"M" | "P">("M");
+  const [quantity, setQuantity] = useState("1");
+  const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
+  const [extraNames, setExtraNames] = useState("");
+  const [castWho, setCastWho] = useState<StudioWho>("child");
+  const [gender, setGender] = useState<StudioGender | null>(null);
+  const [alsoWho, setAlsoWho] = useState<StudioWho | null>(null);
+  const [alsoGender, setAlsoGender] = useState<StudioGender | null>(null);
+  const [alsoName, setAlsoName] = useState("");
+  const [askGender, setAskGender] = useState(true);
+  const alsoHero = useRef<string | null>(null);
+  const [orderSent, setOrderSent] = useState(false);
+  const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [clientNotes, setClientNotes] = useState("");
   const [assets, setAssets] = useState<StudioAssets | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
@@ -124,10 +186,27 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const heroi = q.get("heroi");
     if (!tema && !titulo && !historia) return;
     presetApplied.current = true;
-    const onlyTheme = q.get("campos") === "tema";
+    if (tema) setTemaId(tema);
+    if (q.get("tamanho") === "P" || q.get("tamanho") === "M") setBookSize(q.get("tamanho") as "M" | "P");
+    const capa = (q.get("capa") || "").toLowerCase();
+    if (capa === "soft" || capa === "hard") setCoverType(capa);
+    if (q.get("modo") === "cartoon") setArtMode("cartoon");
+    const onlyTheme = q.get("campos") === "tema" || q.get("campos") === "nome";
+    if (q.get("campos") === "nome") setOnlyName(true);
+    const cast = tema || titulo || historia ? castFromQuery(q) : emptyCast();
+    setCastWho(cast.who);
+    setGender(cast.gender);
+    setAlsoWho(cast.also?.who ?? null);
+    setAlsoGender(cast.also?.gender ?? null);
+    setAskGender(cast.askGender);
+    alsoHero.current = cast.also?.hero ?? null;
     const fallback = tema ? themePreset(tema, lang) : null;
     const themeBody = historia || fallback?.theme || "";
     if (themeBody) setThemeText(themeBody);
+    if (q.get("campos") === "nome" && titulo) {
+      setBookTitle(titulo);
+      if (heroi) titlePreset.current = { hero: heroi, title: titulo };
+    }
     if (onlyTheme) return;
     const title = titulo || fallback?.title || "";
     if (title) setBookTitle(title);
@@ -146,6 +225,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const me = await api.me();
       setIsGuest(me.is_guest);
+      setAccountKind(me.is_guest ? "guest" : "account");
+      setAccountEmail(me.email);
       setCredits(me.credits);
     } catch {
       /* ignore */
@@ -161,26 +242,40 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const name = childName.trim();
     const title = bookTitle.trim();
     const theme = themeText.trim();
+    const genderBit = gender === "f" ? "feminino" : gender === "m" ? "masculino" : "";
+    const companion = alsoName.trim();
+    const cm = bookSize === "P" ? "15×15 cm" : "20×20 cm";
+    const look =
+      artMode === "cartoon"
+        ? "Estilo cartoon premium, traços desenhados, formas arredondadas, sem anime nem chibi."
+        : "Estilo editorial suavemente realista: pele com luz suave, íris na fração da foto, cabelo fio a fio, sem cartoon.";
+    const format = `Livro quadrado ${cm}, corte reto, página em sangria total, estrofe curta na faixa calma. ${look}`;
     if (lang === "en") {
       return (
         `Invent an original children's story. The book title must be: "${title}". ` +
         `Theme and ideas from the guardian: ${theme}. ` +
-        (name ? `The hero's name is ${name}.` : "")
+        (name ? `The hero's name is ${name}${genderBit ? ` (${genderBit})` : ""}. ` : "") +
+        (companion ? `Also include ${companion}. ` : "") +
+        format
       );
     }
     if (lang === "es") {
       return (
         `Inventa una historia infantil original. El título del libro debe ser: "${title}". ` +
         `Tema e ideas del responsable: ${theme}. ` +
-        (name ? `El protagonista se llama ${name}.` : "")
+        (name ? `El protagonista se llama ${name}${genderBit ? ` (${genderBit})` : ""}. ` : "") +
+        (companion ? `También entra ${companion}. ` : "") +
+        format
       );
     }
     return (
       `Invente uma história infantil original. O título do livro deve ser: "${title}". ` +
       `Tema e ideias do responsável: ${theme}. ` +
-      (name ? `O protagonista se chama ${name}.` : "")
+      (name ? `O protagonista se chama ${name}${genderBit ? ` e é do gênero ${genderBit}` : ""}. ` : "") +
+      (companion ? `Também entra ${companion}. ` : "") +
+      format
     );
-  }, [bookTitle, childName, lang, themeText]);
+  }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText]);
 
   async function submitUpgrade(e: FormEvent) {
     e.preventDefault();
@@ -255,11 +350,30 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   async function start() {
     if (isDemo) return;
-    if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "") {
+    if (onlyName) {
+      if (!childName.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
+        setError(t.errMissingFields);
+        return;
+      }
+    } else if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
       setError(t.errMissingFields);
       return;
     }
-    if (!photo) {
+    if (askGender && (!gender || (alsoWho && !alsoGender))) {
+      setError(t.errGender);
+      return;
+    }
+    const signedIn = accountKind === "account";
+    const buyerName = signedIn ? oneLine(accountEmail) : oneLine(clientName);
+    const buyerEmail = signedIn ? oneLine(accountEmail) : oneLine(clientEmail);
+    const buyerPhone = signedIn ? "" : oneLine(clientPhone);
+    const buyerAddress = signedIn ? "" : oneLine(clientAddress);
+    const buyerNotes = signedIn ? "" : oneLine(clientNotes);
+    if (!signedIn && (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress)) {
+      setError(t.errClient);
+      return;
+    }
+    if (photos.length === 0) {
       setError(t.errPhotoRequired);
       return;
     }
@@ -271,22 +385,46 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setError(null);
     try {
       const age = Number(childAge);
+      const language = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
+      const themeLabel = (onlyName ? bookTitle || themeText : themeText || bookTitle).trim();
       const p = await api.createProject({
-        theme: themeText.trim(),
+        theme: temaId || themeText.trim(),
         childName,
         dedication,
         childAge: Number.isNaN(age) ? undefined : age,
+        style: artMode === "cartoon" ? "cartoon" : "realistic",
+        bookSize,
+        coverType,
+        language,
       });
       setProject(p);
       setJobs([]);
       setAssets(null);
       setMediaConsent(true);
-      await api.uploadPhoto(p.id, photo);
+      const uploadMeta = {
+        language,
+        themeLabel,
+        extraNames: extraNames.trim(),
+        gender: gender ?? undefined,
+        subject: subjectCode(castWho),
+        alsoName: alsoName.trim() || undefined,
+        alsoGender: alsoGender ?? undefined,
+        alsoSubject: alsoWho ? subjectCode(alsoWho) : undefined,
+        quantity: String(Math.max(1, Math.min(500, Math.floor(Number(quantity) || 1)))),
+        clientName: buyerName,
+        clientEmail: buyerEmail,
+        clientPhone: buyerPhone,
+        clientAddress: buyerAddress,
+        clientNotes: buyerNotes || undefined,
+      };
+      for (let i = 0; i < photos.length; i += 1) {
+        await api.uploadPhoto(p.id, photos[i].file, {
+          ...uploadMeta,
+          finalize: i === photos.length - 1,
+        });
+      }
       setPhotoUploaded(true);
-      await api.startStep(p.id, "avatar", {});
-      const js = await api.listJobs(p.id);
-      setJobs(js);
-      refreshCredits();
+      setOrderSent(true);
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -310,12 +448,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setProject(null);
     setAssets(null);
     setPhotoUploaded(false);
+    setPhotos((cur) => {
+      cur.forEach((item) => releasePreview(item.url));
+      return [];
+    });
+    setOrderSent(false);
+    setExtraNames("");
     setMediaConsent(false);
     setChildName("");
     setChildAge("");
     setBookTitle("");
     setThemeText("");
     setDedication("");
+    setClientName("");
+    setClientDone(false);
+    setClientEmail("");
+    setClientPhone("");
+    setClientAddress("");
+    setClientNotes("");
     setJobs([]);
   }
 
@@ -332,6 +482,95 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   const fieldsLocked = !!project;
+  const showBook = isDemo || clientDone || accountKind === "account";
+  const showClient = !isDemo && !clientDone && accountKind !== "account";
+
+  function finishClient() {
+    const buyerName = oneLine(clientName);
+    const buyerEmail = oneLine(clientEmail);
+    const buyerPhone = oneLine(clientPhone);
+    const buyerAddress = oneLine(clientAddress);
+    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
+      setError(t.errClient);
+      return;
+    }
+    setError(null);
+    setClientDone(true);
+  }
+
+  const addPhotos = useCallback((list: Iterable<File>) => {
+    const incoming = imageFiles(list);
+    if (!incoming.length) return;
+    setPhotos((cur) => {
+      const next = [...cur];
+      for (const file of incoming) {
+        if (next.length >= PHOTO_LIMIT) break;
+        const key = photoKey(file);
+        if (next.some((item) => item.key === key)) continue;
+        next.push({ key, file, url: previewUrl(file) });
+      }
+      return next;
+    });
+  }, []);
+
+  function removePhoto(key: string) {
+    setPhotos((cur) => {
+      const found = cur.find((item) => item.key === key);
+      if (found) releasePreview(found.url);
+      return cur.filter((item) => item.key !== key);
+    });
+  }
+
+  useEffect(() => {
+    function onPaste(event: ClipboardEvent) {
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || target?.isContentEditable) return;
+      const files = imageFiles(event.clipboardData?.files ?? []);
+      if (!files.length) return;
+      event.preventDefault();
+      addPhotos(files);
+    }
+    window.addEventListener("paste", onPaste);
+    return () => window.removeEventListener("paste", onPaste);
+  }, [addPhotos]);
+  const primary = subjectCopy(lang, castWho, gender);
+  const companionCopy = alsoWho ? subjectCopy(lang, alsoWho, alsoGender) : null;
+  const maxAge = ageLimit(castWho);
+
+  function syncTitle(name: string, companion: string) {
+    const preset = titlePreset.current;
+    if (!preset || titleTouched.current) return;
+    let next = preset.title;
+    const typed = name.trim();
+    if (preset.hero) next = typed ? next.split(preset.hero).join(typed) : next;
+    const hero2 = alsoHero.current;
+    const typed2 = companion.trim();
+    if (hero2) next = typed2 ? next.split(hero2).join(typed2) : next;
+    setBookTitle(next);
+  }
+
+  function genderButtons(value: StudioGender | null, onPick: (next: StudioGender) => void, label: string) {
+    return (
+      <div className="studio-choice studio-gender" role="group" aria-label={label}>
+        <span className="studio-choice-label">{label}</span>
+        <div className="studio-actions">
+          {(["f", "m"] as const).map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              className={value === choice ? "studio-pick is-on" : "studio-pick"}
+              aria-pressed={value === choice}
+              disabled={fieldsLocked}
+              onClick={() => onPick(choice)}
+            >
+              {choice === "f" ? t.genderF : t.genderM}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="kid studio-app">
@@ -373,6 +612,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       {colorTheme === "dark" ? t.themeToLight : t.themeToDark}
                     </span>
                   </button>
+                  <a className="kutil" href="/pedidos">
+                    Pedidos
+                  </a>
                   <span className="studio-credits-pill" data-testid="studio-credits" aria-live="polite">
                     {t.credits}: {credits ?? "…"}
                   </span>
@@ -401,6 +643,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       </header>
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
+        {orderSent ? (
+          <section className="studio-card studio-order" role="status" data-testid="studio-order-sent">
+            <h2>{t.orderSent}</h2>
+            <p>{t.orderFollowup}</p>
+          </section>
+        ) : (
+          <>
         {showUpgrade && isGuest && (
           <form
             id="studio-upgrade-form"
@@ -467,6 +716,80 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <p className="studio-slogan">{t.slogan}</p>
           )}
 
+          {showClient && (
+            <div className="studio-client" data-testid="studio-client">
+              <h3 className="field-label">{t.clientTitle}</h3>
+              <label className="studio-field">
+                {t.clientName}
+                <input
+                  disabled={isDemo}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder={t.clientNamePh}
+                  maxLength={120}
+                  autoComplete="name"
+                  data-testid="studio-client-name"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientEmail}
+                <input
+                  disabled={isDemo}
+                  type="email"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                  placeholder={t.clientEmailPh}
+                  maxLength={160}
+                  autoComplete="email"
+                  data-testid="studio-client-email"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientPhone}
+                <input
+                  disabled={isDemo}
+                  type="tel"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  placeholder={t.clientPhonePh}
+                  maxLength={40}
+                  autoComplete="tel"
+                  data-testid="studio-client-phone"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientAddress}
+                <textarea
+                  disabled={isDemo}
+                  value={clientAddress}
+                  onChange={(e) => setClientAddress(e.target.value)}
+                  placeholder={t.clientAddressPh}
+                  maxLength={300}
+                  rows={3}
+                  autoComplete="street-address"
+                  data-testid="studio-client-address"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientNotes}
+                <textarea
+                  disabled={isDemo}
+                  value={clientNotes}
+                  onChange={(e) => setClientNotes(e.target.value)}
+                  placeholder={t.clientNotesPh}
+                  maxLength={500}
+                  rows={2}
+                  data-testid="studio-client-notes"
+                />
+              </label>
+              <button type="button" className="kbtn kbtn-go studio-create" onClick={finishClient}>
+                {t.clientContinue}
+              </button>
+            </div>
+          )}
+
+          {showBook && (
+          <>
           <div className="how" role="region" aria-labelledby="studio-how-heading">
             <h3 className="field-label" id="studio-how-heading">
               {t.howTitle}
@@ -480,94 +803,242 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           <div className="studio-grid two">
             <label className="studio-field">
-              {t.childName}
+              {primary.name}
               <input
                 disabled={fieldsLocked}
                 value={childName}
                 onChange={(e) => {
                   const name = e.target.value;
                   setChildName(name);
-                  const preset = titlePreset.current;
-                  if (!preset || titleTouched.current) return;
-                  const next = name.trim();
-                  setBookTitle(next ? preset.title.split(preset.hero).join(next) : preset.title);
+                  syncTitle(name, alsoName);
                 }}
-                placeholder={t.childNamePh}
+                placeholder={primary.namePh}
                 maxLength={80}
               />
             </label>
             <label className="studio-field">
-              {t.childAge}
+              {primary.age}
               <input
                 disabled={fieldsLocked}
                 type="number"
                 inputMode="numeric"
                 min={0}
-                max={12}
+                max={maxAge}
                 value={childAge}
                 onChange={(e) => {
                   const v = e.target.value;
                   if (v === "") return setChildAge("");
-                  const n = Math.max(0, Math.min(12, Math.floor(Number(v))));
+                  const n = Math.max(0, Math.min(maxAge, Math.floor(Number(v))));
                   setChildAge(Number.isNaN(n) ? "" : String(n));
                 }}
                 placeholder={t.childAgePh}
               />
             </label>
           </div>
+          {askGender ? genderButtons(gender, setGender, t.gender) : null}
+          {companionCopy ? (
+            <>
+              <label className="studio-field studio-also">
+                {companionCopy.name}
+                <input
+                  disabled={fieldsLocked}
+                  value={alsoName}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setAlsoName(name);
+                    syncTitle(childName, name);
+                  }}
+                  placeholder={companionCopy.namePh}
+                  maxLength={80}
+                  data-testid="studio-also-name"
+                />
+              </label>
+              {askGender ? genderButtons(alsoGender, setAlsoGender, t.gender) : null}
+            </>
+          ) : null}
 
-          <label className="studio-field">
-            {t.bookTitle}
-            <input
-              disabled={fieldsLocked}
-              value={bookTitle}
-              onChange={(e) => {
-                titleTouched.current = true;
-                setBookTitle(e.target.value);
-              }}
-              placeholder={t.bookTitlePh}
-              maxLength={120}
-            />
-          </label>
+          {onlyName ? (
+            <p className="studio-chosen" role="status">
+              <span>{t.chosenBook}</span>
+              <b>{bookTitle || themeText}</b>
+            </p>
+          ) : (
+            <>
+              <label className="studio-field">
+                {t.bookTitle}
+                <input
+                  disabled={fieldsLocked}
+                  value={bookTitle}
+                  onChange={(e) => {
+                    titleTouched.current = true;
+                    setBookTitle(e.target.value);
+                  }}
+                  placeholder={t.bookTitlePh}
+                  maxLength={120}
+                />
+              </label>
 
-          <label className="studio-field">
-            {t.themeFree}
-            <textarea
-              disabled={fieldsLocked}
-              value={themeText}
-              onChange={(e) => setThemeText(e.target.value)}
-              placeholder={t.themeFreePh}
-              maxLength={500}
-              rows={3}
-            />
-          </label>
-          <p className="muted field-hint">{t.themeHint}</p>
+              <label className="studio-field">
+                {t.themeFree}
+                <textarea
+                  disabled={fieldsLocked}
+                  value={themeText}
+                  onChange={(e) => setThemeText(e.target.value)}
+                  placeholder={t.themeFreePh}
+                  maxLength={500}
+                  rows={3}
+                />
+              </label>
+              <p className="muted field-hint">{t.themeHint}</p>
 
-          <label className="studio-field">
-            {t.dedication}
-            <input
-              disabled={fieldsLocked}
-              value={dedication}
-              onChange={(e) => setDedication(e.target.value)}
-              placeholder={t.dedicationPh}
-              maxLength={200}
-            />
-          </label>
+              <label className="studio-field">
+                {t.dedication}
+                <input
+                  disabled={fieldsLocked}
+                  value={dedication}
+                  onChange={(e) => setDedication(e.target.value)}
+                  placeholder={t.dedicationPh}
+                  maxLength={200}
+                />
+              </label>
+            </>
+          )}
+
+          <div className="studio-choices">
+            <div className="studio-choice" role="group" aria-label={t.artStyle}>
+              <span className="studio-choice-label">{t.artStyle}</span>
+              <div className="studio-actions">
+                {(["realista", "cartoon"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={artMode === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={artMode === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setArtMode(choice)}
+                  >
+                    {choice === "cartoon" ? t.artCartoon : t.artRealistic}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="studio-choice" role="group" aria-label={t.coverType}>
+              <span className="studio-choice-label">{t.coverType}</span>
+              <div className="studio-actions">
+                {(["hard", "soft"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={coverType === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={coverType === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setCoverType(choice)}
+                  >
+                    {choice === "hard" ? t.coverHard : t.coverSoft}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="studio-choice" role="group" aria-label={t.bookSize}>
+              <span className="studio-choice-label">{t.bookSize}</span>
+              <div className="studio-actions">
+                {(["M", "P"] as const).map((choice) => (
+                  <button
+                    key={choice}
+                    type="button"
+                    className={bookSize === choice ? "studio-pick is-on" : "studio-pick"}
+                    aria-pressed={bookSize === choice}
+                    disabled={fieldsLocked}
+                    onClick={() => setBookSize(choice)}
+                  >
+                    {choice === "M" ? t.bookSizeM : t.bookSizeP}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
 
           {!fieldsLocked && (
             <>
-              <p className="studio-field">{t.photoField}</p>
-              <p className="muted field-hint">{t.photoFieldHint}</p>
-              <div className="studio-upload-row" role="group" aria-label={t.ariaPhotoGroup}>
+              <label className="studio-field studio-also">
+                {t.quantity}
+                <input
+                  disabled={isDemo}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={500}
+                  value={quantity}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "") return setQuantity("");
+                    const n = Math.max(1, Math.min(500, Math.floor(Number(v))));
+                    setQuantity(Number.isNaN(n) ? "1" : String(n));
+                  }}
+                  data-testid="studio-quantity"
+                />
+              </label>
+              <p className="muted field-hint">{t.quantityHint}</p>
+              <label className="studio-field">
+                {t.otherCharacters}
+                <input
+                  disabled={isDemo}
+                  value={extraNames}
+                  onChange={(e) => setExtraNames(e.target.value)}
+                  placeholder={t.otherCharactersPh}
+                  maxLength={300}
+                  data-testid="studio-extra-names"
+                />
+              </label>
+              <p className="muted field-hint">{primary.extras}</p>
+              <p className="studio-field">{companionCopy ? `${primary.photo} · ${companionCopy.photo}` : primary.photo}</p>
+              <div
+                className={dragOver ? "studio-drop is-over" : "studio-drop"}
+                data-testid="studio-photo-drop"
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  if (!isDemo) setDragOver(true);
+                }}
+                onDragLeave={() => setDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setDragOver(false);
+                  if (!isDemo) addPhotos(e.dataTransfer.files);
+                }}
+              >
                 <input
                   type="file"
                   accept="image/*"
+                  multiple
                   disabled={isDemo}
                   data-testid="studio-photo-input"
                   aria-label={t.ariaSelectPhoto}
-                  onChange={(e) => setPhoto(e.target.files?.[0] ?? null)}
+                  onChange={(e) => {
+                    addPhotos(e.target.files ?? []);
+                    e.target.value = "";
+                  }}
                 />
+                <span className="studio-drop-title">{t.photoDrop}</span>
+                <span className="studio-drop-hint">{t.photoDropHint}</span>
               </div>
+              {photos.length > 0 ? (
+                <>
+                  <p className="muted field-hint">{t.photoSelected(photos.length)}</p>
+                  <ul className="studio-photo-list">
+                    {photos.map((item) => (
+                      <li key={item.key}>
+                        <img src={item.url} alt="" />
+                        <span>{item.file.name}</span>
+                        <button type="button" onClick={() => removePhoto(item.key)}>
+                          {t.photoRemove}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              ) : null}
               <label className="studio-consent">
                 <input
                   type="checkbox"
@@ -581,7 +1052,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <div className="studio-actions">
                 <button
                   type="button"
-                  className="kbtn kbtn-go"
+                  className="kbtn kbtn-go studio-create"
                   disabled={locked}
                   onClick={start}
                   data-testid="studio-create-project"
@@ -590,6 +1061,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             </>
+          )}
+          </>
           )}
         </section>
 
@@ -612,7 +1085,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 {t.photoSent}
               </p>
             )}
-
             <div className="studio-actions">
               <button
                 type="button"
@@ -685,6 +1157,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   locked={locked}
                   canMountEbook={canMountEbook}
                   printRequested={printRequested}
+                  projectId={project.id}
                   onApprove={approveBook}
                   onRegenerate={() => runStep("ebook")}
                   onRequestPrint={requestPrint}
@@ -762,6 +1235,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {isDemo ? t.createMyStory : t.newProject}
             </button>
           </section>
+        )}
+          </>
         )}
       </main>
     </div>

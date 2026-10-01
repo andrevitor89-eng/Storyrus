@@ -116,7 +116,87 @@
 .usage-anomalies li[data-severity="critical"] strong { color: #9b1c1c; }
 .usage-anomalies li[data-severity="warn"] strong { color: #9a6700; }
 .usage-anomalies li[data-severity="info"] strong { color: var(--muted); }
+.usage-order {
+  margin: 0 0 0.85rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+}
+.usage-order pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 0.92rem;
+  line-height: 1.45;
+  color: var(--navy);
+}
+.usage-order small { display: block; margin-top: 0.45rem; }
+.usage-orders {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+.usage-order-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.45rem;
+}
+.usage-order-list button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  background: var(--panel);
+  padding: 0.75rem 0.85rem;
+  cursor: pointer;
+  display: grid;
+  gap: 0.2rem;
+}
+.usage-order-list button.is-on { border-color: var(--navy); }
+.usage-order-list strong { color: var(--navy); font-size: 0.92rem; }
+.usage-order-list span { color: var(--muted); font-size: 0.78rem; }
+.usage-order-detail {
+  border: 1px solid var(--line-soft);
+  border-radius: 16px;
+  background: var(--panel);
+  padding: 1.1rem 1.2rem;
+}
+.usage-order-detail h2 {
+  margin: 0 0 0.85rem;
+  font-size: 1.05rem;
+  color: var(--navy);
+}
+.usage-order-detail dl { margin: 0; display: grid; gap: 0.65rem; }
+.usage-order-detail div { display: grid; gap: 0.1rem; }
+.usage-order-detail dt {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.usage-order-detail dd { margin: 0; color: var(--navy); font-size: 1rem; }
+.usage-order-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+.usage-order-photos figure { margin: 0; }
+.usage-order-photos img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  background: var(--line-soft);
+}
+.usage-order-photos a { display: block; margin-top: 0.35rem; font-size: 0.85rem; }
 @media (max-width: 720px) {
   .usage-cards { grid-template-columns: 1fr; }
   .usage-head { flex-wrap: wrap; }
+  .usage-orders { grid-template-columns: 1fr; }
 }

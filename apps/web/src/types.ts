@@ -32,7 +32,8 @@ export type Theme =
   // Temas educativos (Descoberta & Exploração do Mundo)
   | "animais_sons"
   | "transporte_ajudantes"
-  | "clima_estacoes";
+  | "clima_estacoes"
+  | "biblico";
 
 // História pronta do catálogo (template traduzido, personalizado com o nome).
 export interface StoryTemplate {
@@ -142,6 +143,72 @@ export interface UsageEvent {
   created_at: string;
 }
 
+export interface OrderTicket {
+  id: string;
+  project_id: string;
+  summary: string;
+  created_at: string;
+  child_age?: number | null;
+  book_size?: string | null;
+  cover_type?: string | null;
+  style?: string | null;
+  photo_urls?: string[];
+  print_order_id?: string | null;
+  print_code?: string | null;
+  print_status?: string | null;
+  tracking_code?: string | null;
+  payment_status?: string | null;
+}
+
+export interface FreightOption {
+  service_id: number;
+  service_name: string;
+  price_cents: number;
+  delivery_days: number | null;
+}
+
+export interface PrintAddress {
+  recipient_name: string;
+  postal_code: string;
+  street: string;
+  number: string;
+  complement?: string;
+  district: string;
+  city: string;
+  state: string;
+}
+
+export interface PrintOrder {
+  id: string;
+  project_id: string;
+  code: string;
+  book_size: string | null;
+  cover_type: string | null;
+  quantity: number;
+  status: string;
+  block_reason: string | null;
+  book_price_cents: number | null;
+  freight_options: FreightOption[];
+  freight_service_id: number | null;
+  freight_service_name: string | null;
+  freight_price_cents: number | null;
+  freight_days: number | null;
+  payment_status: string;
+  amount_cents: number | null;
+  tracking_code: string | null;
+  label_error: string | null;
+  checkout_available: boolean;
+  checkout_url: string | null;
+  recipient_name: string | null;
+  postal_code: string | null;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  district: string | null;
+  city: string | null;
+  state: string | null;
+}
+
 export interface UsageAnomaly {
   kind: string;
   severity: string;
@@ -168,6 +235,7 @@ export interface UsageReport {
   today_credits?: number;
   reserved_usd?: number;
   anomalies?: UsageAnomaly[];
+  orders?: OrderTicket[];
 }
 
 export interface UploadUrl {

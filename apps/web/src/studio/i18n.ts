@@ -37,8 +37,37 @@ export type StudioCopy = {
   themeHint: string;
   photoField: string;
   photoFieldHint: string;
+  photoDrop: string;
+  photoDropHint: string;
+  photoRemove: string;
+  photoSelected: (n: number) => string;
   dedication: string;
   dedicationPh: string;
+  bookSize: string;
+  bookSizeM: string;
+  bookSizeP: string;
+  quantity: string;
+  quantityHint: string;
+  coverType: string;
+  coverSoft: string;
+  coverHard: string;
+  artStyle: string;
+  artRealistic: string;
+  artCartoon: string;
+  chosenBook: string;
+  clientTitle: string;
+  clientName: string;
+  clientNamePh: string;
+  clientEmail: string;
+  clientEmailPh: string;
+  clientPhone: string;
+  clientPhonePh: string;
+  clientAddress: string;
+  clientAddressPh: string;
+  clientNotes: string;
+  clientNotesPh: string;
+  clientContinue: string;
+  errClient: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
@@ -53,6 +82,15 @@ export type StudioCopy = {
   defaultVoiceName: string;
   consent: string;
   photoSent: string;
+  orderSent: string;
+  orderFollowup: string;
+  otherCharacters: string;
+  otherCharactersPh: string;
+  otherCharactersHint: string;
+  gender: string;
+  genderF: string;
+  genderM: string;
+  errGender: string;
   sendPhoto: string;
   photoHint: string;
   extraCharsTitle: string;
@@ -174,6 +212,7 @@ const THEMES_PT: Record<Theme, string> = {
   animais_sons: "Animais e Sons",
   transporte_ajudantes: "Transporte",
   clima_estacoes: "Clima e Estações",
+  biblico: "Bíblico",
 };
 
 const THEMES_EN: Record<Theme, string> = {
@@ -205,6 +244,7 @@ const THEMES_EN: Record<Theme, string> = {
   animais_sons: "Animals and sounds",
   transporte_ajudantes: "Transport",
   clima_estacoes: "Weather and seasons",
+  biblico: "Biblical",
 };
 
 const THEMES_ES: Record<Theme, string> = {
@@ -236,6 +276,7 @@ const THEMES_ES: Record<Theme, string> = {
   animais_sons: "Animales y sonidos",
   transporte_ajudantes: "Transporte",
   clima_estacoes: "Clima y estaciones",
+  biblico: "Bíblico",
 };
 
 const pt: StudioCopy = {
@@ -275,16 +316,45 @@ const pt: StudioCopy = {
   themeHint:
     "Quer incluir mais alguém na história (papai, mamãe, irmãos, o pet da família)? Descreva aqui e envie, no campo de foto abaixo, uma imagem que mostre essas pessoas ou animais.",
   photoField: "Foto do protagonista",
-  photoFieldHint: "Insira a foto desejada, baseada na história que deseja contar.",
+  photoFieldHint: "Envie mais de uma foto.",
+  photoDrop: "Arraste, cole ou clique para escolher",
+  photoDropHint: "Envie mais de uma foto: de frente, sorrindo e de corpo inteiro. Pode arrastar do computador ou colar com Ctrl+V.",
+  photoRemove: "Remover",
+  photoSelected: (n) => (n === 1 ? "1 foto selecionada. Pode enviar mais." : `${n} fotos selecionadas.`),
   dedication: "Dedicatória (2ª página do livro)",
   dedicationPh: "Ex.: Para a Lila, com todo o amor da mamãe.",
+  bookSize: "Tamanho do livro",
+  bookSizeM: "M — 20 × 20 cm",
+  bookSizeP: "P — 15 × 15 cm",
+  quantity: "Quantidade",
+  quantityHint: "Deixe 1 para um livro só. Para lembrancinha de aniversário, casamento ou festa, coloque quantos exemplares quer.",
+  coverType: "Tipo de capa",
+  coverSoft: "Capa flexível",
+  coverHard: "Capa dura",
+  artStyle: "Estilo do livro",
+  artRealistic: "Realista",
+  artCartoon: "Cartoon",
+  chosenBook: "Livro escolhido",
+  clientTitle: "Cadastro do cliente",
+  clientName: "Nome do cliente",
+  clientNamePh: "Ex.: Ana Souza",
+  clientEmail: "E-mail",
+  clientEmailPh: "Ex.: ana@email.com",
+  clientPhone: "Telefone / WhatsApp",
+  clientPhonePh: "Ex.: 11 99999-9999",
+  clientAddress: "Endereço para entrega",
+  clientAddressPh: "Rua, número, bairro e cidade",
+  clientNotes: "Observação (opcional)",
+  clientNotesPh: "Ex.: entregar à tarde",
+  clientContinue: "Continuar para o livro",
+  errClient: "Preencha nome, e-mail, telefone e endereço.",
   createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
   metaBookTitle: "Título",
   howTitle: "Como funciona",
   how: [
-    "Preencha os dados e envie uma foto de frente (um rosto, luz boa).",
+    "Preencha os dados e envie mais de uma foto: de frente, sorrindo e de corpo inteiro.",
     "Aprove o personagem ilustrado.",
     "Gere a história com IA a partir do seu tema.",
     "Aprove capa e páginas, depois baixe ou peça o impresso.",
@@ -298,6 +368,15 @@ const pt: StudioCopy = {
   consent:
     "Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.",
   photoSent: "Foto enviada ✓",
+  orderSent: "Pedido enviado.",
+  orderFollowup: "Nossa equipe entrará em contato.",
+  otherCharacters: "Outros personagens (opcional)",
+  otherCharactersPh: "Ex.: mamãe, irmão, Totó",
+  otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
+  gender: "Gênero",
+  genderF: "Feminino",
+  genderM: "Masculino",
+  errGender: "Escolha se é feminino ou masculino.",
   sendPhoto: "Enviar foto",
   photoHint:
     "Melhor resultado: foto nítida, bem iluminada, um rosto de frente, testa e cabelo visíveis. Evite close de cima, de lado ou rosto tapado. A arte é fotográfica, com a criança igual à foto — o mesmo personagem nas páginas e no vídeo.",
@@ -379,7 +458,8 @@ const pt: StudioCopy = {
   approveBook: "Aprovar livro",
   regeneratePages: "Regenerar páginas",
   printTitle: "Livro impresso",
-  printRequested: "Pedido registrado — em até 24h enviamos a cotação e o prazo.",
+  printRequested:
+    "Pedido registrado. O impresso é cobrado pelo tamanho e pelo frete. O parcelamento no cartão abre quando o pagamento estiver ligado.",
   requestPrint: "Pedir livro impresso",
   illustrating: (done, total) => `Ilustrando ${done}/${total}`,
   attempt: "tent.",
@@ -432,16 +512,45 @@ const en: StudioCopy = {
   themeHint:
     "Want to include someone else in the story (dad, mom, siblings, the family pet)? Describe it here and upload a photo below that shows them.",
   photoField: "Hero photo",
-  photoFieldHint: "Upload the photo you want, based on the story you want to tell.",
+  photoFieldHint: "Send more than one photo.",
+  photoDrop: "Drag, paste, or click to choose",
+  photoDropHint: "Send more than one photo: facing forward, smiling, and full body. Drag them from your computer or paste with Ctrl+V.",
+  photoRemove: "Remove",
+  photoSelected: (n) => (n === 1 ? "1 photo selected. You can add more." : `${n} photos selected.`),
   dedication: "Dedication (book page 2)",
   dedicationPh: "e.g. For Lila, with all of Mom's love.",
+  bookSize: "Book size",
+  bookSizeM: "M — 20 × 20 cm",
+  bookSizeP: "P — 15 × 15 cm",
+  quantity: "Quantity",
+  quantityHint: "Leave 1 for a single book. For a birthday, wedding, or party favor, enter how many copies you want.",
+  coverType: "Cover type",
+  coverSoft: "Softcover",
+  coverHard: "Hardcover",
+  artStyle: "Book style",
+  artRealistic: "Realistic",
+  artCartoon: "Cartoon",
+  chosenBook: "Chosen book",
+  clientTitle: "Client details",
+  clientName: "Client name",
+  clientNamePh: "e.g. Ana Souza",
+  clientEmail: "Email",
+  clientEmailPh: "e.g. ana@email.com",
+  clientPhone: "Phone / WhatsApp",
+  clientPhonePh: "e.g. +1 555 0100",
+  clientAddress: "Delivery address",
+  clientAddressPh: "Street, number, neighborhood and city",
+  clientNotes: "Note (optional)",
+  clientNotesPh: "e.g. deliver in the afternoon",
+  clientContinue: "Continue to the book",
+  errClient: "Fill in name, email, phone, and address.",
   createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
   metaBookTitle: "Title",
   howTitle: "How it works",
   how: [
-    "Fill in the details and upload a front-facing photo (one face, good light).",
+    "Fill in the details and send more than one photo: facing forward, smiling, and full body.",
     "Approve the illustrated character.",
     "Generate the story with AI from your theme.",
     "Approve cover and pages, then download or request print.",
@@ -455,6 +564,15 @@ const en: StudioCopy = {
   consent:
     "I am the legal guardian and authorize use of this photo (and voice, if cloned) only to create this book. We do not use it for marketing.",
   photoSent: "Photo uploaded ✓",
+  orderSent: "Request sent.",
+  orderFollowup: "Our team will be in touch.",
+  otherCharacters: "Other characters (optional)",
+  otherCharactersPh: "e.g. mom, brother, Toto",
+  otherCharactersHint: "Separate names with commas. The child is already the main character.",
+  gender: "Gender",
+  genderF: "Female",
+  genderM: "Male",
+  errGender: "Choose female or male.",
   sendPhoto: "Upload photo",
   photoHint:
     "Best result: sharp, well-lit photo, one front-facing face, forehead and hair visible. Avoid top-down close-ups, side angles, or covered faces. The art is photographic — the same character on pages and in the video.",
@@ -536,7 +654,8 @@ const en: StudioCopy = {
   approveBook: "Approve book",
   regeneratePages: "Regenerate pages",
   printTitle: "Printed book",
-  printRequested: "Request logged — within 24h we send the quote and timeline.",
+  printRequested:
+    "Request logged. The printed book is charged by size and shipping. Card installments open when payment is connected.",
   requestPrint: "Request printed book",
   illustrating: (done, total) => `Illustrating ${done}/${total}`,
   attempt: "att.",
@@ -589,16 +708,45 @@ const es: StudioCopy = {
   themeHint:
     "¿Quieres incluir a alguien más en la historia (papá, mamá, hermanos, la mascota)? Descríbelo aquí y sube abajo una foto que los muestre.",
   photoField: "Foto del protagonista",
-  photoFieldHint: "Sube la foto que quieras, según la historia que deseas contar.",
+  photoFieldHint: "Envía más de una foto.",
+  photoDrop: "Arrastra, pega o haz clic para elegir",
+  photoDropHint: "Envía más de una foto: de frente, sonriendo y de cuerpo entero. Puedes arrastrarlas o pegarlas con Ctrl+V.",
+  photoRemove: "Quitar",
+  photoSelected: (n) => (n === 1 ? "1 foto seleccionada. Puedes enviar más." : `${n} fotos seleccionadas.`),
   dedication: "Dedicatoria (2.ª página del libro)",
   dedicationPh: "Ej.: Para Lila, con todo el amor de mamá.",
+  bookSize: "Tamaño del libro",
+  bookSizeM: "M — 20 × 20 cm",
+  bookSizeP: "P — 15 × 15 cm",
+  quantity: "Cantidad",
+  quantityHint: "Deja 1 para un solo libro. Para recuerdo de cumpleaños, boda o fiesta, indica cuántos ejemplares quieres.",
+  coverType: "Tipo de tapa",
+  coverSoft: "Tapa blanda",
+  coverHard: "Tapa dura",
+  artStyle: "Estilo del libro",
+  artRealistic: "Realista",
+  artCartoon: "Cartoon",
+  chosenBook: "Libro elegido",
+  clientTitle: "Datos del cliente",
+  clientName: "Nombre del cliente",
+  clientNamePh: "Ej.: Ana Souza",
+  clientEmail: "Correo",
+  clientEmailPh: "Ej.: ana@email.com",
+  clientPhone: "Teléfono / WhatsApp",
+  clientPhonePh: "Ej.: 11 99999-9999",
+  clientAddress: "Dirección de entrega",
+  clientAddressPh: "Calle, número, barrio y ciudad",
+  clientNotes: "Observación (opcional)",
+  clientNotesPh: "Ej.: entregar por la tarde",
+  clientContinue: "Continuar al libro",
+  errClient: "Completa nombre, correo, teléfono y dirección.",
   createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
   metaBookTitle: "Título",
   howTitle: "Cómo funciona",
   how: [
-    "Completa los datos y envía una foto de frente (un rostro, buena luz).",
+    "Completa los datos y envía más de una foto: de frente, sonriendo y de cuerpo entero.",
     "Aprueba el personaje ilustrado.",
     "Genera la historia con IA a partir de tu tema.",
     "Aprueba portada y páginas, luego descarga o pide el impreso.",
@@ -612,6 +760,15 @@ const es: StudioCopy = {
   consent:
     "Soy el responsable legal y autorizo el uso de esta foto (y de la voz, si se clona) solo para crear este libro. No la usamos para difusión.",
   photoSent: "Foto enviada ✓",
+  orderSent: "Pedido enviado.",
+  orderFollowup: "Nuestro equipo se pondrá en contacto.",
+  otherCharacters: "Otros personajes (opcional)",
+  otherCharactersPh: "Ej.: mamá, hermano, Totó",
+  otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",
+  gender: "Género",
+  genderF: "Femenino",
+  genderM: "Masculino",
+  errGender: "Elige si es femenino o masculino.",
   sendPhoto: "Enviar foto",
   photoHint:
     "Mejor resultado: foto nítida, bien iluminada, un rostro de frente, frente y cabello visibles. Evita close desde arriba, de lado o rostro tapado. El arte es fotográfico, con el niño/a igual a la foto — el mismo personaje en las páginas y en el video.",
@@ -693,7 +850,8 @@ const es: StudioCopy = {
   approveBook: "Aprobar libro",
   regeneratePages: "Regenerar páginas",
   printTitle: "Libro impreso",
-  printRequested: "Pedido registrado — en hasta 24h enviamos la cotización y el plazo.",
+  printRequested:
+    "Pedido registrado. El impreso se cobra por tamaño y envío. El pago en cuotas abre cuando el pago esté conectado.",
   requestPrint: "Pedir libro impreso",
   illustrating: (done, total) => `Ilustrando ${done}/${total}`,
   attempt: "int.",

@@ -2,6 +2,8 @@ import type {
   Job,
   JobAccepted,
   Project,
+  PrintAddress,
+  PrintOrder,
   StoryTemplate,
   UploadUrl,
   UsageReport,
@@ -276,16 +278,23 @@ export const api = {
     childName?: string;
     dedication?: string;
     childAge?: number;
+    style?: "cgi_3d" | "realistic" | "cartoon";
+    bookSize?: "M" | "P";
+    coverType?: "soft" | "hard";
+    language?: string;
   } = {}) {
     const theme = input.theme?.trim().slice(0, 32) || undefined;
     return req<Project>("/v1/projects", {
       method: "POST",
       body: JSON.stringify({
-        style: "cgi_3d",
+        style: input.style ?? "cgi_3d",
         theme,
+        book_size: input.bookSize,
+        cover_type: input.coverType,
         child_name: input.childName?.trim() || undefined,
         child_age: input.childAge ?? undefined,
         dedication: input.dedication?.trim() || undefined,
+        language: input.language,
       }),
     });
   },
@@ -305,10 +314,45 @@ export const api = {
     }>(`/v1/projects/${id}/assets`);
   },
   // Upload da foto via API (servidor grava no storage). Evita PUT do navegador.
-  async uploadPhoto(id: string, file: File) {
+  async uploadPhoto(
+    id: string,
+    file: File,
+    meta?: {
+      language?: string;
+      themeLabel?: string;
+      extraNames?: string;
+      gender?: string;
+      subject?: string;
+      alsoName?: string;
+      alsoGender?: string;
+      alsoSubject?: string;
+      quantity?: string;
+      clientName?: string;
+      clientEmail?: string;
+      clientPhone?: string;
+      clientAddress?: string;
+      clientNotes?: string;
+      finalize?: boolean;
+    },
+  ) {
     await ensureGuest();
     const fd = new FormData();
     fd.append("file", file);
+    if (meta?.language) fd.append("language", meta.language);
+    if (meta?.themeLabel) fd.append("theme_label", meta.themeLabel);
+    if (meta?.extraNames) fd.append("extra_names", meta.extraNames);
+    if (meta?.gender) fd.append("gender", meta.gender);
+    if (meta?.subject) fd.append("subject", meta.subject);
+    if (meta?.alsoName) fd.append("also_name", meta.alsoName);
+    if (meta?.alsoGender) fd.append("also_gender", meta.alsoGender);
+    if (meta?.alsoSubject) fd.append("also_subject", meta.alsoSubject);
+    if (meta?.clientName) fd.append("client_name", meta.clientName);
+    if (meta?.clientEmail) fd.append("client_email", meta.clientEmail);
+    if (meta?.clientPhone) fd.append("client_phone", meta.clientPhone);
+    if (meta?.clientAddress) fd.append("client_address", meta.clientAddress);
+    if (meta?.clientNotes) fd.append("client_notes", meta.clientNotes);
+    if (meta?.quantity) fd.append("quantity", meta.quantity);
+    if (meta?.finalize === false) fd.append("finalize", "0");
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await fetch(`${BASE}/v1/projects/${id}/photo`, {
@@ -462,6 +506,30 @@ export const api = {
   async requestPrint(id: string) {
     return req<Project>(`/v1/projects/${id}/print-request`, { method: "POST" });
   },
+  async printOrder(id: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order`);
+  },
+  async savePrintAddress(id: string, body: PrintAddress) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/address`, {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+  },
+  async quotePrintFreight(id: string) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/freight`, { method: "POST" });
+  },
+  async selectPrintFreight(id: string, serviceId: number) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/freight/select`, {
+      method: "POST",
+      body: JSON.stringify({ service_id: serviceId }),
+    });
+  },
+  async checkoutPrint(id: string, installments: number) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/checkout`, {
+      method: "POST",
+      body: JSON.stringify({ installments }),
+    });
+  },
   // Upload de foto de personagem extra
   async uploadExtraCharacter(id: string, file: File, name: string) {
     await ensureGuest();
@@ -506,5 +574,32 @@ export const api = {
       throw err;
     }
     return (await resp.json()) as UsageReport;
+  },
+  async downloadPrintPackage(password: string, id: string) {
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    const resp = await fetch(`${BASE}/v1/print-orders/${id}/package`, { headers });
+    if (!resp.ok) throw new Error("Pacote de produção indisponível.");
+    return resp.blob();
+  },
+  async setPrintValidation(password: string, id: string, next: string) {
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    headers.set("Content-Type", "application/json");
+    const resp = await fetch(`${BASE}/v1/print-orders/${id}/validation`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify({ status: next }),
+    });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      throw new Error(typeof detail === "string" ? detail : "Não foi possível atualizar a validação.");
+    }
+    return (await resp.json()) as PrintOrder;
   },
 };

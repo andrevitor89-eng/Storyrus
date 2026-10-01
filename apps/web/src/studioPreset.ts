@@ -59,6 +59,11 @@ const PRESETS: Record<string, Record<StudioLang, Preset>> = {
     en: { title: "A great-grandparent story", theme: "Grandparents: hugs, warmth and stories that cross generations." },
     es: { title: "Una historia de bisabuela", theme: "Abuelos: abrazos, cariño e historias que cruzan generaciones." },
   },
+  pets: {
+    pt: { title: "Uma história com o pet", theme: "Pets: o carinho do animal de estimação, cuidado e companhia numa história só da criança." },
+    en: { title: "A story with a pet", theme: "Pets: a pet's affection, care and company in a story just for the child." },
+    es: { title: "Una historia con la mascota", theme: "Mascotas: el cariño de la mascota, cuidado y compañía en una historia solo del niño." },
+  },
   family_love: {
     pt: { title: "Uma história da nossa família", theme: "Família: o carinho de quem ama a criança, reunido numa história só deles." },
     en: { title: "A story of our family", theme: "Family: the love around the child, gathered in a story of their own." },
@@ -143,6 +148,61 @@ const PRESETS: Record<string, Record<StudioLang, Preset>> = {
     pt: { title: "Conhecendo o meu corpo", theme: "Corpo: perceber o corpo, mover-se e cuidar de si com curiosidade." },
     en: { title: "Getting to know my body", theme: "Body: noticing the body, moving and taking care with curiosity." },
     es: { title: "Conociendo mi cuerpo", theme: "Cuerpo: notar el cuerpo, moverse y cuidarse con curiosidad." },
+  },
+  biblico: {
+    pt: { title: "Uma história bíblica", theme: "Bíblico: fé, coragem e cuidado, com a criança no centro da própria história." },
+    en: { title: "A biblical story", theme: "Biblical: faith, courage and care, with the child at the center of the story." },
+    es: { title: "Una historia bíblica", theme: "Bíblico: fe, coraje y cuidado, con el niño en el centro de la historia." },
+  },
+  dia_da_mulher: {
+    pt: { title: "Uma história para elas", theme: "Dia da Mulher: o carinho de mães, avós e tias, numa história só da criança." },
+    en: { title: "A story for the women", theme: "Women's Day: the love of mothers, grandmothers and aunts, in a story just for the child." },
+    es: { title: "Una historia para ellas", theme: "Día de la Mujer: el cariño de madres, abuelas y tías, en una historia solo del niño." },
+  },
+  dia_da_sogra: {
+    pt: { title: "Uma história para a sogra", theme: "Dia da Sogra: gratidão e carinho, numa história para guardar em família." },
+    en: { title: "A story for a mother-in-law", theme: "Mother-in-law's Day: gratitude and warmth, in a story the family keeps." },
+    es: { title: "Una historia para la suegra", theme: "Día de la Suegra: gratitud y cariño, en una historia para guardar en familia." },
+  },
+  dia_da_familia: {
+    pt: { title: "Uma história da nossa família", theme: "Dia da Família: quem ama a criança reunido numa história só deles." },
+    en: { title: "A story of our family", theme: "Family Day: the people who love the child, gathered in a story of their own." },
+    es: { title: "Una historia de nuestra familia", theme: "Día de la Familia: quienes aman al niño, reunidos en una historia solo de ellos." },
+  },
+  dia_do_irmao: {
+    pt: { title: "Uma história de irmãos", theme: "Dia do Irmão: cumplicidade, cuidado e a amizade que cresce em casa." },
+    en: { title: "A siblings story", theme: "Siblings' Day: closeness, care and the friendship that grows at home." },
+    es: { title: "Una historia de hermanos", theme: "Día del Hermano: complicidad, cuidado y la amistad que crece en casa." },
+  },
+  dia_dos_namorados: {
+    pt: { title: "Uma história de namorados", theme: "Dia dos Namorados: carinho a dois, numa história para guardar junto." },
+    en: { title: "A valentine story", theme: "Valentine's Day: affection for two, in a story to keep together." },
+    es: { title: "Una historia de enamorados", theme: "Día de los Enamorados: cariño de a dos, en una historia para guardar juntos." },
+  },
+  dia_do_amigo: {
+    pt: { title: "Uma história de amigos", theme: "Dia do Amigo: companhia, riso e uma amizade para guardar." },
+    en: { title: "A friendship story", theme: "Friendship Day: company, laughter and a friendship to keep." },
+    es: { title: "Una historia de amigos", theme: "Día del Amigo: compañía, risa y una amistad para guardar." },
+  },
+  tio_tia: {
+    pt: { title: "Uma história de tios", theme: "Dia do Tio e da Tia: colo, riso e um amor que a família guarda." },
+    en: { title: "An aunt and uncle story", theme: "Aunt and Uncle's Day: a hug, a laugh and a love the family keeps." },
+    es: { title: "Una historia de tíos", theme: "Día del Tío y de la Tía: un abrazo, una risa y un amor que la familia guarda." },
+  },
+  dia_dos_filhos: {
+    pt: { title: "Uma história para o filho", theme: "Dia dos Filhos: a criança como protagonista, numa história só dela." },
+    en: { title: "A story for a child", theme: "Sons and Daughters Day: the child as the hero of a story of their own." },
+    es: { title: "Una historia para el hijo", theme: "Día de los Hijos: el niño como protagonista, en una historia solo de él." },
+  },
+  independencia: {
+    pt: { title: "Uma história em família", theme: "Independência do Brasil: um dia de reunião, com a criança no centro da família." },
+    en: { title: "A family story", theme: "Brazil's Independence Day: a day together, with the child at the center of the family." },
+    es: { title: "Una historia en familia", theme: "Independencia de Brasil: un día de reunión, con el niño en el centro de la familia." },
+  },
+  dia_do_idoso: {
+    pt: { title: "Uma história de avós", theme: "Dia do Idoso: avós e bisavós, colo e histórias que atravessam gerações." },
+    en: { title: "A grandparents story", theme: "Day of Older Persons: grandparents and great-grandparents, hugs and stories across generations." },
+    es: { title: "Una historia de abuelos", theme: "Día de las Personas Mayores: abuelos y bisabuelos, abrazos e historias que cruzan generaciones." },
   },
 };
 

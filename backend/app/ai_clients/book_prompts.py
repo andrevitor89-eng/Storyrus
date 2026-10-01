@@ -393,6 +393,37 @@ STYLE = (
     "nas paginas; sem texto"
 )
 
+_PAGE_LOCK = (
+    "FORMATO DO LIVRO: cada pagina e um quadrado 1:1 em sangria total, corte reto, "
+    "sem cantos arredondados e sem deformar. A estrofe fica so numa faixa calma "
+    "no topo ou na base, longe da dobra, nunca numa coluna ao lado da cena e "
+    "nunca sobre o rosto. Sem marca d'agua e sem texto solto na cena."
+)
+
+_REALISTA = (
+    "ilustracao editorial infantil premium, suavemente realista, quente e refinada. "
+    "Pele com luz suave, iris nitida na mesma fracao do rosto da foto, cabelo fio a fio. "
+    "Sem cartoon, anime, caricatura, chibi, 3D plastico, olho de boneca, ombros largos, "
+    "bracos volumosos ou corpo esticado. Identidade rigorosa das fotos. "
+    + _PAGE_LOCK
+)
+
+_CARTOON = (
+    "ilustracao cartoon premium de livro infantil, claramente cartoon: tracos desenhados, "
+    "contornos suaves, formas arredondadas, olhos levemente maiores, expressoes ludicas, "
+    "cores alegres, acabamento editorial. Nao e uma foto suavizada. "
+    "Sem anime, manga, chibi extremo, caricatura extrema, 3D plastico ou personagem generico. "
+    "Identidade rigorosa das fotos. "
+    + _PAGE_LOCK
+)
+
+
+def book_art_direction(style: str | None) -> str:
+    """Direcao de arte da serie: realista ou cartoon, com o formato quadrado do livro."""
+    if (style or "").strip().lower() == "cartoon":
+        return _CARTOON
+    return _REALISTA
+
 CHARACTER_GEN_PREFIX = (
     "Crie um personagem TMT a partir das fotos de "
     "referencia: o rosto deve parecer uma foto, qualidade de camera, com tracos leves "
@@ -599,6 +630,7 @@ def build_scene_prompt(
     )
     if text_band:
         parts.append(text_band_directive(text_band))
+    parts.append(_PAGE_LOCK)
     return " ".join(parts)
 
 

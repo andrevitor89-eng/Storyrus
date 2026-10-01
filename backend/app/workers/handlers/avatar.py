@@ -13,6 +13,7 @@ from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     AVATAR_PROMPT,
     AVATAR_STYLE,
+    book_art_direction,
 )
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
@@ -80,7 +81,7 @@ async def handle_avatar(db: Session, job: Job) -> None:
     else:
         # GPT Image gera o corpo CGI; refine_identity trava o rosto.
         provider = _pkg().get_image_provider(job.provider)
-        style = AVATAR_STYLE
+        style = book_art_direction(project.style) if project.style == "cartoon" else AVATAR_STYLE
         gen_refs = (await identity_images(refs[0])) + refs[1:]
         face = gen_refs[0]
         try:

@@ -188,9 +188,15 @@ describe("Landing — catálogo", () => {
 
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(within(cards[0]).getByText(/capa mole ou capa dura\. 16 páginas/i)).toBeInTheDocument();
-    expect(within(cards[0]).getByText("15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
-    expect(within(cards[0]).getByText("20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(cards[0]).queryByText(/capa mole ou capa dura/i)).not.toBeInTheDocument();
+    expect(within(cards[0]).getByText("Livro 16 páginas")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("HARD - Capa rígida")).toBeInTheDocument();
+    expect(within(cards[0]).getByText(/mais pesada, resistente e durável/i)).toBeInTheDocument();
+    expect(within(cards[0]).getByText("SOFT - Capa flexível")).toBeInTheDocument();
+    expect(within(cards[0]).getByText(/mais leve e flexível/i)).toBeInTheDocument();
+    expect(within(catalog).getAllByText("HARD - Capa rígida")).toHaveLength(14);
     expect(cards).toHaveLength(14);
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
@@ -201,7 +207,6 @@ describe("Landing — catálogo", () => {
     expect(within(cards[1]).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
     expect(within(cards[2]).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
     expect(within(cards[0]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
-    expect(within(cards[4]).getByText("15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(cards[4]).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
     expect(within(catalog).queryByText(/Martin, o Grande Goleiro/i)).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/Aniversário Especial de Ester/i)).not.toBeInTheDocument();
@@ -228,15 +233,20 @@ describe("Landing — catálogo", () => {
     await user.click(within(card).getByRole("button", { name: "Hard" }));
     expect(within(card).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
     expect(within(card).getByRole("button", { name: "Soft", pressed: false })).toBeInTheDocument();
-    expect(within(card).getByText("15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
-    expect(within(card).getByText("20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
+
+    await user.click(within(card).getByRole("button", { name: "Soft" }));
+    expect(within(card).getByRole("button", { name: "Soft", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("capa=soft"));
 
     await user.click(within(card).getByRole("button", { name: "P" }));
     expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tamanho=P"));
     expect(within(card).getByRole("button", { name: "M", pressed: false })).toBeInTheDocument();
-    expect(within(card).getByText("15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
-    expect(within(card).getByText("20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
+    expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 157,00");
   });
 
@@ -269,11 +279,14 @@ describe("Landing — catálogo", () => {
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize).toHaveLength(14);
     expect(personalize[0].getAttribute("href")).toContain("tema=fathers_day");
-    expect(personalize[0].getAttribute("href")).toContain("campos=tema");
+    expect(personalize[0].getAttribute("href")).toContain("campos=nome");
+    expect(personalize[0].getAttribute("href")).toContain("tamanho=M");
+    expect(personalize[0].getAttribute("href")).toContain("capa=hard");
+    expect(personalize[0].getAttribute("href")).toContain("modo=realista");
+    expect(personalize[0].getAttribute("href")).toContain("titulo=");
     expect(personalize[0].getAttribute("href")).not.toContain("heroi=");
-    expect(personalize[0].getAttribute("href")).not.toContain("titulo=");
     expect(decodeURIComponent((personalize[0].getAttribute("href") ?? "").replace(/\+/g, " "))).toContain("Papai herói");
-    expect(personalize[1].getAttribute("href")).toContain("tema=adventure");
+    expect(personalize[1].getAttribute("href")).toContain("tema=biblico");
     expect(personalize[2].getAttribute("href")).toContain("tema=family_love");
     expect(personalize[10].getAttribute("href")).toContain("tema=pets");
   });
@@ -365,25 +378,22 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(within(siteMenu).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/app");
   });
 
-  it("abre o hero na capa de Natal e duplica a faixa", async () => {
+  it("abre o hero em Meu Pai e duplica a faixa", async () => {
     const user = userEvent.setup();
     renderLanding();
 
     const cover = await screen.findByTestId("landing-hero-slide-0");
-    expect(cover).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
+    expect(cover).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-slide-3")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
     expect(screen.getByTestId("landing-hero-slide-4")).toHaveAttribute("src", expect.stringContaining("pagina-nanoaventuras.jpg"));
     expect(screen.getByTestId("landing-hero-slide-5")).toHaveAttribute("src", expect.stringContaining("foto-nanoaventuras.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-6")).toHaveAttribute("src", expect.stringContaining("capa-amordebisavo.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-7")).toHaveAttribute("src", expect.stringContaining("pagina-amordebisavo.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-8")).toHaveAttribute("src", expect.stringContaining("foto-amordebisavo.jpg"));
 
-    const natalFrame = cover.closest(".hero-slide-frame") as HTMLElement;
-    expect(natalFrame).toContainElement(screen.getByTestId("landing-hero-slide-1"));
-    expect(natalFrame).toContainElement(screen.getByTestId("landing-hero-slide-2"));
-    expect(natalFrame).not.toContainElement(screen.getByTestId("landing-hero-slide-3"));
+    const firstFrame = cover.closest(".hero-slide-frame") as HTMLElement;
+    expect(firstFrame).toContainElement(screen.getByTestId("landing-hero-slide-1"));
+    expect(firstFrame).toContainElement(screen.getByTestId("landing-hero-slide-2"));
+    expect(firstFrame).not.toContainElement(screen.getByTestId("landing-hero-slide-3"));
 
     const carousel = cover.closest(".hero-carousel") as HTMLElement;
     const natalCovers = [...carousel.querySelectorAll("img")].filter((img) => {
@@ -391,21 +401,22 @@ describe("Landing — menu mobile e abas do hero", () => {
       return src.includes("capa-natalmemetata.jpg") && !src.includes("capa-natalmemetata-e");
     });
     expect(natalCovers).toHaveLength(2);
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata.jpg"));
+    // FlipBook usa o miolo completo (meupai-heroi/*); thumbs do carrossel seguem capa/página/foto.
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/capa.png"));
     expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await waitFor(() => {
-      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-02.jpg"));
     }, { timeout: 2200 });
     expect(screen.getByTestId("landing-hero-flip-dot-1")).toHaveAttribute("aria-selected", "true");
 
     await user.click(screen.getByTestId("landing-hero-flip-dot-2"));
     await waitFor(() => {
-      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata.jpg"));
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-03.jpg"));
     }, { timeout: 2200 });
 
     await user.click(screen.getByTestId("landing-hero-pick-1"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata.jpg"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-04.jpg"));
 
     await user.click(screen.getByTestId("landing-lang-es"));
     const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
@@ -424,10 +435,10 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(heroImgs.some((src) => src.includes("pagina-esther-higiene.png"))).toBe(true);
     expect(heroImgs.some((src) => src.includes("foto-esther-higiene.png"))).toBe(true);
 
-    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-natalmemetata-es.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-es.jpg"));
-    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-natalmemetata-es.jpg"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-natalmemetata-es.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-04.jpg"));
   });
 
   it("coloca o texto Uma foto abaixo do titulo Transforme", async () => {
@@ -482,8 +493,8 @@ describe("Landing — CTAs e links", () => {
     }
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
-    expect(screen.queryByRole("link", { name: /^cartoon$/i })).not.toBeInTheDocument();
-    expect(screen.getByText(/cada tema se transforma em uma narrativa ilustrada/i)).toBeInTheDocument();
+    expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    expect(screen.getByText(/escolha o tema e o formato do livro/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();
@@ -499,15 +510,27 @@ describe("Landing — CTAs e links", () => {
 
   it("mostra os livros do tema ao passar o mouse no submenu", () => {
     renderLanding();
-    const subs = document.querySelector("#cat-panel-0 .kcat-subs") as HTMLElement;
-    const princesas = within(subs).getByRole("link", { name: /^princesas$/i });
+    const panel = document.querySelector("#cat-panel") as HTMLElement;
+    const nav = document.querySelector(".kcats") as HTMLElement;
+    expect(within(nav).getByRole("button", { name: /^categorias$/i })).toBeInTheDocument();
+    expect(within(nav).queryByRole("button", { name: /^aventuras$/i })).not.toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /^como funciona$/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /^vídeos$/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /^avaliações$/i })).toBeInTheDocument();
+    expect(within(nav).getByRole("link", { name: /^cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    const subs = panel.querySelector(".kcat-subs") as HTMLElement;
+    const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
     const princesasHref = decodeURIComponent((princesas.getAttribute("href") ?? "").replace(/\+/g, " "));
     expect(princesasHref).toContain("tema=princess");
     expect(princesasHref).toContain("Emilia e os Primeiros Passos da Bailarina");
     expect(princesasHref).toContain("heroi=Emilia");
-    expect(within(subs).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/app?tema=sport");
+    expect(within(panel).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/app?tema=sport");
+    const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
+    const biblicoHref = decodeURIComponent((biblico.getAttribute("href") ?? "").replace(/\+/g, " "));
+    expect(biblicoHref).toContain("tema=biblico");
+    expect(biblicoHref).toContain("Davi, o Menino Pastor");
     fireEvent.mouseEnter(princesas);
-    const feats = screen.getByTestId("landing-cat-feats-0");
+    const feats = screen.getByTestId("landing-cat-feats");
     expect(within(feats).getByRole("link", { name: /emilia/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /nano/i })).not.toBeInTheDocument();
 
@@ -516,20 +539,54 @@ describe("Landing — CTAs e links", () => {
     expect(within(feats).getByRole("link", { name: /cristobal/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /emilia/i })).not.toBeInTheDocument();
 
-    const ocasioes = document.querySelector("#cat-panel-2 .kcat-subs") as HTMLElement;
-    fireEvent.mouseEnter(within(ocasioes).getByRole("link", { name: /^páscoa$/i }));
-    expect(within(screen.getByTestId("landing-cat-feats-2")).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
+    const pets = within(panel).getByRole("link", { name: /^pets$/i });
+    expect(pets).toHaveAttribute("href", "/app?tema=pets");
+    fireEvent.mouseEnter(pets);
+    expect(within(feats).getByRole("link", { name: /maya/i })).toBeInTheDocument();
+    expect(within(feats).getByRole("link", { name: /mako/i })).toBeInTheDocument();
+    expect(within(feats).getByRole("link", { name: /lucas/i })).toBeInTheDocument();
+
+    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia das mães/i }));
+    expect(within(feats).getByRole("link", { name: /amor de mãe/i })).toBeInTheDocument();
+    expect(within(panel).getByText("10 de maio")).toBeInTheDocument();
+
+    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia da sogra/i }));
+    expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
+
+    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /^páscoa$/i }));
+    expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
   });
 
-  it("rota /cartoon não abre a landing", async () => {
+  it("rota /cartoon repete a landing e troca as fotos por desenho", async () => {
     render(
       <MemoryRouter initialEntries={["/cartoon"]}>
         <AppRoutes />
       </MemoryRouter>,
     );
 
-    expect(await screen.findByTestId("not-found-title")).toHaveTextContent(/página não encontrada/i);
-    expect(screen.queryByTestId("landing-hero-cta")).not.toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /^cartoon$/i })).not.toBeInTheDocument();
+    expect(await screen.findByTestId("landing-hero-cta")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /dicas para a foto perfeita/i })).toBeInTheDocument();
+    expect(screen.getByText(/você envia a foto/i)).toBeInTheDocument();
+
+    const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
+    const cards = within(catalog).getAllByTestId("landing-catalog-card");
+    expect(cards).toHaveLength(9);
+    expect(within(catalog).queryByText("Meu Pai, Meu Herói")).not.toBeInTheDocument();
+    expect(within(catalog).queryByText("Mako, Meu Amigo Fiel")).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/amor de tia/i)).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/lucas/i)).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/esther/i)).not.toBeInTheDocument();
+    expect(within(cards[0]).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
+    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-davi.jpg"));
+    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-enzo.jpg"));
+    expect(within(catalog).getByText("Nicolas, Meu Primeiro Amor")).toBeInTheDocument();
+    expect(within(catalog).getByRole("img", { name: /nicolas, meu primeiro amor/i })).toHaveAttribute("src", expect.stringContaining("cartoon-capa-nicolas.jpg"));
+    expect(within(catalog).queryByText(/floresta encantada/i)).not.toBeInTheDocument();
+
+    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-nano.jpg"));
+    expect(screen.queryByRole("button", { name: "Meu Pai, Meu Herói" })).not.toBeInTheDocument();
+    expect(screen.getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("cartoon-foto-nicolas.jpg"));
+    expect(screen.queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
   });
 });

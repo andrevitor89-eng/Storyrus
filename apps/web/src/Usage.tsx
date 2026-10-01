@@ -145,6 +145,39 @@ export function Usage() {
 
       {error && <p className="error">{error}</p>}
 
+      <section className="usage-panel" data-testid="owner-orders">
+        <h2>Pedidos</h2>
+        <p className="muted">
+          Livros pedidos pela família, depois que a foto chega. A imagem abre no pedido.
+        </p>
+        {(data?.orders ?? []).length ? (
+          <div>
+            {(data?.orders ?? []).map((order) => (
+              <article key={order.id} className="usage-order">
+                <pre>{order.summary}</pre>
+                {(order.photo_urls ?? []).length > 0 && (
+                  <div className="usage-order-photos">
+                    {(order.photo_urls ?? []).map((url) => (
+                      <figure key={url}>
+                        <img src={url} alt="Foto enviada no pedido" />
+                        <a href={url} target="_blank" rel="noreferrer">
+                          Abrir imagem
+                        </a>
+                      </figure>
+                    ))}
+                  </div>
+                )}
+                <small className="muted">
+                  {when(order.created_at)} · Projeto {order.project_id}
+                </small>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">Nenhum pedido ainda.</p>
+        )}
+      </section>
+
       {(data?.anomalies?.length ?? 0) > 0 && (
         <section className="usage-anomalies" aria-live="polite">
           <h2>Alertas de custo</h2>

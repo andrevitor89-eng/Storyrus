@@ -12,11 +12,12 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, s
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import rate_limit
+from app import rate_limit, storage
 from app.config import settings
 from app.database import get_db
-from app.models import Job, Project, UsageEvent
+from app.models import Asset, AssetKind, Job, OrderTicket, PrintOrder, Project, UsageEvent
 from app.schemas import (
+    OrderTicketOut,
     UsageAnomalyOut,
     UsageBookOut,
     UsageBucketOut,
@@ -270,6 +271,75 @@ def get_usage(
     )
 
     event_rows = _event_rows(db, range_start, range_end, rows)
+    order_rows = db.scalars(
+        select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
+    ).all()
+    project_ids = [ticket.project_id for ticket in order_rows]
+    photo_rows = (
+        db.scalars(
+            select(Asset)
+            .where(
+                Asset.project_id.in_(project_ids),
+                Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
+            )
+            .order_by(Asset.created_at.asc())
+        ).all()
+        if project_ids
+        else []
+    )
+    photos_by_project: dict = defaultdict(list)
+    for asset in photo_rows:
+        try:
+            url = storage.presign_get(asset.storage_key)
+        except Exception:
+            continue
+        if url:
+            photos_by_project[asset.project_id].append(url)
+    print_rows = (
+        db.scalars(select(PrintOrder).where(PrintOrder.project_id.in_(project_ids))).all()
+        if project_ids
+        else []
+    )
+    print_by_project = {row.project_id: row for row in print_rows}
+    orders = [
+        OrderTicketOut(
+            id=ticket.id,
+            project_id=ticket.project_id,
+            summary=ticket.summary,
+            created_at=_aware(ticket.created_at),
+            child_age=ticket.project.child_age if ticket.project else None,
+            book_size=ticket.project.book_size if ticket.project else None,
+            cover_type=ticket.project.cover_type if ticket.project else None,
+            style=ticket.project.style if ticket.project else None,
+            photo_urls=photos_by_project.get(ticket.project_id, []),
+            print_order_id=(
+                print_by_project[ticket.project_id].id
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            print_code=(
+                print_by_project[ticket.project_id].code
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            print_status=(
+                print_by_project[ticket.project_id].status
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            tracking_code=(
+                print_by_project[ticket.project_id].tracking_code
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            payment_status=(
+                print_by_project[ticket.project_id].payment_status
+                if ticket.project_id in print_by_project
+                else None
+            ),
+        )
+        for ticket in order_rows
+    ]
 
     day = spend_guard.day_spend(db)
     flags = spend_guard.anomalies(db, today_usd=today_usd)
@@ -304,4 +374,5 @@ def get_usage(
         anomalies=[
             UsageAnomalyOut(kind=a.kind, severity=a.severity, message=a.message) for a in flags
         ],
+        orders=orders,
     )

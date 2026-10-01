@@ -26,8 +26,6 @@ const IcShield = ({ className }: IconProps) => (<Svg className={className}><path
 const IcEye = ({ className }: IconProps) => (<Svg className={className}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.6" /></Svg>);
 const IcTruck = ({ className }: IconProps) => (<Svg className={className}><path d="M3 6.5h11v9H3zM14 9.5h4l3 3v3h-7z" /><circle cx="7" cy="18" r="1.6" /><circle cx="17.5" cy="18" r="1.6" /></Svg>);
 const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="M10 9.5l4.5 2.5-4.5 2.5z" fill="currentColor" stroke="none" /></Svg>);
-const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
-const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 const IcMail = ({ className }: IconProps) => (
   <Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.5 7.5 12 13l8.5-5.5" /></Svg>
 );
@@ -38,6 +36,8 @@ const IcInstagram = ({ className }: IconProps) => (
     <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
   </Svg>
 );
+const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
+const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 
 const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
@@ -46,7 +46,7 @@ const PROMISE_ICONS = [IcShield, IcGift, IcEye, IcTruck];
 type CoverFont = "fredoka" | "baloo" | "lilita";
 type HeroAsset = Record<Lang, string>;
 const heroAsset = (pt: string, en = pt, es = en): HeroAsset => ({ pt, en, es });
-/** Hero strip: capa, página aberta, criança lendo. Natal fica na abertura. */
+/** Hero strip: capa, página aberta, criança lendo. */
 /** Páginas completas do livro "Meu Pai, Meu Herói" (capa → 16 → contracapa). */
 const MEUPAI_HEROI_PAGES = [
   "meupai-heroi/capa.png",
@@ -78,10 +78,11 @@ type HeroStripBook = {
 
 const HERO_STRIP: HeroStripBook[] = [
   {
-    name: "Meme e Tata",
-    cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
-    page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
-    photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
+    name: "Meu Pai, Meu Herói",
+    cover: heroAsset("capa-meupai-heroi.png"),
+    page: heroAsset("pagina-meupai-heroi.png"),
+    photo: heroAsset("foto-meupai-heroi.png"),
+    pages: MEUPAI_HEROI_PAGES,
   },
   {
     name: "Nano",
@@ -126,13 +127,6 @@ const HERO_STRIP: HeroStripBook[] = [
     photo: heroAsset("foto-davi-pastor.png"),
   },
   {
-    name: "Meu Pai, Meu Herói",
-    cover: heroAsset("capa-meupai-heroi.png"),
-    page: heroAsset("pagina-meupai-heroi.png"),
-    photo: heroAsset("foto-meupai-heroi.png"),
-    pages: MEUPAI_HEROI_PAGES,
-  },
-  {
     name: "Enzo, Meu Primo Predileto",
     cover: heroAsset("capa-enzo-primo.png"),
     page: heroAsset("pagina-enzo-primo.png"),
@@ -150,45 +144,46 @@ const HERO_STRIP: HeroStripBook[] = [
     page: heroAsset("pagina-esther-higiene.png"),
     photo: heroAsset("foto-esther-higiene.png"),
   },
-];
-/** Hero do /cartoon: só livros com visual de desenho. */
-const HERO_STRIP_CARTOON: HeroStripBook[] = [
   {
-    name: "Floresta Encantada",
-    cover: heroAsset("capa-floresta.jpg"),
-    page: heroAsset("flor-2.jpg"),
-    photo: heroAsset("flor-6.jpg"),
-  },
-  {
-    name: "Dino",
-    cover: heroAsset("capa-dino2.jpg"),
-    page: heroAsset("dino-2.jpg"),
-    photo: heroAsset("dino-6.jpg"),
-  },
-  {
-    name: "Circo",
-    cover: heroAsset("capa-circo.jpg"),
-    page: heroAsset("circo-2.jpg"),
-    photo: heroAsset("circo-6.jpg"),
-  },
-  {
-    name: "Oceano",
-    cover: heroAsset("capa-oceano.jpg"),
-    page: heroAsset("mar-2.jpg"),
-    photo: heroAsset("mar-6.jpg"),
-  },
-  {
-    name: "Amazônia",
-    cover: heroAsset("capa-amazonia.jpg"),
-    page: heroAsset("amazonia-3.jpg"),
-    photo: heroAsset("amazonia-6.jpg"),
+    name: "Meme e Tata",
+    cover: heroAsset("capa-natalmemetata.jpg", "capa-natalmemetata-en.jpg", "capa-natalmemetata-es.jpg"),
+    page: heroAsset("pagina-natalmemetata.jpg", "pagina-natalmemetata-en.jpg", "pagina-natalmemetata-es.jpg"),
+    photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
   },
 ];
+/** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
+const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
+  Nano: { cover: "cartoon-capa-nano.jpg", page: "cartoon-pagina-nano.jpg" },
+  "Amor de Bisavó": { cover: "cartoon-capa-bisavo.jpg", page: "cartoon-pagina-bisavo.jpg", photo: "cartoon-foto-bisavo.jpg" },
+  "Amor de Mãe": { cover: "cartoon-capa-amordemae.jpg", page: "cartoon-pagina-amordemae.jpg", photo: "cartoon-foto-amordemae.jpg" },
+  "Davi, o Menino Pastor": { cover: "cartoon-capa-davi.jpg", page: "cartoon-pagina-davi.jpg", photo: "cartoon-foto-davi.jpg" },
+  "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
+  "Meme e Tata": { cover: "cartoon-capa-natal.jpg", page: "cartoon-pagina-natal.jpg", photo: "cartoon-foto-natal.jpg" },
+};
+const CARTOON_COVER: Record<number, string> = {
+  6: "cartoon-capa-nicolas.jpg",
+  7: "cartoon-capa-amordemae.jpg",
+  8: "cartoon-capa-matteo.jpg",
+  9: "cartoon-capa-bisavo.jpg",
+  10: "cartoon-capa-natal.jpg",
+  11: "cartoon-capa-nano.jpg",
+  12: "cartoon-capa-maya.jpg",
+  21: "cartoon-capa-davi.jpg",
+  23: "cartoon-capa-enzo.jpg",
+};
+const CARTOON_REVIEW: Record<string, string> = {
+  Nicolas: "cartoon-foto-nicolas.jpg",
+  "Amor de Mãe": "cartoon-foto-amordemae.jpg",
+  Matteo: "cartoon-foto-matteo.jpg",
+  "Amor de Bisavó": "cartoon-foto-bisavo.jpg",
+  "Meme e Tata": "cartoon-foto-natal.jpg",
+  Maya: "cartoon-foto-maya.jpg",
+};
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
+const SHOTS: { img: string; ok: boolean; focus?: string }[] = [
   { img: "dica-boa.png", ok: true, focus: "center center" },
   { img: "dica-multi.png", ok: false, focus: "68% 38%" },
   { img: "dica-lado.png", ok: false, focus: "78% 32%" },
@@ -218,6 +213,10 @@ const REVIEW_PHOTOS = [
 type CatalogImg = string | Record<Lang, string>;
 function catalogImgSrc(img: CatalogImg, lang: Lang): string {
   return typeof img === "string" ? img : img[lang];
+}
+function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): string {
+  if (variant === "cartoon" && CARTOON_COVER[i]) return CARTOON_COVER[i];
+  return catalogImgSrc(CATALOG_IMGS[i], lang);
 }
 const CATALOG_IMGS: CatalogImg[] = [
   "capa-martin-goleiro.jpg",
@@ -269,7 +268,7 @@ const CATALOG_THEMES = [
   "underwater",
   "dinosaurs",
   "family_love",
-  "adventure",
+  "biblico",
   "fathers_day",
   "family_love",
   "pets",
@@ -283,38 +282,10 @@ const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5, 14]);
 const CATALOG_NEW_INDEXES = new Set([20, 21, 22, 23, 24, 25]);
 /** Primeiros da vitrine, nesta ordem: Meu Pai, Davi, Enzo. */
 const CATALOG_LEAD = [22, 21, 23];
-/** Catálogo do /cartoon: só capas com visual de desenho. */
-const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[] = [
-  {
-    img: "capa-floresta.jpg",
-    theme: "fantasy",
-    t: { pt: "Floresta Encantada", en: "Enchanted Forest", es: "Bosque Encantado" },
-  },
-  {
-    img: "capa-dino2.jpg",
-    theme: "dinosaurs",
-    t: { pt: "Mundo dos Dinossauros", en: "Dinosaur World", es: "Mundo de los Dinosaurios" },
-  },
-  {
-    img: "capa-circo.jpg",
-    theme: "adventure",
-    t: { pt: "No Circo", en: "At the Circus", es: "En el Circo" },
-  },
-  {
-    img: "capa-oceano.jpg",
-    theme: "underwater",
-    t: { pt: "Fundo do Mar", en: "Under the Sea", es: "Fondo del Mar" },
-  },
-  {
-    img: "capa-amazonia.jpg",
-    theme: "adventure",
-    t: { pt: "Amazônia", en: "The Amazon", es: "La Amazonía" },
-  },
-];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 const CATALOG_SPEC: Record<Lang, Record<CatalogCoverChoice | CatalogSizeChoice | "pages", string>> = {
-  pt: { soft: "Capa mole", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
+  pt: { soft: "Capa flexível", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
   en: { soft: "Softcover", hard: "Hardcover", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 pages." },
   es: { soft: "Tapa blanda", hard: "Tapa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
 };
@@ -323,9 +294,10 @@ const CATALOG_PRICE: Record<Lang, string> = {
   en: "On request",
   es: "Bajo consulta",
 };
-/** 15 × 15 cm (P) e 20 × 20 cm (M). A capa não muda o valor. */
+/** 15 × 15 cm (P) R$ 157 e 20 × 20 cm (M) R$ 177. A capa não altera o valor. */
+const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "157", M: "177" };
 function catalogPrice(size: CatalogSizeChoice): string {
-  return size === "P" ? "R$ 157,00" : "R$ 177,00";
+  return `R$ ${CATALOG_AMOUNT[size]},00`;
 }
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
@@ -362,6 +334,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=grandparents_love" },
       { href: "/app?tema=family_love" },
       { href: "/app" },
+      { href: "/app?tema=pets" },
     ],
     feats: [
       { href: "/app?tema=mothers_day", catalogI: 6 },
@@ -373,12 +346,24 @@ const NAV_CAT_META = [
   {
     color: "#f0b429",
     subs: [
+      { href: "/app?tema=dia_da_mulher" },
+      { href: "/app?tema=dia_da_sogra" },
+      { href: "/app?tema=easter" },
+      { href: "/app?tema=mothers_day" },
+      { href: "/app?tema=dia_da_familia" },
+      { href: "/app?tema=dia_do_irmao" },
+      { href: "/app?tema=dia_dos_namorados" },
+      { href: "/app?tema=dia_do_amigo" },
+      { href: "/app?tema=grandparents_love" },
+      { href: "/app?tema=tio_tia" },
+      { href: "/app?tema=fathers_day" },
+      { href: "/app?tema=dia_dos_filhos" },
+      { href: "/app?tema=independencia" },
+      { href: "/app?tema=dia_do_idoso" },
+      { href: "/app?tema=pets" },
+      { href: "/app?tema=childrens_day" },
       { href: "/app?tema=christmas" },
       { href: "/app?tema=birthday" },
-      { href: "/app?tema=mothers_day" },
-      { href: "/app?tema=fathers_day" },
-      { href: "/app?tema=easter" },
-      { href: "/app?tema=childrens_day" },
       { href: "/app?tema=new_year" },
     ],
     feats: [
@@ -414,6 +399,15 @@ const NAV_CAT_META = [
     ],
     feats: [],
   },
+  {
+    color: "#c9a227",
+    subs: [
+      { href: "/app?tema=biblico" },
+    ],
+    feats: [
+      { href: "/app?tema=biblico", catalogI: 21 },
+    ],
+  },
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
@@ -425,17 +419,33 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   superhero: [16],
   sport: [0, 5],
   mothers_day: [6, 7],
-  fathers_day: [15],
+  fathers_day: [22, 15],
   grandparents_love: [9],
+  dia_do_idoso: [9],
   family_love: [8],
+  pets: [12, 13, 24],
+  dia_da_mulher: [7, 6, 9, 20],
+  dia_da_familia: [8, 20, 22, 23],
+  tio_tia: [20],
   christmas: [10],
   birthday: [14],
   alfabetizacao_inicial: [3],
   animais_sons: [4],
+  biblico: [21],
 };
 function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+function SubLabel({ label }: { label: string }) {
+  const [name, date] = label.split(" · ");
+  if (!date) return label;
+  return (
+    <>
+      <span className="kcat-sub-name">{name}</span>
+      <span className="kcat-sub-date">{date}</span>
+    </>
+  );
 }
 /** Nome da criança no exemplo, para o estúdio trocar pelo nome que a família digitar. */
 const HERO_BY_CATALOG: Record<number, string> = {
@@ -450,95 +460,58 @@ const HERO_BY_CATALOG: Record<number, string> = {
   11: "Nano",
   12: "Maya",
   13: "Mako",
+  24: "Lucas",
   14: "Ester",
   15: "Raquel",
   16: "Rebeca",
   17: "Abigail",
   18: "Miriam",
   19: "Noé",
+  21: "Davi",
 };
-function personalizeHref(theme: string, tag?: string) {
+function personalizeHref(opts: {
+  theme: string;
+  title: string;
+  historia?: string;
+  heroi?: string;
+  size: "M" | "P";
+  cover: "soft" | "hard";
+  modo: "realista" | "cartoon";
+  catalogI?: number;
+}) {
   const q = new URLSearchParams();
-  q.set("tema", theme);
-  q.set("campos", "tema");
-  if (tag) q.set("historia", tag);
+  q.set("tema", opts.theme);
+  q.set("campos", "nome");
+  q.set("titulo", opts.title);
+  if (opts.historia) q.set("historia", opts.historia);
+  if (opts.heroi) q.set("heroi", opts.heroi);
+  q.set("tamanho", opts.size);
+  q.set("capa", opts.cover);
+  q.set("modo", opts.modo);
   return `/app?${q.toString()}`;
 }
-function studioHref(opts: { tema: string; titulo?: string; historia?: string; heroi?: string }) {
+function studioHref(opts: {
+  tema: string;
+  titulo?: string;
+  historia?: string;
+  heroi?: string;
+  size?: "M" | "P";
+  cover?: "soft" | "hard";
+  modo?: "realista" | "cartoon";
+  catalogI?: number;
+}) {
   const q = new URLSearchParams();
   q.set("tema", opts.tema);
+  q.set("campos", "nome");
   if (opts.titulo) q.set("titulo", opts.titulo);
   if (opts.historia) q.set("historia", opts.historia);
   if (opts.heroi) q.set("heroi", opts.heroi);
+  q.set("tamanho", opts.size ?? "M");
+  q.set("capa", opts.cover ?? "hard");
+  q.set("modo", opts.modo ?? "realista");
   return `/app?${q.toString()}`;
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
-
-function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
-  const face = "#f4c19a", hair = "#6b4a2b", eye = "#3a2b1c", mouth = "#a15a3a";
-  if (kind === "multi") {
-    return (
-      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect width="120" height="120" fill="#e7ecf4" />
-        <g>
-          <rect x="24" y="76" width="20" height="26" rx="10" fill="#8fb4dd" />
-          <circle cx="34" cy="58" r="16" fill={face} /><path d="M19 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill="#7a5230" />
-          <circle cx="29" cy="57" r="2.1" fill={eye} /><circle cx="39" cy="57" r="2.1" fill={eye} /><path d="M29 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
-        </g>
-        <g>
-          <rect x="76" y="76" width="20" height="26" rx="10" fill="#8ccdb0" />
-          <circle cx="86" cy="58" r="16" fill={face} /><path d="M71 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill={hair} />
-          <circle cx="81" cy="57" r="2.1" fill={eye} /><circle cx="91" cy="57" r="2.1" fill={eye} /><path d="M81 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
-        </g>
-        <g>
-          <rect x="47" y="72" width="26" height="34" rx="12" fill="#e79a9a" />
-          <circle cx="60" cy="52" r="19" fill="#eab98f" /><path d="M41 51q0-21 19-21t19 21q0-10-19-10t-19 10Z" fill="#4a3320" />
-          <circle cx="54" cy="51" r="2.4" fill={eye} /><circle cx="66" cy="51" r="2.4" fill={eye} /><path d="M54 58q6 5 12 0" stroke={mouth} strokeWidth="2.2" fill="none" strokeLinecap="round" />
-        </g>
-      </svg>
-    );
-  }
-  if (kind === "side") {
-    return (
-      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect width="120" height="120" fill="#e7ecf4" />
-        <rect x="50" y="88" width="16" height="18" rx="8" fill="#eeb086" />
-        <circle cx="56" cy="60" r="28" fill={face} />
-        <path d="M28 60q0-30 28-30 16 0 25 12l-12 3q-7-9-17-7-24 4-24 22Z" fill={hair} />
-        <path d="M30 62q-3 14 10 20-8-16-2-28-5 2-8 8Z" fill={hair} />
-        <circle cx="46" cy="63" r="4" fill="#eeb086" />
-        <path d="M83 57q7 4 0 9" fill={face} stroke="#e2a880" strokeWidth="1.4" />
-        <circle cx="71" cy="58" r="3.1" fill={eye} />
-        <path d="M70 72q7 3 12 0" stroke={mouth} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  if (kind === "covered") {
-    return (
-      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect width="120" height="120" fill="#e7ecf4" />
-        <rect x="52" y="88" width="16" height="18" rx="8" fill="#eeb086" />
-        <circle cx="60" cy="60" r="30" fill={face} />
-        <path d="M30 58q0-30 30-30t30 30q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
-        <circle cx="50" cy="56" r="3.3" fill={eye} /><circle cx="70" cy="56" r="3.3" fill={eye} />
-        <path d="M34 66q26-6 52 0l0 8q-26 18-52 0Z" fill="#7f9bc4" />
-        <path d="M34 66l-6 4M86 66l6 4" stroke="#7f9bc4" strokeWidth="3" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width="120" height="120" fill="#ffe0b0" />
-      <circle cx="97" cy="23" r="15" fill="#fff2cf" opacity="0.85" />
-      <rect x="52" y="86" width="16" height="18" rx="8" fill="#eeb086" />
-      <circle cx="60" cy="62" r="30" fill={face} />
-      <path d="M30 60q0-32 30-32t30 32q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
-      <circle cx="50" cy="60" r="3.4" fill={eye} /><circle cx="70" cy="60" r="3.4" fill={eye} />
-      <circle cx="46" cy="70" r="4" fill="#f2a982" opacity=".6" /><circle cx="74" cy="70" r="4" fill="#f2a982" opacity=".6" />
-      <path d="M49 74q11 10 22 0" stroke={mouth} strokeWidth="3" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 /** Vídeo de exemplo: carrega e toca só quando entra na tela. */
 function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
@@ -649,12 +622,32 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
       },
       {
         name: "Ocasiões Especiais",
-        subs: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais", "Páscoa", "Dia das Crianças", "Ano Novo"],
+        subs: [
+          "Dia Internacional da Mulher · 8 de março",
+          "Dia da Sogra · 26 de março",
+          "Páscoa",
+          "Dia das Mães · 10 de maio",
+          "Dia Internacional da Família · 15 de maio",
+          "Dia do Irmão · 30 de maio",
+          "Dia dos Namorados · 12 de junho",
+          "Dia do Amigo · 20 de julho",
+          "Dia dos Avós · 26 de julho",
+          "Dia do Tio e da Tia · 26 de julho",
+          "Dia dos Pais · 9 de agosto",
+          "Dia dos Filhos · 11 de agosto",
+          "Independência do Brasil · 7 de setembro",
+          "Dia Internacional do Idoso · 1 de outubro",
+          "Dia dos Animais · 4 de outubro",
+          "Dia das Crianças · 12 de outubro",
+          "Natal · 25 de dezembro",
+          "Aniversário",
+          "Ano Novo",
+        ],
         feats: ["Natal", "Dia das Mães", "O Amor de Mãe", "O Aniversário Especial de Ester"],
       },
       {
@@ -666,6 +659,11 @@ const I18N = {
         name: "Sentimentos",
         subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
         feats: [],
+      },
+      {
+        name: "Bíblico",
+        subs: ["Bíblico"],
+        feats: ["Davi, o Menino Pastor"],
       },
     ],
     cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -683,15 +681,15 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e informe o nome, a idade, o idioma e o formato do livro." },
-      { t: "Criamos o personagem e a história", p: "O Story R Us gera a história completa, a capa e todas as páginas ilustradas com o mesmo rosto da criança." },
-      { t: "Você recebe e aprova o livro", p: "Visualize a prévia completa, aprove, e receba o livro físico pronto para impressão e entrega." },
+      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
+      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
+      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
-      { t: "A criança", p: "Envie de 3 a 5 fotos recentes, de frente e bem iluminadas. O rosto deve aparecer por inteiro, sem filtro, chapéu ou óculos escuros." },
-      { t: "Família e pets", p: "Para cada pessoa da história, envie 2 ou 3 fotos sozinha. Para o pet, uma de frente e outra de corpo inteiro." },
-      { t: "Dados do livro", p: "Informe o nome e a idade da criança, o tema do livro e o idioma: português, espanhol ou inglês." },
+      { t: "A criança", p: "3 a 5 fotos de frente, bem iluminadas, com o rosto inteiro. Sem filtro, chapéu ou óculos." },
+      { t: "Família e pets", p: "2 ou 3 fotos de cada pessoa, sozinha. Do pet, uma de frente e outra de corpo inteiro." },
+      { t: "Dados do livro", p: "Nome, idade, tema e idioma: português, espanhol ou inglês." },
     ],
     shot_title: "Dicas para a foto perfeita",
     cartoon_shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
@@ -724,7 +722,7 @@ const I18N = {
       { t: "Vídeo narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
       { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
-    cat_title: "Nossos livros", cat_sub: "Cada tema se transforma em uma narrativa ilustrada, concebida para que seu filho seja o protagonista de sua própria história.",
+    cat_title: "Nossos livros", cat_sub: "Cada tema se transforma em uma história ilustrada, com seu filho como protagonista da própria história.",
     personalize: "Personalizar",
     a11y_theme: "Alternar tema claro/escuro",
     a11y_menu: "Menu",
@@ -825,12 +823,32 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins", "Pets"],
         feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
       },
       {
         name: "Special Occasions",
-        subs: ["Christmas", "Birthday", "Mother's Day", "Father's Day", "Easter", "Children's Day", "New Year"],
+        subs: [
+          "International Women's Day · March 8",
+          "Mother-in-law's Day · March 26",
+          "Easter",
+          "Mother's Day · May 10",
+          "International Family Day · May 15",
+          "Siblings' Day · May 30",
+          "Valentine's Day · June 12",
+          "Friendship Day · July 20",
+          "Grandparents' Day · July 26",
+          "Aunt and Uncle's Day · July 26",
+          "Father's Day · August 9",
+          "Sons and Daughters Day · August 11",
+          "Brazil's Independence Day · September 7",
+          "International Day of Older Persons · October 1",
+          "World Animal Day · October 4",
+          "Children's Day · October 12",
+          "Christmas · December 25",
+          "Birthday",
+          "New Year",
+        ],
         feats: ["Christmas", "Mother's Day", "A Mother's Love", "Ester's Special Birthday"],
       },
       {
@@ -842,6 +860,11 @@ const I18N = {
         name: "Feelings",
         subs: ["Feelings", "Bedtime", "Sharing", "Body"],
         feats: [],
+      },
+      {
+        name: "Biblical",
+        subs: ["Biblical"],
+        feats: ["David, the Shepherd Boy"],
       },
     ],
     cat_below: "Preserve moments. Gift your family an unforgettable story.",
@@ -859,15 +882,15 @@ const I18N = {
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Send the photo and set the details", p: "Choose the theme and enter the name, age, language, and book format." },
-      { t: "We create the character and the story", p: "Story R Us creates the full story, the cover, and every illustrated page with the same face." },
-      { t: "You receive and approve the book", p: "See the full preview, approve it, and get the printed book ready for printing and delivery." },
+      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
+      { t: "We create the character and the story", p: "Story, cover, and pages with the same face." },
+      { t: "You receive and approve the book", p: "See the preview, approve it, and get the printed book." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
-      { t: "The child", p: "Send 3 to 5 recent photos, facing the camera and well lit. The whole face should be visible, with no filter, hat, or sunglasses." },
-      { t: "Family and pets", p: "For each person in the story, send 2 or 3 photos alone. For a pet, one facing forward and one full body." },
-      { t: "Book details", p: "Share the child’s name and age, the book theme, and the language: Portuguese, Spanish, or English." },
+      { t: "The child", p: "3 to 5 front-facing, well-lit photos, with the full face. No filter, hat, or sunglasses." },
+      { t: "Family and pets", p: "2 or 3 photos of each person, alone. For a pet, one facing forward and one full body." },
+      { t: "Book details", p: "Name, age, theme, and language: Portuguese, Spanish, or English." },
     ],
     shot_title: "Tips for the perfect photo",
     cartoon_shot_sub: "Upload a clear photo of your child with the face centered.",
@@ -900,7 +923,7 @@ const I18N = {
       { t: "Narrated video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
       { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
-    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated narrative, designed so your child is the hero of their own story.",
+    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated story, with your child as the hero of their own story.",
     personalize: "Personalize",
     a11y_theme: "Toggle light/dark theme",
     a11y_menu: "Menu",
@@ -1001,12 +1024,32 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
         name: "Ocasiones Especiales",
-        subs: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre", "Pascua", "Día del Niño", "Año Nuevo"],
+        subs: [
+          "Día Internacional de la Mujer · 8 de marzo",
+          "Día de la Suegra · 26 de marzo",
+          "Pascua",
+          "Día de la Madre · 10 de mayo",
+          "Día Internacional de la Familia · 15 de mayo",
+          "Día del Hermano · 30 de mayo",
+          "Día de los Enamorados · 12 de junio",
+          "Día del Amigo · 20 de julio",
+          "Día de los Abuelos · 26 de julio",
+          "Día del Tío y de la Tía · 26 de julio",
+          "Día del Padre · 9 de agosto",
+          "Día de los Hijos · 11 de agosto",
+          "Independencia de Brasil · 7 de septiembre",
+          "Día Internacional de las Personas Mayores · 1 de octubre",
+          "Día de los Animales · 4 de octubre",
+          "Día del Niño · 12 de octubre",
+          "Navidad · 25 de diciembre",
+          "Cumpleaños",
+          "Año Nuevo",
+        ],
         feats: ["Navidad", "Día de la Madre", "El Amor de Mamá", "El Cumpleaños Especial de Ester"],
       },
       {
@@ -1018,6 +1061,11 @@ const I18N = {
         name: "Sentimientos",
         subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
         feats: [],
+      },
+      {
+        name: "Bíblico",
+        subs: ["Bíblico"],
+        feats: ["David, el Niño Pastor"],
       },
     ],
     cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
@@ -1035,15 +1083,15 @@ const I18N = {
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Envía la foto y define los detalles", p: "Elige el tema e indica el nombre, la edad, el idioma y el formato del libro." },
-      { t: "Creamos el personaje y la historia", p: "Story R Us genera la historia completa, la portada y todas las páginas ilustradas con el mismo rostro." },
-      { t: "Recibes y apruebas el libro", p: "Mira la vista previa completa, aprueba y recibe el libro físico listo para imprimir y entregar." },
+      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
+      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro." },
+      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
-      { t: "El niño", p: "Envía de 3 a 5 fotos recientes, de frente y bien iluminadas. El rostro debe verse completo, sin filtro, sombrero ni gafas de sol." },
-      { t: "Familia y mascotas", p: "Para cada persona de la historia, envía 2 o 3 fotos sola. Para la mascota, una de frente y otra de cuerpo entero." },
-      { t: "Datos del libro", p: "Indica el nombre y la edad del niño, el tema del libro y el idioma: portugués, español o inglés." },
+      { t: "El niño", p: "De 3 a 5 fotos de frente, bien iluminadas, con el rostro completo. Sin filtro, sombrero ni gafas." },
+      { t: "Familia y mascotas", p: "2 o 3 fotos de cada persona, sola. De la mascota, una de frente y otra de cuerpo entero." },
+      { t: "Datos del libro", p: "Nombre, edad, tema e idioma: portugués, español o inglés." },
     ],
     shot_title: "Consejos para la foto perfecta",
     cartoon_shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
@@ -1076,7 +1124,7 @@ const I18N = {
       { t: "Video narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear mi video", badge: "" },
       { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear animación", badge: "" },
     ],
-    cat_title: "Nuestros libros", cat_sub: "Cada tema se transforma en una narrativa ilustrada, concebida para que tu hijo sea el protagonista de su propia historia.",
+    cat_title: "Nuestros libros", cat_sub: "Cada tema se transforma en una historia ilustrada, con tu hijo como protagonista de su propia historia.",
     personalize: "Personalizar",
     a11y_theme: "Cambiar tema claro/oscuro",
     a11y_menu: "Menú",
@@ -1414,10 +1462,23 @@ function CatalogBookCard({
   book,
   lang,
   personalize,
+  modo = "realista",
 }: {
-  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; ebook?: string; video?: string };
+  book: {
+    t: string;
+    img: string;
+    theme: string;
+    cover?: string;
+    size?: string;
+    tag?: string;
+    heroi?: string;
+    catalogI?: number;
+    ebook?: string;
+    video?: string;
+  };
   lang: Lang;
   personalize: string;
+  modo?: "realista" | "cartoon";
 }) {
   const selectable = typeof book.cover === "string" && typeof book.size === "string";
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
@@ -1465,13 +1526,54 @@ function CatalogBookCard({
         ) : (
           <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
         )}
-        <p>
-          {lang === "en" ? "Softcover or hardcover. 16 pages." : lang === "es" ? "Tapa blanda o tapa dura. 16 páginas." : "Capa mole ou capa dura. 16 páginas."}
-          <span>{lang === "en" ? "15 × 15 cm: R$ 157.00." : "15 × 15 cm: R$ 157,00."}</span>
-          <span>{lang === "en" ? "20 × 20 cm: R$ 177.00." : "20 × 20 cm: R$ 177,00."}</span>
-        </p>
+        <div className="cat-notes">
+          <p className="cat-notes-lead">
+            {lang === "en" ? "Book. 16 pages." : lang === "es" ? "Libro. 16 páginas." : "Livro 16 páginas"}
+          </p>
+          <p className="cat-notes-sizes">
+            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 177.00." : "M - 20 × 20 cm: R$ 177,00."}</span>
+            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 157.00." : "P - 15 × 15 cm: R$ 157,00."}</span>
+          </p>
+          <div className="cat-note-grid">
+            <div>
+              <strong>{lang === "en" ? "HARD - Hardcover" : lang === "es" ? "HARD - Tapa rígida" : "HARD - Capa rígida"}</strong>
+              <p>
+                {lang === "en"
+                  ? "Heavier, sturdy and durable. Used for special or collectible editions."
+                  : lang === "es"
+                    ? "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección."
+                    : "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis."}
+              </p>
+            </div>
+            <div>
+              <strong>{lang === "en" ? "SOFT - Softcover" : lang === "es" ? "SOFT - Tapa blanda" : "SOFT - Capa flexível"}</strong>
+              <p>
+                {lang === "en"
+                  ? "Lighter and flexible. Common in books and economical editions."
+                  : lang === "es"
+                    ? "Más ligera y flexible. Común en libros y ediciones económicas."
+                    : "Mais leve e flexível. Comum em livros e edições econômicas."}
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="cat-actions">
-          <Link to={personalizeHref(book.theme, book.tag)} className="kbtn kbtn-primary" data-testid="landing-personalize">{personalize}</Link>
+          <Link
+            to={personalizeHref({
+              theme: book.theme,
+              title: book.t,
+              historia: book.tag,
+              heroi: book.heroi,
+              size,
+              cover,
+              modo: modo ?? "realista",
+              catalogI: book.catalogI,
+            })}
+            className="kbtn kbtn-primary"
+            data-testid="landing-personalize"
+          >
+            {personalize}
+          </Link>
           {book.ebook ? (
             <a className="kbtn kbtn-ghost" href={exUrl(book.ebook)} download data-testid="landing-ebook-download">
               {lang === "en" ? "Download PDF" : lang === "es" ? "Descargar PDF" : "Baixar PDF"}
@@ -1522,12 +1624,22 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     : t.hiw_main;
   const howImgs = classicHow ? HOW_IMGS : HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const heroStrip = variant === "cartoon" ? HERO_STRIP_CARTOON : HERO_STRIP;
-  const catalogBooks = variant === "cartoon"
-    ? CATALOG_DRAWING.map((book) => ({ t: book.t[lang], img: book.img, theme: book.theme }))
-    : t.catalog
+  const heroStrip = HERO_STRIP.flatMap((book) => {
+    if (variant !== "cartoon") return [book];
+    const shot = CARTOON_HERO[book.name];
+    if (!shot) return [];
+    return [{
+      ...book,
+      cover: shot.cover ? heroAsset(shot.cover) : book.cover,
+      page: shot.page ? heroAsset(shot.page) : book.page,
+      photo: shot.photo ? heroAsset(shot.photo) : book.photo,
+    }];
+  });
+  const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
-        .filter(({ i }) => (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i))
+        .filter(({ i }) => (variant === "cartoon"
+          ? Boolean(CARTOON_COVER[i])
+          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i)))
         .sort((a, b) => {
           const rank = (i: number) => {
             const lead = CATALOG_LEAD.indexOf(i);
@@ -1537,14 +1649,21 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         })
         .map(({ c, i }) => ({
           t: c.t,
-          img: catalogImgSrc(CATALOG_IMGS[i], lang),
+          img: catalogCoverFile(i, lang, variant),
           theme: CATALOG_THEMES[i],
           cover: c.cover,
           size: c.size,
           tag: c.tag,
+          heroi: HERO_BY_CATALOG[i],
+          catalogI: i,
           ebook: i === 22 ? "ebook-meupai-heroi.pdf" : undefined,
           video: i === 22 ? "video-meupai-heroi.mp4" : undefined,
         }));
+  const reviewPhotos = REVIEW_PHOTOS.flatMap((photo) => {
+    if (variant !== "cartoon") return [photo];
+    const tab = CARTOON_REVIEW[photo.name];
+    return tab ? [{ ...photo, tab }] : [];
+  });
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
   const heroThumb = heroPick % 3;
   const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
@@ -1573,6 +1692,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       titulo: book.t,
       historia: `${book.tag}. ${book.p}`,
       heroi: HERO_BY_CATALOG[catalogI],
+      cover: catalogCoverChoice(book.cover),
+      modo: variant === "cartoon" ? "cartoon" : "realista",
+      catalogI,
     });
   };
   const navCats = t.cats.map((cat, i) => ({
@@ -1581,24 +1703,28 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     subs: cat.subs.map((label, j) => {
       const base = NAV_CAT_META[i].subs[j].href;
       const theme = themeFromHref(base);
-      const only = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
-      return { label, href: theme ? bookStudioHref(theme, only) : base };
+      const rawOnly = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
+      const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
+      const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
+      return { label, href: bookTheme ? bookStudioHref(bookTheme, only) : base };
     }),
-    feats: cat.feats.map((label, j) => {
+    feats: cat.feats.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
+      if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
       const theme = themeFromHref(meta.href) ?? "adventure";
-      return {
+      return [{
         label,
         href: bookStudioHref(theme, meta.catalogI),
-        img: catalogImgSrc(CATALOG_IMGS[meta.catalogI], lang),
-      };
+        img: catalogCoverFile(meta.catalogI, lang, variant),
+      }];
     }),
   }));
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
+    if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: bookStudioHref(theme, i), img: catalogImgSrc(img, lang) }];
+    return [{ label: book.t, href: bookStudioHref(CATALOG_THEMES[i] ?? theme, i), img: catalogCoverFile(i, lang, variant) }];
   });
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
@@ -1676,63 +1802,71 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="khead-bar">
             <div className="khead-bar-inner">
               <nav className="kcats" aria-label={t.cats_label}>
-                {navCats.map((cat, i) => (
-                  <div
-                    key={cat.name}
-                    className={`kcat${openCat === i ? " open" : ""}`}
-                    onMouseEnter={() => setOpenCat(i)}
-                    onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
+                <div
+                  className={`kcat${openCat === 0 ? " open" : ""}`}
+                  onMouseEnter={() => setOpenCat(0)}
+                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
+                >
+                  <button
+                    type="button"
+                    className="kcat-btn"
+                    style={{ "--cat": "#9b8cff" } as CSSProperties}
+                    aria-expanded={openCat === 0}
+                    aria-haspopup="true"
+                    aria-controls="cat-panel"
+                    onClick={() => setOpenCat(openCat === 0 ? null : 0)}
                   >
-                    <button
-                      type="button"
-                      className="kcat-btn"
-                      style={{ "--cat": cat.color } as CSSProperties}
-                      aria-expanded={openCat === i}
-                      aria-haspopup="true"
-                      aria-controls={`cat-panel-${i}`}
-                      onClick={() => setOpenCat(openCat === i ? null : i)}
-                    >
-                      <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 10px ${cat.color}` }} />
-                      {cat.name}
-                    </button>
-                    <div className="kcat-panel" id={`cat-panel-${i}`}>
-                      <ul className="kcat-subs">
-                        {cat.subs.map((sub, j) => (
-                          <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
-                            <Link
-                              to={sub.href}
-                              onClick={closeNav}
-                              onMouseEnter={() => setSubHover({ cat: i, sub: j })}
-                              onFocus={() => setSubHover({ cat: i, sub: j })}
-                            >{sub.label}</Link>
-                          </li>
-                        ))}
-                      </ul>
-                      <div className="kcat-feats" data-testid={`landing-cat-feats-${i}`}>
-                        {(() => {
-                          const activeSub = subHover?.cat === i ? cat.subs[subHover.sub] : null;
-                          const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
-                          const shown = activeTheme ? menuBooks(activeTheme) : cat.feats;
-                          const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
-                          return (
-                            <>
-                              {shown.map((feat) => (
-                                <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
-                                  <span className="kcat-feat-cover">
-                                    <img src={exUrl(feat.img)} alt="" />
-                                  </span>
-                                  <span>{feat.label}</span>
-                                </Link>
-                              ))}
-                              {activeTheme && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
-                              <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
-                            </>
-                          );
-                        })()}
-                      </div>
+                    <span className="kcat-dot" style={{ background: "#9b8cff", boxShadow: "0 0 10px #9b8cff" }} />
+                    {t.cats_label}
+                  </button>
+                  <div className="kcat-panel kcat-panel-all" id="cat-panel">
+                    <div className="kcat-groups">
+                      {navCats.map((cat, i) => (
+                        <div key={cat.name} className="kcat-group">
+                          <p className="kcat-group-name">
+                            <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
+                            {cat.name}
+                          </p>
+                          <ul className="kcat-subs">
+                            {cat.subs.map((sub, j) => (
+                              <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
+                                <Link
+                                  to={sub.href}
+                                  onClick={closeNav}
+                                  onMouseEnter={() => setSubHover({ cat: i, sub: j })}
+                                  onFocus={() => setSubHover({ cat: i, sub: j })}
+                                ><SubLabel label={sub.label} /></Link>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="kcat-feats" data-testid="landing-cat-feats">
+                      {(() => {
+                        const activeCat = subHover ? navCats[subHover.cat] : null;
+                        const activeSub = subHover && activeCat ? activeCat.subs[subHover.sub] : null;
+                        const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
+                        const shown = activeTheme ? menuBooks(activeTheme) : [];
+                        const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
+                        return (
+                          <>
+                            {shown.map((feat) => (
+                              <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                                <span className="kcat-feat-cover">
+                                  <img src={exUrl(feat.img)} alt="" />
+                                </span>
+                                <span>{feat.label}</span>
+                              </Link>
+                            ))}
+                            {activeTheme && shown.length === 0 ? <p className="kcat-empty">{t.cat_empty}</p> : null}
+                            <Link to={allHref} className="kbtn kbtn-go kcat-all" onClick={closeNav}>{t.view_all}</Link>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
-                ))}
+                </div>
                 <a href="#como" className="kcat-btn" style={{ "--cat": "#7aa2ff" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
                   {t.hiw_title}
@@ -1745,6 +1879,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
+                <Link to="/cartoon" className={`kcat-btn${variant === "cartoon" ? " on" : ""}`} style={{ "--cat": "#3ecf8e" } as CSSProperties} onClick={closeNav} aria-current={variant === "cartoon" ? "page" : undefined}>
+                  <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
+                  Cartoon
+                </Link>
               </nav>
             </div>
           </div>
@@ -1792,7 +1930,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
                     {cat.subs.map((sub) => (
-                      <Link key={sub.label} to={sub.href} onClick={closeNav}>{sub.label}</Link>
+                      <Link key={sub.label} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
                     ))}
                   </div>
                 </div>
@@ -1805,6 +1943,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
+            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>Cartoon</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
@@ -1826,7 +1965,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               const seriesOn = Math.floor(heroPick / 3) === seriesIndex;
               return (
                 <div
-                  className={`hero-slide${seriesOn ? " on" : ""}`}
+                  className={`hero-slide${seriesOn ? " on" : ""}${seriesIndex === 0 ? " is-lead" : ""}`}
                   key={`${copy}-${book.name}-${seriesIndex}`}
                   aria-hidden={copy === 1 ? true : undefined}
                 >
@@ -1878,61 +2017,52 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
           <p className="ksub">{t.hiw_sub}</p>
-          <div className={`shot-tips${classicHow ? " shot-tips-classic" : ""}`}>
-            {classicHow ? (
-              <>
-                <h3>{t.shot_title}</h3>
-                <p className="shot-sub">{t.cartoon_shot_sub}</p>
-                <div className="shot-grid">
-                  {SHOTS.map((s, i) => (
-                    <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
-                      <div className="shot-ava-wrap">
-                        <div className="shot-ava">
-                          {s.img ? (
-                            <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                          ) : (
-                            <ShotArt kind={s.art ?? "good"} />
-                          )}
-                        </div>
-                        <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
+          {classicHow ? (
+          <div className="shot-tips shot-tips-classic">
+              <h3>{t.shot_title}</h3>
+              <p className="shot-sub">{t.cartoon_shot_sub}</p>
+              <div className="shot-grid">
+                {SHOTS.map((s, i) => (
+                  <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
+                    <div className="shot-ava-wrap">
+                      <div className="shot-ava">
+                        <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
                       </div>
-                      {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
+                      <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
                     </div>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <p className="shot-sub">{t.shot_sub}</p>
-                <div className="shot-grid">
-                  {t.shots.map((s) => (
-                    <article className="shot" key={s.t}>
-                      <h3>{s.t}</h3>
-                      <p>{s.p}</p>
-                    </article>
-                  ))}
-                </div>
-              </>
-            )}
+                    {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
+                  </div>
+                ))}
+              </div>
           </div>
+          ) : null}
           <div className="howex">
-            {hiwSteps.map((h, i) => (
+            {hiwSteps.map((h, i) => {
+              const tip = classicHow ? null : t.shots[i];
+              return (
               <Fragment key={h.t}>
                 <figure className={`howex-card${classicHow
                   ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
                   : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
+                  {tip ? (
+                    <div className="howex-lead">
+                      <h3>{tip.t}</h3>
+                      <p>{tip.p}</p>
+                    </div>
+                  ) : null}
                   <div className="howex-media">
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
+                    <span className="howex-num">{i + 1}</span>
                   </div>
-                  <span className="howex-num">{i + 1}</span>
                   <figcaption>
                     <h3>{h.t}</h3>
                     <p>{h.p}</p>
                   </figcaption>
                 </figure>
-                {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+                {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>
@@ -1943,7 +2073,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.cat_sub}</p>
         <div className="cat-grid">
           {catalogBooks.map((c) => (
-            <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} />
+            <CatalogBookCard
+              key={c.t}
+              book={c}
+              lang={lang}
+              personalize={t.personalize}
+              modo={variant === "cartoon" ? "cartoon" : "realista"}
+            />
           ))}
         </div>
       </section>
@@ -2011,7 +2147,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.rev_sub}</p>
         <div className="rev-carousel reveal" aria-label={t.rev_title}>
           <div className="rev-carousel-track">
-            {[0, 1].map((copy) => REVIEW_PHOTOS.map((b, i) => (
+            {[0, 1].map((copy) => reviewPhotos.map((b, i) => (
               <figure className="rev-photo" key={`${copy}-${b.tab}`} aria-hidden={copy === 1 ? true : undefined}>
                 <span className="rev-photo-frame">
                   <img
