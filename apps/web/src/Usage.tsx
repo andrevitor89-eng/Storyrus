@@ -148,13 +148,25 @@ export function Usage() {
       <section className="usage-panel" data-testid="owner-orders">
         <h2>Pedidos</h2>
         <p className="muted">
-          Livros pedidos pela família, depois que a foto chega. A imagem fica no projeto; aqui só o resumo.
+          Livros pedidos pela família, depois que a foto chega. A imagem abre no pedido.
         </p>
         {(data?.orders ?? []).length ? (
           <div>
             {(data?.orders ?? []).map((order) => (
               <article key={order.id} className="usage-order">
                 <pre>{order.summary}</pre>
+                {(order.photo_urls ?? []).length > 0 && (
+                  <div className="usage-order-photos">
+                    {(order.photo_urls ?? []).map((url) => (
+                      <figure key={url}>
+                        <img src={url} alt="Foto enviada no pedido" />
+                        <a href={url} target="_blank" rel="noreferrer">
+                          Abrir imagem
+                        </a>
+                      </figure>
+                    ))}
+                  </div>
+                )}
                 <small className="muted">
                   {when(order.created_at)} · Projeto {order.project_id}
                 </small>

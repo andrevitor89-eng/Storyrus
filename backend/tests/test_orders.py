@@ -88,6 +88,7 @@ def _photo(auth_client, pid, **fields):
 
 def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: None)
+    monkeypatch.setattr("app.storage.presign_get", lambda key: f"https://fotos.test/{key}")
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
     pid = _create(auth_client)
@@ -110,6 +111,8 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     assert orders[0]["project_id"] == pid
     assert orders[0]["summary"] == CARTOON
     assert "foto.jpg" not in orders[0]["summary"]
+    assert orders[0]["photo_urls"]
+    assert orders[0]["photo_urls"][0].startswith("https://fotos.test/")
 
 
 def test_realista_order_uses_typed_theme_and_site_language(auth_client, monkeypatch):

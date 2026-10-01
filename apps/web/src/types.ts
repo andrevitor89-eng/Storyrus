@@ -150,6 +150,7 @@ export interface OrderTicket {
   child_age?: number | null;
   book_size?: string | null;
   cover_type?: string | null;
+  photo_urls?: string[];
 }
 
 export interface UsageAnomaly {

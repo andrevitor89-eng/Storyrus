@@ -232,7 +232,7 @@ class UsageAnomalyOut(BaseModel):
 
 
 class OrderTicketOut(BaseModel):
-    """Resumo do pedido. A foto não vai neste payload — só o texto e o id do projeto."""
+    """Resumo do pedido. As fotos vão como links assinados, gerados na hora da leitura."""
 
     id: uuid.UUID
     project_id: uuid.UUID
@@ -241,6 +241,7 @@ class OrderTicketOut(BaseModel):
     child_age: int | None = None
     book_size: str | None = None
     cover_type: str | None = None
+    photo_urls: list[str] = []
 
 
 class UsageOut(BaseModel):

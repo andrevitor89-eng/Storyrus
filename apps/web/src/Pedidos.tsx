@@ -173,6 +173,18 @@ export function Pedidos() {
                   </div>
                 ))}
               </dl>
+              {(current.photo_urls ?? []).length > 0 && (
+                <div className="usage-order-photos">
+                  {(current.photo_urls ?? []).map((url) => (
+                    <figure key={url}>
+                      <img src={url} alt="Foto enviada no pedido" />
+                      <a href={url} target="_blank" rel="noreferrer">
+                        Abrir imagem
+                      </a>
+                    </figure>
+                  ))}
+                </div>
+              )}
               <p className="muted">
                 {when(current.created_at)} · Projeto {current.project_id}
               </p>

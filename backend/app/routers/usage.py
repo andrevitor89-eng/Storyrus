@@ -15,7 +15,8 @@ from sqlalchemy.orm import Session
 from app import rate_limit
 from app.config import settings
 from app.database import get_db
-from app.models import Job, OrderTicket, Project, UsageEvent
+from app import storage
+from app.models import Asset, AssetKind, Job, OrderTicket, Project, UsageEvent
 from app.schemas import (
     OrderTicketOut,
     UsageAnomalyOut,
@@ -274,6 +275,27 @@ def get_usage(
     order_rows = db.scalars(
         select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
     ).all()
+    project_ids = [ticket.project_id for ticket in order_rows]
+    photo_rows = (
+        db.scalars(
+            select(Asset)
+            .where(
+                Asset.project_id.in_(project_ids),
+                Asset.kind.in_([AssetKind.PHOTO.value, "extra_character"]),
+            )
+            .order_by(Asset.created_at.asc())
+        ).all()
+        if project_ids
+        else []
+    )
+    photos_by_project: dict = defaultdict(list)
+    for asset in photo_rows:
+        try:
+            url = storage.presign_get(asset.storage_key)
+        except Exception:
+            continue
+        if url:
+            photos_by_project[asset.project_id].append(url)
     orders = [
         OrderTicketOut(
             id=ticket.id,
@@ -283,6 +305,7 @@ def get_usage(
             child_age=ticket.project.child_age if ticket.project else None,
             book_size=ticket.project.book_size if ticket.project else None,
             cover_type=ticket.project.cover_type if ticket.project else None,
+            photo_urls=photos_by_project.get(ticket.project_id, []),
         )
         for ticket in order_rows
     ]

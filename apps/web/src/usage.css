@@ -179,6 +179,22 @@
   color: var(--muted);
 }
 .usage-order-detail dd { margin: 0; color: var(--navy); font-size: 1rem; }
+.usage-order-photos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.9rem;
+}
+.usage-order-photos figure { margin: 0; }
+.usage-order-photos img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  display: block;
+  background: var(--line-soft);
+}
+.usage-order-photos a { display: block; margin-top: 0.35rem; font-size: 0.85rem; }
 @media (max-width: 720px) {
   .usage-cards { grid-template-columns: 1fr; }
   .usage-head { flex-wrap: wrap; }
