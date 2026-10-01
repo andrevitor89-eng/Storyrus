@@ -12,7 +12,6 @@ from app.deps import get_current_user
 from app.models import PrintOrder, Project, User
 from app.printkit.gateway import GatewayNotConfigured, checkout_available
 from app.printkit.service import (
-    FulfillmentPending,
     address_complete,
     apply_address,
     get_print_order,
@@ -131,8 +130,6 @@ def quote_print_freight(
     _project, order = _owned_order(db, user, project_id)
     try:
         options = quote_order(order)
-    except FulfillmentPending as exc:
-        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except ShippingNotConfigured as exc:
         raise HTTPException(
             status.HTTP_409_CONFLICT,
@@ -157,8 +154,6 @@ def choose_print_freight(
     _project, order = _owned_order(db, user, project_id)
     try:
         select_freight(order, body.service_id)
-    except FulfillmentPending as exc:
-        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except ShippingError as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     db.commit()
@@ -176,8 +171,6 @@ def checkout_print(
     _project, order = _owned_order(db, user, project_id)
     try:
         charge = start_checkout(order, body.installments)
-    except FulfillmentPending as exc:
-        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except GatewayNotConfigured as exc:
         raise HTTPException(
             status.HTTP_409_CONFLICT,

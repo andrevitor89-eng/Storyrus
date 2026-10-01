@@ -1,4 +1,4 @@
-"""Pedido impresso: arquivo único de capa e miolo. Nota, frete e pagamento ficam fechados."""
+"""Pedido impresso: arquivos, pacote, endereço, frete e pagamento."""
 
 from __future__ import annotations
 
@@ -13,9 +13,11 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.config import settings
 from app.models import Asset, AssetKind, PrintOrder, Project, _now
-from app.printkit.files import build_print_pdf
+from app.printkit.files import build_print_pdfs
+from app.printkit.gateway import configured_gateway
 from app.printkit.pricing import book_price_cents
-from app.printkit.spec import INTERIOR_PAGES, PrintPagesMissing, PrintSpecIncomplete, spec_from_settings
+from app.printkit.shipping import ShippingError, ShippingNotConfigured, buy_label
+from app.printkit.spec import PrintPagesMissing, PrintSpecIncomplete, spec_from_settings
 
 _FILE_STATUSES = frozenset(
     {"files_ready", "sent_for_validation", "approved", "rejected"}
@@ -24,17 +26,6 @@ _FORWARD = {
     "files_ready": frozenset({"sent_for_validation"}),
     "sent_for_validation": frozenset({"approved", "rejected"}),
 }
-
-
-class FulfillmentPending(Exception):
-    """Nota, coleta e faturamento ainda não fecham o envio à gráfica."""
-
-    gaps = ("fiscal", "logistics", "billing")
-
-    def __init__(self) -> None:
-        super().__init__(
-            "Nota fiscal, coleta e faturamento ainda não estão fechados. O pedido não segue para a gráfica."
-        )
 
 
 def order_code(order_id: uuid.UUID) -> str:
@@ -53,7 +44,8 @@ def invalidate_print(db: Session, project: Project) -> None:
         project.print_status = None
     if order is None or order.payment_status == "paid":
         return
-    order.file_key = None
+    order.cover_key = None
+    order.interior_key = None
     order.status = "awaiting_spec"
     order.block_reason = None
     order.freight_options = None
@@ -94,12 +86,8 @@ def _store_pdf(project_id: uuid.UUID, kind: str, blob: bytes) -> str:
     return key
 
 
-def _clear_file(order: PrintOrder) -> None:
-    order.file_key = None
-
-
 def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
-    """Gera um PDF com capa e 16 páginas. Sem spec completa, não publica arquivo."""
+    """Gera capa e miolo só com a spec completa. Caso contrário não publica arquivo."""
     if order.status in {"sent_for_validation", "approved"} or order.payment_status == "paid":
         return
     order.book_size = project.book_size
@@ -108,7 +96,8 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     if order.book_size not in {"P", "M"} or order.cover_type not in {"soft", "hard"}:
         order.status = "awaiting_spec"
         order.block_reason = "Tamanho ou tipo de capa ausente no projeto."
-        _clear_file(order)
+        order.cover_key = None
+        order.interior_key = None
         _sync(project, order)
         return
     if (
@@ -118,7 +107,8 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     ):
         order.status = "held"
         order.block_reason = "15 × 15 cm em capa dura ainda não foi liberado pela produção."
-        _clear_file(order)
+        order.cover_key = None
+        order.interior_key = None
         _sync(project, order)
         return
     spec = spec_from_settings()
@@ -126,18 +116,20 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     if gaps:
         order.status = "awaiting_spec"
         order.block_reason = "Especificação de produção incompleta: " + ", ".join(gaps)
-        _clear_file(order)
+        order.cover_key = None
+        order.interior_key = None
         _sync(project, order)
         return
     pages = _page_images(db, project)
-    if len(pages) != INTERIOR_PAGES:
+    if not pages:
         order.status = "awaiting_pages"
-        order.block_reason = f"O miolo impresso precisa de {INTERIOR_PAGES} páginas."
-        _clear_file(order)
+        order.block_reason = "O livro ainda não tem páginas ilustradas para o miolo."
+        order.cover_key = None
+        order.interior_key = None
         _sync(project, order)
         return
     try:
-        blob = build_print_pdf(
+        cover_pdf, interior_pdf = build_print_pdfs(
             order_code=order.code,
             book_size=order.book_size,
             cover_type=order.cover_type,
@@ -146,17 +138,20 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
         )
     except PrintPagesMissing:
         order.status = "awaiting_pages"
-        order.block_reason = f"O miolo impresso precisa de {INTERIOR_PAGES} páginas."
-        _clear_file(order)
+        order.block_reason = "O livro ainda não tem páginas ilustradas para o miolo."
+        order.cover_key = None
+        order.interior_key = None
         _sync(project, order)
         return
     except PrintSpecIncomplete as exc:
         order.status = "awaiting_spec"
         order.block_reason = str(exc)
-        _clear_file(order)
+        order.cover_key = None
+        order.interior_key = None
         _sync(project, order)
         return
-    order.file_key = _store_pdf(project.id, "print_file", blob)
+    order.cover_key = _store_pdf(project.id, "print_cover", cover_pdf)
+    order.interior_key = _store_pdf(project.id, "print_interior", interior_pdf)
     order.status = "files_ready"
     order.block_reason = None
     _sync(project, order)
@@ -184,25 +179,25 @@ def open_print_order(db: Session, project: Project) -> PrintOrder:
 
 
 def package_zip(order: PrintOrder) -> bytes:
-    if not order.file_key:
+    if not order.cover_key or not order.interior_key:
         raise FileNotFoundError(order.code)
     spec = spec_from_settings()
-    file_name = spec.file_name(order.code)
+    cover_name = spec.file_name(order.code, "capa")
+    interior_name = spec.file_name(order.code, "miolo")
     manifest = {
         "code": order.code,
         "book_size": order.book_size,
         "cover_type": order.cover_type,
         "quantity": order.quantity,
-        "interior_pages": INTERIOR_PAGES,
-        "files": {"livro": file_name},
+        "files": {"capa": cover_name, "miolo": interior_name},
         "pdf_x": spec.pdf_x,
         "color_profile": spec.color_profile,
         "production_ready": order.status in _FILE_STATUSES,
-        "fulfillment_blockers": list(FulfillmentPending.gaps),
     }
     buf = io.BytesIO()
     with zipfile.ZipFile(buf, "w", compression=zipfile.ZIP_DEFLATED) as archive:
-        archive.writestr(file_name, storage.get_bytes(order.file_key))
+        archive.writestr(cover_name, storage.get_bytes(order.cover_key))
+        archive.writestr(interior_name, storage.get_bytes(order.interior_key))
         archive.writestr(
             "pedido.json",
             json.dumps(manifest, ensure_ascii=False).encode("utf-8"),
@@ -244,19 +239,79 @@ def apply_address(order: PrintOrder, data: dict) -> None:
 
 
 def quote_order(order: PrintOrder):
-    raise FulfillmentPending()
+    from app.printkit.shipping import quote_freight
+
+    if not address_complete(order):
+        raise ShippingError("Endereço de entrega incompleto.")
+    options = quote_freight(order.postal_code or "")
+    order.freight_options = [item.as_dict() for item in options]
+    order.freight_service_id = None
+    order.freight_service_name = None
+    order.freight_price_cents = None
+    order.freight_days = None
+    return options
 
 
 def select_freight(order: PrintOrder, service_id: int) -> None:
-    raise FulfillmentPending()
+    match = next(
+        (item for item in (order.freight_options or []) if item.get("service_id") == service_id),
+        None,
+    )
+    if match is None:
+        raise ShippingError("Opção de frete não encontrada. Calcule de novo.")
+    order.freight_service_id = int(match["service_id"])
+    order.freight_service_name = match.get("service_name")
+    order.freight_price_cents = int(match["price_cents"])
+    days = match.get("delivery_days")
+    order.freight_days = int(days) if days is not None else None
 
 
 def start_checkout(order: PrintOrder, installments: int):
-    raise FulfillmentPending()
+    if order.book_size not in {"P", "M"}:
+        raise ValueError("Tamanho do livro ausente.")
+    if order.status == "held":
+        raise ValueError(order.block_reason or "Formato ainda não liberado.")
+    if order.status not in _FILE_STATUSES:
+        raise ValueError("Os arquivos de produção ainda não estão prontos.")
+    if not address_complete(order):
+        raise ValueError("Endereço de entrega incompleto.")
+    if order.freight_price_cents is None or order.freight_service_id is None:
+        raise ValueError("Selecione o frete antes de pagar.")
+    gateway = configured_gateway()
+    book = book_price_cents(order.book_size)
+    amount = book + int(order.freight_price_cents)
+    charge = gateway.create_charge(
+        order_code=order.code,
+        amount_cents=amount,
+        installments=installments,
+    )
+    order.payment_status = "pending"
+    order.payment_provider = charge.provider
+    order.payment_reference = charge.reference
+    order.amount_cents = amount
+    return charge
 
 
 def fulfill_payment(db: Session, order: PrintOrder) -> None:
-    raise FulfillmentPending()
+    if order.payment_status != "paid":
+        order.payment_status = "paid"
+    if order.tracking_code:
+        return
+    try:
+        result = buy_label(order)
+    except ShippingNotConfigured as exc:
+        order.label_error = "Etiqueta não comprada: " + ", ".join(exc.gaps)
+        return
+    except ShippingError as exc:
+        order.label_error = str(exc)
+        return
+    order.tracking_code = result.tracking
+    order.label_url = result.url
+    if result.tracking:
+        order.label_error = None
+    else:
+        order.label_error = result.error or "A transportadora não devolveu código de rastreio."
+    db.add(order)
 
 
 def price_for(order: PrintOrder) -> int | None:

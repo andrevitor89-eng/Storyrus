@@ -16,7 +16,7 @@ from app.config import settings
 from app.database import get_db
 from app.models import Asset, AssetKind, Job, JobStatus, PrintOrder, Project, ProjectStatus
 from app.printkit.gateway import GatewayNotConfigured, GatewayRejected, configured_gateway
-from app.printkit.service import FulfillmentPending, fulfill_payment
+from app.printkit.service import fulfill_payment
 from app.services import webhook_auth
 
 router = APIRouter(prefix="/v1/webhooks", tags=["webhooks"])
@@ -100,9 +100,6 @@ async def print_payment_callback(
     if order is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido de impressão não encontrado")
     if notice.paid:
-        try:
-            fulfill_payment(db, order)
-        except FulfillmentPending as exc:
-            raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+        fulfill_payment(db, order)
     db.commit()
     return {"ok": True, "paid": notice.paid}
