@@ -176,7 +176,7 @@ class Project(Base):
     theme: Mapped[str | None] = mapped_column(String(32), nullable=True)
     # Tamanho impresso escolhido na geração: M = 20×20 cm, P = 15×15 cm.
     book_size: Mapped[str | None] = mapped_column(String(1), nullable=True)
-    # Acabamento escolhido na geração: soft = capa mole, hard = capa dura.
+    # Acabamento escolhido na geração: soft = capa flexível, hard = capa dura.
     cover_type: Mapped[str | None] = mapped_column(String(4), nullable=True)
     # Segundo tema opcional: combinado com `theme` na mesma história (máx. 2 temas).
     # `theme` continua sendo o principal (define vilão/cenário/arco); `extra_theme`
@@ -214,6 +214,9 @@ class Project(Base):
         back_populates="project", cascade="all, delete-orphan"
     )
     order_ticket: Mapped["OrderTicket | None"] = relationship(
+        back_populates="project", cascade="all, delete-orphan", uselist=False
+    )
+    print_order: Mapped["PrintOrder | None"] = relationship(
         back_populates="project", cascade="all, delete-orphan", uselist=False
     )
 
@@ -290,6 +293,56 @@ class OrderTicket(Base):
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
 
     project: Mapped[Project] = relationship(back_populates="order_ticket")
+
+
+class PrintOrder(Base):
+    """Pedido do livro impresso, separado do resumo que a família envia com a foto."""
+
+    __tablename__ = "print_orders"
+    __table_args__ = (
+        UniqueConstraint("project_id", name="uq_print_orders_project_id"),
+        UniqueConstraint("code", name="uq_print_orders_code"),
+    )
+
+    id: Mapped[uuid.UUID] = mapped_column(GUID, primary_key=True, default=_uuid)
+    project_id: Mapped[uuid.UUID] = mapped_column(
+        GUID, ForeignKey("projects.id", ondelete="CASCADE"), nullable=False
+    )
+    code: Mapped[str] = mapped_column(String(16), nullable=False)
+    book_size: Mapped[str | None] = mapped_column(String(1), nullable=True)
+    cover_type: Mapped[str | None] = mapped_column(String(8), nullable=True)
+    quantity: Mapped[int] = mapped_column(Integer, nullable=False, default=1)
+    # awaiting_spec | awaiting_pages | held | files_ready |
+    # sent_for_validation | approved | rejected
+    status: Mapped[str] = mapped_column(String(32), nullable=False, default="awaiting_spec")
+    block_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    file_key: Mapped[str | None] = mapped_column(Text, nullable=True)
+    recipient_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    street: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    complement: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    district: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    freight_options: Mapped[list | None] = mapped_column(JSONType, nullable=True)
+    freight_service_id: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    freight_service_name: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    freight_price_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    freight_days: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    payment_status: Mapped[str] = mapped_column(String(16), nullable=False, default="unpaid")
+    payment_provider: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    payment_reference: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    amount_cents: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tracking_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    label_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    label_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        default=_now, onupdate=_now, server_default=func.now()
+    )
+
+    project: Mapped[Project] = relationship(back_populates="print_order")
 
 
 class Asset(Base):

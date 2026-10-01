@@ -12,6 +12,14 @@ afterEach(() => {
   window.history.replaceState({}, "", "/");
 });
 
+async function fillClient(user: ReturnType<typeof userEvent.setup>, notes = "") {
+  await user.type(screen.getByLabelText(/nome do cliente/i), "Ana Souza");
+  await user.type(screen.getByLabelText(/^e-mail$/i), "ana@email.com");
+  await user.type(screen.getByLabelText(/telefone/i), "11999999999");
+  await user.type(screen.getByLabelText(/endereço para entrega/i), "Rua A, 10");
+  if (notes) await user.type(screen.getByLabelText(/observação/i), notes);
+}
+
 function ebookJob(overrides: Partial<Job> = {}): Job {
   return {
     id: "job-1",
@@ -75,7 +83,7 @@ describe("Studio — tema do banner", () => {
     window.history.replaceState(
       {},
       "",
-      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&tamanho=P&capa=soft&modo=cartoon",
+      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&tamanho=P&capa=soft&modo=cartoon&quem=pai&genero=m",
     );
     render(<Studio />);
 
@@ -83,11 +91,14 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText(/papai herói/i)).toBeInTheDocument();
     expect(screen.queryByLabelText(/título do livro/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/insira o tema desejado/i)).not.toBeInTheDocument();
-    expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
-    expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
+    expect(screen.getByLabelText(/nome do pai/i)).toHaveValue("");
+    expect(screen.getByLabelText(/idade do pai/i)).toHaveValue(null);
+    expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /15 × 15 cm/i, pressed: true })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /capa mole/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /capa flexível/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByLabelText(/^quantidade$/i)).toHaveValue(1);
+    expect(screen.getByText(/lembrancinha de aniversário, casamento ou festa/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
   });
@@ -98,14 +109,17 @@ describe("Studio — tema do banner", () => {
     window.history.replaceState(
       {},
       "",
-      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&modo=cartoon",
+      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&modo=cartoon&quem=pai&genero=m",
     );
     const user = userEvent.setup();
     render(<Studio />);
 
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lia");
-    await user.type(screen.getByLabelText(/^idade$/i), "4");
+    await user.type(screen.getByLabelText(/nome do pai/i), "Lia");
+    await user.type(screen.getByLabelText(/idade do pai/i), "4");
+    await user.clear(screen.getByTestId("studio-quantity"));
+    await user.type(screen.getByTestId("studio-quantity"), "20");
     await user.type(screen.getByTestId("studio-extra-names"), "Vovó, Totó");
+    await fillClient(user, "entregar à tarde");
     await user.upload(
       screen.getByTestId("studio-photo-input"),
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
@@ -117,7 +131,7 @@ describe("Studio — tema do banner", () => {
     expect(sent).toHaveTextContent(/pedido enviado/i);
     expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
     expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
-    expect(screen.queryByLabelText(/nome da criança/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/nome do pai/i)).not.toBeInTheDocument();
     expect(upload).toHaveBeenCalledWith(
       expect.any(String),
       expect.any(File),
@@ -125,8 +139,42 @@ describe("Studio — tema do banner", () => {
         language: "pt-BR",
         themeLabel: "Papai herói",
         extraNames: "Vovó, Totó",
+        gender: "m",
+        subject: "pai",
+        quantity: "20",
+        clientName: "Ana Souza",
+        clientEmail: "ana@email.com",
+        clientPhone: "11999999999",
+        clientAddress: "Rua A, 10",
+        clientNotes: "entregar à tarde",
       }),
     );
+  });
+
+  it("não envia o pedido sem o cadastro do cliente", async () => {
+    const upload = vi.spyOn(api, "uploadPhoto");
+    const create = vi.spyOn(api, "createProject");
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&modo=cartoon&quem=pai&genero=m",
+    );
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    await user.type(screen.getByLabelText(/nome do pai/i), "Lia");
+    await user.type(screen.getByLabelText(/idade do pai/i), "4");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+
+    expect(await screen.findByRole("alert")).toHaveTextContent(/preencha nome/i);
+    expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
+    expect(upload).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
   });
 
   it("preenche um tema sem livro único e deixa os campos editáveis", async () => {
@@ -142,6 +190,54 @@ describe("Studio — tema do banner", () => {
     await user.clear(title);
     await user.type(title, "Lia no gol");
     expect(title).toHaveValue("Lia no gol");
+  });
+
+  it("pede o nome do pet e deixa trocar o gênero no livro da Maya", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=pets&campos=nome&titulo=Maya%2C%20Minha%20Cachorra&historia=Amizade&quem=pet&genero=f&heroi=Maya",
+    );
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    expect(screen.getByLabelText(/nome do pet/i)).toHaveValue("");
+    expect(screen.getByLabelText(/idade do pet/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/nome da criança/i)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^feminino$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByText(/foto do pet/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /^masculino$/i }));
+    expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
+    await user.type(screen.getByLabelText(/nome do pet/i), "Thor");
+    expect(screen.getByText(/thor, minha cachorra/i)).toBeInTheDocument();
+  });
+
+  it("pede a criança e o pet quando o livro tem os dois", () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=pets&campos=nome&titulo=Lucas%20e%20seu%20amigo%20Max&quem=crianca&genero=m&quem2=pet&genero2=m&heroi=Lucas&heroi2=Max",
+    );
+    render(<Studio />);
+
+    expect(screen.getByLabelText(/nome da criança/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/nome do pet/i)).toBeInTheDocument();
+    expect(screen.getAllByRole("button", { name: /^masculino$/i, pressed: true })).toHaveLength(2);
+  });
+
+  it("troca o primo para prima quando a família escolhe feminino", async () => {
+    window.history.replaceState(
+      {},
+      "",
+      "/app?tema=family_love&campos=nome&titulo=Enzo%2C%20Meu%20Primo&quem=primo&genero=m&heroi=Enzo",
+    );
+    const user = userEvent.setup();
+    render(<Studio />);
+
+    expect(screen.getByLabelText(/nome do primo/i)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
+    expect(screen.getByLabelText(/nome da prima/i)).toBeInTheDocument();
   });
 });
 
@@ -160,12 +256,14 @@ describe("Studio a11y", () => {
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
-    await user.type(screen.getByLabelText(/idade/i), "5");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await fillClient(user);
     const fileInput = screen.getByTestId("studio-photo-input");
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("button", { name: /criar livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
@@ -183,11 +281,13 @@ describe("Polling do estúdio", () => {
     render(<App />);
 
     await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
-    await user.type(screen.getByLabelText(/idade/i), "5");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await fillClient(user);
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(await screen.findByRole("button", { name: /criar livro/i }));
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);

@@ -256,9 +256,10 @@ const CATALOG_PRICE: Record<Lang, string> = {
   en: "On request",
   es: "Bajo consulta",
 };
-/** 15 × 15 cm (P) e 20 × 20 cm (M). A capa não muda o valor. */
+/** 15 × 15 cm (P) R$ 129 e 20 × 20 cm (M) R$ 149. A capa dura não altera o valor. */
+const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "129", M: "149" };
 function catalogPrice(size: CatalogSizeChoice): string {
-  return size === "P" ? "R$ 157,00" : "R$ 177,00";
+  return `R$ ${CATALOG_AMOUNT[size]},00`;
 }
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
@@ -307,12 +308,24 @@ const NAV_CAT_META = [
   {
     color: "#f0b429",
     subs: [
+      { href: "/app?tema=dia_da_mulher" },
+      { href: "/app?tema=dia_da_sogra" },
+      { href: "/app?tema=easter" },
+      { href: "/app?tema=mothers_day" },
+      { href: "/app?tema=dia_da_familia" },
+      { href: "/app?tema=dia_do_irmao" },
+      { href: "/app?tema=dia_dos_namorados" },
+      { href: "/app?tema=dia_do_amigo" },
+      { href: "/app?tema=grandparents_love" },
+      { href: "/app?tema=tio_tia" },
+      { href: "/app?tema=fathers_day" },
+      { href: "/app?tema=dia_dos_filhos" },
+      { href: "/app?tema=independencia" },
+      { href: "/app?tema=dia_do_idoso" },
+      { href: "/app?tema=pets" },
+      { href: "/app?tema=childrens_day" },
       { href: "/app?tema=christmas" },
       { href: "/app?tema=birthday" },
-      { href: "/app?tema=mothers_day" },
-      { href: "/app?tema=fathers_day" },
-      { href: "/app?tema=easter" },
-      { href: "/app?tema=childrens_day" },
       { href: "/app?tema=new_year" },
     ],
     feats: [
@@ -368,10 +381,14 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   superhero: [16],
   sport: [0, 5],
   mothers_day: [6, 7],
-  fathers_day: [15],
+  fathers_day: [22, 15],
   grandparents_love: [9],
+  dia_do_idoso: [9],
   family_love: [8],
   pets: [12, 13, 24],
+  dia_da_mulher: [7, 6, 9, 20],
+  dia_da_familia: [8, 20, 22, 23],
+  tio_tia: [20],
   christmas: [10],
   birthday: [14],
   alfabetizacao_inicial: [3],
@@ -381,6 +398,16 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
 function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+function SubLabel({ label }: { label: string }) {
+  const [name, date] = label.split(" · ");
+  if (!date) return label;
+  return (
+    <>
+      <span className="kcat-sub-name">{name}</span>
+      <span className="kcat-sub-date">{date}</span>
+    </>
+  );
 }
 /** Nome da criança no exemplo, para o estúdio trocar pelo nome que a família digitar. */
 const HERO_BY_CATALOG: Record<number, string> = {
@@ -562,7 +589,27 @@ const I18N = {
       },
       {
         name: "Ocasiões Especiais",
-        subs: ["Natal", "Aniversário", "Dia das Mães", "Dia dos Pais", "Páscoa", "Dia das Crianças", "Ano Novo"],
+        subs: [
+          "Dia Internacional da Mulher · 8 de março",
+          "Dia da Sogra · 26 de março",
+          "Páscoa",
+          "Dia das Mães · 10 de maio",
+          "Dia Internacional da Família · 15 de maio",
+          "Dia do Irmão · 30 de maio",
+          "Dia dos Namorados · 12 de junho",
+          "Dia do Amigo · 20 de julho",
+          "Dia dos Avós · 26 de julho",
+          "Dia do Tio e da Tia · 26 de julho",
+          "Dia dos Pais · 9 de agosto",
+          "Dia dos Filhos · 11 de agosto",
+          "Independência do Brasil · 7 de setembro",
+          "Dia Internacional do Idoso · 1 de outubro",
+          "Dia dos Animais · 4 de outubro",
+          "Dia das Crianças · 12 de outubro",
+          "Natal · 25 de dezembro",
+          "Aniversário",
+          "Ano Novo",
+        ],
         feats: ["Natal", "Dia das Mães", "O Amor de Mãe", "O Aniversário Especial de Ester"],
       },
       {
@@ -743,7 +790,27 @@ const I18N = {
       },
       {
         name: "Special Occasions",
-        subs: ["Christmas", "Birthday", "Mother's Day", "Father's Day", "Easter", "Children's Day", "New Year"],
+        subs: [
+          "International Women's Day · March 8",
+          "Mother-in-law's Day · March 26",
+          "Easter",
+          "Mother's Day · May 10",
+          "International Family Day · May 15",
+          "Siblings' Day · May 30",
+          "Valentine's Day · June 12",
+          "Friendship Day · July 20",
+          "Grandparents' Day · July 26",
+          "Aunt and Uncle's Day · July 26",
+          "Father's Day · August 9",
+          "Sons and Daughters Day · August 11",
+          "Brazil's Independence Day · September 7",
+          "International Day of Older Persons · October 1",
+          "World Animal Day · October 4",
+          "Children's Day · October 12",
+          "Christmas · December 25",
+          "Birthday",
+          "New Year",
+        ],
         feats: ["Christmas", "Mother's Day", "A Mother's Love", "Ester's Special Birthday"],
       },
       {
@@ -924,7 +991,27 @@ const I18N = {
       },
       {
         name: "Ocasiones Especiales",
-        subs: ["Navidad", "Cumpleaños", "Día de la Madre", "Día del Padre", "Pascua", "Día del Niño", "Año Nuevo"],
+        subs: [
+          "Día Internacional de la Mujer · 8 de marzo",
+          "Día de la Suegra · 26 de marzo",
+          "Pascua",
+          "Día de la Madre · 10 de mayo",
+          "Día Internacional de la Familia · 15 de mayo",
+          "Día del Hermano · 30 de mayo",
+          "Día de los Enamorados · 12 de junio",
+          "Día del Amigo · 20 de julio",
+          "Día de los Abuelos · 26 de julio",
+          "Día del Tío y de la Tía · 26 de julio",
+          "Día del Padre · 9 de agosto",
+          "Día de los Hijos · 11 de agosto",
+          "Independencia de Brasil · 7 de septiembre",
+          "Día Internacional de las Personas Mayores · 1 de octubre",
+          "Día de los Animales · 4 de octubre",
+          "Día del Niño · 12 de octubre",
+          "Navidad · 25 de diciembre",
+          "Cumpleaños",
+          "Año Nuevo",
+        ],
         feats: ["Navidad", "Día de la Madre", "El Amor de Mamá", "El Cumpleaños Especial de Ester"],
       },
       {
@@ -1395,8 +1482,8 @@ function CatalogBookCard({
             {lang === "en" ? "Book. 16 pages." : lang === "es" ? "Libro. 16 páginas." : "Livro 16 páginas"}
           </p>
           <p className="cat-notes-sizes">
-            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 177.00." : "M - 20 × 20 cm: R$ 177,00."}</span>
-            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 157.00." : "P - 15 × 15 cm: R$ 157,00."}</span>
+            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 149.00." : "M - 20 × 20 cm: R$ 149,00."}</span>
+            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 129.00." : "P - 15 × 15 cm: R$ 129,00."}</span>
           </p>
           <div className="cat-note-grid">
             <div>
@@ -1532,7 +1619,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const base = NAV_CAT_META[i].subs[j].href;
       const theme = themeFromHref(base);
       const only = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
-      return { label, href: theme ? bookStudioHref(theme, only) : base };
+      const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
+      return { label, href: bookTheme ? bookStudioHref(bookTheme, only) : base };
     }),
     feats: cat.feats.map((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
@@ -1548,7 +1636,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: bookStudioHref(theme, i), img: catalogCoverFile(i, lang, variant) }];
+    return [{ label: book.t, href: bookStudioHref(CATALOG_THEMES[i] ?? theme, i), img: catalogCoverFile(i, lang, variant) }];
   });
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
@@ -1659,7 +1747,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                                   onClick={closeNav}
                                   onMouseEnter={() => setSubHover({ cat: i, sub: j })}
                                   onFocus={() => setSubHover({ cat: i, sub: j })}
-                                >{sub.label}</Link>
+                                ><SubLabel label={sub.label} /></Link>
                               </li>
                             ))}
                           </ul>
@@ -1754,7 +1842,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
                     {cat.subs.map((sub) => (
-                      <Link key={sub.label} to={sub.href} onClick={closeNav}>{sub.label}</Link>
+                      <Link key={sub.label} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
                     ))}
                   </div>
                 </div>

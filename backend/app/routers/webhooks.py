@@ -9,11 +9,14 @@ import json
 import uuid
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import settings
 from app.database import get_db
-from app.models import Asset, AssetKind, Job, JobStatus, Project, ProjectStatus
+from app.models import Asset, AssetKind, Job, JobStatus, PrintOrder, Project, ProjectStatus
+from app.printkit.gateway import GatewayNotConfigured, GatewayRejected, configured_gateway
+from app.printkit.service import FulfillmentPending, fulfill_payment
 from app.services import webhook_auth
 
 router = APIRouter(prefix="/v1/webhooks", tags=["webhooks"])
@@ -70,3 +73,36 @@ async def video_callback(
 
     db.commit()
     return {"ok": True}
+
+
+@router.post("/print-payment", status_code=status.HTTP_200_OK)
+async def print_payment_callback(
+    request: Request,
+    x_print_signature: str | None = Header(default=None, alias="X-Print-Signature"),
+    db: Session = Depends(get_db),
+) -> dict:
+    """Confirma o pagamento e só então compra a etiqueta."""
+    raw = await request.body()
+    try:
+        gateway = configured_gateway()
+    except GatewayNotConfigured as exc:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "Gateway de pagamento ainda não escolhido.",
+        ) from exc
+    try:
+        notice = gateway.parse_webhook(raw, x_print_signature)
+    except GatewayRejected as exc:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, str(exc)) from exc
+    order = db.scalar(
+        select(PrintOrder).where(PrintOrder.payment_reference == notice.reference)
+    )
+    if order is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido de impressão não encontrado")
+    if notice.paid:
+        try:
+            fulfill_payment(db, order)
+        except FulfillmentPending as exc:
+            raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
+    db.commit()
+    return {"ok": True, "paid": notice.paid}

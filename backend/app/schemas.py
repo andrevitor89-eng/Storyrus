@@ -46,14 +46,14 @@ class ProjectCreateIn(BaseModel):
     theme: str | None = Field(default=None, max_length=32)
     # M = 20×20 cm, P = 15×15 cm. Vazio mantém o miolo atual.
     book_size: str | None = Field(default=None, pattern="^(M|P)$")
-    # soft = capa mole, hard = capa dura.
+    # soft = capa flexível, hard = capa dura.
     cover_type: str | None = Field(default=None, pattern="^(soft|hard)$")
     # Segundo tema opcional (máx. 2 na mesma história): `theme` continua definindo
     # vilão/cenário/arco; `extra_theme` só soma um objetivo de aprendizado extra.
     extra_theme: str | None = Field(default=None, max_length=32)
     child_name: str | None = Field(default=None, max_length=80)
     # Idade da criança em anos; guia tom, vocabulário e complexidade da história.
-    child_age: int | None = Field(default=None, ge=0, le=12)
+    child_age: int | None = Field(default=None, ge=0, le=120)
     dedication: str | None = Field(default=None, max_length=500)
     # Traço central: o ponto de partida que a história vai transformar (ex.: "tem medo
     # do escuro", "não gosta de dividir os brinquedos"). Deve apontar para o tema/objetivo
@@ -243,6 +243,72 @@ class OrderTicketOut(BaseModel):
     cover_type: str | None = None
     style: str | None = None
     photo_urls: list[str] = []
+    print_order_id: uuid.UUID | None = None
+    print_code: str | None = None
+    print_status: str | None = None
+    tracking_code: str | None = None
+    payment_status: str | None = None
+
+
+class FreightOptionOut(BaseModel):
+    service_id: int
+    service_name: str
+    price_cents: int
+    delivery_days: int | None = None
+
+
+class PrintAddressIn(BaseModel):
+    recipient_name: str = Field(min_length=1, max_length=120)
+    postal_code: str = Field(min_length=8, max_length=16)
+    street: str = Field(min_length=1, max_length=160)
+    number: str = Field(min_length=1, max_length=20)
+    complement: str | None = Field(default=None, max_length=80)
+    district: str = Field(min_length=1, max_length=80)
+    city: str = Field(min_length=1, max_length=80)
+    state: str = Field(min_length=2, max_length=2)
+
+
+class FreightSelectIn(BaseModel):
+    service_id: int
+
+
+class PrintCheckoutIn(BaseModel):
+    installments: int = Field(default=1, ge=1, le=12)
+
+
+class PrintValidationIn(BaseModel):
+    status: str = Field(pattern="^(sent_for_validation|approved|rejected)$")
+
+
+class PrintOrderOut(BaseModel):
+    id: uuid.UUID
+    project_id: uuid.UUID
+    code: str
+    book_size: str | None = None
+    cover_type: str | None = None
+    quantity: int
+    status: str
+    block_reason: str | None = None
+    book_price_cents: int | None = None
+    freight_options: list[FreightOptionOut] = []
+    freight_service_id: int | None = None
+    freight_service_name: str | None = None
+    freight_price_cents: int | None = None
+    freight_days: int | None = None
+    payment_status: str
+    amount_cents: int | None = None
+    tracking_code: str | None = None
+    label_error: str | None = None
+    checkout_available: bool = False
+    checkout_url: str | None = None
+    recipient_name: str | None = None
+    postal_code: str | None = None
+    street: str | None = None
+    number: str | None = None
+    complement: str | None = None
+    district: str | None = None
+    city: str | None = None
+    state: str | None = None
 
 
 class UsageOut(BaseModel):

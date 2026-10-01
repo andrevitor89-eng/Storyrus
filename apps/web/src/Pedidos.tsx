@@ -34,7 +34,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
   if (order.cover_type === "soft" || order.cover_type === "hard") {
     rows.push({
       label: "Capa",
-      value: order.cover_type === "soft" ? "Capa mole" : "Capa dura",
+      value: order.cover_type === "soft" ? "Capa flexível" : "Capa dura",
     });
   }
   if (order.style) {

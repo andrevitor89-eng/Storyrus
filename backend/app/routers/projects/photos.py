@@ -13,7 +13,7 @@ from app.config import settings
 from app.database import get_db
 from app.deps import get_current_user
 from app.models import Asset, AssetKind, OrderTicket, User
-from app.orders import build_book_order_summary, parse_extra_names
+from app.orders import build_book_order_summary, client_registration, parse_extra_names
 from app.schemas import UploadUrlIn, UploadUrlOut
 
 from .common import get_owned_project
@@ -55,6 +55,16 @@ def _stored_extra_names(project) -> list[str]:
     return names
 
 
+def _copy_count(raw: str) -> int | None:
+    text = (raw or "").strip()
+    if not text.isdigit():
+        return None
+    count = int(text)
+    if count < 1 or count > 500:
+        return None
+    return count
+
+
 def _register_order(
     db: Session,
     project,
@@ -62,6 +72,17 @@ def _register_order(
     language: str,
     theme_label: str,
     extra_names: str,
+    gender: str = "",
+    subject: str = "",
+    also_name: str = "",
+    also_gender: str = "",
+    also_subject: str = "",
+    quantity: str = "",
+    client_name: str = "",
+    client_email: str = "",
+    client_phone: str = "",
+    client_address: str = "",
+    client_notes: str = "",
 ) -> None:
     """Um pedido por projeto, só depois que a foto foi gravada."""
     existing = db.scalar(select(OrderTicket).where(OrderTicket.project_id == project.id))
@@ -87,6 +108,17 @@ def _register_order(
         theme=theme,
         extra_names=extras,
         photo_count=max(int(photo_count or 0), 1),
+        gender=gender,
+        subject=subject,
+        also_name=also_name,
+        also_gender=also_gender,
+        also_subject=also_subject,
+        quantity=_copy_count(quantity),
+        client_name=client_name,
+        client_email=client_email,
+        client_phone=client_phone,
+        client_address=client_address,
+        client_notes=client_notes,
     )
     db.add(OrderTicket(project_id=project.id, summary=summary))
 
@@ -100,6 +132,17 @@ async def upload_photo(
     language: str = Form(""),
     theme_label: str = Form(""),
     extra_names: str = Form(""),
+    gender: str = Form(""),
+    subject: str = Form(""),
+    also_name: str = Form(""),
+    also_gender: str = Form(""),
+    also_subject: str = Form(""),
+    quantity: str = Form(""),
+    client_name: str = Form(""),
+    client_email: str = Form(""),
+    client_phone: str = Form(""),
+    client_address: str = Form(""),
+    client_notes: str = Form(""),
 ) -> UploadUrlOut:
     """Upload da foto via API: o servidor grava direto no storage (sem PUT do navegador).
 
@@ -113,6 +156,15 @@ async def upload_photo(
         raise HTTPException(
             status.HTTP_413_REQUEST_ENTITY_TOO_LARGE, "Imagem muito grande (max. 10MB)"
         )
+    buyer = client_registration(
+        name=client_name,
+        email=client_email,
+        phone=client_phone,
+        address=client_address,
+        notes=client_notes,
+    )
+    if buyer is None:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Cadastro do cliente incompleto")
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()
     key = storage.new_key(project.id, AssetKind.PHOTO.value, ext)
     storage.put_bytes(key, data, file.content_type or "image/jpeg")
@@ -125,6 +177,17 @@ async def upload_photo(
         language=language,
         theme_label=theme_label,
         extra_names=extra_names[:800],
+        gender=gender,
+        subject=subject,
+        also_name=also_name,
+        also_gender=also_gender,
+        also_subject=also_subject,
+        quantity=quantity,
+        client_name=buyer["name"],
+        client_email=buyer["email"],
+        client_phone=buyer["phone"],
+        client_address=buyer["address"],
+        client_notes=buyer["notes"],
     )
     db.commit()
     db.refresh(asset)

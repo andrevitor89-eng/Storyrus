@@ -315,7 +315,22 @@ export const api = {
   async uploadPhoto(
     id: string,
     file: File,
-    meta?: { language?: string; themeLabel?: string; extraNames?: string },
+    meta?: {
+      language?: string;
+      themeLabel?: string;
+      extraNames?: string;
+      gender?: string;
+      subject?: string;
+      alsoName?: string;
+      alsoGender?: string;
+      alsoSubject?: string;
+      quantity?: string;
+      clientName?: string;
+      clientEmail?: string;
+      clientPhone?: string;
+      clientAddress?: string;
+      clientNotes?: string;
+    },
   ) {
     await ensureGuest();
     const fd = new FormData();
@@ -323,6 +338,17 @@ export const api = {
     if (meta?.language) fd.append("language", meta.language);
     if (meta?.themeLabel) fd.append("theme_label", meta.themeLabel);
     if (meta?.extraNames) fd.append("extra_names", meta.extraNames);
+    if (meta?.gender) fd.append("gender", meta.gender);
+    if (meta?.subject) fd.append("subject", meta.subject);
+    if (meta?.alsoName) fd.append("also_name", meta.alsoName);
+    if (meta?.alsoGender) fd.append("also_gender", meta.alsoGender);
+    if (meta?.alsoSubject) fd.append("also_subject", meta.alsoSubject);
+    if (meta?.clientName) fd.append("client_name", meta.clientName);
+    if (meta?.clientEmail) fd.append("client_email", meta.clientEmail);
+    if (meta?.clientPhone) fd.append("client_phone", meta.clientPhone);
+    if (meta?.clientAddress) fd.append("client_address", meta.clientAddress);
+    if (meta?.clientNotes) fd.append("client_notes", meta.clientNotes);
+    if (meta?.quantity) fd.append("quantity", meta.quantity);
     const headers = new Headers();
     if (token) headers.set("Authorization", `Bearer ${token}`);
     const resp = await fetch(`${BASE}/v1/projects/${id}/photo`, {

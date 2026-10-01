@@ -22,6 +22,13 @@ REALISTA = (
     "Fotos anexadas: 2 (arquivos recebidos)"
 )
 
+CLIENT = (
+    "Cliente: Ana Souza\n"
+    "E-mail: ana@email.com\n"
+    "Telefone: 11999999999\n"
+    "Endereço: Rua A, 10"
+)
+
 
 def test_summary_cartoon_lists_child_and_extras():
     text = build_book_order_summary(
@@ -33,6 +40,42 @@ def test_summary_cartoon_lists_child_and_extras():
         photo_count=1,
     )
     assert text == CARTOON
+
+
+def test_summary_records_pet_gender_and_companion():
+    text = build_book_order_summary(
+        style="realistic",
+        child_name="Maya",
+        language="pt-BR",
+        theme="Maya, Minha Cachorra Carinhosa",
+        extra_names=["Ana"],
+        photo_count=1,
+        gender="f",
+        subject="pet",
+        also_name="Max",
+        also_gender="m",
+        also_subject="pet",
+    )
+    assert "Nome: Maya\n" in text
+    assert "Protagonista: Pet\n" in text
+    assert "Gênero: Feminino\n" in text
+    assert "Nome do pet: Max\n" in text
+    assert "Gênero do pet: Masculino\n" in text
+    assert "Personagens: Maya, Max, Ana\n" in text
+    assert "Quantidade:" not in text
+
+
+def test_summary_records_copy_count_for_party_favors():
+    text = build_book_order_summary(
+        style="realistic",
+        child_name="Lila",
+        language="pt-BR",
+        theme="Aniversário",
+        extra_names=[],
+        photo_count=1,
+        quantity=20,
+    )
+    assert text.endswith("Quantidade: 20\nFotos anexadas: 1 (arquivo recebido)")
 
 
 def test_summary_anything_but_cartoon_is_realista():
@@ -60,6 +103,37 @@ def test_summary_anything_but_cartoon_is_realista():
         assert again.endswith("Fotos anexadas: 1 (arquivo recebido)")
 
 
+def test_summary_keeps_client_registration_and_drops_blank_notes():
+    text = build_book_order_summary(
+        style="cartoon",
+        child_name="Lia",
+        language="pt-BR",
+        theme="Papai herói",
+        extra_names=["Vovó", "Totó"],
+        photo_count=1,
+        client_name="Ana Souza",
+        client_email="ana@email.com",
+        client_phone="11999999999",
+        client_address="Rua A,\n10",
+        client_notes="  ",
+    )
+    assert text == CARTOON + "\n" + CLIENT
+    noted = build_book_order_summary(
+        style="cartoon",
+        child_name="Lia",
+        language="pt-BR",
+        theme="Papai herói",
+        extra_names=["Vovó", "Totó"],
+        photo_count=1,
+        client_name="Ana Souza",
+        client_email="ana@email.com",
+        client_phone="11999999999",
+        client_address="Rua A, 10",
+        client_notes="entregar\nà tarde",
+    )
+    assert noted.endswith("Observação: entregar à tarde")
+
+
 def _create(auth_client, **extra):
     body = {
         "style": "cartoon",
@@ -77,7 +151,15 @@ def _create(auth_client, **extra):
 
 
 def _photo(auth_client, pid, **fields):
-    data = {"language": "pt-BR", "theme_label": "Papai herói", "extra_names": "Vovó, Totó"}
+    data = {
+        "language": "pt-BR",
+        "theme_label": "Papai herói",
+        "extra_names": "Vovó, Totó",
+        "client_name": "Ana Souza",
+        "client_email": "ana@email.com",
+        "client_phone": "11999999999",
+        "client_address": "Rua A, 10",
+    }
     data.update(fields)
     return auth_client.post(
         f"/v1/projects/{pid}/photo",
@@ -109,7 +191,7 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     orders = owner.json()["orders"]
     assert len(orders) == 1
     assert orders[0]["project_id"] == pid
-    assert orders[0]["summary"] == CARTOON
+    assert orders[0]["summary"] == CARTOON + "\n" + CLIENT
     assert "foto.jpg" not in orders[0]["summary"]
     assert orders[0]["photo_urls"]
     assert orders[0]["photo_urls"][0].startswith("https://fotos.test/")
@@ -144,8 +226,22 @@ def test_realista_order_uses_typed_theme_and_site_language(auth_client, monkeypa
         "Idioma: Inglês\n"
         "Tema: Aventura no espaço\n"
         "Personagens: Lila\n"
-        "Fotos anexadas: 1 (arquivo recebido)"
+        "Fotos anexadas: 1 (arquivo recebido)\n"
+        + CLIENT
     )
+
+
+def test_photo_without_registration_does_not_open_an_order(auth_client, monkeypatch):
+    stored = []
+    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: stored.append(args))
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    pid = _create(auth_client)
+    up = _photo(auth_client, pid, client_email="")
+    assert up.status_code == 400
+    assert stored == []
+    owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert owner.json()["orders"] == []
 
 
 def test_empty_photo_does_not_open_an_order(auth_client, monkeypatch):

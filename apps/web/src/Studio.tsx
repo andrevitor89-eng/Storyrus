@@ -3,6 +3,15 @@ import { api } from "./api";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
 import { themePreset } from "./studioPreset";
+import {
+  ageLimit,
+  castFromQuery,
+  emptyCast,
+  subjectCode,
+  subjectCopy,
+  type StudioGender,
+  type StudioWho,
+} from "./studioSubject";
 import logo from "./assets/logo.png";
 import type { StudioAssets } from "./studio/assets";
 import { resolveThemeName } from "./studio/constants";
@@ -23,6 +32,14 @@ import "./landing.css";
 import "./studio.css";
 
 export { ProgressList } from "./studio/ProgressList";
+
+function oneLine(value: string): string {
+  return value.replace(/\s+/g, " ").trim();
+}
+
+function validEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -81,11 +98,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
   const [bookSize, setBookSize] = useState<"M" | "P">("M");
+  const [quantity, setQuantity] = useState("1");
   const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
   const [extraNames, setExtraNames] = useState("");
+  const [castWho, setCastWho] = useState<StudioWho>("child");
+  const [gender, setGender] = useState<StudioGender | null>(null);
+  const [alsoWho, setAlsoWho] = useState<StudioWho | null>(null);
+  const [alsoGender, setAlsoGender] = useState<StudioGender | null>(null);
+  const [alsoName, setAlsoName] = useState("");
+  const [askGender, setAskGender] = useState(true);
+  const alsoHero = useRef<string | null>(null);
   const [orderSent, setOrderSent] = useState(false);
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
+  const [clientName, setClientName] = useState("");
+  const [clientEmail, setClientEmail] = useState("");
+  const [clientPhone, setClientPhone] = useState("");
+  const [clientAddress, setClientAddress] = useState("");
+  const [clientNotes, setClientNotes] = useState("");
   const [assets, setAssets] = useState<StudioAssets | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
@@ -138,6 +168,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (q.get("modo") === "cartoon") setArtMode("cartoon");
     const onlyTheme = q.get("campos") === "tema" || q.get("campos") === "nome";
     if (q.get("campos") === "nome") setOnlyName(true);
+    const cast = tema || titulo || historia ? castFromQuery(q) : emptyCast();
+    setCastWho(cast.who);
+    setGender(cast.gender);
+    setAlsoWho(cast.also?.who ?? null);
+    setAlsoGender(cast.also?.gender ?? null);
+    setAskGender(cast.askGender);
+    alsoHero.current = cast.also?.hero ?? null;
     const fallback = tema ? themePreset(tema, lang) : null;
     const themeBody = historia || fallback?.theme || "";
     if (themeBody) setThemeText(themeBody);
@@ -178,6 +215,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const name = childName.trim();
     const title = bookTitle.trim();
     const theme = themeText.trim();
+    const genderBit = gender === "f" ? "feminino" : gender === "m" ? "masculino" : "";
+    const companion = alsoName.trim();
     const cm = bookSize === "P" ? "15×15 cm" : "20×20 cm";
     const look =
       artMode === "cartoon"
@@ -188,7 +227,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       return (
         `Invent an original children's story. The book title must be: "${title}". ` +
         `Theme and ideas from the guardian: ${theme}. ` +
-        (name ? `The hero's name is ${name}. ` : "") +
+        (name ? `The hero's name is ${name}${genderBit ? ` (${genderBit})` : ""}. ` : "") +
+        (companion ? `Also include ${companion}. ` : "") +
         format
       );
     }
@@ -196,17 +236,19 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       return (
         `Inventa una historia infantil original. El título del libro debe ser: "${title}". ` +
         `Tema e ideas del responsable: ${theme}. ` +
-        (name ? `El protagonista se llama ${name}. ` : "") +
+        (name ? `El protagonista se llama ${name}${genderBit ? ` (${genderBit})` : ""}. ` : "") +
+        (companion ? `También entra ${companion}. ` : "") +
         format
       );
     }
     return (
       `Invente uma história infantil original. O título do livro deve ser: "${title}". ` +
       `Tema e ideias do responsável: ${theme}. ` +
-      (name ? `O protagonista se chama ${name}. ` : "") +
+      (name ? `O protagonista se chama ${name}${genderBit ? ` e é do gênero ${genderBit}` : ""}. ` : "") +
+      (companion ? `Também entra ${companion}. ` : "") +
       format
     );
-  }, [artMode, bookSize, bookTitle, childName, lang, themeText]);
+  }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText]);
 
   async function submitUpgrade(e: FormEvent) {
     e.preventDefault();
@@ -282,11 +324,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   async function start() {
     if (isDemo) return;
     if (onlyName) {
-      if (!childName.trim() || childAge.trim() === "") {
+      if (!childName.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
         setError(t.errMissingFields);
         return;
       }
-    } else if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "") {
+    } else if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
+      setError(t.errMissingFields);
+      return;
+    }
+    if (askGender && (!gender || (alsoWho && !alsoGender))) {
+      setError(t.errGender);
+      return;
+    }
+    const buyerName = oneLine(clientName);
+    const buyerEmail = oneLine(clientEmail);
+    const buyerPhone = oneLine(clientPhone);
+    const buyerAddress = oneLine(clientAddress);
+    const buyerNotes = oneLine(clientNotes);
+    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
       setError(t.errMissingFields);
       return;
     }
@@ -322,6 +377,17 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         language,
         themeLabel,
         extraNames: extraNames.trim(),
+        gender: gender ?? undefined,
+        subject: subjectCode(castWho),
+        alsoName: alsoName.trim() || undefined,
+        alsoGender: alsoGender ?? undefined,
+        alsoSubject: alsoWho ? subjectCode(alsoWho) : undefined,
+        quantity: String(Math.max(1, Math.min(500, Math.floor(Number(quantity) || 1)))),
+        clientName: buyerName,
+        clientEmail: buyerEmail,
+        clientPhone: buyerPhone,
+        clientAddress: buyerAddress,
+        clientNotes: buyerNotes || undefined,
       });
       setPhotoUploaded(true);
       setOrderSent(true);
@@ -356,6 +422,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setBookTitle("");
     setThemeText("");
     setDedication("");
+    setClientName("");
+    setClientEmail("");
+    setClientPhone("");
+    setClientAddress("");
+    setClientNotes("");
     setJobs([]);
   }
 
@@ -372,6 +443,43 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   const fieldsLocked = !!project;
+  const primary = subjectCopy(lang, castWho, gender);
+  const companionCopy = alsoWho ? subjectCopy(lang, alsoWho, alsoGender) : null;
+  const maxAge = ageLimit(castWho);
+
+  function syncTitle(name: string, companion: string) {
+    const preset = titlePreset.current;
+    if (!preset || titleTouched.current) return;
+    let next = preset.title;
+    const typed = name.trim();
+    if (preset.hero) next = typed ? next.split(preset.hero).join(typed) : next;
+    const hero2 = alsoHero.current;
+    const typed2 = companion.trim();
+    if (hero2) next = typed2 ? next.split(hero2).join(typed2) : next;
+    setBookTitle(next);
+  }
+
+  function genderButtons(value: StudioGender | null, onPick: (next: StudioGender) => void, label: string) {
+    return (
+      <div className="studio-choice studio-gender" role="group" aria-label={label}>
+        <span className="studio-choice-label">{label}</span>
+        <div className="studio-actions">
+          {(["f", "m"] as const).map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              className={value === choice ? "studio-pick is-on" : "studio-pick"}
+              aria-pressed={value === choice}
+              disabled={fieldsLocked}
+              onClick={() => onPick(choice)}
+            >
+              {choice === "f" ? t.genderF : t.genderM}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="kid studio-app">
@@ -530,41 +638,59 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           <div className="studio-grid two">
             <label className="studio-field">
-              {t.childName}
+              {primary.name}
               <input
                 disabled={fieldsLocked}
                 value={childName}
                 onChange={(e) => {
                   const name = e.target.value;
                   setChildName(name);
-                  const preset = titlePreset.current;
-                  if (!preset || titleTouched.current) return;
-                  const next = name.trim();
-                  setBookTitle(next ? preset.title.split(preset.hero).join(next) : preset.title);
+                  syncTitle(name, alsoName);
                 }}
-                placeholder={t.childNamePh}
+                placeholder={primary.namePh}
                 maxLength={80}
               />
             </label>
             <label className="studio-field">
-              {t.childAge}
+              {primary.age}
               <input
                 disabled={fieldsLocked}
                 type="number"
                 inputMode="numeric"
                 min={0}
-                max={12}
+                max={maxAge}
                 value={childAge}
                 onChange={(e) => {
                   const v = e.target.value;
                   if (v === "") return setChildAge("");
-                  const n = Math.max(0, Math.min(12, Math.floor(Number(v))));
+                  const n = Math.max(0, Math.min(maxAge, Math.floor(Number(v))));
                   setChildAge(Number.isNaN(n) ? "" : String(n));
                 }}
                 placeholder={t.childAgePh}
               />
             </label>
           </div>
+          {askGender ? genderButtons(gender, setGender, t.gender) : null}
+          {companionCopy ? (
+            <>
+              <label className="studio-field studio-also">
+                {companionCopy.name}
+                <input
+                  disabled={fieldsLocked}
+                  value={alsoName}
+                  onChange={(e) => {
+                    const name = e.target.value;
+                    setAlsoName(name);
+                    syncTitle(childName, name);
+                  }}
+                  placeholder={companionCopy.namePh}
+                  maxLength={80}
+                  data-testid="studio-also-name"
+                />
+              </label>
+              {askGender ? genderButtons(alsoGender, setAlsoGender, t.gender) : null}
+            </>
+          ) : null}
 
           {onlyName ? (
             <p className="studio-chosen" role="status">
@@ -671,6 +797,91 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
+              <div className="studio-client" data-testid="studio-client">
+                <h3 className="field-label">{t.clientTitle}</h3>
+                <label className="studio-field">
+                  {t.clientName}
+                  <input
+                    disabled={isDemo}
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    placeholder={t.clientNamePh}
+                    maxLength={120}
+                    autoComplete="name"
+                    data-testid="studio-client-name"
+                  />
+                </label>
+                <label className="studio-field">
+                  {t.clientEmail}
+                  <input
+                    disabled={isDemo}
+                    type="email"
+                    value={clientEmail}
+                    onChange={(e) => setClientEmail(e.target.value)}
+                    placeholder={t.clientEmailPh}
+                    maxLength={160}
+                    autoComplete="email"
+                    data-testid="studio-client-email"
+                  />
+                </label>
+                <label className="studio-field">
+                  {t.clientPhone}
+                  <input
+                    disabled={isDemo}
+                    type="tel"
+                    value={clientPhone}
+                    onChange={(e) => setClientPhone(e.target.value)}
+                    placeholder={t.clientPhonePh}
+                    maxLength={40}
+                    autoComplete="tel"
+                    data-testid="studio-client-phone"
+                  />
+                </label>
+                <label className="studio-field">
+                  {t.clientAddress}
+                  <textarea
+                    disabled={isDemo}
+                    value={clientAddress}
+                    onChange={(e) => setClientAddress(e.target.value)}
+                    placeholder={t.clientAddressPh}
+                    maxLength={300}
+                    rows={3}
+                    autoComplete="street-address"
+                    data-testid="studio-client-address"
+                  />
+                </label>
+                <label className="studio-field">
+                  {t.clientNotes}
+                  <textarea
+                    disabled={isDemo}
+                    value={clientNotes}
+                    onChange={(e) => setClientNotes(e.target.value)}
+                    placeholder={t.clientNotesPh}
+                    maxLength={500}
+                    rows={2}
+                    data-testid="studio-client-notes"
+                  />
+                </label>
+              </div>
+              <label className="studio-field studio-also">
+                {t.quantity}
+                <input
+                  disabled={isDemo}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={500}
+                  value={quantity}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "") return setQuantity("");
+                    const n = Math.max(1, Math.min(500, Math.floor(Number(v))));
+                    setQuantity(Number.isNaN(n) ? "1" : String(n));
+                  }}
+                  data-testid="studio-quantity"
+                />
+              </label>
+              <p className="muted field-hint">{t.quantityHint}</p>
               <label className="studio-field">
                 {t.otherCharacters}
                 <input
@@ -682,8 +893,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   data-testid="studio-extra-names"
                 />
               </label>
-              <p className="muted field-hint">{t.otherCharactersHint}</p>
-              <p className="studio-field">{t.photoField}</p>
+              <p className="muted field-hint">{primary.extras}</p>
+              <p className="studio-field">{companionCopy ? `${primary.photo} · ${companionCopy.photo}` : primary.photo}</p>
               <p className="muted field-hint">{t.photoFieldHint}</p>
               <div className="studio-upload-row" role="group" aria-label={t.ariaPhotoGroup}>
                 <input

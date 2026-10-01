@@ -24,6 +24,7 @@ from app.models import (
     UserVoice,
 )
 from app.observability.context import get_request_id
+from app.printkit.service import invalidate_print
 from app.schemas import (
     JobAcceptedOut,
     NarratedVideoRequestIn,
@@ -55,8 +56,7 @@ def start_avatar(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
     project.character_approved_at = None
     project.book_approved_at = None
-    project.print_requested_at = None
-    project.print_status = None
+    invalidate_print(db, project)
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.AVATAR, idempotency_key=idempotency_key
     )
@@ -231,8 +231,7 @@ def start_ebook(
 ) -> JobAcceptedOut:
     project = get_owned_project(db, user, project_id)
     project.book_approved_at = None
-    project.print_requested_at = None
-    project.print_status = None
+    invalidate_print(db, project)
     job = jobs_svc.enqueue_job(
         db, user=user, project=project, job_type=JobType.EBOOK, idempotency_key=idempotency_key
     )

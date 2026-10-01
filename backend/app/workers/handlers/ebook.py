@@ -26,6 +26,7 @@ from app.observability.opik_trace import job_metadata, update_trace
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.story_templates import illustration_notes, page_layouts
+from app.printkit.service import invalidate_print
 from app.workers import ebook as ebook_builder
 
 from .common import (
@@ -67,8 +68,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
     if not project.character_ref:
         raise ProviderError("Personagem ausente: rode AVATAR antes", transient=False)
     project.book_approved_at = None
-    project.print_requested_at = None
-    project.print_status = None
+    invalidate_print(db, project)
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
 
     char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))

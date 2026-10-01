@@ -42,6 +42,8 @@ export type StudioCopy = {
   bookSize: string;
   bookSizeM: string;
   bookSizeP: string;
+  quantity: string;
+  quantityHint: string;
   coverType: string;
   coverSoft: string;
   coverHard: string;
@@ -49,6 +51,17 @@ export type StudioCopy = {
   artRealistic: string;
   artCartoon: string;
   chosenBook: string;
+  clientTitle: string;
+  clientName: string;
+  clientNamePh: string;
+  clientEmail: string;
+  clientEmailPh: string;
+  clientPhone: string;
+  clientPhonePh: string;
+  clientAddress: string;
+  clientAddressPh: string;
+  clientNotes: string;
+  clientNotesPh: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
@@ -68,6 +81,10 @@ export type StudioCopy = {
   otherCharacters: string;
   otherCharactersPh: string;
   otherCharactersHint: string;
+  gender: string;
+  genderF: string;
+  genderM: string;
+  errGender: string;
   sendPhoto: string;
   photoHint: string;
   extraCharsTitle: string;
@@ -299,13 +316,26 @@ const pt: StudioCopy = {
   bookSize: "Tamanho do livro",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
+  quantity: "Quantidade",
+  quantityHint: "Deixe 1 para um livro só. Para lembrancinha de aniversário, casamento ou festa, coloque quantos exemplares quer.",
   coverType: "Tipo de capa",
-  coverSoft: "Capa mole",
+  coverSoft: "Capa flexível",
   coverHard: "Capa dura",
   artStyle: "Estilo do livro",
   artRealistic: "Realista",
   artCartoon: "Cartoon",
   chosenBook: "Livro escolhido",
+  clientTitle: "Cadastro do cliente",
+  clientName: "Nome do cliente",
+  clientNamePh: "Ex.: Ana Souza",
+  clientEmail: "E-mail",
+  clientEmailPh: "Ex.: ana@email.com",
+  clientPhone: "Telefone / WhatsApp",
+  clientPhonePh: "Ex.: 11 99999-9999",
+  clientAddress: "Endereço para entrega",
+  clientAddressPh: "Rua, número, bairro e cidade",
+  clientNotes: "Observação (opcional)",
+  clientNotesPh: "Ex.: entregar à tarde",
   createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
@@ -331,6 +361,10 @@ const pt: StudioCopy = {
   otherCharacters: "Outros personagens (opcional)",
   otherCharactersPh: "Ex.: mamãe, irmão, Totó",
   otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
+  gender: "Gênero",
+  genderF: "Feminino",
+  genderM: "Masculino",
+  errGender: "Escolha se é feminino ou masculino.",
   sendPhoto: "Enviar foto",
   photoHint:
     "Melhor resultado: foto nítida, bem iluminada, um rosto de frente, testa e cabelo visíveis. Evite close de cima, de lado ou rosto tapado. A arte é fotográfica, com a criança igual à foto — o mesmo personagem nas páginas e no vídeo.",
@@ -471,6 +505,8 @@ const en: StudioCopy = {
   bookSize: "Book size",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
+  quantity: "Quantity",
+  quantityHint: "Leave 1 for a single book. For a birthday, wedding, or party favor, enter how many copies you want.",
   coverType: "Cover type",
   coverSoft: "Softcover",
   coverHard: "Hardcover",
@@ -478,6 +514,17 @@ const en: StudioCopy = {
   artRealistic: "Realistic",
   artCartoon: "Cartoon",
   chosenBook: "Chosen book",
+  clientTitle: "Client details",
+  clientName: "Client name",
+  clientNamePh: "e.g. Ana Souza",
+  clientEmail: "Email",
+  clientEmailPh: "e.g. ana@email.com",
+  clientPhone: "Phone / WhatsApp",
+  clientPhonePh: "e.g. +1 555 0100",
+  clientAddress: "Delivery address",
+  clientAddressPh: "Street, number, neighborhood and city",
+  clientNotes: "Note (optional)",
+  clientNotesPh: "e.g. deliver in the afternoon",
   createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
@@ -503,6 +550,10 @@ const en: StudioCopy = {
   otherCharacters: "Other characters (optional)",
   otherCharactersPh: "e.g. mom, brother, Toto",
   otherCharactersHint: "Separate names with commas. The child is already the main character.",
+  gender: "Gender",
+  genderF: "Female",
+  genderM: "Male",
+  errGender: "Choose female or male.",
   sendPhoto: "Upload photo",
   photoHint:
     "Best result: sharp, well-lit photo, one front-facing face, forehead and hair visible. Avoid top-down close-ups, side angles, or covered faces. The art is photographic — the same character on pages and in the video.",
@@ -643,6 +694,8 @@ const es: StudioCopy = {
   bookSize: "Tamaño del libro",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
+  quantity: "Cantidad",
+  quantityHint: "Deja 1 para un solo libro. Para recuerdo de cumpleaños, boda o fiesta, indica cuántos ejemplares quieres.",
   coverType: "Tipo de tapa",
   coverSoft: "Tapa blanda",
   coverHard: "Tapa dura",
@@ -650,6 +703,17 @@ const es: StudioCopy = {
   artRealistic: "Realista",
   artCartoon: "Cartoon",
   chosenBook: "Libro elegido",
+  clientTitle: "Datos del cliente",
+  clientName: "Nombre del cliente",
+  clientNamePh: "Ej.: Ana Souza",
+  clientEmail: "Correo",
+  clientEmailPh: "Ej.: ana@email.com",
+  clientPhone: "Teléfono / WhatsApp",
+  clientPhonePh: "Ej.: 11 99999-9999",
+  clientAddress: "Dirección de entrega",
+  clientAddressPh: "Calle, número, barrio y ciudad",
+  clientNotes: "Observación (opcional)",
+  clientNotesPh: "Ej.: entregar por la tarde",
   createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
@@ -675,6 +739,10 @@ const es: StudioCopy = {
   otherCharacters: "Otros personajes (opcional)",
   otherCharactersPh: "Ej.: mamá, hermano, Totó",
   otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",
+  gender: "Género",
+  genderF: "Femenino",
+  genderM: "Masculino",
+  errGender: "Elige si es femenino o masculino.",
   sendPhoto: "Enviar foto",
   photoHint:
     "Mejor resultado: foto nítida, bien iluminada, un rostro de frente, frente y cabello visibles. Evita close desde arriba, de lado o rostro tapado. El arte es fotográfico, con el niño/a igual a la foto — el mismo personaje en las páginas y en el video.",

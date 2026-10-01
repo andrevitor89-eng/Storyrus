@@ -12,11 +12,10 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, s
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app import rate_limit
+from app import rate_limit, storage
 from app.config import settings
 from app.database import get_db
-from app import storage
-from app.models import Asset, AssetKind, Job, OrderTicket, Project, UsageEvent
+from app.models import Asset, AssetKind, Job, OrderTicket, PrintOrder, Project, UsageEvent
 from app.schemas import (
     OrderTicketOut,
     UsageAnomalyOut,
@@ -296,6 +295,12 @@ def get_usage(
             continue
         if url:
             photos_by_project[asset.project_id].append(url)
+    print_rows = (
+        db.scalars(select(PrintOrder).where(PrintOrder.project_id.in_(project_ids))).all()
+        if project_ids
+        else []
+    )
+    print_by_project = {row.project_id: row for row in print_rows}
     orders = [
         OrderTicketOut(
             id=ticket.id,
@@ -307,6 +312,31 @@ def get_usage(
             cover_type=ticket.project.cover_type if ticket.project else None,
             style=ticket.project.style if ticket.project else None,
             photo_urls=photos_by_project.get(ticket.project_id, []),
+            print_order_id=(
+                print_by_project[ticket.project_id].id
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            print_code=(
+                print_by_project[ticket.project_id].code
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            print_status=(
+                print_by_project[ticket.project_id].status
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            tracking_code=(
+                print_by_project[ticket.project_id].tracking_code
+                if ticket.project_id in print_by_project
+                else None
+            ),
+            payment_status=(
+                print_by_project[ticket.project_id].payment_status
+                if ticket.project_id in print_by_project
+                else None
+            ),
         )
         for ticket in order_rows
     ]

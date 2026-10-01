@@ -190,10 +190,25 @@
   align-items: center;
 }
 
+.studio-app .studio-gender,
+.studio-app .studio-also {
+  margin-top: 0.9rem;
+}
+
 .studio-app .studio-choices {
   display: grid;
   gap: 0.9rem;
   margin-top: 1.5rem;
+}
+
+.studio-app .studio-client {
+  display: grid;
+  gap: 0.9rem;
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-client .field-label {
+  margin: 0;
 }
 
 @media (min-width: 900px) {
