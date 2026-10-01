@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
+import { CAST_BY_CATALOG } from "./studioSubject";
 
 type Lang = "pt" | "en" | "es";
 
@@ -26,8 +27,6 @@ const IcShield = ({ className }: IconProps) => (<Svg className={className}><path
 const IcEye = ({ className }: IconProps) => (<Svg className={className}><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" /><circle cx="12" cy="12" r="2.6" /></Svg>);
 const IcTruck = ({ className }: IconProps) => (<Svg className={className}><path d="M3 6.5h11v9H3zM14 9.5h4l3 3v3h-7z" /><circle cx="7" cy="18" r="1.6" /><circle cx="17.5" cy="18" r="1.6" /></Svg>);
 const IcPlay = ({ className }: IconProps) => (<Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2.5" /><path d="M10 9.5l4.5 2.5-4.5 2.5z" fill="currentColor" stroke="none" /></Svg>);
-const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
-const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
 const IcMail = ({ className }: IconProps) => (
   <Svg className={className}><rect x="3" y="5.5" width="18" height="13" rx="2" /><path d="M3.5 7.5 12 13l8.5-5.5" /></Svg>
 );
@@ -121,48 +120,37 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     photo: heroAsset("foto-natalmemetata.jpg", "foto-natalmemetata-en.jpg", "foto-natalmemetata-es.jpg"),
   },
 ];
-/** Hero do /cartoon: só livros com visual de desenho. */
-const HERO_STRIP_CARTOON: { name: string; cover: HeroAsset; page: HeroAsset; photo: HeroAsset }[] = [
-  {
-    name: "Floresta Encantada",
-    cover: heroAsset("capa-floresta.jpg"),
-    page: heroAsset("flor-2.jpg"),
-    photo: heroAsset("flor-6.jpg"),
-  },
-  {
-    name: "Dino",
-    cover: heroAsset("capa-dino2.jpg"),
-    page: heroAsset("dino-2.jpg"),
-    photo: heroAsset("dino-6.jpg"),
-  },
-  {
-    name: "Circo",
-    cover: heroAsset("capa-circo.jpg"),
-    page: heroAsset("circo-2.jpg"),
-    photo: heroAsset("circo-6.jpg"),
-  },
-  {
-    name: "Oceano",
-    cover: heroAsset("capa-oceano.jpg"),
-    page: heroAsset("mar-2.jpg"),
-    photo: heroAsset("mar-6.jpg"),
-  },
-  {
-    name: "Amazônia",
-    cover: heroAsset("capa-amazonia.jpg"),
-    page: heroAsset("amazonia-3.jpg"),
-    photo: heroAsset("amazonia-6.jpg"),
-  },
-];
+/** Trocas da /cartoon: mesma vitrine da principal, com capa, página e foto em desenho quando existem. */
+const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
+  Nano: { cover: "cartoon-capa-nano.jpg", page: "cartoon-pagina-nano.jpg" },
+  "Amor de Bisavó": { cover: "cartoon-capa-bisavo.jpg", page: "cartoon-pagina-bisavo.jpg", photo: "cartoon-foto-bisavo.jpg" },
+  "Amor de Mãe": { cover: "cartoon-capa-amordemae.jpg", page: "cartoon-pagina-amordemae.jpg", photo: "cartoon-foto-amordemae.jpg" },
+  "Davi, o Menino Pastor": { cover: "cartoon-capa-davi.jpg", page: "cartoon-pagina-davi.jpg", photo: "cartoon-foto-davi.jpg" },
+  "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
+  "Meme e Tata": { cover: "cartoon-capa-natal.jpg", page: "cartoon-pagina-natal.jpg", photo: "cartoon-foto-natal.jpg" },
+};
+const CARTOON_COVER: Record<number, string> = {
+  6: "cartoon-capa-nicolas.jpg",
+  7: "cartoon-capa-amordemae.jpg",
+  8: "cartoon-capa-matteo.jpg",
+  9: "cartoon-capa-bisavo.jpg",
+  10: "cartoon-capa-natal.jpg",
+  11: "cartoon-capa-nano.jpg",
+  12: "cartoon-capa-maya.jpg",
+  21: "cartoon-capa-davi.jpg",
+  23: "cartoon-capa-enzo.jpg",
+};
+const CARTOON_REVIEW: Record<string, string> = {
+  Nicolas: "cartoon-foto-nicolas.jpg",
+  "Amor de Mãe": "cartoon-foto-amordemae.jpg",
+  Matteo: "cartoon-foto-matteo.jpg",
+  "Amor de Bisavó": "cartoon-foto-bisavo.jpg",
+  "Meme e Tata": "cartoon-foto-natal.jpg",
+  Maya: "cartoon-foto-maya.jpg",
+};
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-const SHOTS: { img?: string; art?: "good" | "multi" | "side" | "covered"; ok: boolean; focus?: string }[] = [
-  { img: "dica-boa.png", ok: true, focus: "center center" },
-  { img: "dica-multi.png", ok: false, focus: "68% 38%" },
-  { img: "dica-lado.png", ok: false, focus: "78% 32%" },
-];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -188,6 +176,10 @@ const REVIEW_PHOTOS = [
 type CatalogImg = string | Record<Lang, string>;
 function catalogImgSrc(img: CatalogImg, lang: Lang): string {
   return typeof img === "string" ? img : img[lang];
+}
+function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): string {
+  if (variant === "cartoon" && CARTOON_COVER[i]) return CARTOON_COVER[i];
+  return catalogImgSrc(CATALOG_IMGS[i], lang);
 }
 const CATALOG_IMGS: CatalogImg[] = [
   "capa-martin-goleiro.jpg",
@@ -253,38 +245,10 @@ const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5, 14]);
 const CATALOG_NEW_INDEXES = new Set([20, 21, 22, 23, 24, 25]);
 /** Primeiros da vitrine, nesta ordem: Meu Pai, Davi, Enzo. */
 const CATALOG_LEAD = [22, 21, 23];
-/** Catálogo do /cartoon: só capas com visual de desenho. */
-const CATALOG_DRAWING: { img: string; theme: string; t: Record<Lang, string> }[] = [
-  {
-    img: "capa-floresta.jpg",
-    theme: "fantasy",
-    t: { pt: "Floresta Encantada", en: "Enchanted Forest", es: "Bosque Encantado" },
-  },
-  {
-    img: "capa-dino2.jpg",
-    theme: "dinosaurs",
-    t: { pt: "Mundo dos Dinossauros", en: "Dinosaur World", es: "Mundo de los Dinosaurios" },
-  },
-  {
-    img: "capa-circo.jpg",
-    theme: "adventure",
-    t: { pt: "No Circo", en: "At the Circus", es: "En el Circo" },
-  },
-  {
-    img: "capa-oceano.jpg",
-    theme: "underwater",
-    t: { pt: "Fundo do Mar", en: "Under the Sea", es: "Fondo del Mar" },
-  },
-  {
-    img: "capa-amazonia.jpg",
-    theme: "adventure",
-    t: { pt: "Amazônia", en: "The Amazon", es: "La Amazonía" },
-  },
-];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 const CATALOG_SPEC: Record<Lang, Record<CatalogCoverChoice | CatalogSizeChoice | "pages", string>> = {
-  pt: { soft: "Capa mole", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
+  pt: { soft: "Capa flexível", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
   en: { soft: "Softcover", hard: "Hardcover", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 pages." },
   es: { soft: "Tapa blanda", hard: "Tapa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
 };
@@ -441,6 +405,15 @@ const HERO_BY_CATALOG: Record<number, string> = {
   19: "Noé",
   21: "Davi",
 };
+function appendCast(q: URLSearchParams, catalogI?: number) {
+  if (catalogI === undefined) return;
+  const cast = CAST_BY_CATALOG[catalogI] ?? { quem: "crianca", genero: "f" as const };
+  q.set("quem", cast.quem);
+  q.set("genero", cast.genero);
+  if (cast.quem2) q.set("quem2", cast.quem2);
+  if (cast.genero2) q.set("genero2", cast.genero2);
+  if (cast.heroi2) q.set("heroi2", cast.heroi2);
+}
 function personalizeHref(opts: {
   theme: string;
   title: string;
@@ -449,6 +422,7 @@ function personalizeHref(opts: {
   size: "M" | "P";
   cover: "soft" | "hard";
   modo: "realista" | "cartoon";
+  catalogI?: number;
 }) {
   const q = new URLSearchParams();
   q.set("tema", opts.theme);
@@ -459,6 +433,7 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
+  appendCast(q, opts.catalogI);
   return `/app?${q.toString()}`;
 }
 function studioHref(opts: {
@@ -469,6 +444,7 @@ function studioHref(opts: {
   size?: "M" | "P";
   cover?: "soft" | "hard";
   modo?: "realista" | "cartoon";
+  catalogI?: number;
 }) {
   const q = new URLSearchParams();
   q.set("tema", opts.tema);
@@ -479,75 +455,10 @@ function studioHref(opts: {
   q.set("tamanho", opts.size ?? "M");
   q.set("capa", opts.cover ?? "hard");
   q.set("modo", opts.modo ?? "realista");
+  appendCast(q, opts.catalogI);
   return `/app?${q.toString()}`;
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
-
-function ShotArt({ kind }: { kind: "good" | "multi" | "side" | "covered" }) {
-  const face = "#f4c19a", hair = "#6b4a2b", eye = "#3a2b1c", mouth = "#a15a3a";
-  if (kind === "multi") {
-    return (
-      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect width="120" height="120" fill="#e7ecf4" />
-        <g>
-          <rect x="24" y="76" width="20" height="26" rx="10" fill="#8fb4dd" />
-          <circle cx="34" cy="58" r="16" fill={face} /><path d="M19 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill="#7a5230" />
-          <circle cx="29" cy="57" r="2.1" fill={eye} /><circle cx="39" cy="57" r="2.1" fill={eye} /><path d="M29 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
-        </g>
-        <g>
-          <rect x="76" y="76" width="20" height="26" rx="10" fill="#8ccdb0" />
-          <circle cx="86" cy="58" r="16" fill={face} /><path d="M71 57q0-18 15-18t15 18q0-9-15-9t-15 9Z" fill={hair} />
-          <circle cx="81" cy="57" r="2.1" fill={eye} /><circle cx="91" cy="57" r="2.1" fill={eye} /><path d="M81 63q5 4 10 0" stroke={mouth} strokeWidth="2" fill="none" strokeLinecap="round" />
-        </g>
-        <g>
-          <rect x="47" y="72" width="26" height="34" rx="12" fill="#e79a9a" />
-          <circle cx="60" cy="52" r="19" fill="#eab98f" /><path d="M41 51q0-21 19-21t19 21q0-10-19-10t-19 10Z" fill="#4a3320" />
-          <circle cx="54" cy="51" r="2.4" fill={eye} /><circle cx="66" cy="51" r="2.4" fill={eye} /><path d="M54 58q6 5 12 0" stroke={mouth} strokeWidth="2.2" fill="none" strokeLinecap="round" />
-        </g>
-      </svg>
-    );
-  }
-  if (kind === "side") {
-    return (
-      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect width="120" height="120" fill="#e7ecf4" />
-        <rect x="50" y="88" width="16" height="18" rx="8" fill="#eeb086" />
-        <circle cx="56" cy="60" r="28" fill={face} />
-        <path d="M28 60q0-30 28-30 16 0 25 12l-12 3q-7-9-17-7-24 4-24 22Z" fill={hair} />
-        <path d="M30 62q-3 14 10 20-8-16-2-28-5 2-8 8Z" fill={hair} />
-        <circle cx="46" cy="63" r="4" fill="#eeb086" />
-        <path d="M83 57q7 4 0 9" fill={face} stroke="#e2a880" strokeWidth="1.4" />
-        <circle cx="71" cy="58" r="3.1" fill={eye} />
-        <path d="M70 72q7 3 12 0" stroke={mouth} strokeWidth="2.6" fill="none" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  if (kind === "covered") {
-    return (
-      <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-        <rect width="120" height="120" fill="#e7ecf4" />
-        <rect x="52" y="88" width="16" height="18" rx="8" fill="#eeb086" />
-        <circle cx="60" cy="60" r="30" fill={face} />
-        <path d="M30 58q0-30 30-30t30 30q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
-        <circle cx="50" cy="56" r="3.3" fill={eye} /><circle cx="70" cy="56" r="3.3" fill={eye} />
-        <path d="M34 66q26-6 52 0l0 8q-26 18-52 0Z" fill="#7f9bc4" />
-        <path d="M34 66l-6 4M86 66l6 4" stroke="#7f9bc4" strokeWidth="3" strokeLinecap="round" />
-      </svg>
-    );
-  }
-  return (
-    <svg className="shot-svg" viewBox="0 0 120 120" preserveAspectRatio="xMidYMid slice" aria-hidden>
-      <rect width="120" height="120" fill="#ffe0b0" />
-      <circle cx="97" cy="23" r="15" fill="#fff2cf" opacity="0.85" />
-      <rect x="52" y="86" width="16" height="18" rx="8" fill="#eeb086" />
-      <circle cx="60" cy="62" r="30" fill={face} />
-      <path d="M30 60q0-32 30-32t30 32q0-14-12-18-8-8-18-8t-18 8q-12 4-12 18Z" fill={hair} />
-      <circle cx="50" cy="60" r="3.4" fill={eye} /><circle cx="70" cy="60" r="3.4" fill={eye} />
-      <circle cx="46" cy="70" r="4" fill="#f2a982" opacity=".6" /><circle cx="74" cy="70" r="4" fill="#f2a982" opacity=".6" />
-      <path d="M49 74q11 10 22 0" stroke={mouth} strokeWidth="3" fill="none" strokeLinecap="round" />
-    </svg>
-  );
-}
 
 /** Vídeo de exemplo: carrega e toca só quando entra na tela. */
 function AutoMutedVideo({ src, poster }: { src: string; poster: string }) {
@@ -1440,7 +1351,7 @@ function CatalogBookCard({
   personalize,
   modo = "realista",
 }: {
-  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; heroi?: string };
+  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; heroi?: string; catalogI?: number };
   lang: Lang;
   personalize: string;
   modo?: "realista" | "cartoon";
@@ -1511,7 +1422,7 @@ function CatalogBookCard({
               </p>
             </div>
             <div>
-              <strong>{lang === "en" ? "SOFT - Softcover" : lang === "es" ? "SOFT - Tapa blanda" : "SOFT - Capa macia"}</strong>
+              <strong>{lang === "en" ? "SOFT - Softcover" : lang === "es" ? "SOFT - Tapa blanda" : "SOFT - Capa flexível"}</strong>
               <p>
                 {lang === "en"
                   ? "Lighter and flexible. Common in books and economical editions."
@@ -1531,6 +1442,7 @@ function CatalogBookCard({
             size,
             cover,
             modo: modo ?? "realista",
+            catalogI: book.catalogI,
           })}
           className="kbtn kbtn-primary"
           data-testid="landing-personalize"
@@ -1569,16 +1481,21 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
-  const classicHow = variant === "cartoon";
-  const hiwSteps = classicHow
-    ? t.hiw.map((h, i) => (i === 0 ? { ...h, t: t.cartoon_hiw_title, p: t.cartoon_hiw_photo } : h))
-    : t.hiw_main;
-  const howImgs = classicHow ? HOW_IMGS : HOW_SCENE_IMGS;
+  const hiwSteps = t.hiw_main;
+  const howImgs = HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
-  const heroStrip = variant === "cartoon" ? HERO_STRIP_CARTOON : HERO_STRIP;
-  const catalogBooks = variant === "cartoon"
-    ? CATALOG_DRAWING.map((book) => ({ t: book.t[lang], img: book.img, theme: book.theme }))
-    : t.catalog
+  const heroStrip = HERO_STRIP.map((book) => {
+    if (variant !== "cartoon") return book;
+    const shot = CARTOON_HERO[book.name];
+    if (!shot) return book;
+    return {
+      ...book,
+      cover: shot.cover ? heroAsset(shot.cover) : book.cover,
+      page: shot.page ? heroAsset(shot.page) : book.page,
+      photo: shot.photo ? heroAsset(shot.photo) : book.photo,
+    };
+  });
+  const catalogBooks = t.catalog
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i))
         .sort((a, b) => {
@@ -1590,13 +1507,17 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         })
         .map(({ c, i }) => ({
           t: c.t,
-          img: catalogImgSrc(CATALOG_IMGS[i], lang),
+          img: catalogCoverFile(i, lang, variant),
           theme: CATALOG_THEMES[i],
           cover: c.cover,
           size: c.size,
           tag: c.tag,
           heroi: HERO_BY_CATALOG[i],
+          catalogI: i,
         }));
+  const reviewPhotos = REVIEW_PHOTOS.map((photo) =>
+    variant === "cartoon" && CARTOON_REVIEW[photo.name] ? { ...photo, tab: CARTOON_REVIEW[photo.name] } : photo,
+  );
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
   const heroPage = heroPick % 3;
   const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
@@ -1613,6 +1534,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       heroi: HERO_BY_CATALOG[catalogI],
       cover: catalogCoverChoice(book.cover),
       modo: variant === "cartoon" ? "cartoon" : "realista",
+      catalogI,
     });
   };
   const navCats = t.cats.map((cat, i) => ({
@@ -1630,7 +1552,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       return {
         label,
         href: bookStudioHref(theme, meta.catalogI),
-        img: catalogImgSrc(CATALOG_IMGS[meta.catalogI], lang),
+        img: catalogCoverFile(meta.catalogI, lang, variant),
       };
     }),
   }));
@@ -1638,7 +1560,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: bookStudioHref(theme, i), img: catalogImgSrc(img, lang) }];
+    return [{ label: book.t, href: bookStudioHref(theme, i), img: catalogCoverFile(i, lang, variant) }];
   });
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
@@ -1793,6 +1715,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
+                <Link to="/cartoon" className={`kcat-btn${variant === "cartoon" ? " on" : ""}`} style={{ "--cat": "#3ecf8e" } as CSSProperties} onClick={closeNav} aria-current={variant === "cartoon" ? "page" : undefined}>
+                  <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
+                  Cartoon
+                </Link>
               </nav>
             </div>
           </div>
@@ -1853,6 +1779,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
+            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>Cartoon</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
@@ -1926,37 +1853,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
           <p className="ksub">{t.hiw_sub}</p>
-          {classicHow ? (
-          <div className="shot-tips shot-tips-classic">
-              <h3>{t.shot_title}</h3>
-              <p className="shot-sub">{t.cartoon_shot_sub}</p>
-              <div className="shot-grid">
-                {SHOTS.map((s, i) => (
-                  <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
-                    <div className="shot-ava-wrap">
-                      <div className="shot-ava">
-                        {s.img ? (
-                          <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                        ) : (
-                          <ShotArt kind={s.art ?? "good"} />
-                        )}
-                      </div>
-                      <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
-                    </div>
-                    {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
-                  </div>
-                ))}
-              </div>
-          </div>
-          ) : null}
           <div className="howex">
             {hiwSteps.map((h, i) => {
-              const tip = classicHow ? null : t.shots[i];
+              const tip = t.shots[i];
               return (
               <Fragment key={h.t}>
-                <figure className={`howex-card${classicHow
-                  ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
-                  : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
+                <figure className={`howex-card howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}>
                   {tip ? (
                     <div className="howex-lead">
                       <h3>{tip.t}</h3>
@@ -1972,7 +1874,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <p>{h.p}</p>
                   </figcaption>
                 </figure>
-                {i < t.hiw.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+                {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
               );
             })}
@@ -2060,7 +1962,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <p className="ksub reveal">{t.rev_sub}</p>
         <div className="rev-carousel reveal" aria-label={t.rev_title}>
           <div className="rev-carousel-track">
-            {[0, 1].map((copy) => REVIEW_PHOTOS.map((b, i) => (
+            {[0, 1].map((copy) => reviewPhotos.map((b, i) => (
               <figure className="rev-photo" key={`${copy}-${b.tab}`} aria-hidden={copy === 1 ? true : undefined}>
                 <span className="rev-photo-frame">
                   <img

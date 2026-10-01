@@ -283,6 +283,7 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/capa-esther-higiene.png
 !apps/web/public/exemplos/pagina-esther-higiene.png
 !apps/web/public/exemplos/foto-esther-higiene.png
+!apps/web/public/exemplos/cartoon-*.jpg
 
 .vercel
 .env*
