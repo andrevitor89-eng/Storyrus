@@ -247,7 +247,7 @@ describe("Landing — catálogo", () => {
     expect(within(card).getByRole("button", { name: "M", pressed: false })).toBeInTheDocument();
     expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
     expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
-    expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 129,00");
+    expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 157,00");
   });
 
   it("troca a capa localizada de Amor de Mãe ao mudar o idioma", async () => {
