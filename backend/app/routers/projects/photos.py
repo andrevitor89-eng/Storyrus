@@ -14,6 +14,7 @@ from app.database import get_db
 from app.deps import get_current_user
 from app.models import Asset, AssetKind, OrderTicket, User
 from app.orders import build_book_order_summary, client_registration, parse_extra_names
+from app.security import is_guest_user
 from app.schemas import UploadUrlIn, UploadUrlOut
 
 from .common import get_owned_project
@@ -164,6 +165,8 @@ async def upload_photo(
         address=client_address,
         notes=client_notes,
     )
+    if buyer is None and not is_guest_user(email=user.email, password_hash=user.password_hash):
+        buyer = {"name": user.email, "email": user.email, "phone": "", "address": "", "notes": ""}
     if buyer is None:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Cadastro do cliente incompleto")
     ext = ((file.filename or "foto.jpg").rsplit(".", 1)[-1] or "jpg").lower()

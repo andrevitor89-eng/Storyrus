@@ -66,6 +66,8 @@ export type StudioCopy = {
   clientAddressPh: string;
   clientNotes: string;
   clientNotesPh: string;
+  clientContinue: string;
+  errClient: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
@@ -344,6 +346,8 @@ const pt: StudioCopy = {
   clientAddressPh: "Rua, número, bairro e cidade",
   clientNotes: "Observação (opcional)",
   clientNotesPh: "Ex.: entregar à tarde",
+  clientContinue: "Continuar para o livro",
+  errClient: "Preencha nome, e-mail, telefone e endereço.",
   createProject: "Criar Livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
@@ -538,6 +542,8 @@ const en: StudioCopy = {
   clientAddressPh: "Street, number, neighborhood and city",
   clientNotes: "Note (optional)",
   clientNotesPh: "e.g. deliver in the afternoon",
+  clientContinue: "Continue to the book",
+  errClient: "Fill in name, email, phone, and address.",
   createProject: "Create Book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
@@ -732,6 +738,8 @@ const es: StudioCopy = {
   clientAddressPh: "Calle, número, barrio y ciudad",
   clientNotes: "Observación (opcional)",
   clientNotesPh: "Ej.: entregar por la tarde",
+  clientContinue: "Continuar al libro",
+  errClient: "Completa nombre, correo, teléfono y dirección.",
   createProject: "Crear Libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",

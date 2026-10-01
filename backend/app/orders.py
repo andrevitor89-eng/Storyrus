@@ -202,11 +202,18 @@ def build_book_order_summary(
         address=client_address,
         notes=client_notes,
     )
+    if buyer is None:
+        name = _one_line(client_name, 120)
+        email = _one_line(client_email, 160)
+        if name and _EMAIL.fullmatch(email):
+            buyer = {"name": name, "email": email, "phone": "", "address": "", "notes": ""}
     if buyer:
         lines.append(f"Cliente: {buyer['name']}")
         lines.append(f"E-mail: {buyer['email']}")
-        lines.append(f"Telefone: {buyer['phone']}")
-        lines.append(f"Endereço: {buyer['address']}")
+        if buyer["phone"]:
+            lines.append(f"Telefone: {buyer['phone']}")
+        if buyer["address"]:
+            lines.append(f"Endereço: {buyer['address']}")
         if buyer["notes"]:
             lines.append(f"Observação: {buyer['notes']}")
     return "\n".join(lines)

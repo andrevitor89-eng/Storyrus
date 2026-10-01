@@ -104,6 +104,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const { lang, setLang, t, langs } = useStudioI18n();
   const [credits, setCredits] = useState<number | null>(null);
   const [isGuest, setIsGuest] = useState(true);
+  const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
+  const [accountEmail, setAccountEmail] = useState("");
+  const [clientDone, setClientDone] = useState(false);
   const [showUpgrade, setShowUpgrade] = useState(false);
   const [upgradeEmail, setUpgradeEmail] = useState("");
   const [upgradePassword, setUpgradePassword] = useState("");
@@ -222,6 +225,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const me = await api.me();
       setIsGuest(me.is_guest);
+      setAccountKind(me.is_guest ? "guest" : "account");
+      setAccountEmail(me.email);
       setCredits(me.credits);
     } catch {
       /* ignore */
@@ -358,13 +363,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setError(t.errGender);
       return;
     }
-    const buyerName = oneLine(clientName);
-    const buyerEmail = oneLine(clientEmail);
-    const buyerPhone = oneLine(clientPhone);
-    const buyerAddress = oneLine(clientAddress);
-    const buyerNotes = oneLine(clientNotes);
-    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
-      setError(t.errMissingFields);
+    const signedIn = accountKind === "account";
+    const buyerName = signedIn ? oneLine(accountEmail) : oneLine(clientName);
+    const buyerEmail = signedIn ? oneLine(accountEmail) : oneLine(clientEmail);
+    const buyerPhone = signedIn ? "" : oneLine(clientPhone);
+    const buyerAddress = signedIn ? "" : oneLine(clientAddress);
+    const buyerNotes = signedIn ? "" : oneLine(clientNotes);
+    if (!signedIn && (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress)) {
+      setError(t.errClient);
       return;
     }
     if (photos.length === 0) {
@@ -455,6 +461,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setThemeText("");
     setDedication("");
     setClientName("");
+    setClientDone(false);
     setClientEmail("");
     setClientPhone("");
     setClientAddress("");
@@ -475,6 +482,21 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   const fieldsLocked = !!project;
+  const showBook = isDemo || clientDone || accountKind === "account";
+  const showClient = !isDemo && !clientDone && accountKind !== "account";
+
+  function finishClient() {
+    const buyerName = oneLine(clientName);
+    const buyerEmail = oneLine(clientEmail);
+    const buyerPhone = oneLine(clientPhone);
+    const buyerAddress = oneLine(clientAddress);
+    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
+      setError(t.errClient);
+      return;
+    }
+    setError(null);
+    setClientDone(true);
+  }
 
   const addPhotos = useCallback((list: Iterable<File>) => {
     const incoming = imageFiles(list);
@@ -694,6 +716,80 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <p className="studio-slogan">{t.slogan}</p>
           )}
 
+          {showClient && (
+            <div className="studio-client" data-testid="studio-client">
+              <h3 className="field-label">{t.clientTitle}</h3>
+              <label className="studio-field">
+                {t.clientName}
+                <input
+                  disabled={isDemo}
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  placeholder={t.clientNamePh}
+                  maxLength={120}
+                  autoComplete="name"
+                  data-testid="studio-client-name"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientEmail}
+                <input
+                  disabled={isDemo}
+                  type="email"
+                  value={clientEmail}
+                  onChange={(e) => setClientEmail(e.target.value)}
+                  placeholder={t.clientEmailPh}
+                  maxLength={160}
+                  autoComplete="email"
+                  data-testid="studio-client-email"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientPhone}
+                <input
+                  disabled={isDemo}
+                  type="tel"
+                  value={clientPhone}
+                  onChange={(e) => setClientPhone(e.target.value)}
+                  placeholder={t.clientPhonePh}
+                  maxLength={40}
+                  autoComplete="tel"
+                  data-testid="studio-client-phone"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientAddress}
+                <textarea
+                  disabled={isDemo}
+                  value={clientAddress}
+                  onChange={(e) => setClientAddress(e.target.value)}
+                  placeholder={t.clientAddressPh}
+                  maxLength={300}
+                  rows={3}
+                  autoComplete="street-address"
+                  data-testid="studio-client-address"
+                />
+              </label>
+              <label className="studio-field">
+                {t.clientNotes}
+                <textarea
+                  disabled={isDemo}
+                  value={clientNotes}
+                  onChange={(e) => setClientNotes(e.target.value)}
+                  placeholder={t.clientNotesPh}
+                  maxLength={500}
+                  rows={2}
+                  data-testid="studio-client-notes"
+                />
+              </label>
+              <button type="button" className="kbtn kbtn-go studio-create" onClick={finishClient}>
+                {t.clientContinue}
+              </button>
+            </div>
+          )}
+
+          {showBook && (
+          <>
           <div className="how" role="region" aria-labelledby="studio-how-heading">
             <h3 className="field-label" id="studio-how-heading">
               {t.howTitle}
@@ -866,72 +962,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
-              <div className="studio-client" data-testid="studio-client">
-                <h3 className="field-label">{t.clientTitle}</h3>
-                <label className="studio-field">
-                  {t.clientName}
-                  <input
-                    disabled={isDemo}
-                    value={clientName}
-                    onChange={(e) => setClientName(e.target.value)}
-                    placeholder={t.clientNamePh}
-                    maxLength={120}
-                    autoComplete="name"
-                    data-testid="studio-client-name"
-                  />
-                </label>
-                <label className="studio-field">
-                  {t.clientEmail}
-                  <input
-                    disabled={isDemo}
-                    type="email"
-                    value={clientEmail}
-                    onChange={(e) => setClientEmail(e.target.value)}
-                    placeholder={t.clientEmailPh}
-                    maxLength={160}
-                    autoComplete="email"
-                    data-testid="studio-client-email"
-                  />
-                </label>
-                <label className="studio-field">
-                  {t.clientPhone}
-                  <input
-                    disabled={isDemo}
-                    type="tel"
-                    value={clientPhone}
-                    onChange={(e) => setClientPhone(e.target.value)}
-                    placeholder={t.clientPhonePh}
-                    maxLength={40}
-                    autoComplete="tel"
-                    data-testid="studio-client-phone"
-                  />
-                </label>
-                <label className="studio-field">
-                  {t.clientAddress}
-                  <textarea
-                    disabled={isDemo}
-                    value={clientAddress}
-                    onChange={(e) => setClientAddress(e.target.value)}
-                    placeholder={t.clientAddressPh}
-                    maxLength={300}
-                    rows={3}
-                    autoComplete="street-address"
-                    data-testid="studio-client-address"
-                  />
-                </label>
-                <label className="studio-field">
-                  {t.clientNotes}
-                  <textarea
-                    disabled={isDemo}
-                    value={clientNotes}
-                    onChange={(e) => setClientNotes(e.target.value)}
-                    placeholder={t.clientNotesPh}
-                    maxLength={500}
-                    rows={2}
-                    data-testid="studio-client-notes"
-                  />
-                </label>
-              </div>
               <label className="studio-field studio-also">
                 {t.quantity}
                 <input
@@ -1031,6 +1061,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             </>
+          )}
+          </>
           )}
         </section>
 

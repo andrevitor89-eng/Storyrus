@@ -18,14 +18,15 @@ describe("Fluxo E2E (sem login)", () => {
 
     expect(await screen.findByText(/créditos: 10/i)).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
-    await user.type(screen.getByLabelText(/^idade$/i), "5");
-    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
-    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     await user.type(screen.getByLabelText(/nome do cliente/i), "Ana Souza");
     await user.type(screen.getByLabelText(/^e-mail$/i), "ana@email.com");
     await user.type(screen.getByLabelText(/telefone/i), "11999999999");
     await user.type(screen.getByLabelText(/endereço para entrega/i), "Rua A, 10");
+    await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
+    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
     await user.upload(fileInput, file);

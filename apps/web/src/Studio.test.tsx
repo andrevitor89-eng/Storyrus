@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { App } from "./App";
-import { api } from "./api";
+import { api, setToken } from "./api";
 import { ProgressList, Studio } from "./Studio";
 import type { Job } from "./types";
 import { state } from "./test/server";
@@ -18,6 +18,13 @@ async function fillClient(user: ReturnType<typeof userEvent.setup>, notes = "") 
   await user.type(screen.getByLabelText(/telefone/i), "11999999999");
   await user.type(screen.getByLabelText(/endereço para entrega/i), "Rua A, 10");
   if (notes) await user.type(screen.getByLabelText(/observação/i), notes);
+}
+
+async function openBook(user: ReturnType<typeof userEvent.setup>, notes = "") {
+  await screen.findByTestId("studio-client");
+  await fillClient(user, notes);
+  await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
+  await screen.findByRole("button", { name: /criar livro/i });
 }
 
 function ebookJob(overrides: Partial<Job> = {}): Job {
@@ -59,6 +66,7 @@ describe("Studio — tema do banner", () => {
     );
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Emilia e os Primeiros Passos");
     expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue("Primeiros passos no ballet");
@@ -72,7 +80,9 @@ describe("Studio — tema do banner", () => {
 
   it("leva só o tema e deixa o nome da criança em branco", async () => {
     window.history.replaceState({}, "", "/app?tema=mothers_day&campos=tema&historia=Amor+de+m%C3%A3e");
+    const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
     expect(screen.getByLabelText(/título do livro/i)).toHaveValue("");
@@ -85,7 +95,9 @@ describe("Studio — tema do banner", () => {
       "",
       "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&tamanho=P&capa=soft&modo=cartoon&quem=pai&genero=m",
     );
+    const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByText(/livro escolhido/i)).toBeInTheDocument();
     expect(screen.getByText(/papai herói/i)).toBeInTheDocument();
@@ -115,13 +127,13 @@ describe("Studio — tema do banner", () => {
     );
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user, "entregar à tarde");
 
     await user.type(screen.getByLabelText(/nome do pai/i), "Lia");
     await user.type(screen.getByLabelText(/idade do pai/i), "4");
     await user.clear(screen.getByTestId("studio-quantity"));
     await user.type(screen.getByTestId("studio-quantity"), "20");
     await user.type(screen.getByTestId("studio-extra-names"), "Vovó, Totó");
-    await fillClient(user, "entregar à tarde");
     await user.upload(
       screen.getByTestId("studio-photo-input"),
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
@@ -159,12 +171,12 @@ describe("Studio — tema do banner", () => {
     window.history.replaceState({}, "", "/app");
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
-    await fillClient(user);
     await user.upload(screen.getByTestId("studio-photo-input"), [
       new File(["a"], "frente.jpg", { type: "image/jpeg" }),
       new File(["b"], "sorriso.jpg", { type: "image/jpeg" }),
@@ -191,36 +203,37 @@ describe("Studio — tema do banner", () => {
     );
   });
 
-  it("não envia o pedido sem o cadastro do cliente", async () => {
+  it("não abre o livro sem o cadastro do cliente", async () => {
     const upload = vi.spyOn(api, "uploadPhoto");
     const create = vi.spyOn(api, "createProject");
-    window.history.replaceState(
-      {},
-      "",
-      "/app?tema=fathers_day&campos=nome&titulo=Papai%20her%C3%B3i&historia=Papai%20her%C3%B3i&modo=cartoon&quem=pai&genero=m",
-    );
     const user = userEvent.setup();
     render(<Studio />);
 
-    await user.type(screen.getByLabelText(/nome do pai/i), "Lia");
-    await user.type(screen.getByLabelText(/idade do pai/i), "4");
-    await user.upload(
-      screen.getByTestId("studio-photo-input"),
-      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
-    );
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await screen.findByTestId("studio-client");
+    expect(screen.queryByRole("button", { name: /criar livro/i })).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/preencha nome/i);
-    expect(screen.queryByTestId("studio-order-sent")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /criar livro/i })).not.toBeInTheDocument();
     expect(upload).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
+  });
+
+  it("quem já está logado vai direto ao livro", async () => {
+    state.isGuest = false;
+    state.email = "ana@email.com";
+    setToken("test-token");
+    render(<Studio />);
+
+    expect(await screen.findByRole("button", { name: /criar livro/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-client")).not.toBeInTheDocument();
   });
 
   it("preenche um tema sem livro único e deixa os campos editáveis", async () => {
     window.history.replaceState({}, "", "/app?tema=sport");
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     const title = screen.getByLabelText(/título do livro/i);
     expect(title).toHaveValue("Uma história de esporte");
@@ -240,6 +253,7 @@ describe("Studio — tema do banner", () => {
     );
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByLabelText(/nome do pet/i)).toHaveValue("");
     expect(screen.getByLabelText(/idade do pet/i)).toBeInTheDocument();
@@ -253,13 +267,15 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText(/thor, minha cachorra/i)).toBeInTheDocument();
   });
 
-  it("pede a criança e o pet quando o livro tem os dois", () => {
+  it("pede a criança e o pet quando o livro tem os dois", async () => {
     window.history.replaceState(
       {},
       "",
       "/app?tema=pets&campos=nome&titulo=Lucas%20e%20seu%20amigo%20Max&quem=crianca&genero=m&quem2=pet&genero2=m&heroi=Lucas&heroi2=Max",
     );
+    const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByLabelText(/nome da criança/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/nome do pet/i)).toBeInTheDocument();
@@ -274,6 +290,7 @@ describe("Studio — tema do banner", () => {
     );
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByLabelText(/nome do primo/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
@@ -286,6 +303,7 @@ describe("Studio a11y", () => {
     state.credits = 10;
     const user = userEvent.setup();
     render(<Studio />);
+    await openBook(user);
 
     expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveAttribute("id", "studio-main");
@@ -299,7 +317,6 @@ describe("Studio a11y", () => {
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
-    await fillClient(user);
     const fileInput = screen.getByTestId("studio-photo-input");
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
@@ -319,12 +336,12 @@ describe("Polling do estúdio", () => {
     const spy = vi.spyOn(window, "setInterval");
     const user = userEvent.setup();
     render(<App />);
+    await openBook(user);
 
     await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
-    await fillClient(user);
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
