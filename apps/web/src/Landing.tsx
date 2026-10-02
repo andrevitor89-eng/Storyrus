@@ -254,6 +254,11 @@ const CATALOG_PRICE: Record<Lang, string> = {
   en: "On request",
   es: "Bajo consulta",
 };
+/** 15 × 15 cm (P) R$ 157 e 20 × 20 cm (M) R$ 177. A capa não altera o valor. */
+const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "157", M: "177" };
+function catalogPrice(size: CatalogSizeChoice): string {
+  return `R$ ${CATALOG_AMOUNT[size]},00`;
+}
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
 }
@@ -1515,17 +1520,17 @@ export function CatalogBookCard({
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
         {selectable ? (
-          <div className="cat-choices">
-            <div className="cat-opt" role="group" aria-label={copy.hard}>
-              {(["hard", "soft"] as const).map((choice) => (
+          <div className="cat-badges">
+            <div className="cat-opt" role="group" aria-label={copy.soft}>
+              {(["soft", "hard"] as const).map((choice) => (
                 <button
                   key={choice}
                   type="button"
-                  className={`kbtn cat-choice${cover === choice ? " is-on" : ""}`}
+                  className={cover === choice ? "is-on" : ""}
                   aria-pressed={cover === choice}
                   onClick={() => setCover(choice)}
                 >
-                  {choice === "hard" ? copy.hard : copy.soft}
+                  {choice === "soft" ? "Soft" : "Hard"}
                 </button>
               ))}
             </div>
@@ -1534,14 +1539,15 @@ export function CatalogBookCard({
                 <button
                   key={choice}
                   type="button"
-                  className={`kbtn cat-choice${size === choice ? " is-on" : ""}`}
+                  className={size === choice ? "is-on" : ""}
                   aria-pressed={size === choice}
                   onClick={() => setSize(choice)}
                 >
-                  {choice === "M" ? copy.sizeM : copy.sizeP}
+                  {choice}
                 </button>
               ))}
             </div>
+            <span className="cat-price" data-testid="landing-catalog-price">{catalogPrice(size)}</span>
           </div>
         ) : (
           <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
@@ -1549,24 +1555,18 @@ export function CatalogBookCard({
         <div className="cat-notes">
           <p className="cat-notes-lead">{copy.pages}</p>
           <p className="cat-notes-sizes">
-            {(["M", "P"] as const).map((choice) => {
-              const label = choice === "M" ? copy.sizeM : copy.sizeP;
-              const price = choice === "M" ? copy.priceM : copy.priceP;
-              const line = `${label}: ${price}.`;
-              return (
-                <span
-                  key={choice}
-                  className={size === choice ? "is-price" : ""}
-                  data-testid={size === choice ? "landing-catalog-price" : undefined}
-                >
-                  {line}
-                </span>
-              );
-            })}
+            <span>{copy.sizeM}: {copy.priceM}.</span>
+            <span>{copy.sizeP}: {copy.priceP}.</span>
           </p>
           <div className="cat-note-grid">
-            <p>{copy.hardText}</p>
-            <p>{copy.softText}</p>
+            <div>
+              <strong>{copy.hard}</strong>
+              <p>{copy.hardText}</p>
+            </div>
+            <div>
+              <strong>{copy.soft}</strong>
+              <p>{copy.softText}</p>
+            </div>
           </div>
         </div>
         <Link

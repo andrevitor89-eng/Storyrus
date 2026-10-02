@@ -192,11 +192,11 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText("Livro 16 páginas")).toBeInTheDocument();
     expect(within(cards[0]).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
     expect(within(cards[0]).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
-    expect(within(cards[0]).getByRole("button", { name: "HARD - Capa rígida" })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "Hard" })).toBeInTheDocument();
     expect(within(cards[0]).getByText(/mais pesada, resistente e durável/i)).toBeInTheDocument();
-    expect(within(cards[0]).getByRole("button", { name: "SOFT - Capa flexível" })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "Soft" })).toBeInTheDocument();
     expect(within(cards[0]).getByText(/mais leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD - Capa rígida" })).toHaveLength(14);
+    expect(within(catalog).getAllByRole("button", { name: "Hard" })).toHaveLength(14);
     expect(cards).toHaveLength(14);
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
@@ -216,13 +216,12 @@ describe("Landing — catálogo", () => {
     expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor.png"));
     expect(cards[2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-enzo-primo.png"));
-    expect(within(cards[0]).getByRole("button", { name: "HARD - Capa rígida", pressed: true })).toBeInTheDocument();
-    expect(within(cards[0]).getByRole("button", { name: "SOFT - Capa flexível", pressed: false })).toBeInTheDocument();
-    expect(within(cards[0]).getByRole("button", { name: "M - 20 × 20 cm", pressed: true })).toBeInTheDocument();
-    expect(within(cards[0]).getByRole("button", { name: "P - 15 × 15 cm", pressed: false })).toBeInTheDocument();
-    expect(within(cards[4]).getByRole("button", { name: "HARD - Capa rígida", pressed: true })).toBeInTheDocument();
-    expect(cards[0].querySelector(".cat-badges .cat-price")).toBeNull();
-    expect(cards[0].querySelector(".cat-notes-sizes .is-price")).toContainElement(within(cards[0]).getByTestId("landing-catalog-price"));
+    expect(within(cards[0]).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "Soft", pressed: false })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "M", pressed: true })).toBeInTheDocument();
+    expect(within(cards[0]).getByRole("button", { name: "P", pressed: false })).toBeInTheDocument();
+    expect(within(cards[4]).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
+    expect(cards[0].querySelector(".cat-badges .cat-price")).toHaveTextContent("R$ 177,00");
   });
 
   it("troca descrição e valor ao escolher capa e tamanho", async () => {
@@ -232,21 +231,21 @@ describe("Landing — catálogo", () => {
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const card = within(catalog).getAllByTestId("landing-catalog-card")[0];
 
-    await user.click(within(card).getByRole("button", { name: "HARD - Capa rígida" }));
-    expect(within(card).getByRole("button", { name: "HARD - Capa rígida", pressed: true })).toBeInTheDocument();
-    expect(within(card).getByRole("button", { name: "SOFT - Capa flexível", pressed: false })).toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: "Hard" }));
+    expect(within(card).getByRole("button", { name: "Hard", pressed: true })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "Soft", pressed: false })).toBeInTheDocument();
     expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
     expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 177,00");
 
-    await user.click(within(card).getByRole("button", { name: "SOFT - Capa flexível" }));
-    expect(within(card).getByRole("button", { name: "SOFT - Capa flexível", pressed: true })).toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: "Soft" }));
+    expect(within(card).getByRole("button", { name: "Soft", pressed: true })).toBeInTheDocument();
     expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("capa=soft"));
 
-    await user.click(within(card).getByRole("button", { name: "P - 15 × 15 cm" }));
-    expect(within(card).getByRole("button", { name: "P - 15 × 15 cm", pressed: true })).toBeInTheDocument();
+    await user.click(within(card).getByRole("button", { name: "P" }));
+    expect(within(card).getByRole("button", { name: "P", pressed: true })).toBeInTheDocument();
     expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tamanho=P"));
-    expect(within(card).getByRole("button", { name: "M - 20 × 20 cm", pressed: false })).toBeInTheDocument();
+    expect(within(card).getByRole("button", { name: "M", pressed: false })).toBeInTheDocument();
     expect(within(card).getByText("M - 20 × 20 cm: R$ 177,00.")).toBeInTheDocument();
     expect(within(card).getByText("P - 15 × 15 cm: R$ 157,00.")).toBeInTheDocument();
     expect(within(card).getByTestId("landing-catalog-price")).toHaveTextContent("R$ 157,00");
@@ -272,7 +271,8 @@ describe("Landing — catálogo", () => {
     const esSrcs = within(esCatalog).getAllByRole("img").map((img) => img.getAttribute("src") ?? "");
     expect(esSrcs.some((src) => src.includes("capa-amordemae-es.png"))).toBe(true);
     expect(esSrcs.some((src) => src.includes("capa-ester-es.png"))).toBe(false);
-    expect(within(esCatalog).getAllByRole("button", { name: "HARD - Tapa rígida" }).length).toBeGreaterThan(0);
+    expect(within(esCatalog).getAllByRole("button", { name: "Hard" }).length).toBeGreaterThan(0);
+    expect(within(esCatalog).getAllByText("HARD - Tapa rígida").length).toBeGreaterThan(0);
     expect(within(esCatalog).getAllByText("M - 20 × 20 cm: R$ 177,00.").length).toBeGreaterThan(0);
   });
 
