@@ -4,7 +4,7 @@ import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
 
-type Lang = "pt" | "en" | "es";
+export type Lang = "pt" | "en" | "es";
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -249,21 +249,11 @@ const CATALOG_NEW_INDEXES = new Set([20, 21, 22, 23, 24, 25]);
 const CATALOG_LEAD = [22, 21, 23];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
-const CATALOG_SPEC: Record<Lang, Record<CatalogCoverChoice | CatalogSizeChoice | "pages", string>> = {
-  pt: { soft: "Capa flexível", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
-  en: { soft: "Softcover", hard: "Hardcover", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 pages." },
-  es: { soft: "Tapa blanda", hard: "Tapa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
-};
 const CATALOG_PRICE: Record<Lang, string> = {
   pt: "Sob consulta",
   en: "On request",
   es: "Bajo consulta",
 };
-/** 15 × 15 cm (P) R$ 157 e 20 × 20 cm (M) R$ 177. A capa não altera o valor. */
-const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "157", M: "177" };
-function catalogPrice(size: CatalogSizeChoice): string {
-  return `R$ ${CATALOG_AMOUNT[size]},00`;
-}
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
 }
@@ -272,8 +262,15 @@ function catalogSizeChoice(size?: string): CatalogSizeChoice {
 }
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
+const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
+  aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
+  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "pets"],
+  ocasioes: ["christmas", "birthday"],
+  educativo: ["alfabetizacao_inicial", "animais_sons", "higiene_desfralde", "biblico"],
+};
 const NAV_CAT_META = [
   {
+    id: "aventuras",
     color: "#5aa6e8",
     subs: [
       { href: "/app?tema=adventure" },
@@ -292,6 +289,7 @@ const NAV_CAT_META = [
     ],
   },
   {
+    id: "voce-e-eu",
     color: "#b48ad4",
     subs: [
       { href: "/app?tema=mothers_day" },
@@ -309,6 +307,7 @@ const NAV_CAT_META = [
     ],
   },
   {
+    id: "ocasioes",
     color: "#f0b429",
     subs: [
       { href: "/app?tema=dia_da_mulher", when: { month: 3, day: 8 } },
@@ -329,16 +328,16 @@ const NAV_CAT_META = [
       { href: "/app?tema=childrens_day", when: { month: 10, day: 12 } },
       { href: "/app?tema=christmas", when: { month: 12, day: 25 } },
       { href: "/app?tema=birthday" },
-      { href: "/app?tema=new_year", when: { month: 1, day: 1 } },
     ],
     feats: [
       { href: "/app?tema=christmas", catalogI: 10 },
       { href: "/app?tema=mothers_day", catalogI: 6 },
-      { href: "/app?tema=mothers_day", catalogI: 7 },
-      { href: "/app?tema=birthday", catalogI: 14 },
+      { href: "/app?tema=grandparents_love", catalogI: 9 },
+      { href: "/app?tema=fathers_day", catalogI: 22 },
     ],
   },
   {
+    id: "educativo",
     color: "#5ec4a8",
     subs: [
       { href: "/app?tema=alfabetizacao_inicial" },
@@ -347,29 +346,16 @@ const NAV_CAT_META = [
       { href: "/app?tema=higiene_desfralde" },
       { href: "/app?tema=vestir_autonomia" },
       { href: "/app?tema=animais_sons" },
-      { href: "/app?tema=transporte_ajudantes" },
-    ],
-    feats: [
-      { href: "/app?tema=alfabetizacao_inicial", catalogI: 3 },
-      { href: "/app?tema=animais_sons", catalogI: 4 },
-    ],
-  },
-  {
-    color: "#f0a0c0",
-    subs: [
       { href: "/app?tema=literacia_emocional" },
       { href: "/app?tema=rotina_dormir" },
       { href: "/app?tema=compartilhar_revezar" },
       { href: "/app?tema=consciencia_corporal" },
-    ],
-    feats: [],
-  },
-  {
-    color: "#c9a227",
-    subs: [
       { href: "/app?tema=biblico" },
     ],
     feats: [
+      { href: "/app?tema=alfabetizacao_inicial", catalogI: 3 },
+      { href: "/app?tema=animais_sons", catalogI: 4 },
+      { href: "/app?tema=higiene_desfralde", catalogI: 25 },
       { href: "/app?tema=biblico", catalogI: 21 },
     ],
   },
@@ -396,6 +382,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   birthday: [14],
   alfabetizacao_inicial: [3],
   animais_sons: [4],
+  higiene_desfralde: [25],
   biblico: [21],
 };
 function themeFromHref(href: string): string | null {
@@ -432,12 +419,21 @@ export function nextOccasionDate(when: OccasionWhen, today: Date): Date {
   const next = new Date(start.getFullYear(), when.month - 1, when.day);
   return next >= start ? next : new Date(start.getFullYear() + 1, when.month - 1, when.day);
 }
-/** A data entra no menu quando falta no máximo 2 meses para ela. */
+function shiftMonths(date: Date, months: number): Date {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+/** A data entra no menu quando cai entre 6 meses atrás e 4 meses à frente. */
 export function occasionDue(when: OccasionWhen, today: Date): boolean {
   const start = startOfDay(today);
-  const limit = new Date(start);
-  limit.setMonth(limit.getMonth() + 2);
-  return nextOccasionDate(when, today) <= limit;
+  const past = shiftMonths(start, -6);
+  const future = shiftMonths(start, 4);
+  const year = start.getFullYear();
+  const dates = when === "easter"
+    ? [year - 1, year, year + 1].map(easterSunday)
+    : [year - 1, year, year + 1].map((y) => new Date(y, when.month - 1, when.day));
+  return dates.some((date) => date >= past && date <= future);
 }
 function SubLabel({ label }: { label: string }) {
   const [name, date] = label.split(" · ");
@@ -617,6 +613,7 @@ const I18N = {
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
+    book_carousel: "Carrossel de livros",
     cats: [
       {
         name: "Aventuras",
@@ -649,24 +646,13 @@ const I18N = {
           "Dia das Crianças · 12 de outubro",
           "Natal · 25 de dezembro",
           "Aniversário",
-          "Ano Novo",
         ],
-        feats: ["Natal", "Dia das Mães", "O Amor de Mãe", "O Aniversário Especial de Ester"],
+        feats: ["Natal", "Dia das Mães", "Dia dos Avós", "Dia dos Pais"],
       },
       {
         name: "Educativo",
-        subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Transporte"],
-        feats: ["Alfabetização", "Animais"],
-      },
-      {
-        name: "Sentimentos",
-        subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
-        feats: [],
-      },
-      {
-        name: "Bíblico",
-        subs: ["Bíblico"],
-        feats: ["Davi, o Menino Pastor"],
+        subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo", "Bíblico"],
+        feats: ["Alfabetização", "Animais", "Higiene", "Davi, o Menino Pastor"],
       },
     ],
     cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -819,6 +805,7 @@ const I18N = {
     hero_cta: "Create my book",
     cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
+    book_carousel: "Book carousel",
     cats: [
       {
         name: "Adventures",
@@ -851,24 +838,13 @@ const I18N = {
           "Children's Day · October 12",
           "Christmas · December 25",
           "Birthday",
-          "New Year",
         ],
-        feats: ["Christmas", "Mother's Day", "A Mother's Love", "Ester's Special Birthday"],
+        feats: ["Christmas", "Mother's Day", "Grandparents' Day", "Father's Day"],
       },
       {
         name: "Educational",
-        subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Transport"],
-        feats: ["Literacy", "Animals"],
-      },
-      {
-        name: "Feelings",
-        subs: ["Feelings", "Bedtime", "Sharing", "Body"],
-        feats: [],
-      },
-      {
-        name: "Biblical",
-        subs: ["Biblical"],
-        feats: ["David, the Shepherd Boy"],
+        subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Feelings", "Bedtime", "Sharing", "Body", "Biblical"],
+        feats: ["Literacy", "Animals", "Hygiene", "David, the Shepherd Boy"],
       },
     ],
     cat_below: "Preserve moments. Gift your family an unforgettable story.",
@@ -1021,6 +997,7 @@ const I18N = {
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
+    book_carousel: "Carrusel de libros",
     cats: [
       {
         name: "Aventuras",
@@ -1053,24 +1030,13 @@ const I18N = {
           "Día del Niño · 12 de octubre",
           "Navidad · 25 de diciembre",
           "Cumpleaños",
-          "Año Nuevo",
         ],
-        feats: ["Navidad", "Día de la Madre", "El Amor de Mamá", "El Cumpleaños Especial de Ester"],
+        feats: ["Navidad", "Día de la Madre", "Día de los Abuelos", "Día del Padre"],
       },
       {
         name: "Educativo",
-        subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Transporte"],
-        feats: ["Alfabetización", "Animales"],
-      },
-      {
-        name: "Sentimientos",
-        subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
-        feats: [],
-      },
-      {
-        name: "Bíblico",
-        subs: ["Bíblico"],
-        feats: ["David, el Niño Pastor"],
+        subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo", "Bíblico"],
+        feats: ["Alfabetización", "Animales", "Higiene", "David, el Niño Pastor"],
       },
     ],
     cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
@@ -1463,92 +1429,149 @@ function FlipBook({
   );
 }
 
-function CatalogBookCard({
+const FORMAT_COPY: Record<Lang, {
+  pages: string;
+  hard: string;
+  soft: string;
+  sizeM: string;
+  sizeP: string;
+  priceM: string;
+  priceP: string;
+  hardText: string;
+  softText: string;
+}> = {
+  pt: {
+    pages: "Livro 16 páginas",
+    hard: "HARD - Capa rígida",
+    soft: "SOFT - Capa flexível",
+    sizeM: "M - 20 × 20 cm",
+    sizeP: "P - 15 × 15 cm",
+    priceM: "R$ 177,00",
+    priceP: "R$ 157,00",
+    hardText: "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis.",
+    softText: "Mais leve e flexível. Comum em livros e edições econômicas.",
+  },
+  en: {
+    pages: "Book. 16 pages.",
+    hard: "HARD - Hardcover",
+    soft: "SOFT - Softcover",
+    sizeM: "M - 20 × 20 cm",
+    sizeP: "P - 15 × 15 cm",
+    priceM: "R$ 177.00",
+    priceP: "R$ 157.00",
+    hardText: "Heavier, sturdy and durable. Used for special or collectible editions.",
+    softText: "Lighter and flexible. Common in books and economical editions.",
+  },
+  es: {
+    pages: "Libro. 16 páginas.",
+    hard: "HARD - Tapa rígida",
+    soft: "SOFT - Tapa blanda",
+    sizeM: "M - 20 × 20 cm",
+    sizeP: "P - 15 × 15 cm",
+    priceM: "R$ 177,00",
+    priceP: "R$ 157,00",
+    hardText: "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección.",
+    softText: "Más ligera y flexible. Común en libros y ediciones económicas.",
+  },
+};
+export type CatalogCardBook = {
+  t: string;
+  img: string;
+  theme: string;
+  cover?: string;
+  size?: string;
+  tag?: string;
+  heroi?: string;
+  catalogI?: number;
+  story?: string;
+  quote?: string;
+};
+export function CatalogBookCard({
   book,
   lang,
   personalize,
   modo = "realista",
+  linkBook = true,
+  showStory = false,
 }: {
-  book: { t: string; img: string; theme: string; cover?: string; size?: string; tag?: string; heroi?: string; catalogI?: number };
+  book: CatalogCardBook;
   lang: Lang;
   personalize: string;
   modo?: "realista" | "cartoon";
+  linkBook?: boolean;
+  showStory?: boolean;
 }) {
   const selectable = typeof book.cover === "string" && typeof book.size === "string";
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
-  const spec = CATALOG_SPEC[lang];
+  const copy = FORMAT_COPY[lang];
+  const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
+  const linked = linkBook && bookHref != null;
+  const image = <img src={exUrl(book.img)} alt={book.t} loading="lazy" />;
   return (
     <div className="cat-card reveal" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
         <div className="cat-book">
-          <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
+          {linked ? <Link to={bookHref} className="cat-book-link">{image}</Link> : image}
         </div>
       </div>
       <div className="cat-body">
-        <h3>{book.t}</h3>
+        <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
+        {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
+        {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
         {selectable ? (
-          <div className="cat-badges">
-            <div className="cat-opt" role="group" aria-label={spec.soft}>
-              {(["soft", "hard"] as const).map((choice) => (
+          <div className="cat-choices">
+            <div className="cat-opt" role="group" aria-label={copy.hard}>
+              {(["hard", "soft"] as const).map((choice) => (
                 <button
                   key={choice}
                   type="button"
-                  className={cover === choice ? "is-on" : ""}
+                  className={`kbtn cat-choice${cover === choice ? " is-on" : ""}`}
                   aria-pressed={cover === choice}
                   onClick={() => setCover(choice)}
                 >
-                  {choice === "soft" ? "Soft" : "Hard"}
+                  {choice === "hard" ? copy.hard : copy.soft}
                 </button>
               ))}
             </div>
-            <div className="cat-opt" role="group" aria-label={spec.M}>
+            <div className="cat-opt" role="group" aria-label={copy.sizeM}>
               {(["M", "P"] as const).map((choice) => (
                 <button
                   key={choice}
                   type="button"
-                  className={size === choice ? "is-on" : ""}
+                  className={`kbtn cat-choice${size === choice ? " is-on" : ""}`}
                   aria-pressed={size === choice}
                   onClick={() => setSize(choice)}
                 >
-                  {choice}
+                  {choice === "M" ? copy.sizeM : copy.sizeP}
                 </button>
               ))}
             </div>
-            <span className="cat-price" data-testid="landing-catalog-price">{catalogPrice(size)}</span>
           </div>
         ) : (
           <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
         )}
         <div className="cat-notes">
-          <p className="cat-notes-lead">
-            {lang === "en" ? "Book. 16 pages." : lang === "es" ? "Libro. 16 páginas." : "Livro 16 páginas"}
-          </p>
+          <p className="cat-notes-lead">{copy.pages}</p>
           <p className="cat-notes-sizes">
-            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 177.00." : "M - 20 × 20 cm: R$ 177,00."}</span>
-            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 157.00." : "P - 15 × 15 cm: R$ 157,00."}</span>
+            {(["M", "P"] as const).map((choice) => {
+              const label = choice === "M" ? copy.sizeM : copy.sizeP;
+              const price = choice === "M" ? copy.priceM : copy.priceP;
+              const line = `${label}: ${price}.`;
+              return (
+                <span
+                  key={choice}
+                  className={size === choice ? "is-price" : ""}
+                  data-testid={size === choice ? "landing-catalog-price" : undefined}
+                >
+                  {line}
+                </span>
+              );
+            })}
           </p>
           <div className="cat-note-grid">
-            <div>
-              <strong>{lang === "en" ? "HARD - Hardcover" : lang === "es" ? "HARD - Tapa rígida" : "HARD - Capa rígida"}</strong>
-              <p>
-                {lang === "en"
-                  ? "Heavier, sturdy and durable. Used for special or collectible editions."
-                  : lang === "es"
-                    ? "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección."
-                    : "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis."}
-              </p>
-            </div>
-            <div>
-              <strong>{lang === "en" ? "SOFT - Softcover" : lang === "es" ? "SOFT - Tapa blanda" : "SOFT - Capa flexível"}</strong>
-              <p>
-                {lang === "en"
-                  ? "Lighter and flexible. Common in books and economical editions."
-                  : lang === "es"
-                    ? "Más ligera y flexible. Común en libros y ediciones económicas."
-                    : "Mais leve e flexível. Comum em livros e edições econômicas."}
-              </p>
-            </div>
+            <p>{copy.hardText}</p>
+            <p>{copy.softText}</p>
           </div>
         </div>
         <Link
@@ -1562,7 +1585,7 @@ function CatalogBookCard({
             modo: modo ?? "realista",
             catalogI: book.catalogI,
           })}
-          className="kbtn kbtn-primary"
+          className="kbtn kbtn-primary cat-go"
           data-testid="landing-personalize"
         >
           {personalize}
@@ -1571,6 +1594,53 @@ function CatalogBookCard({
     </div>
   );
 }
+function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
+  const book = I18N[lang].catalog[index];
+  const theme = CATALOG_THEMES[index];
+  if (!book || !theme || !CATALOG_IMGS[index]) return null;
+  return {
+    t: book.t,
+    story: book.p,
+    quote: book.quote,
+    img: catalogCoverFile(index, lang, "photo"),
+    theme,
+    cover: book.cover,
+    size: book.size,
+    tag: book.tag,
+    heroi: HERO_BY_CATALOG[index],
+    catalogI: index,
+  };
+}
+export function readSiteLang(): Lang {
+  try {
+    const s = localStorage.getItem("lang");
+    if (s === "pt" || s === "en" || s === "es") return s;
+  } catch { /* ignore */ }
+  return "pt";
+}
+export function catalogPageCopy(lang: Lang) {
+  const t = I18N[lang];
+  return { title: t.cat_title, personalize: t.personalize, back: t.see_all_books };
+}
+export function catalogEntry(lang: Lang, index: number) {
+  const card = toCatalogCard(lang, index);
+  if (!card) return null;
+  const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
+  return { ...card, sectionId: section?.id ?? "aventuras" };
+}
+export function catalogSections(lang: Lang) {
+  const names = I18N[lang].cats;
+  return NAV_CAT_META.map((meta, i) => ({
+    id: meta.id,
+    name: names[i]?.name ?? meta.id,
+    color: meta.color,
+    books: CATALOG_THEMES.flatMap((theme, index) => {
+      if (!CATALOG_SECTION_THEMES[meta.id]?.includes(theme)) return [];
+      const card = toCatalogCard(lang, index);
+      return card ? [card] : [];
+    }),
+  }));
+}
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
   const rootRef = useRef<HTMLDivElement>(null);
@@ -1578,6 +1648,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [navOpen, setNavOpen] = useState(false);
   const [openCat, setOpenCat] = useState<number | null>(null);
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
+  const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
   const [lang, setLang] = useState<Lang>(() => {
     try {
@@ -1664,6 +1735,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
+    id: NAV_CAT_META[i].id,
     color: NAV_CAT_META[i].color,
     subs: cat.subs.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].subs[j];
@@ -1687,21 +1759,20 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     feats: cat.feats.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
       if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
-      const theme = themeFromHref(meta.href) ?? "adventure";
       return [{
         label,
-        href: bookStudioHref(theme, meta.catalogI),
+        href: `/livro/${meta.catalogI}`,
         img: catalogCoverFile(meta.catalogI, lang, variant),
       }];
-    }),
+    }).slice(0, 4),
   }));
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: bookStudioHref(CATALOG_THEMES[i] ?? theme, i), img: catalogCoverFile(i, lang, variant) }];
-  });
+    return [{ label: book.t, href: `/livro/${i}`, img: catalogCoverFile(i, lang, variant) }];
+  }).slice(0, 4);
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
@@ -1736,6 +1807,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         setMobileCat(null);
         setOpenCat(null);
         setSubHover(null);
+        setFeatCat(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1749,6 +1821,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       if (target && headerRef.current?.contains(target)) return;
       setOpenCat(null);
       setSubHover(null);
+      setFeatCat(null);
       setNavOpen(false);
       setMobileCat(null);
     };
@@ -1761,6 +1834,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     setMobileCat(null);
     setOpenCat(null);
     setSubHover(null);
+    setFeatCat(null);
   };
 
   return (
@@ -1781,7 +1855,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <div
                   className={`kcat${openCat === 0 ? " open" : ""}`}
                   onMouseEnter={() => setOpenCat(0)}
-                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
+                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); setFeatCat(null); }}
                 >
                   <button
                     type="button"
@@ -1798,11 +1872,19 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <div className="kcat-panel kcat-panel-all" id="cat-panel">
                     <div className="kcat-groups">
                       {navCats.map((cat, i) => (
-                        <div key={cat.name} className="kcat-group">
-                          <p className="kcat-group-name">
+                        <div
+                          key={cat.id}
+                          className="kcat-group"
+                          style={{ "--group": cat.color } as CSSProperties}
+                          onMouseEnter={() => {
+                            setFeatCat(i);
+                            setSubHover((cur) => (cur?.cat === i ? cur : null));
+                          }}
+                        >
+                          <Link to={`/catalogo#${cat.id}`} className="kcat-group-name" onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
-                          </p>
+                          </Link>
                           <ul className="kcat-subs">
                             {cat.subs.map((sub, j) => (
                               <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
@@ -1820,11 +1902,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </div>
                     <div className="kcat-feats" data-testid="landing-cat-feats">
                       {(() => {
-                        const activeCat = subHover ? navCats[subHover.cat] : null;
-                        const activeSub = subHover && activeCat ? activeCat.subs[subHover.sub] : null;
+                        const hoverCat = subHover ? navCats[subHover.cat] : featCat != null ? navCats[featCat] : null;
+                        const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
                         const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
-                        const shown = activeTheme ? menuBooks(activeTheme) : [];
-                        const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
+                        const shown = (activeTheme ? menuBooks(activeTheme) : hoverCat?.feats ?? []).slice(0, 4);
+                        const allHref = hoverCat ? `/catalogo#${hoverCat.id}` : "/catalogo";
                         return (
                           <>
                             {shown.map((feat) => (
@@ -1891,18 +1973,23 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="kmobile-section">
             <p className="kmobile-label">{t.cats_label}</p>
             {navCats.map((cat, i) => (
-              <div key={cat.name} className={`kmobile-cat${mobileCat === i ? " open" : ""}`}>
-                <button
-                  type="button"
-                  className="kmobile-cat-btn"
-                  aria-expanded={mobileCat === i}
-                  aria-controls={`mobile-cat-${i}`}
-                  onClick={() => setMobileCat(mobileCat === i ? null : i)}
-                >
-                  <span className="kcat-dot" style={{ background: cat.color }} />
-                  {cat.name}
-                  <IcChevron className="faq-chev" />
-                </button>
+              <div key={cat.id} className={`kmobile-cat${mobileCat === i ? " open" : ""}`} style={{ "--group": cat.color } as CSSProperties}>
+                <div className="kmobile-cat-btn">
+                  <Link to={`/catalogo#${cat.id}`} onClick={closeNav}>
+                    <span className="kcat-dot" style={{ background: cat.color }} />
+                    {cat.name}
+                  </Link>
+                  <button
+                    type="button"
+                    className="kmobile-cat-toggle"
+                    aria-expanded={mobileCat === i}
+                    aria-controls={`mobile-cat-${i}`}
+                    aria-label={cat.name}
+                    onClick={() => setMobileCat(mobileCat === i ? null : i)}
+                  >
+                    <IcChevron className="faq-chev" />
+                  </button>
+                </div>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
                     {cat.subs.map((sub) => (
@@ -1912,7 +1999,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </div>
               </div>
             ))}
-            <Link to="/app" className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
+            <Link to="/catalogo" className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
           </div>
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
@@ -1934,7 +2021,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <div className="hero-carousel" aria-label={t.hero_sign}>
+        <p className="hero-carousel-label">{t.book_carousel}</p>
+        <div className="hero-carousel" aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
               const shots = [book.cover[lang], book.page[lang], book.photo[lang]];
