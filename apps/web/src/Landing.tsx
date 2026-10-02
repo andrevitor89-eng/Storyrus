@@ -1805,7 +1805,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                           </p>
                           <ul className="kcat-subs">
                             {cat.subs.map((sub, j) => (
-                              <li key={sub.label} className={`${j === 0 ? "is-lead" : ""}${subHover?.cat === i && subHover.sub === j ? " on" : ""}`}>
+                              <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
                                 <Link
                                   to={sub.href}
                                   onClick={closeNav}
@@ -1905,8 +1905,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </button>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
-                    {cat.subs.map((sub, j) => (
-                      <Link key={sub.label} className={j === 0 ? "is-lead" : undefined} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
+                    {cat.subs.map((sub) => (
+                      <Link key={sub.label} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
                     ))}
                   </div>
                 </div>

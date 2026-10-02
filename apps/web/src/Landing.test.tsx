@@ -557,7 +557,8 @@ describe("Landing — CTAs e links", () => {
     occasion({ month: 12, day: 25 }, /^natal/i);
     occasion("easter", /^páscoa$/i);
     const occasions = panel.querySelectorAll(".kcat-group")[2] as HTMLElement;
-    expect(occasions.querySelector("li.is-lead a")).toBeTruthy();
+    expect(occasions.querySelector(".kcat-group-name")).toHaveTextContent(/ocasiões especiais/i);
+    expect(occasions.querySelector("li.is-lead")).toBeNull();
     if (occasionDue({ month: 10, day: 12 }, today)) {
       fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia das crianças/i }));
       expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
