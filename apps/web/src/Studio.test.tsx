@@ -24,7 +24,7 @@ async function openBook(user: ReturnType<typeof userEvent.setup>, notes = "") {
   await screen.findByTestId("studio-client");
   await fillClient(user, notes);
   await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
-  await screen.findByRole("button", { name: /criar livro/i });
+  await screen.findByRole("checkbox", { name: /responsável legal/i });
 }
 
 function ebookJob(overrides: Partial<Job> = {}): Job {
@@ -139,7 +139,6 @@ describe("Studio — tema do banner", () => {
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
     );
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
@@ -184,9 +183,8 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText("frente.jpg")).toBeInTheDocument();
     expect(screen.getByText("sorriso.jpg")).toBeInTheDocument();
     expect(screen.getByText(/2 fotos selecionadas/i)).toBeInTheDocument();
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
 
     await screen.findByTestId("studio-order-sent");
     expect(upload).toHaveBeenNthCalledWith(
@@ -210,11 +208,11 @@ describe("Studio — tema do banner", () => {
     render(<Studio />);
 
     await screen.findByTestId("studio-client");
-    expect(screen.queryByRole("button", { name: /criar livro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /responsável legal/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/preencha nome/i);
-    expect(screen.queryByRole("button", { name: /criar livro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /responsável legal/i })).not.toBeInTheDocument();
     expect(upload).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
@@ -225,7 +223,7 @@ describe("Studio — tema do banner", () => {
     setToken("test-token");
     render(<Studio />);
 
-    expect(await screen.findByRole("button", { name: /criar livro/i })).toBeInTheDocument();
+    expect(await screen.findByRole("checkbox", { name: /responsável legal/i })).toBeInTheDocument();
     expect(screen.queryByTestId("studio-client")).not.toBeInTheDocument();
   });
 
@@ -319,9 +317,8 @@ describe("Studio a11y", () => {
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     const fileInput = screen.getByTestId("studio-photo-input");
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
@@ -343,9 +340,8 @@ describe("Polling do estúdio", () => {
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(await screen.findByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
     expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);

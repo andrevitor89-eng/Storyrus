@@ -102,7 +102,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
 function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const { lang, setLang, t, langs } = useStudioI18n();
-  const [credits, setCredits] = useState<number | null>(null);
   const [isGuest, setIsGuest] = useState(true);
   const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
   const [accountEmail, setAccountEmail] = useState("");
@@ -215,7 +214,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   const refreshCredits = useCallback(async () => {
     try {
-      setCredits((await api.credits()).credits);
+      await api.credits();
     } catch {
       /* ignore */
     }
@@ -227,7 +226,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setIsGuest(me.is_guest);
       setAccountKind(me.is_guest ? "guest" : "account");
       setAccountEmail(me.email);
-      setCredits(me.credits);
     } catch {
       /* ignore */
     }
@@ -348,7 +346,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setProject,
   });
 
-  async function start() {
+  async function start(agreed = mediaConsent) {
     if (isDemo) return;
     if (onlyName) {
       if (!childName.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
@@ -377,7 +375,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setError(t.errPhotoRequired);
       return;
     }
-    if (!mediaConsent) {
+    if (!agreed) {
       setError(t.errConsentPhoto);
       return;
     }
@@ -615,9 +613,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   <a className="kutil" href="/pedidos">
                     Pedidos
                   </a>
-                  <span className="studio-credits-pill" data-testid="studio-credits" aria-live="polite">
-                    {t.credits}: {credits ?? "…"}
-                  </span>
                   {isGuest && (
                     <button
                       type="button"
@@ -1045,21 +1040,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   checked={mediaConsent}
                   disabled={isDemo}
                   data-testid="studio-media-consent"
-                  onChange={(e) => setMediaConsent(e.target.checked)}
+                  onChange={(e) => {
+                    const next = e.target.checked;
+                    setMediaConsent(next);
+                    if (next) void start(next);
+                  }}
                 />
                 {t.consent}
               </label>
-              <div className="studio-actions">
-                <button
-                  type="button"
-                  className="kbtn kbtn-go studio-create"
-                  disabled={locked}
-                  onClick={start}
-                  data-testid="studio-create-project"
-                >
-                  {t.createProject}
-                </button>
-              </div>
             </>
           )}
           </>

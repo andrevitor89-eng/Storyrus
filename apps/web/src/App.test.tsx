@@ -16,7 +16,7 @@ describe("Fluxo E2E (sem login)", () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
 
-    expect(await screen.findByText(/créditos: 10/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/nome do cliente/i)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/nome do cliente/i), "Ana Souza");
     await user.type(screen.getByLabelText(/^e-mail$/i), "ana@email.com");
@@ -30,9 +30,8 @@ describe("Fluxo E2E (sem login)", () => {
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
     await user.upload(fileInput, file);
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
