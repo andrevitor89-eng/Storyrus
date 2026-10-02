@@ -14,8 +14,8 @@ from app.database import get_db
 from app.deps import get_current_user
 from app.models import Asset, AssetKind, OrderTicket, User
 from app.orders import build_book_order_summary, client_registration, parse_extra_names
-from app.security import is_guest_user
 from app.schemas import UploadUrlIn, UploadUrlOut
+from app.security import is_guest_user
 
 from .common import get_owned_project
 

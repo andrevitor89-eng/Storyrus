@@ -16,6 +16,7 @@ from app.ai_clients.book_prompts import (
     CHARACTER_SHEET_PROMPT,
     EXPRESSION_SHEET_KEYS,
     EXPRESSION_SHEET_PROMPT,
+    book_art_direction,
     build_scene_prompt,
     costume_extras_for_template,
     costume_extras_for_theme,
@@ -28,7 +29,6 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
-    book_art_direction,
 )
 from app.ai_clients.identity_lock import (
     IDENTITY_MISMATCH_ERROR,
