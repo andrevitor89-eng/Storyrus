@@ -123,20 +123,16 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
 ];
 /** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
 const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
-  Nano: { cover: "cartoon-capa-nano.jpg", page: "cartoon-pagina-nano.jpg" },
   "Amor de Bisavó": { cover: "cartoon-capa-bisavo.jpg", page: "cartoon-pagina-bisavo.jpg", photo: "cartoon-foto-bisavo.jpg" },
   "Amor de Mãe": { cover: "cartoon-capa-amordemae.jpg", page: "cartoon-pagina-amordemae.jpg", photo: "cartoon-foto-amordemae.jpg" },
   "Davi, o Menino Pastor": { cover: "cartoon-capa-davi.jpg", page: "cartoon-pagina-davi.jpg", photo: "cartoon-foto-davi.jpg" },
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
-  "Meme e Tata": { cover: "cartoon-capa-natal.jpg", page: "cartoon-pagina-natal.jpg", photo: "cartoon-foto-natal.jpg" },
 };
 const CARTOON_COVER: Record<number, string> = {
   6: "cartoon-capa-nicolas.jpg",
   7: "cartoon-capa-amordemae.jpg",
   8: "cartoon-capa-matteo.jpg",
   9: "cartoon-capa-bisavo.jpg",
-  10: "cartoon-capa-natal.jpg",
-  11: "cartoon-capa-nano.jpg",
   12: "cartoon-capa-maya.jpg",
   21: "cartoon-capa-davi.jpg",
   23: "cartoon-capa-enzo.jpg",
@@ -146,7 +142,6 @@ const CARTOON_REVIEW: Record<string, string> = {
   "Amor de Mãe": "cartoon-foto-amordemae.jpg",
   Matteo: "cartoon-foto-matteo.jpg",
   "Amor de Bisavó": "cartoon-foto-bisavo.jpg",
-  "Meme e Tata": "cartoon-foto-natal.jpg",
   Maya: "cartoon-foto-maya.jpg",
 };
 
@@ -316,25 +311,25 @@ const NAV_CAT_META = [
   {
     color: "#f0b429",
     subs: [
-      { href: "/app?tema=dia_da_mulher" },
-      { href: "/app?tema=dia_da_sogra" },
-      { href: "/app?tema=easter" },
-      { href: "/app?tema=mothers_day" },
-      { href: "/app?tema=dia_da_familia" },
-      { href: "/app?tema=dia_do_irmao" },
-      { href: "/app?tema=dia_dos_namorados" },
-      { href: "/app?tema=dia_do_amigo" },
-      { href: "/app?tema=grandparents_love" },
-      { href: "/app?tema=tio_tia" },
-      { href: "/app?tema=fathers_day" },
-      { href: "/app?tema=dia_dos_filhos" },
-      { href: "/app?tema=independencia" },
-      { href: "/app?tema=dia_do_idoso" },
-      { href: "/app?tema=pets" },
-      { href: "/app?tema=childrens_day" },
-      { href: "/app?tema=christmas" },
+      { href: "/app?tema=dia_da_mulher", when: { month: 3, day: 8 } },
+      { href: "/app?tema=dia_da_sogra", when: { month: 3, day: 26 } },
+      { href: "/app?tema=easter", when: "easter" },
+      { href: "/app?tema=mothers_day", when: { month: 5, day: 10 } },
+      { href: "/app?tema=dia_da_familia", when: { month: 5, day: 15 } },
+      { href: "/app?tema=dia_do_irmao", when: { month: 5, day: 30 } },
+      { href: "/app?tema=dia_dos_namorados", when: { month: 6, day: 12 } },
+      { href: "/app?tema=dia_do_amigo", when: { month: 7, day: 20 } },
+      { href: "/app?tema=grandparents_love", when: { month: 7, day: 26 } },
+      { href: "/app?tema=tio_tia", when: { month: 7, day: 26 } },
+      { href: "/app?tema=fathers_day", when: { month: 8, day: 9 } },
+      { href: "/app?tema=dia_dos_filhos", when: { month: 8, day: 11 } },
+      { href: "/app?tema=independencia", when: { month: 9, day: 7 } },
+      { href: "/app?tema=dia_do_idoso", when: { month: 10, day: 1 } },
+      { href: "/app?tema=pets", when: { month: 10, day: 4 } },
+      { href: "/app?tema=childrens_day", when: { month: 10, day: 12 } },
+      { href: "/app?tema=christmas", when: { month: 12, day: 25 } },
       { href: "/app?tema=birthday" },
-      { href: "/app?tema=new_year" },
+      { href: "/app?tema=new_year", when: { month: 1, day: 1 } },
     ],
     feats: [
       { href: "/app?tema=christmas", catalogI: 10 },
@@ -406,6 +401,43 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
 function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+type OccasionWhen = { month: number; day: number } | "easter";
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+function easterSunday(year: number): Date {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+export function nextOccasionDate(when: OccasionWhen, today: Date): Date {
+  const start = startOfDay(today);
+  if (when === "easter") {
+    const thisYear = easterSunday(start.getFullYear());
+    return thisYear >= start ? thisYear : easterSunday(start.getFullYear() + 1);
+  }
+  const next = new Date(start.getFullYear(), when.month - 1, when.day);
+  return next >= start ? next : new Date(start.getFullYear() + 1, when.month - 1, when.day);
+}
+/** A data entra no menu quando falta no máximo 2 meses para ela. */
+export function occasionDue(when: OccasionWhen, today: Date): boolean {
+  const start = startOfDay(today);
+  const limit = new Date(start);
+  limit.setMonth(limit.getMonth() + 2);
+  return nextOccasionDate(when, today) <= limit;
 }
 function SubLabel({ label }: { label: string }) {
   const [name, date] = label.split(" · ");
@@ -1630,13 +1662,24 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
     color: NAV_CAT_META[i].color,
-    subs: cat.subs.map((label, j) => {
-      const base = NAV_CAT_META[i].subs[j].href;
-      const theme = themeFromHref(base);
+    subs: cat.subs.flatMap((label, j) => {
+      const meta = NAV_CAT_META[i].subs[j];
+      const when = "when" in meta ? meta.when : undefined;
+      if (when && !occasionDue(when, new Date())) return [];
+      const theme = themeFromHref(meta.href);
       const rawOnly = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
       const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
-      return { label, href: bookTheme ? bookStudioHref(bookTheme, only) : base };
+      return [{
+        label,
+        href: bookTheme ? bookStudioHref(bookTheme, only) : meta.href,
+        due: when ? nextOccasionDate(when, new Date()) : null,
+      }];
+    }).sort((a, b) => {
+      if (a.due && b.due) return a.due.getTime() - b.due.getTime();
+      if (a.due) return -1;
+      if (b.due) return 1;
+      return 0;
     }),
     feats: cat.feats.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
@@ -1759,7 +1802,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                           </p>
                           <ul className="kcat-subs">
                             {cat.subs.map((sub, j) => (
-                              <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
+                              <li key={sub.label} className={`${j === 0 ? "is-lead" : ""}${subHover?.cat === i && subHover.sub === j ? " on" : ""}`}>
                                 <Link
                                   to={sub.href}
                                   onClick={closeNav}
@@ -1859,8 +1902,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </button>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
-                    {cat.subs.map((sub) => (
-                      <Link key={sub.label} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
+                    {cat.subs.map((sub, j) => (
+                      <Link key={sub.label} className={j === 0 ? "is-lead" : undefined} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
                     ))}
                   </div>
                 </div>

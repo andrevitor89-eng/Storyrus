@@ -291,6 +291,12 @@ a.kcat-btn:active {
 }
 .kcat-panel-all .kcat-subs { border-right: none; padding: 0; }
 .kcat-panel-all .kcat-subs a { padding: 6px 8px; font-size: .86rem; line-height: 1.25; }
+.kcat-subs li.is-lead a {
+  display: block;
+  border: 1px solid rgba(244,183,64,.9);
+  border-radius: 4px;
+  box-shadow: 0 0 0 1px rgba(244,183,64,.28);
+}
 .kcat-sub-name { display: block; }
 .kcat-sub-date { display: block; margin-top: 1px; color: #8a93b0; font-weight: 600; font-size: .72rem; }
 .kcat-panel-all .kcat-feats:not(:has(.kcat-feat)):not(:has(.kcat-empty)) { display: flex; justify-content: center; }
@@ -1851,6 +1857,11 @@ img.ex-tab-cover {
   .kmobile-subs-inner a:hover,
   .kmobile-subs-inner a:focus-visible {
     background: #eef4ff;
+  }
+  .kmobile-subs-inner a.is-lead {
+    border: 1px solid rgba(244,183,64,.9);
+    border-radius: 4px;
+    box-shadow: 0 0 0 1px rgba(244,183,64,.28);
   }
   .klinks {
     position: absolute; top: calc(100% + 8px); right: 14px; left: 14px; flex-direction: column; align-items: stretch;

@@ -2,7 +2,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vite
 import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { Landing } from "./Landing";
+import { Landing, occasionDue } from "./Landing";
 import { AppRoutes } from "./Root";
 
 function renderLanding() {
@@ -545,15 +545,36 @@ describe("Landing — CTAs e links", () => {
     expect(within(feats).getByRole("link", { name: /mako/i })).toBeInTheDocument();
     expect(within(feats).getByRole("link", { name: /lucas/i })).toBeInTheDocument();
 
-    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia das mães/i }));
-    expect(within(feats).getByRole("link", { name: /amor de mãe/i })).toBeInTheDocument();
-    expect(within(panel).getByText("10 de maio")).toBeInTheDocument();
+    const today = new Date();
+    const occasion = (when: Parameters<typeof occasionDue>[0], name: RegExp) => {
+      const link = within(panel).queryByRole("link", { name });
+      if (occasionDue(when, today)) expect(link).toBeInTheDocument();
+      else expect(link).not.toBeInTheDocument();
+    };
+    occasion({ month: 10, day: 4 }, /dia dos animais/i);
+    occasion({ month: 10, day: 12 }, /dia das crianças/i);
+    occasion({ month: 3, day: 26 }, /dia da sogra/i);
+    occasion({ month: 12, day: 25 }, /^natal/i);
+    occasion("easter", /^páscoa$/i);
+    const occasions = panel.querySelectorAll(".kcat-group")[2] as HTMLElement;
+    expect(occasions.querySelector("li.is-lead a")).toBeTruthy();
+    if (occasionDue({ month: 10, day: 12 }, today)) {
+      fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia das crianças/i }));
+      expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
+    }
+  });
 
-    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia da sogra/i }));
-    expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
-
-    fireEvent.mouseEnter(within(panel).getByRole("link", { name: /^páscoa$/i }));
-    expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
+  it("mostra a data só quando falta no máximo 2 meses", () => {
+    const oct2 = new Date(2026, 9, 2);
+    expect(occasionDue({ month: 10, day: 4 }, oct2)).toBe(true);
+    expect(occasionDue({ month: 10, day: 12 }, oct2)).toBe(true);
+    expect(occasionDue({ month: 10, day: 1 }, oct2)).toBe(false);
+    expect(occasionDue({ month: 12, day: 25 }, oct2)).toBe(false);
+    expect(occasionDue({ month: 3, day: 8 }, oct2)).toBe(false);
+    expect(occasionDue({ month: 12, day: 25 }, new Date(2026, 10, 25))).toBe(true);
+    expect(occasionDue({ month: 1, day: 1 }, new Date(2026, 10, 1))).toBe(true);
+    expect(occasionDue("easter", oct2)).toBe(false);
+    expect(occasionDue("easter", new Date(2027, 1, 6))).toBe(true);
   });
 
   it("rota /cartoon repete a landing e troca as fotos por desenho", async () => {
@@ -570,12 +591,14 @@ describe("Landing — CTAs e links", () => {
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(cards).toHaveLength(9);
+    expect(cards).toHaveLength(7);
     expect(within(catalog).queryByText("Meu Pai, Meu Herói")).not.toBeInTheDocument();
     expect(within(catalog).queryByText("Mako, Meu Amigo Fiel")).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/amor de tia/i)).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/lucas/i)).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/esther/i)).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/nano/i)).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/meme e o tata/i)).not.toBeInTheDocument();
     expect(within(cards[0]).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
     expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-davi.jpg"));
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-enzo.jpg"));
@@ -583,8 +606,10 @@ describe("Landing — CTAs e links", () => {
     expect(within(catalog).getByRole("img", { name: /nicolas, meu primeiro amor/i })).toHaveAttribute("src", expect.stringContaining("cartoon-capa-nicolas.jpg"));
     expect(within(catalog).queryByText(/floresta encantada/i)).not.toBeInTheDocument();
 
-    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-nano.jpg"));
+    expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-bisavo.jpg"));
     expect(screen.queryByRole("button", { name: "Meu Pai, Meu Herói" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Nano" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Meme e Tata" })).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("cartoon-foto-nicolas.jpg"));
     expect(screen.queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
   });
