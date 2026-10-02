@@ -606,6 +606,7 @@ const I18N = {
     view_all: "Ver todos",
     cat_empty: "Ainda não temos um exemplo neste tema.",
     cats_label: "Categorias",
+    realistic_link: "Realista",
     quick_links: "Acessos rápidos",
     font_label: "Fonte do título",
     explore: "Explorar agora",
@@ -807,6 +808,7 @@ const I18N = {
     view_all: "View all",
     cat_empty: "We don't have an example for this theme yet.",
     cats_label: "Categories",
+    realistic_link: "Realistic",
     quick_links: "Quick links",
     font_label: "Cover font",
     explore: "Explore now",
@@ -1008,6 +1010,7 @@ const I18N = {
     view_all: "Ver todos",
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
     cats_label: "Categorías",
+    realistic_link: "Realista",
     quick_links: "Accesos rápidos",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
@@ -1852,9 +1855,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
-                <Link to="/cartoon" className={`kcat-btn${variant === "cartoon" ? " on" : ""}`} style={{ "--cat": "#3ecf8e" } as CSSProperties} onClick={closeNav} aria-current={variant === "cartoon" ? "page" : undefined}>
-                  <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
-                  Cartoon
+                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
+                  {variant === "cartoon" ? t.realistic_link : "Cartoon"}
                 </Link>
               </nav>
             </div>
@@ -1916,7 +1919,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>Cartoon</Link>
+            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : "Cartoon"}</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>

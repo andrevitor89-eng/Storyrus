@@ -585,6 +585,10 @@ describe("Landing — CTAs e links", () => {
     );
 
     expect(await screen.findByTestId("landing-hero-cta")).toBeInTheDocument();
+    const cartoonNav = document.querySelector(".kcats") as HTMLElement;
+    expect(within(cartoonNav).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
+    expect(within(cartoonNav).queryByRole("link", { name: /^cartoon$/i })).not.toBeInTheDocument();
+    expect(within(document.querySelector(".kmobile") as HTMLElement).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(screen.getByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /dicas para a foto perfeita/i })).toBeInTheDocument();
     expect(screen.getByText(/você envia a foto/i)).toBeInTheDocument();
