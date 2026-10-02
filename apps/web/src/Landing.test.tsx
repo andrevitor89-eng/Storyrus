@@ -401,21 +401,22 @@ describe("Landing — menu mobile e abas do hero", () => {
       return src.includes("capa-natalmemetata.jpg") && !src.includes("capa-natalmemetata-e");
     });
     expect(natalCovers).toHaveLength(2);
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
+    // FlipBook usa o miolo completo (meupai-heroi/*); thumbs do carrossel seguem capa/página/foto.
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/capa.png"));
     expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
     await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await waitFor(() => {
-      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-02.jpg"));
     }, { timeout: 2200 });
     expect(screen.getByTestId("landing-hero-flip-dot-1")).toHaveAttribute("aria-selected", "true");
 
     await user.click(screen.getByTestId("landing-hero-flip-dot-2"));
     await waitFor(() => {
-      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-03.jpg"));
     }, { timeout: 2200 });
 
     await user.click(screen.getByTestId("landing-hero-pick-1"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-04.jpg"));
 
     await user.click(screen.getByTestId("landing-lang-es"));
     const heroImgs = [...carousel.querySelectorAll("img")].map((img) => img.getAttribute("src") ?? "");
@@ -437,7 +438,7 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
-    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
+    expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("meupai-heroi/pagina-04.jpg"));
   });
 
   it("coloca o texto Uma foto abaixo do titulo Transforme", async () => {
