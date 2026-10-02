@@ -266,7 +266,7 @@ const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "pets"],
   ocasioes: ["christmas", "birthday"],
-  educativo: ["alfabetizacao_inicial", "animais_sons", "higiene_desfralde", "biblico"],
+  educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
 const NAV_CAT_META = [
   {
@@ -340,11 +340,8 @@ const NAV_CAT_META = [
     id: "educativo",
     color: "#5ec4a8",
     subs: [
-      { href: "/app?tema=alfabetizacao_inicial" },
-      { href: "/app?tema=pensamento_matematico" },
       { href: "/app?tema=cores" },
       { href: "/app?tema=higiene_desfralde" },
-      { href: "/app?tema=vestir_autonomia" },
       { href: "/app?tema=animais_sons" },
       { href: "/app?tema=literacia_emocional" },
       { href: "/app?tema=rotina_dormir" },
@@ -353,7 +350,6 @@ const NAV_CAT_META = [
       { href: "/app?tema=biblico" },
     ],
     feats: [
-      { href: "/app?tema=alfabetizacao_inicial", catalogI: 3 },
       { href: "/app?tema=animais_sons", catalogI: 4 },
       { href: "/app?tema=higiene_desfralde", catalogI: 25 },
       { href: "/app?tema=biblico", catalogI: 21 },
@@ -380,7 +376,6 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   tio_tia: [20],
   christmas: [10],
   birthday: [14],
-  alfabetizacao_inicial: [3],
   animais_sons: [4],
   higiene_desfralde: [25],
   biblico: [21],
@@ -651,8 +646,8 @@ const I18N = {
       },
       {
         name: "Educativo",
-        subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo", "Bíblico"],
-        feats: ["Alfabetização", "Animais", "Higiene", "Davi, o Menino Pastor"],
+        subs: ["Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo", "Bíblico"],
+        feats: ["Animais", "Higiene", "Davi, o Menino Pastor"],
       },
     ],
     cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -843,8 +838,8 @@ const I18N = {
       },
       {
         name: "Educational",
-        subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Feelings", "Bedtime", "Sharing", "Body", "Biblical"],
-        feats: ["Literacy", "Animals", "Hygiene", "David, the Shepherd Boy"],
+        subs: ["Colors", "Hygiene", "Animals", "Feelings", "Bedtime", "Sharing", "Body", "Biblical"],
+        feats: ["Animals", "Hygiene", "David, the Shepherd Boy"],
       },
     ],
     cat_below: "Preserve moments. Gift your family an unforgettable story.",
@@ -1035,8 +1030,8 @@ const I18N = {
       },
       {
         name: "Educativo",
-        subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo", "Bíblico"],
-        feats: ["Alfabetización", "Animales", "Higiene", "David, el Niño Pastor"],
+        subs: ["Colores", "Higiene", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo", "Bíblico"],
+        feats: ["Animales", "Higiene", "David, el Niño Pastor"],
       },
     ],
     cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",

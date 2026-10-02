@@ -536,7 +536,11 @@ describe("Landing — CTAs e links", () => {
     expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
     expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu");
     expect(within(panel).queryByRole("link", { name: /^transporte$/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /^transportes$/i })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("link", { name: /^ano novo$/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /^alfabetização$/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /^matemática$/i })).not.toBeInTheDocument();
+    expect(within(panel).queryByRole("link", { name: /^vestir-se$/i })).not.toBeInTheDocument();
     expect(within(panel).getByRole("link", { name: /^aniversário$/i })).toBeInTheDocument();
     expect(within(panel).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
     expect(within(panel).getByRole("link", { name: /^compartilhar$/i })).toBeInTheDocument();
@@ -581,7 +585,8 @@ describe("Landing — CTAs e links", () => {
     const educativo = panel.querySelectorAll(".kcat-group")[3] as HTMLElement;
     fireEvent.mouseEnter(educativo);
     const eduFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
-    expect(eduFeats).toHaveLength(4);
+    expect(eduFeats).toHaveLength(3);
+    expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /alfabeto/i })).not.toBeInTheDocument();
     if (occasionDue({ month: 10, day: 12 }, today)) {
       fireEvent.mouseEnter(within(panel).getByRole("link", { name: /dia das crianças/i }));
       expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
