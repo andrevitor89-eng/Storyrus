@@ -254,11 +254,6 @@ const CATALOG_PRICE: Record<Lang, string> = {
   en: "On request",
   es: "Bajo consulta",
 };
-/** 15 × 15 cm (P) R$ 157 e 20 × 20 cm (M) R$ 177. A capa não altera o valor. */
-const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "157", M: "177" };
-function catalogPrice(size: CatalogSizeChoice): string {
-  return `R$ ${CATALOG_AMOUNT[size]},00`;
-}
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
 }
@@ -267,6 +262,7 @@ function catalogSizeChoice(size?: string): CatalogSizeChoice {
 }
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
+const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "pets"],
@@ -380,7 +376,6 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dia_da_familia: [8, 20, 22, 23],
   tio_tia: [20],
   christmas: [10],
-  birthday: [14],
   animais_sons: [4],
   higiene_desfralde: [25],
   biblico: [21],
@@ -601,8 +596,9 @@ const I18N = {
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
     cat_empty: "Ainda não temos um exemplo neste tema.",
-    cats_label: "Categorias",
+    cats_label: "Livros",
     realistic_link: "Realista",
+    cartoon_link: "Livros cartoon",
     quick_links: "Acessos rápidos",
     font_label: "Fonte do título",
     explore: "Explorar agora",
@@ -622,7 +618,7 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos", "Pets"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e Primos", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
       },
       {
@@ -793,8 +789,9 @@ const I18N = {
     see_all_books: "See all books",
     view_all: "View all",
     cat_empty: "We don't have an example for this theme yet.",
-    cats_label: "Categories",
+    cats_label: "Books",
     realistic_link: "Realistic",
+    cartoon_link: "Cartoon books",
     quick_links: "Quick links",
     font_label: "Cover font",
     explore: "Explore now",
@@ -814,7 +811,7 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins", "Pets"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and Cousins", "Pets"],
         feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
       },
       {
@@ -985,8 +982,9 @@ const I18N = {
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
-    cats_label: "Categorías",
+    cats_label: "Libros",
     realistic_link: "Realista",
+    cartoon_link: "Libros cartoon",
     quick_links: "Accesos rápidos",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
@@ -1006,7 +1004,7 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos", "Mascotas"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y Primos", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
@@ -1429,6 +1427,7 @@ function FlipBook({
   );
 }
 
+// M R$ 177 e P R$ 157. Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
 const FORMAT_COPY: Record<Lang, {
   pages: string;
   hard: string;
@@ -1444,8 +1443,8 @@ const FORMAT_COPY: Record<Lang, {
     pages: "Livro 16 páginas",
     hard: "HARD - Capa rígida",
     soft: "SOFT - Capa flexível",
-    sizeM: "M - 20 × 20 cm",
-    sizeP: "P - 15 × 15 cm",
+    sizeM: "20 × 20 cm",
+    sizeP: "15 × 15 cm",
     priceM: "R$ 177,00",
     priceP: "R$ 157,00",
     hardText: "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis.",
@@ -1455,10 +1454,10 @@ const FORMAT_COPY: Record<Lang, {
     pages: "Book. 16 pages.",
     hard: "HARD - Hardcover",
     soft: "SOFT - Softcover",
-    sizeM: "M - 20 × 20 cm",
-    sizeP: "P - 15 × 15 cm",
-    priceM: "R$ 177.00",
-    priceP: "R$ 157.00",
+    sizeM: "20 × 20 cm",
+    sizeP: "15 × 15 cm",
+    priceM: "$33.91",
+    priceP: "$30.08",
     hardText: "Heavier, sturdy and durable. Used for special or collectible editions.",
     softText: "Lighter and flexible. Common in books and economical editions.",
   },
@@ -1466,10 +1465,10 @@ const FORMAT_COPY: Record<Lang, {
     pages: "Libro. 16 páginas.",
     hard: "HARD - Tapa rígida",
     soft: "SOFT - Tapa blanda",
-    sizeM: "M - 20 × 20 cm",
-    sizeP: "P - 15 × 15 cm",
-    priceM: "R$ 177,00",
-    priceP: "R$ 157,00",
+    sizeM: "20 × 20 cm",
+    sizeP: "15 × 15 cm",
+    priceM: "30,10 €",
+    priceP: "26,70 €",
     hardText: "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección.",
     softText: "Más ligera y flexible. Común en libros y ediciones económicas.",
   },
@@ -1486,6 +1485,11 @@ export type CatalogCardBook = {
   story?: string;
   quote?: string;
 };
+const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string }> = {
+  pt: { summary: "Resumo da história", details: "Detalhes do livro" },
+  en: { summary: "Story summary", details: "Book details" },
+  es: { summary: "Resumen de la historia", details: "Detalles del libro" },
+};
 export function CatalogBookCard({
   book,
   lang,
@@ -1493,6 +1497,7 @@ export function CatalogBookCard({
   modo = "realista",
   linkBook = true,
   showStory = false,
+  layout = "card",
 }: {
   book: CatalogCardBook;
   lang: Lang;
@@ -1500,6 +1505,7 @@ export function CatalogBookCard({
   modo?: "realista" | "cartoon";
   linkBook?: boolean;
   showStory?: boolean;
+  layout?: "card" | "page";
 }) {
   const selectable = typeof book.cover === "string" && typeof book.size === "string";
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
@@ -1508,6 +1514,125 @@ export function CatalogBookCard({
   const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
   const linked = linkBook && bookHref != null;
   const image = <img src={exUrl(book.img)} alt={book.t} loading="lazy" />;
+  const choices = selectable ? (
+    <div className="cat-badges">
+      <div className="cat-opt" role="group" aria-label={copy.soft}>
+        {(["soft", "hard"] as const).map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            className={cover === choice ? "is-on" : ""}
+            aria-pressed={cover === choice}
+            onClick={() => setCover(choice)}
+          >
+            {choice === "soft" ? "Soft" : "Hard"}
+          </button>
+        ))}
+      </div>
+      <div className="cat-opt" role="group" aria-label={copy.sizeM}>
+        {(["M", "P"] as const).map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            className={size === choice ? "is-on" : ""}
+            aria-pressed={size === choice}
+            onClick={() => setSize(choice)}
+          >
+            {choice}
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
+  );
+  const notes = (
+    <div className="cat-notes">
+      <p className="cat-notes-lead">{copy.pages}</p>
+      <div className="cat-notes-sizes">
+        {(["M", "P"] as const).map((choice) => (
+          <p key={choice} className="cat-note-line">
+            <span className="cat-opt">
+              <button
+                type="button"
+                className={size === choice ? "is-on" : ""}
+                aria-pressed={size === choice}
+                onClick={() => setSize(choice)}
+              >
+                {choice}
+              </button>
+            </span>
+            <span>
+              {choice === "M" ? copy.sizeM : copy.sizeP}:{" "}
+              <span className={size === choice ? "is-price" : undefined}>
+                {choice === "M" ? copy.priceM : copy.priceP}.
+              </span>
+            </span>
+          </p>
+        ))}
+      </div>
+      <div className="cat-note-grid">
+        {(["hard", "soft"] as const).map((choice) => (
+          <div key={choice} className="cat-note-line">
+            <span className="cat-opt">
+              <button
+                type="button"
+                className={cover === choice ? "is-on" : ""}
+                aria-pressed={cover === choice}
+                onClick={() => setCover(choice)}
+              >
+                {choice === "hard" ? "Hard" : "Soft"}
+              </button>
+            </span>
+            <p>{choice === "hard" ? copy.hardText : copy.softText}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  const go = (
+    <Link
+      to={personalizeHref({
+        theme: book.theme,
+        title: book.t,
+        historia: book.tag,
+        heroi: book.heroi,
+        size,
+        cover,
+        modo: modo ?? "realista",
+        catalogI: book.catalogI,
+      })}
+      className="kbtn kbtn-primary cat-go"
+      data-testid="landing-personalize"
+    >
+      {personalize}
+    </Link>
+  );
+  if (layout === "page") {
+    const pageCopy = BOOK_PAGE_COPY[lang];
+    return (
+      <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
+        <div className="cat-display">
+          <div className="cat-book">{image}</div>
+        </div>
+        <div className="cat-body">
+          {book.tag ? <p className="book-tag">{book.tag}</p> : null}
+          <h1>{book.t}</h1>
+          <section className="book-block">
+            <h2>{pageCopy.summary}</h2>
+            {book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
+            {book.quote ? <p className="cat-quote">{book.quote}</p> : null}
+          </section>
+          <section className="book-block">
+            <h2>{pageCopy.details}</h2>
+            {choices}
+            {notes}
+          </section>
+          {go}
+        </div>
+      </article>
+    );
+  }
   return (
     <div className="cat-card reveal" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
@@ -1519,77 +1644,15 @@ export function CatalogBookCard({
         <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
-        {selectable ? (
-          <div className="cat-badges">
-            <div className="cat-opt" role="group" aria-label={copy.soft}>
-              {(["soft", "hard"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={cover === choice ? "is-on" : ""}
-                  aria-pressed={cover === choice}
-                  onClick={() => setCover(choice)}
-                >
-                  {choice === "soft" ? "Soft" : "Hard"}
-                </button>
-              ))}
-            </div>
-            <div className="cat-opt" role="group" aria-label={copy.sizeM}>
-              {(["M", "P"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={size === choice ? "is-on" : ""}
-                  aria-pressed={size === choice}
-                  onClick={() => setSize(choice)}
-                >
-                  {choice}
-                </button>
-              ))}
-            </div>
-            <span className="cat-price" data-testid="landing-catalog-price">{catalogPrice(size)}</span>
-          </div>
-        ) : (
-          <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
-        )}
-        <div className="cat-notes">
-          <p className="cat-notes-lead">{copy.pages}</p>
-          <p className="cat-notes-sizes">
-            <span>{copy.sizeM}: {copy.priceM}.</span>
-            <span>{copy.sizeP}: {copy.priceP}.</span>
-          </p>
-          <div className="cat-note-grid">
-            <div>
-              <strong>{copy.hard}</strong>
-              <p>{copy.hardText}</p>
-            </div>
-            <div>
-              <strong>{copy.soft}</strong>
-              <p>{copy.softText}</p>
-            </div>
-          </div>
-        </div>
-        <Link
-          to={personalizeHref({
-            theme: book.theme,
-            title: book.t,
-            historia: book.tag,
-            heroi: book.heroi,
-            size,
-            cover,
-            modo: modo ?? "realista",
-            catalogI: book.catalogI,
-          })}
-          className="kbtn kbtn-primary cat-go"
-          data-testid="landing-personalize"
-        >
-          {personalize}
-        </Link>
+        {choices}
+        {notes}
+        {go}
       </div>
     </div>
   );
 }
 function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
+  if (index === 14) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
   if (!book || !theme || !CATALOG_IMGS[index]) return null;
@@ -1615,7 +1678,23 @@ export function readSiteLang(): Lang {
 }
 export function catalogPageCopy(lang: Lang) {
   const t = I18N[lang];
-  return { title: t.cat_title, personalize: t.personalize, back: t.see_all_books };
+  return { title: t.cat_title, personalize: t.personalize, back: t.see_all_books, empty: t.cat_empty };
+}
+export function catalogCategory(lang: Lang, id: string) {
+  if (id === "sentimentos") {
+    const name = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
+    return {
+      id,
+      name,
+      color: "#f0a0c0",
+      books: CATALOG_THEMES.flatMap((theme, index) => {
+        if (!FEELING_THEMES.has(theme)) return [];
+        const card = toCatalogCard(lang, index);
+        return card ? [card] : [];
+      }),
+    };
+  }
+  return catalogSections(lang).find((section) => section.id === id) ?? null;
 }
 export function catalogEntry(lang: Lang, index: number) {
   const card = toCatalogCard(lang, index);
@@ -1761,6 +1840,32 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       }];
     }).slice(0, 4),
   }));
+  const voceEeuCount = navCats.find((cat) => cat.id === "voce-e-eu")?.subs.length ?? 0;
+  const menuCats = navCats.map((cat) => {
+    if (cat.id !== "ocasioes" || cat.subs.length <= voceEeuCount) return cat;
+    const open = cat.subs.filter((sub) => !sub.due);
+    const dated = cat.subs.filter((sub) => sub.due);
+    const room = Math.max(voceEeuCount - open.length, 0);
+    return { ...cat, subs: [...dated.slice(0, room), ...open].slice(0, voceEeuCount) };
+  });
+  const feelingLabel = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
+  const shownCats = variant === "cartoon"
+    ? menuCats.flatMap((cat) => {
+        if (cat.id !== "educativo") return [cat];
+        const isFeeling = (href: string) => FEELING_THEMES.has(themeFromHref(href) ?? "");
+        return [
+          { ...cat, subs: cat.subs.filter((sub) => !isFeeling(sub.href)) },
+          {
+            ...cat,
+            id: "sentimentos",
+            name: feelingLabel,
+            color: "#f0a0c0",
+            subs: cat.subs.filter((sub) => isFeeling(sub.href)),
+            feats: [],
+          },
+        ];
+      })
+    : menuCats;
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
@@ -1866,7 +1971,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   </button>
                   <div className="kcat-panel kcat-panel-all" id="cat-panel">
                     <div className="kcat-groups">
-                      {navCats.map((cat, i) => (
+                      {shownCats.map((cat, i) => (
                         <div
                           key={cat.id}
                           className="kcat-group"
@@ -1876,7 +1981,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             setSubHover((cur) => (cur?.cat === i ? cur : null));
                           }}
                         >
-                          <Link to={`/catalogo#${cat.id}`} className="kcat-group-name" onClick={closeNav}>
+                          <Link to={`/catalogo/${cat.id}`} className="kcat-group-name" onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
                           </Link>
@@ -1897,11 +2002,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </div>
                     <div className="kcat-feats" data-testid="landing-cat-feats">
                       {(() => {
-                        const hoverCat = subHover ? navCats[subHover.cat] : featCat != null ? navCats[featCat] : null;
+                        const hoverCat = subHover ? shownCats[subHover.cat] : featCat != null ? shownCats[featCat] : null;
                         const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
                         const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
                         const shown = (activeTheme ? menuBooks(activeTheme) : hoverCat?.feats ?? []).slice(0, 4);
-                        const allHref = hoverCat ? `/catalogo#${hoverCat.id}` : "/catalogo";
+                        const allHref = hoverCat ? `/catalogo/${hoverCat.id}` : "/catalogo";
                         return (
                           <>
                             {shown.map((feat) => (
@@ -1934,7 +2039,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </a>
                 <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
-                  {variant === "cartoon" ? t.realistic_link : "Cartoon"}
+                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
                 </Link>
               </nav>
             </div>
@@ -1967,10 +2072,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`} data-testid="landing-site-menu">
           <div className="kmobile-section">
             <p className="kmobile-label">{t.cats_label}</p>
-            {navCats.map((cat, i) => (
+            {shownCats.map((cat, i) => (
               <div key={cat.id} className={`kmobile-cat${mobileCat === i ? " open" : ""}`} style={{ "--group": cat.color } as CSSProperties}>
                 <div className="kmobile-cat-btn">
-                  <Link to={`/catalogo#${cat.id}`} onClick={closeNav}>
+                  <Link to={`/catalogo/${cat.id}`} onClick={closeNav}>
                     <span className="kcat-dot" style={{ background: cat.color }} />
                     {cat.name}
                   </Link>
@@ -2001,7 +2106,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : "Cartoon"}</Link>
+            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
@@ -2130,8 +2235,32 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
+        {variant === "cartoon" ? (
+          <>
+            <section className="catalog-section" id="educativo" style={{ "--group": "#5ec4a8" } as CSSProperties}>
+              <h3 className="catalog-section-title">{t.cats[3].name}</h3>
+              <div className="cat-grid">
+                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme)).map((c) => (
+                  <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
+                ))}
+              </div>
+            </section>
+            <section className="catalog-section" id="sentimentos" style={{ "--group": "#f0a0c0" } as CSSProperties}>
+              <h3 className="catalog-section-title">{feelingLabel}</h3>
+              {catalogBooks.some((book) => FEELING_THEMES.has(book.theme)) ? (
+                <div className="cat-grid">
+                  {catalogBooks.filter((book) => FEELING_THEMES.has(book.theme)).map((c) => (
+                    <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
+                  ))}
+                </div>
+              ) : (
+                <p className="kcat-empty">{t.cat_empty}</p>
+              )}
+            </section>
+          </>
+        ) : null}
         <div className="cat-grid">
-          {catalogBooks.map((c) => (
+          {(variant === "cartoon" ? catalogBooks.filter((book) => !CATALOG_SECTION_THEMES.educativo.includes(book.theme) && !FEELING_THEMES.has(book.theme)) : catalogBooks).map((c) => (
             <CatalogBookCard
               key={c.t}
               book={c}

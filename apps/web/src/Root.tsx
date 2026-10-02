@@ -9,6 +9,9 @@ const Landing = lazy(() =>
 const CatalogPage = lazy(() =>
   import("./CatalogPages").then((m) => ({ default: m.CatalogPage })),
 );
+const CategoryCatalogPage = lazy(() =>
+  import("./CatalogPages").then((m) => ({ default: m.CategoryCatalogPage })),
+);
 const BookPage = lazy(() =>
   import("./CatalogPages").then((m) => ({ default: m.BookPage })),
 );
@@ -25,6 +28,7 @@ const Pedidos = lazy(() =>
  *   /              → Landing
  *   /cartoon       → Landing (mesma página, fotos em desenho)
  *   /catalogo      → Catálogo completo
+ *   /catalogo/:categoria → Catálogo de uma categoria
  *   /livro/:indice → Página do livro
  *   /app           → Estúdio
  *   /gastos        → Painel privado de custos USD
@@ -43,6 +47,7 @@ export function AppRoutes() {
         <Route path="/" element={<Landing />} />
         <Route path="/cartoon" element={<Landing variant="cartoon" />} />
         <Route path="/catalogo" element={<CatalogPage />} />
+        <Route path="/catalogo/:categoria" element={<CategoryCatalogPage />} />
         <Route path="/livro/:indice" element={<BookPage />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />

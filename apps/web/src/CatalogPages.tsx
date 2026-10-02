@@ -5,6 +5,7 @@ import "./landing.css";
 import { NotFound } from "./NotFound";
 import {
   CatalogBookCard,
+  catalogCategory,
   catalogEntry,
   catalogPageCopy,
   catalogSections,
@@ -69,6 +70,37 @@ export function CatalogPage() {
   );
 }
 
+export function CategoryCatalogPage() {
+  const [lang, setLang] = useSiteLang();
+  const params = useParams();
+  const section = catalogCategory(lang, params.categoria ?? "");
+  if (!section) return <NotFound />;
+  const copy = catalogPageCopy(lang);
+  return (
+    <div className="kid">
+      <header className="knav">
+        <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
+        <LangSwitch lang={lang} setLang={setLang} />
+      </header>
+      <main className="ksection catalog-page" id="catalogo">
+        <p className="book-back"><Link to="/catalogo">{copy.back}</Link></p>
+        <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
+          <h1 className="catalog-section-title">{section.name}</h1>
+          {section.books.length > 0 ? (
+            <div className="cat-grid">
+              {section.books.map((book) => (
+                <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+              ))}
+            </div>
+          ) : (
+            <p className="kcat-empty">{copy.empty}</p>
+          )}
+        </section>
+      </main>
+    </div>
+  );
+}
+
 export function BookPage() {
   const [lang, setLang] = useSiteLang();
   const params = useParams();
@@ -83,9 +115,9 @@ export function BookPage() {
         <LangSwitch lang={lang} setLang={setLang} />
       </header>
       <main className="ksection book-page" id="catalogo">
-        <p className="book-back"><Link to={`/catalogo#${book.sectionId}`}>{copy.back}</Link></p>
+        <p className="book-back"><Link to={`/catalogo/${book.sectionId}`}>{copy.back}</Link></p>
         <div className="book-page-card">
-          <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} showStory />
+          <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" />
         </div>
       </main>
     </div>
