@@ -190,6 +190,10 @@ describe("Landing — catálogo", () => {
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     expect(within(cards[0]).queryByText(/capa mole ou capa dura/i)).not.toBeInTheDocument();
     expect(within(cards[0]).getByText("Livro 16 páginas")).toBeInTheDocument();
+    const badgeLabels = [...cards[0].querySelectorAll(".cat-badges button")].map((button) => button.textContent);
+    const noteLabels = [...cards[0].querySelectorAll(".cat-notes button")].map((button) => button.textContent);
+    expect(badgeLabels).toEqual(["Soft", "Hard", "P", "M"]);
+    expect(noteLabels).toEqual(["P", "M", "Soft", "Hard"]);
     expect(cards[0].textContent).toContain("20 × 20 cm");
     expect(cards[0].textContent).toContain("15 × 15 cm");
     expect(cards[0].textContent).toContain("R$ 177,00");

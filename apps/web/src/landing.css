@@ -567,7 +567,8 @@ a.kcat-group-name:focus-visible {
   margin-bottom: 22px;
 }
 #catalogo .cat-card:not(.book-sheet) .cat-display { margin-bottom: 40px; }
-#catalogo .cat-card:not(.book-sheet) .cat-body h3 { margin-bottom: 36px; }
+#catalogo .cat-card:not(.book-sheet) .cat-body h3 { margin-bottom: 8px; }
+#catalogo .cat-body > .cat-notes-lead { margin: 0 0 28px; }
 #catalogo .cat-book {
   --face: 100%;
   position: absolute;

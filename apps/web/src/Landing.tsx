@@ -1530,7 +1530,7 @@ export function CatalogBookCard({
         ))}
       </div>
       <div className="cat-opt" role="group" aria-label={copy.sizeM}>
-        {(["M", "P"] as const).map((choice) => (
+        {(["P", "M"] as const).map((choice) => (
           <button
             key={choice}
             type="button"
@@ -1546,11 +1546,11 @@ export function CatalogBookCard({
   ) : (
     <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
   );
+  const pagesLine = <p className="cat-notes-lead">{copy.pages}</p>;
   const notes = (
     <div className="cat-notes">
-      <p className="cat-notes-lead">{copy.pages}</p>
       <div className="cat-notes-sizes">
-        {(["M", "P"] as const).map((choice) => (
+        {(["P", "M"] as const).map((choice) => (
           <p key={choice} className="cat-note-line">
             <span className="cat-opt">
               <button
@@ -1572,7 +1572,7 @@ export function CatalogBookCard({
         ))}
       </div>
       <div className="cat-note-grid">
-        {(["hard", "soft"] as const).map((choice) => (
+        {(["soft", "hard"] as const).map((choice) => (
           <div key={choice} className="cat-note-line">
             <span className="cat-opt">
               <button
@@ -1618,6 +1618,7 @@ export function CatalogBookCard({
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
           <h1>{book.t}</h1>
+          {pagesLine}
           <section className="book-block">
             <h2>{pageCopy.summary}</h2>
             {book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
@@ -1642,6 +1643,7 @@ export function CatalogBookCard({
       </div>
       <div className="cat-body">
         <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
+        {pagesLine}
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
         {choices}
