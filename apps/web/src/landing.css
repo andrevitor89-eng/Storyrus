@@ -1236,13 +1236,13 @@ a.kcat-group-name:focus-visible {
 .howex-card h3 { margin: 0 0 4px; color: #e9eefb; font-size: 1.08rem; line-height: 1.25; min-height: 2.5em; }
 .howex-card p { margin: 0; color: #9fabce; font-size: .92rem; line-height: 1.4; text-wrap: balance; }
 .howex-card .howex-lead {
-  padding: 14px 14px 12px;
+  padding: 16px 16px 14px;
   text-align: center;
   background: #172140;
-  min-height: 7.6rem;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   box-sizing: border-box;
 }
 .howex-card .howex-lead h3 { margin: 0 0 6px; color: #fff; font-size: 1.08rem; line-height: 1.25; min-height: 0; }

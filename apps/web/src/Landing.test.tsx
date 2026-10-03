@@ -514,10 +514,10 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
     expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect(screen.getByText(/fotos nítidas relacionadas à história/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /preencha os dados/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^dados do livro$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^dados do livro$/i })).not.toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /acompanhe a criação/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /revise e aprove/i })).toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;

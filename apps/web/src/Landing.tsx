@@ -2182,7 +2182,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection ksection-como" id="como">
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
-          <p className="ksub">{t.hiw_sub}</p>
+          {classicHow && t.hiw_sub ? <p className="ksub">{t.hiw_sub}</p> : null}
           {classicHow ? (
           <div className="shot-tips shot-tips-classic">
               <h3>{t.shot_title}</h3>
@@ -2204,26 +2204,27 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           ) : null}
           <div className="howex">
             {hiwSteps.map((h, i) => {
-              const tip = classicHow ? null : t.shots[i];
               return (
               <Fragment key={h.t}>
                 <figure className={`howex-card${classicHow
                   ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
                   : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
-                  {tip ? (
+                  {!classicHow ? (
                     <div className="howex-lead">
-                      <h3>{tip.t}</h3>
-                      <p>{tip.p}</p>
+                      <h3>{h.t}</h3>
+                      <p>{h.p}</p>
                     </div>
                   ) : null}
                   <div className="howex-media">
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
-                  <figcaption>
-                    <h3>{h.t}</h3>
-                    <p>{h.p}</p>
-                  </figcaption>
+                  {classicHow ? (
+                    <figcaption>
+                      <h3>{h.t}</h3>
+                      <p>{h.p}</p>
+                    </figcaption>
+                  ) : null}
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
