@@ -2219,12 +2219,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
-                  {classicHow ? (
-                    <figcaption>
-                      <h3>{h.t}</h3>
-                      <p>{h.p}</p>
-                    </figcaption>
-                  ) : null}
+                  <figcaption>
+                    <h3>{h.t}</h3>
+                    <p>{h.p}</p>
+                  </figcaption>
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
