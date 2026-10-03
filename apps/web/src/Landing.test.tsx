@@ -513,13 +513,13 @@ describe("Landing — CTAs e links", () => {
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
     expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
-    expect(screen.getByText(/escolha o tema e o formato do livro/i)).toBeInTheDocument();
+    expect(screen.getByText(/fotos nítidas relacionadas à história/i)).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^a criança$/i })).toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /preencha os dados/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^dados do livro$/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /criamos o personagem e a história/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /você recebe e aprova o livro/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /acompanhe a criação/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /revise e aprove/i })).toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;
     for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
@@ -545,6 +545,7 @@ describe("Landing — CTAs e links", () => {
     expect(princesasHref).toContain("heroi=Emilia");
     expect(within(panel).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/app?tema=sport");
     const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
+    expect(biblico.parentElement?.querySelector("a")).toBe(biblico);
     const biblicoHref = decodeURIComponent((biblico.getAttribute("href") ?? "").replace(/\+/g, " "));
     expect(biblicoHref).toContain("tema=biblico");
     expect(biblicoHref).toContain("Davi, o Menino Pastor");
@@ -658,7 +659,7 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByRole("button", { name: "Nano" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Meme e Tata" })).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("cartoon-foto-nicolas.jpg"));
-    expect(screen.queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /preencha os dados/i })).not.toBeInTheDocument();
   });
 });
 

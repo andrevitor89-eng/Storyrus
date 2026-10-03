@@ -341,6 +341,7 @@ const NAV_CAT_META = [
     id: "educativo",
     color: "#5ec4a8",
     subs: [
+      { href: "/app?tema=biblico" },
       { href: "/app?tema=cores" },
       { href: "/app?tema=higiene_desfralde" },
       { href: "/app?tema=animais_sons" },
@@ -348,7 +349,6 @@ const NAV_CAT_META = [
       { href: "/app?tema=rotina_dormir" },
       { href: "/app?tema=compartilhar_revezar" },
       { href: "/app?tema=consciencia_corporal" },
-      { href: "/app?tema=biblico" },
     ],
     feats: [
       { href: "/app?tema=animais_sons", catalogI: 4 },
@@ -647,7 +647,7 @@ const I18N = {
       },
       {
         name: "Educativo",
-        subs: ["Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo", "Bíblico"],
+        subs: ["Bíblico", "Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
         feats: ["Animais", "Higiene", "Davi, o Menino Pastor"],
       },
     ],
@@ -666,9 +666,9 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
-      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
-      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
+      { t: "Preencha os dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
+      { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
+      { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
@@ -840,7 +840,7 @@ const I18N = {
       },
       {
         name: "Educational",
-        subs: ["Colors", "Hygiene", "Animals", "Feelings", "Bedtime", "Sharing", "Body", "Biblical"],
+        subs: ["Biblical", "Colors", "Hygiene", "Animals", "Feelings", "Bedtime", "Sharing", "Body"],
         feats: ["Animals", "Hygiene", "David, the Shepherd Boy"],
       },
     ],
@@ -859,9 +859,9 @@ const I18N = {
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
-      { t: "We create the character and the story", p: "Story, cover, and pages with the same face." },
-      { t: "You receive and approve the book", p: "See the preview, approve it, and get the printed book." },
+      { t: "Fill in the details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
+      { t: "Follow the creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
+      { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
@@ -1033,7 +1033,7 @@ const I18N = {
       },
       {
         name: "Educativo",
-        subs: ["Colores", "Higiene", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo", "Bíblico"],
+        subs: ["Bíblico", "Colores", "Higiene", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
         feats: ["Animales", "Higiene", "David, el Niño Pastor"],
       },
     ],
@@ -1052,9 +1052,9 @@ const I18N = {
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
-      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro." },
-      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
+      { t: "Completa los datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
+      { t: "Acompaña la creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
+      { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [

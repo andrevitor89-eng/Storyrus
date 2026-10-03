@@ -272,6 +272,10 @@ class FreightSelectIn(BaseModel):
     service_id: int
 
 
+class PrintQuantityIn(BaseModel):
+    quantity: int = Field(ge=1, le=500)
+
+
 class PrintCheckoutIn(BaseModel):
     installments: int = Field(default=1, ge=1, le=12)
 

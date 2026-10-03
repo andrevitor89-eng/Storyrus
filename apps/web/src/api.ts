@@ -509,6 +509,12 @@ export const api = {
   async printOrder(id: string) {
     return req<PrintOrder>(`/v1/projects/${id}/print-order`);
   },
+  async setPrintQuantity(id: string, quantity: number) {
+    return req<PrintOrder>(`/v1/projects/${id}/print-order/quantity`, {
+      method: "PUT",
+      body: JSON.stringify({ quantity }),
+    });
+  },
   async savePrintAddress(id: string, body: PrintAddress) {
     return req<PrintOrder>(`/v1/projects/${id}/print-order/address`, {
       method: "PUT",

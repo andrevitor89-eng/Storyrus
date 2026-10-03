@@ -329,6 +329,14 @@
   gap: 10px;
 }
 
+.studio-app .print-quantity .studio-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.studio-app .print-quantity {
+  margin-top: 16px;
+}
+
 .studio-app .studio-pick {
   min-height: 64px;
   width: 100%;
@@ -426,6 +434,13 @@
   color: var(--studio-muted);
   line-height: 1.4;
 }
+
+.studio-app .how li strong {
+  display: block;
+  color: var(--ink);
+  font-weight: 800;
+}
+.studio-app .how li p { margin: 0.15rem 0 0; }
 
 .studio-app .how li::before {
   content: counter(studio-step);

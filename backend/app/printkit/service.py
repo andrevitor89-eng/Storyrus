@@ -92,7 +92,8 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
         return
     order.book_size = project.book_size
     order.cover_type = project.cover_type
-    order.quantity = 1
+    if order.quantity < 1:
+        order.quantity = 1
     if order.book_size not in {"P", "M"} or order.cover_type not in {"soft", "hard"}:
         order.status = "awaiting_spec"
         order.block_reason = "Tamanho ou tipo de capa ausente no projeto."
@@ -227,6 +228,12 @@ def address_complete(order: PrintOrder) -> bool:
     )
 
 
+def set_quantity(order: PrintOrder, quantity: int) -> None:
+    if order.payment_status in {"paid", "pending"}:
+        raise ValueError("A quantidade não pode mudar depois do pagamento.")
+    order.quantity = quantity
+
+
 def apply_address(order: PrintOrder, data: dict) -> None:
     order.recipient_name = data["recipient_name"].strip()
     order.postal_code = "".join(ch for ch in data["postal_code"] if ch.isdigit())
@@ -278,7 +285,8 @@ def start_checkout(order: PrintOrder, installments: int):
     if order.freight_price_cents is None or order.freight_service_id is None:
         raise ValueError("Selecione o frete antes de pagar.")
     gateway = configured_gateway()
-    book = book_price_cents(order.book_size)
+    copies = max(1, int(order.quantity or 1))
+    book = book_price_cents(order.book_size) * copies
     amount = book + int(order.freight_price_cents)
     charge = gateway.create_charge(
         order_code=order.code,

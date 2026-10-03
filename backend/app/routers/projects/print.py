@@ -19,6 +19,7 @@ from app.printkit.service import (
     price_for,
     quote_order,
     select_freight,
+    set_quantity,
     start_checkout,
 )
 from app.printkit.shipping import ShippingError, ShippingNotConfigured
@@ -27,6 +28,7 @@ from app.schemas import (
     PrintAddressIn,
     PrintCheckoutIn,
     PrintOrderOut,
+    PrintQuantityIn,
     ProjectOut,
 )
 
@@ -116,6 +118,23 @@ def save_print_address(
     apply_address(order, body.model_dump())
     if not address_complete(order):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Endereço de entrega incompleto.")
+    db.commit()
+    db.refresh(order)
+    return to_print_out(order)
+
+
+@router.put("/{project_id}/print-order/quantity", response_model=PrintOrderOut)
+def save_print_quantity(
+    project_id: uuid.UUID,
+    body: PrintQuantityIn,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> PrintOrderOut:
+    _project, order = _owned_order(db, user, project_id)
+    try:
+        set_quantity(order, body.quantity)
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     db.commit()
     db.refresh(order)
     return to_print_out(order)

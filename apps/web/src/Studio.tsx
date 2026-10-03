@@ -122,7 +122,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
   const [bookSize, setBookSize] = useState<"M" | "P">("M");
-  const [quantity, setQuantity] = useState("1");
   const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
   const [extraNames, setExtraNames] = useState("");
   const [castWho, setCastWho] = useState<StudioWho>("child");
@@ -408,7 +407,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         alsoName: alsoName.trim() || undefined,
         alsoGender: alsoGender ?? undefined,
         alsoSubject: alsoWho ? subjectCode(alsoWho) : undefined,
-        quantity: String(Math.max(1, Math.min(500, Math.floor(Number(quantity) || 1)))),
         clientName: buyerName,
         clientEmail: buyerEmail,
         clientPhone: buyerPhone,
@@ -790,8 +788,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {t.howTitle}
             </h3>
             <ol>
-              {t.how.map((h) => (
-                <li key={h}>{h}</li>
+              {t.how.map((step) => (
+                <li key={step.t}>
+                  <div>
+                    <strong>{step.t}</strong>
+                    <p>{step.p}</p>
+                  </div>
+                </li>
               ))}
             </ol>
           </div>
@@ -957,25 +960,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
-              <label className="studio-field studio-also">
-                {t.quantity}
-                <input
-                  disabled={isDemo}
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={500}
-                  value={quantity}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "") return setQuantity("");
-                    const n = Math.max(1, Math.min(500, Math.floor(Number(v))));
-                    setQuantity(Number.isNaN(n) ? "1" : String(n));
-                  }}
-                  data-testid="studio-quantity"
-                />
-              </label>
-              <p className="muted field-hint">{t.quantityHint}</p>
               <label className="studio-field">
                 {t.otherCharacters}
                 <input
@@ -988,7 +972,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 />
               </label>
               <p className="muted field-hint">{primary.extras}</p>
-              <p className="studio-field">{companionCopy ? `${primary.photo} · ${companionCopy.photo}` : primary.photo}</p>
+              <p className="studio-field">{t.photoCharacters}</p>
+              <p className="muted field-hint">{t.photoCharactersHint}</p>
               <div
                 className={dragOver ? "studio-drop is-over" : "studio-drop"}
                 data-testid="studio-photo-drop"
@@ -1040,19 +1025,26 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   checked={mediaConsent}
                   disabled={isDemo}
                   data-testid="studio-media-consent"
-                  onChange={(e) => {
-                    const next = e.target.checked;
-                    setMediaConsent(next);
-                    if (next) void start(next);
-                  }}
+                  onChange={(e) => setMediaConsent(e.target.checked)}
                 />
                 {t.consent}
               </label>
+              <button
+                type="button"
+                className="kbtn kbtn-primary studio-create"
+                disabled={isDemo || busy}
+                data-testid="studio-generate-book"
+                onClick={() => void start()}
+              >
+                {t.createProject}
+              </button>
             </>
           )}
           </>
           )}
         </section>
+          </>
+        )}
 
         {project && (
           <section
@@ -1223,8 +1215,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {isDemo ? t.createMyStory : t.newProject}
             </button>
           </section>
-        )}
-          </>
         )}
       </main>
     </div>

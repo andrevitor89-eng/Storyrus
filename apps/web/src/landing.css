@@ -1525,8 +1525,13 @@ img.ex-tab-cover {
   display: grid;
   grid-template-columns: 1fr;
   gap: 10px;
-  margin-top: 12px;
+  margin-top: 16px;
+  padding: 12px;
+  border: 1px solid #31406e;
+  border-radius: 16px;
+  background: #10182f;
 }
+.cat-note-grid .cat-note-line { margin-top: 0; }
 .cat-note-grid strong {
   display: block;
   margin-bottom: 4px;
@@ -1537,6 +1542,10 @@ img.ex-tab-cover {
 .cat-note-grid p { color: #9fabce; }
 [data-theme="light"] .kid .cat-notes-sizes,
 [data-theme="light"] .kid .cat-note-grid p { color: #6b6890; }
+[data-theme="light"] .kid .cat-note-grid {
+  background: #f6f8fd;
+  border-color: #e6ebf5;
+}
 .cat-price { font-family: 'Baloo 2', cursive; font-weight: 800; color: var(--yellow); font-size: 1.05rem; margin-bottom: 14px; }
 .cat-price span { display: block; font-size: .82rem; font-weight: 600; color: #9fabce; }
 .cat-body .cat-go { margin-top: auto; justify-content: center; }
