@@ -190,13 +190,11 @@
 }
 .kcat-btn {
   display: inline-flex; align-items: center; gap: 5px;
-  border: none; background: #182343; cursor: pointer;
+  border: none; background: #2f6fe4; cursor: pointer;
   padding: 8px 10px; border-radius: 11px;
-  color: #e9eefb; font-weight: 700; font-size: .75rem; font-family: inherit;
+  color: #fff; font-weight: 700; font-size: .75rem; font-family: inherit;
   white-space: nowrap; text-decoration: none;
-  box-shadow:
-    0 0 0 1px rgba(244,183,64,.35),
-    0 0 14px rgba(244,183,64,.22);
+  box-shadow: 0 4px 12px rgba(47,111,228,.35);
   transition: background .15s ease, box-shadow .15s ease, transform .15s ease;
 }
 a.kcat-btn,
@@ -204,13 +202,11 @@ a.kcat-btn:hover,
 a.kcat-btn:visited,
 a.kcat-btn:active {
   text-decoration: none;
-  color: #e9eefb;
+  color: #fff;
 }
 .kcat-btn:hover, .kcat-btn:focus-visible, .kcat.open .kcat-btn, .kcat:focus-within .kcat-btn {
-  background: #1f2d55;
-  box-shadow:
-    0 0 0 1px rgba(244,183,64,.55),
-    0 0 24px rgba(244,183,64,.42);
+  background: #2459c4;
+  box-shadow: 0 6px 16px rgba(36,89,196,.45);
   transform: translateY(-1px);
 }
 .kcat-dot {

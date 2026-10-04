@@ -138,6 +138,7 @@ describe("Studio — tema do banner", () => {
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
     );
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
@@ -184,6 +185,7 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText(/2 fotos selecionadas/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     await screen.findByTestId("studio-order-sent");
@@ -269,7 +271,7 @@ describe("Studio — tema do banner", () => {
     window.history.replaceState(
       {},
       "",
-      "/app?tema=pets&campos=nome&titulo=Lucas%20e%20seu%20amigo%20Max&quem=crianca&genero=m&quem2=pet&genero2=m&heroi=Lucas&heroi2=Max",
+      "/app?tema=pets&campos=nome&titulo=Lucas%20e%20seu%20amigo%20Theo&quem=crianca&genero=m&quem2=pet&genero2=m&heroi=Lucas&heroi2=Theo",
     );
     const user = userEvent.setup();
     render(<Studio />);
@@ -319,6 +321,7 @@ describe("Studio a11y", () => {
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
@@ -343,6 +346,7 @@ describe("Polling do estúdio", () => {
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);

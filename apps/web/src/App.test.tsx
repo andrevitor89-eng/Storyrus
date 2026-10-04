@@ -32,6 +32,7 @@ describe("Fluxo E2E (sem login)", () => {
     await user.upload(fileInput, file);
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
