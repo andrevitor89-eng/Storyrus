@@ -1,5 +1,5 @@
 import { useEffect, useState, type CSSProperties } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
@@ -28,6 +28,33 @@ function useSiteLang() {
   return [lang, setLang] as const;
 }
 
+function CatalogBannerNav({ lang }: { lang: Lang }) {
+  const copy = catalogPageCopy(lang);
+  const sections = catalogSections(lang);
+  const extras = [
+    { href: "/#como", label: copy.hiw, color: "#7aa2ff" },
+    { href: "/#videos", label: copy.videos, color: "#e07a9a" },
+    { href: "/#reviews", label: copy.reviews, color: "#f4b740" },
+    { href: "/cartoon", label: copy.cartoon, color: "#3ecf8e" },
+  ];
+  return (
+    <nav className="catalog-banner-nav" aria-label={copy.cats}>
+      {sections.map((section) => (
+        <Link key={section.id} to={`/catalogo#${section.id}`} className="kcat-btn">
+          <span className="kcat-dot" style={{ background: section.color, boxShadow: `0 0 10px ${section.color}` }} />
+          {section.name}
+        </Link>
+      ))}
+      {extras.map((item) => (
+        <a key={item.label} href={item.href} className="kcat-btn">
+          <span className="kcat-dot" style={{ background: item.color, boxShadow: `0 0 10px ${item.color}` }} />
+          {item.label}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 function LangSwitch({ lang, setLang }: { lang: Lang; setLang: (lang: Lang) => void }) {
   return (
     <div className="lang" role="group" aria-label="Idioma / Language / Idioma">
@@ -42,16 +69,22 @@ export function CatalogPage() {
   const [lang, setLang] = useSiteLang();
   const copy = catalogPageCopy(lang);
   const sections = catalogSections(lang);
+  const { hash } = useLocation();
   useEffect(() => {
-    const id = window.location.hash.replace("#", "");
-    if (!id) return;
-    document.getElementById(id)?.scrollIntoView();
-  }, [sections]);
+    const id = hash.replace("#", "");
+    const el = id ? document.getElementById(id) : null;
+    if (!el) return;
+    const header = document.querySelector(".catalog-knav");
+    const offset = header ? header.getBoundingClientRect().height + 12 : 0;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top });
+  }, [sections, hash]);
   return (
     <div className="kid">
-      <header className="knav">
+      <header className="knav catalog-knav">
         <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
         <LangSwitch lang={lang} setLang={setLang} />
+        <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
         <h1 className="ktitle">{copy.title}</h1>
@@ -78,9 +111,10 @@ export function CategoryCatalogPage() {
   const copy = catalogPageCopy(lang);
   return (
     <div className="kid">
-      <header className="knav">
+      <header className="knav catalog-knav">
         <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
         <LangSwitch lang={lang} setLang={setLang} />
+        <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
         <p className="book-back"><Link to="/catalogo">{copy.back}</Link></p>
@@ -110,9 +144,10 @@ export function BookPage() {
   const copy = catalogPageCopy(lang);
   return (
     <div className="kid">
-      <header className="knav">
+      <header className="knav catalog-knav">
         <Link to="/" className="kbrand"><img src={logo} alt="Story.R.Us" /></Link>
         <LangSwitch lang={lang} setLang={setLang} />
+        <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection book-page" id="catalogo">
         <p className="book-back"><Link to={`/catalogo/${book.sectionId}`}>{copy.back}</Link></p>

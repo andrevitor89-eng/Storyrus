@@ -129,13 +129,13 @@ const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: stri
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
 };
 const CARTOON_COVER: Record<number, string> = {
-  6: "cartoon-capa-nicolas.jpg",
-  7: "cartoon-capa-amordemae.jpg",
-  8: "cartoon-capa-matteo.jpg",
-  9: "cartoon-capa-bisavo.jpg",
-  12: "cartoon-capa-maya.jpg",
-  21: "cartoon-capa-davi.jpg",
-  23: "cartoon-capa-enzo.jpg",
+  5: "cartoon-capa-nicolas.jpg",
+  6: "cartoon-capa-amordemae.jpg",
+  7: "cartoon-capa-matteo.jpg",
+  8: "cartoon-capa-bisavo.jpg",
+  11: "cartoon-capa-maya.jpg",
+  20: "cartoon-capa-davi.jpg",
+  22: "cartoon-capa-enzo.jpg",
 };
 const CARTOON_REVIEW: Record<string, string> = {
   Nicolas: "cartoon-foto-nicolas.jpg",
@@ -188,7 +188,6 @@ const CATALOG_IMGS: CatalogImg[] = [
   "capa-emilia-bailarina.jpg",
   "capa-antonio-bicicleta.jpg",
   "capa-sofia-alfabeto.png",
-  { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
   "capa-cristobal-esporte.png",
   "capa-nicolas-maefilho.png",
   { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
@@ -216,7 +215,6 @@ const CATALOG_THEMES = [
   "princess",
   "adventure",
   "alfabetizacao_inicial",
-  "animais_sons",
   "sport",
   "mothers_day",
   "mothers_day",
@@ -239,14 +237,14 @@ const CATALOG_THEMES = [
   "pets",
   "higiene_desfralde",
 ];
-/** Catálogo da principal: no máximo 15, todos com a mesma capa, tamanho e preço. */
-const CATALOG_LIMIT = 15;
+/** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
+const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5, 14]);
+const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([20, 21, 22, 23, 24, 25]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24]);
 /** Primeiros da vitrine, nesta ordem: Meu Pai, Davi, Enzo. */
-const CATALOG_LEAD = [22, 21, 23];
+const CATALOG_LEAD = [21, 20, 22];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 const CATALOG_PRICE: Record<Lang, string> = {
@@ -285,8 +283,8 @@ const NAV_CAT_META = [
     feats: [
       { href: "/app?tema=princess", catalogI: 1 },
       { href: "/app?tema=adventure", catalogI: 0 },
-      { href: "/app?tema=sport", catalogI: 5 },
-      { href: "/app?tema=adventure", catalogI: 11 },
+      { href: "/app?tema=sport", catalogI: 4 },
+      { href: "/app?tema=adventure", catalogI: 10 },
     ],
   },
   {
@@ -301,10 +299,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=pets" },
     ],
     feats: [
+      { href: "/app?tema=mothers_day", catalogI: 5 },
+      { href: "/app?tema=grandparents_love", catalogI: 8 },
+      { href: "/app?tema=family_love", catalogI: 7 },
       { href: "/app?tema=mothers_day", catalogI: 6 },
-      { href: "/app?tema=grandparents_love", catalogI: 9 },
-      { href: "/app?tema=family_love", catalogI: 8 },
-      { href: "/app?tema=mothers_day", catalogI: 7 },
     ],
   },
   {
@@ -331,10 +329,10 @@ const NAV_CAT_META = [
       { href: "/app?tema=birthday" },
     ],
     feats: [
-      { href: "/app?tema=christmas", catalogI: 10 },
-      { href: "/app?tema=mothers_day", catalogI: 6 },
-      { href: "/app?tema=grandparents_love", catalogI: 9 },
-      { href: "/app?tema=fathers_day", catalogI: 22 },
+      { href: "/app?tema=christmas", catalogI: 9 },
+      { href: "/app?tema=mothers_day", catalogI: 5 },
+      { href: "/app?tema=grandparents_love", catalogI: 8 },
+      { href: "/app?tema=fathers_day", catalogI: 21 },
     ],
   },
   {
@@ -351,34 +349,34 @@ const NAV_CAT_META = [
       { href: "/app?tema=consciencia_corporal" },
     ],
     feats: [
-      { href: "/app?tema=animais_sons", catalogI: 4 },
-      { href: "/app?tema=higiene_desfralde", catalogI: 25 },
-      { href: "/app?tema=biblico", catalogI: 21 },
+      { href: "/app?tema=animais_sons", catalogI: 23 },
+      { href: "/app?tema=higiene_desfralde", catalogI: 24 },
+      { href: "/app?tema=biblico", catalogI: 20 },
     ],
   },
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
-  adventure: [2, 11],
-  dinosaurs: [19],
-  underwater: [18],
-  space: [17],
+  adventure: [2, 10],
+  dinosaurs: [18],
+  underwater: [17],
+  space: [16],
   princess: [1],
-  superhero: [16],
-  sport: [0, 5],
-  mothers_day: [6, 7],
-  fathers_day: [22, 15],
-  grandparents_love: [9],
-  dia_do_idoso: [9],
-  family_love: [8],
-  pets: [12, 13, 24],
-  dia_da_mulher: [7, 6, 9, 20],
-  dia_da_familia: [8, 20, 22, 23],
-  tio_tia: [20],
-  christmas: [10],
-  animais_sons: [4],
-  higiene_desfralde: [25],
-  biblico: [21],
+  superhero: [15],
+  sport: [0, 4],
+  mothers_day: [5, 6],
+  fathers_day: [21, 14],
+  grandparents_love: [8],
+  dia_do_idoso: [8],
+  family_love: [7],
+  pets: [11, 12, 23],
+  dia_da_mulher: [6, 5, 8, 19],
+  dia_da_familia: [7, 19, 21, 22],
+  tio_tia: [19],
+  christmas: [9],
+  animais_sons: [23],
+  higiene_desfralde: [24],
+  biblico: [20],
 };
 function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
@@ -446,21 +444,20 @@ const HERO_BY_CATALOG: Record<number, string> = {
   1: "Emilia",
   2: "Antonio",
   3: "Sofia",
-  4: "Bruno",
-  5: "Cristobal",
-  6: "Nicolas",
-  8: "Matteo",
-  11: "Nano",
-  12: "Maya",
-  13: "Mako",
-  24: "Lucas",
-  14: "Ester",
-  15: "Raquel",
-  16: "Rebeca",
-  17: "Abigail",
-  18: "Miriam",
-  19: "Noé",
-  21: "Davi",
+  4: "Cristobal",
+  5: "Nicolas",
+  7: "Matteo",
+  10: "Nano",
+  11: "Maya",
+  12: "Mako",
+  23: "Lucas",
+  13: "Ester",
+  14: "Raquel",
+  15: "Rebeca",
+  16: "Abigail",
+  17: "Miriam",
+  18: "Noé",
+  20: "Davi",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -727,7 +724,6 @@ const I18N = {
       { t: "Emilia e os Primeiros Passos da Bailarina", p: "Primeiros passos no ballet com disciplina, equilíbrio e confiança.", cover: "Soft", size: "M", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
       { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e explorar o mundo em pequenas aventuras.", cover: "Soft", size: "M", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
       { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras e descobertas na floresta, alfabetizar brincando.", cover: "Soft", size: "M", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
-      { t: "Bruno em uma aventura animal", p: "Conhecer animais e cuidar da natureza numa jornada gentil.", cover: "Soft", size: "M", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
       { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
       { t: "Nicolas, Meu Primeiro Amor", p: "Um momento de carinho eterno entre mamãe e filho, cheio de ternura para guardar para sempre.", cover: "Soft", size: "M", tag: "Amor de mãe", quote: "Primeiro filho, eterno amor!" },
       { t: "O Amor de Mãe", p: "Pequenas histórias de um grande amor: a ternura da mamãe em cada página, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de mãe", quote: "No colo da mamãe, encontro meu lugar." },
@@ -920,7 +916,6 @@ const I18N = {
       { t: "Emilia and the Ballerina's First Steps", p: "Ballet's first steps with discipline, balance and confidence.", cover: "Soft", size: "M", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
       { t: "Antonio and His Bicycle", p: "Pedal, learn and explore the world in small adventures.", cover: "Soft", size: "M", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
       { t: "Learning the Alphabet with Sofia", p: "Letters and forest discoveries — literacy through play.", cover: "Soft", size: "M", tag: "Literacy through play", quote: "Every letter opens a new world." },
-      { t: "Bruno on an Animal Adventure", p: "Meet animals and care for nature on a gentle journey.", cover: "Soft", size: "M", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
       { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for the river.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Small paddles, big victories." },
       { t: "Nicolas, My First Love", p: "A tender, eternal moment between mom and son, full of warmth to treasure forever.", cover: "Soft", size: "M", tag: "A mother's love", quote: "First child, eternal love!" },
       { t: "A Mother's Love", p: "Small stories of a big love: mom's tenderness on every page, to treasure forever.", cover: "Hard", size: "M", tag: "A mother's love", quote: "In mom's arms, I find my place." },
@@ -1113,7 +1108,6 @@ const I18N = {
       { t: "Emilia y los primeros pasos de la bailarina", p: "Primeros pasos en el ballet con disciplina, equilibrio y confianza.", cover: "Soft", size: "M", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
       { t: "Antonio y su bicicleta", p: "Pedalear, aprender y explorar el mundo en pequeñas aventuras.", cover: "Soft", size: "M", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
       { t: "Aprendiendo el alfabeto con Sofia", p: "Letras y descubrimientos en el bosque, alfabetizar jugando.", cover: "Soft", size: "M", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
-      { t: "Bruno en una aventura animal", p: "Conocer animales y cuidar la naturaleza en una jornada gentil.", cover: "Soft", size: "M", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
       { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por el río.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
       { t: "Nicolas, Mi Primer Amor", p: "Un momento de cariño eterno entre mamá e hijo, lleno de ternura para guardar para siempre.", cover: "Soft", size: "M", tag: "Amor de madre", quote: "¡Primer hijo, amor eterno!" },
       { t: "El Amor de Mamá", p: "Pequeñas historias de un gran amor: la ternura de mamá en cada página, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de madre", quote: "En los brazos de mamá, encuentro mi lugar." },
@@ -1441,8 +1435,8 @@ const FORMAT_COPY: Record<Lang, {
 }> = {
   pt: {
     pages: "Livro 16 páginas",
-    hard: "HARD - Capa rígida",
-    soft: "SOFT - Capa flexível",
+    hard: "Capa Dura",
+    soft: "Capa Flexível",
     sizeM: "20 × 20 cm",
     sizeP: "15 × 15 cm",
     priceM: "R$ 177,00",
@@ -1452,8 +1446,8 @@ const FORMAT_COPY: Record<Lang, {
   },
   en: {
     pages: "Book. 16 pages.",
-    hard: "HARD - Hardcover",
-    soft: "SOFT - Softcover",
+    hard: "Hardcover",
+    soft: "Softcover",
     sizeM: "20 × 20 cm",
     sizeP: "15 × 15 cm",
     priceM: "$33.91",
@@ -1463,8 +1457,8 @@ const FORMAT_COPY: Record<Lang, {
   },
   es: {
     pages: "Libro. 16 páginas.",
-    hard: "HARD - Tapa rígida",
-    soft: "SOFT - Tapa blanda",
+    hard: "Tapa Dura",
+    soft: "Tapa Blanda",
     sizeM: "20 × 20 cm",
     sizeP: "15 × 15 cm",
     priceM: "30,10 €",
@@ -1525,7 +1519,7 @@ export function CatalogBookCard({
             aria-pressed={cover === choice}
             onClick={() => setCover(choice)}
           >
-            {choice === "soft" ? "Soft" : "Hard"}
+            {choice === "soft" ? copy.soft : copy.hard}
           </button>
         ))}
       </div>
@@ -1581,7 +1575,7 @@ export function CatalogBookCard({
                 aria-pressed={cover === choice}
                 onClick={() => setCover(choice)}
               >
-                {choice === "hard" ? "Hard" : "Soft"}
+                {choice === "hard" ? copy.hard : copy.soft}
               </button>
             </span>
             <p>{choice === "hard" ? copy.hardText : copy.softText}</p>
@@ -1654,7 +1648,7 @@ export function CatalogBookCard({
   );
 }
 function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
-  if (index === 14) return null;
+  if (index === 13) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
   if (!book || !theme || !CATALOG_IMGS[index]) return null;
@@ -1680,7 +1674,17 @@ export function readSiteLang(): Lang {
 }
 export function catalogPageCopy(lang: Lang) {
   const t = I18N[lang];
-  return { title: t.cat_title, personalize: t.personalize, back: t.see_all_books, empty: t.cat_empty };
+  return {
+    title: t.cat_title,
+    personalize: t.personalize,
+    back: t.see_all_books,
+    empty: t.cat_empty,
+    cats: t.cats_label,
+    hiw: t.hiw_title,
+    videos: t.videos_link,
+    reviews: t.reviews_link,
+    cartoon: t.cartoon_link,
+  };
 }
 export function catalogCategory(lang: Lang, id: string) {
   if (id === "sentimentos") {
@@ -1882,6 +1886,29 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     document.documentElement.setAttribute("data-theme", theme);
     try { localStorage.setItem("theme", theme); } catch { /* ignore */ }
   }, [theme]);
+
+  useEffect(() => {
+    const id = window.location.hash.replace("#", "");
+    const el = id ? document.getElementById(id) : null;
+    if (!el) return;
+    const offset = (headerRef.current?.getBoundingClientRect().height ?? 0) + 12;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top });
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    const root = rootRef.current;
+    if (!header || !root) return;
+    const sync = () => {
+      root.style.setProperty("--khead-h", `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    };
+    sync();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(sync);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
@@ -2219,10 +2246,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
-                  <figcaption>
-                    <h3>{h.t}</h3>
-                    <p>{h.p}</p>
-                  </figcaption>
+                  {classicHow ? (
+                    <figcaption>
+                      <h3>{h.t}</h3>
+                      <p>{h.p}</p>
+                    </figcaption>
+                  ) : null}
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>

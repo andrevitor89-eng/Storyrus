@@ -1568,6 +1568,12 @@ img.ex-tab-cover {
 .cat-badges .cat-price { margin: 0 0 0 auto; }
 [data-theme="light"] .kid #catalogo .cat-opt button { color: #1f3568; border-color: #d5dced; }
 [data-theme="light"] .kid #catalogo .cat-opt button.is-on { color: #1f3568; background: var(--yellow); border-color: var(--yellow); }
+.catalog-knav { flex-wrap: wrap; row-gap: 8px; }
+.catalog-knav .kbrand { margin-right: auto; }
+.catalog-banner-nav {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+  gap: 8px; flex: 1 0 100%; margin: 0; padding: 0;
+}
 .catalog-section { scroll-margin-top: 24px; margin: 48px 0 0; text-align: left; }
 .catalog-section-title {
   display: flex; align-items: center; gap: 10px;
@@ -1879,8 +1885,27 @@ img.ex-tab-cover {
   .featurebar { grid-template-columns: repeat(2, 1fr); }
   .feat:nth-child(2) { border-right: none; }
   .khamb { display: block; }
-  .kcats { display: none; }
   .khead-links { display: none; }
+  .kid:not(.studio-app) .khead-main {
+    display: flex;
+    grid-column: 1 / -1;
+    width: 100%;
+    min-height: 0;
+    justify-self: stretch;
+  }
+  .kid:not(.studio-app) .kcats {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+    max-width: none;
+  }
+  .kid:not(.studio-app) .khead-bar,
+  .kid:not(.studio-app) .khead-bar-inner { width: 100%; }
+  .kid:not(.studio-app) .khead-bar-inner {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
   .khead-cta { display: none; }
   .khead { position: fixed; padding: 8px 0 4px; }
   .kid { --khead-h: 100px; }
