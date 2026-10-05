@@ -37,9 +37,6 @@ const IcInstagram = ({ className }: IconProps) => (
     <circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none" />
   </Svg>
 );
-const IcCheck = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M4 12.5l5 5L20 6.5" /></svg>);
-const IcClose = ({ className }: IconProps) => (<svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M6 6l12 12M18 6L6 18" /></svg>);
-
 const FOOT_ICONS = [IcSparkle, IcBook, IcPlay, IcStar];
 const CONTACT_EMAIL = "info@storyrus.ai";
 const CONTACT_INSTA = "storyr.us";
@@ -149,11 +146,6 @@ const CARTOON_REVIEW: Record<string, string> = {
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
-const SHOTS: { img: string; ok: boolean; focus?: string }[] = [
-  { img: "dica-boa.png", ok: true, focus: "center center" },
-  { img: "dica-multi.png", ok: false, focus: "68% 38%" },
-  { img: "dica-lado.png", ok: false, focus: "78% 32%" },
-];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -248,11 +240,6 @@ const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24]);
 const CATALOG_LEAD = [21, 20, 22];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
-const CATALOG_PRICE: Record<Lang, string> = {
-  pt: "Sob consulta",
-  en: "On request",
-  es: "Bajo consulta",
-};
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
 }
@@ -1528,49 +1515,16 @@ export function CatalogBookCard({
   showStory?: boolean;
   layout?: "card" | "page";
 }) {
-  const selectable = typeof book.cover === "string" && typeof book.size === "string";
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
   const copy = FORMAT_COPY[lang];
   const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
   const linked = linkBook && bookHref != null;
   const image = <img src={exUrl(book.img)} alt={book.t} loading="lazy" />;
-  const choices = selectable ? (
-    <div className="cat-badges">
-      <div className="cat-opt" role="group" aria-label={copy.soft}>
-        {(["soft", "hard"] as const).map((choice) => (
-          <button
-            key={choice}
-            type="button"
-            className={cover === choice ? "is-on" : ""}
-            aria-pressed={cover === choice}
-            onClick={() => setCover(choice)}
-          >
-            {choice === "soft" ? copy.soft : copy.hard}
-          </button>
-        ))}
-      </div>
-      <div className="cat-opt" role="group" aria-label={copy.sizeM}>
-        {(["P", "M"] as const).map((choice) => (
-          <button
-            key={choice}
-            type="button"
-            className={size === choice ? "is-on" : ""}
-            aria-pressed={size === choice}
-            onClick={() => setSize(choice)}
-          >
-            {choice}
-          </button>
-        ))}
-      </div>
-    </div>
-  ) : (
-    <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
-  );
-  const pagesLine = <p className="cat-notes-lead">{copy.pages}</p>;
   const notes = (
     <div className="cat-notes">
       <div className="cat-notes-sizes">
+        <p className="cat-notes-lead">{copy.pages}</p>
         {(["P", "M"] as const).map((choice) => (
           <p key={choice} className="cat-note-line">
             <span className="cat-opt">
@@ -1639,7 +1593,6 @@ export function CatalogBookCard({
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
           <h1>{book.t}</h1>
-          {pagesLine}
           <section className="book-block">
             <h2>{pageCopy.summary}</h2>
             {book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
@@ -1647,7 +1600,6 @@ export function CatalogBookCard({
           </section>
           <section className="book-block">
             <h2>{pageCopy.details}</h2>
-            {choices}
             {notes}
           </section>
           {go}
@@ -1664,10 +1616,8 @@ export function CatalogBookCard({
       </div>
       <div className="cat-body">
         <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
-        {pagesLine}
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
-        {choices}
         {notes}
         {go}
       </div>
@@ -1777,11 +1727,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
-  const classicHow = variant === "cartoon";
-  const hiwSteps = classicHow
-    ? t.hiw.map((h, i) => (i === 0 ? { ...h, t: t.cartoon_hiw_title, p: t.cartoon_hiw_photo } : h))
-    : t.hiw_main;
-  const howImgs = classicHow ? HOW_IMGS : HOW_SCENE_IMGS;
+  const hiwSteps = t.hiw_main;
+  const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
   const heroStrip = HERO_STRIP.flatMap((book) => {
     if (variant !== "cartoon") return [book];
@@ -2222,46 +2169,22 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection ksection-como" id="como">
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
-          {classicHow && t.hiw_sub ? <p className="ksub">{t.hiw_sub}</p> : null}
-          {classicHow ? (
-          <div className="shot-tips shot-tips-classic">
-              <h3>{t.shot_title}</h3>
-              <p className="shot-sub">{t.cartoon_shot_sub}</p>
-              <div className="shot-grid">
-                {SHOTS.map((s, i) => (
-                  <div className={`shot${s.ok ? " ok" : ""}`} key={t.cartoon_shots[i]}>
-                    <div className="shot-ava-wrap">
-                      <div className="shot-ava">
-                        <img src={exUrl(s.img)} alt={t.cartoon_shots[i] || t.shot_title} loading="lazy" style={{ objectPosition: s.focus ?? "center center" }} />
-                      </div>
-                      <span className="shot-badge">{s.ok ? <IcCheck /> : <IcClose />}</span>
-                    </div>
-                    {t.cartoon_shots[i] ? <p>{t.cartoon_shots[i]}</p> : null}
-                  </div>
-                ))}
-              </div>
-          </div>
-          ) : null}
           <div className="howex">
             {hiwSteps.map((h, i) => {
               return (
               <Fragment key={h.t}>
-                <figure className={`howex-card${classicHow
-                  ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
-                  : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
-                  {!classicHow ? (
-                    <div className="howex-lead">
-                      <h3>{h.t}</h3>
-                      <p>{h.p}</p>
-                    </div>
-                  ) : null}
+                <figure className={`howex-card howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}>
+                  <div className="howex-lead">
+                    <h3>{h.t}</h3>
+                    <p>{h.p}</p>
+                  </div>
                   <div className="howex-media">
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
                   <figcaption>
-                    <h3>{classicHow ? h.t : t.hiw_foot[i].t}</h3>
-                    <p>{classicHow ? h.p : t.hiw_foot[i].p}</p>
+                    <h3>{t.hiw_foot[i].t}</h3>
+                    <p>{t.hiw_foot[i].p}</p>
                   </figcaption>
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
