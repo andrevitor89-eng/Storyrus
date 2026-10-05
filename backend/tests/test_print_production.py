@@ -352,6 +352,34 @@ def _freight_ready(monkeypatch):
     )
 
 
+def test_quantity_is_chosen_at_checkout_and_multiplies_the_book(auth_client, monkeypatch):
+    _apply_spec(monkeypatch)
+    _freight_ready(monkeypatch)
+    monkeypatch.setattr(settings, "print_gateway", "fake")
+    register_gateway(_FakeGateway())
+    try:
+        pid = _ready(auth_client)
+        auth_client.post(f"/v1/projects/{pid}/print-request")
+        one = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 1})
+        assert one.status_code == 200
+        assert one.json()["quantity"] == 1
+        copies = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 4})
+        assert copies.json()["quantity"] == 4
+        package = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 12})
+        assert package.json()["quantity"] == 12
+        assert auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 0}).status_code == 422
+        _address(auth_client, pid)
+        auth_client.post(f"/v1/projects/{pid}/print-order/freight")
+        auth_client.post(f"/v1/projects/{pid}/print-order/freight/select", json={"service_id": 1})
+        paid = auth_client.post(f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3})
+        assert paid.status_code == 200, paid.text
+        assert paid.json()["amount_cents"] == 17700 * 12 + 1000
+        locked = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 2})
+        assert locked.status_code == 409
+    finally:
+        unregister_gateway("fake")
+
+
 def test_checkout_without_gateway(auth_client, monkeypatch):
     _apply_spec(monkeypatch)
     _freight_ready(monkeypatch)

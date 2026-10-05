@@ -24,7 +24,7 @@ async function openBook(user: ReturnType<typeof userEvent.setup>, notes = "") {
   await screen.findByTestId("studio-client");
   await fillClient(user, notes);
   await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
-  await screen.findByRole("button", { name: /criar livro/i });
+  await screen.findByRole("checkbox", { name: /responsável legal/i });
 }
 
 function ebookJob(overrides: Partial<Job> = {}): Job {
@@ -70,21 +70,21 @@ describe("Studio — tema do banner", () => {
 
     expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Emilia e os Primeiros Passos");
     expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue("Primeiros passos no ballet");
-    expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
+    expect(screen.getByLabelText(/nome do protagonista/i)).toHaveValue("");
     expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
 
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lia");
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lia");
     expect(screen.getByLabelText(/título do livro/i)).toHaveValue("Lia e os Primeiros Passos");
     expect(screen.getByLabelText(/^idade$/i)).toHaveValue(null);
   });
 
-  it("leva só o tema e deixa o nome da criança em branco", async () => {
+  it("leva só o tema e deixa o nome do protagonista em branco", async () => {
     window.history.replaceState({}, "", "/app?tema=mothers_day&campos=tema&historia=Amor+de+m%C3%A3e");
     const user = userEvent.setup();
     render(<Studio />);
     await openBook(user);
 
-    expect(screen.getByLabelText(/nome da criança/i)).toHaveValue("");
+    expect(screen.getByLabelText(/nome do protagonista/i)).toHaveValue("");
     expect(screen.getByLabelText(/título do livro/i)).toHaveValue("");
     expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue("Amor de mãe");
   });
@@ -109,11 +109,12 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByRole("button", { name: /15 × 15 cm/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /capa flexível/i, pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^cartoon$/i, pressed: true })).toBeInTheDocument();
-    expect(screen.getByLabelText(/^quantidade$/i)).toHaveValue(1);
-    expect(screen.getByText(/lembrancinha de aniversário, casamento ou festa/i)).toBeInTheDocument();
+    expect(screen.queryByLabelText(/^quantidade de livros$/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/arraste, cole ou clique/i);
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/mais de uma foto/i);
+    expect(screen.getByText(/foto de um ou mais personagens/i)).toBeInTheDocument();
+    expect(screen.getByText(/fotos do protagonista da sua história/i)).toBeInTheDocument();
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/envie foto nítida do personagem/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/fotos adicionais de um ou mais personagens/i);
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
   });
 
@@ -131,20 +132,19 @@ describe("Studio — tema do banner", () => {
 
     await user.type(screen.getByLabelText(/nome do pai/i), "Lia");
     await user.type(screen.getByLabelText(/idade do pai/i), "4");
-    await user.clear(screen.getByTestId("studio-quantity"));
-    await user.type(screen.getByTestId("studio-quantity"), "20");
     await user.type(screen.getByTestId("studio-extra-names"), "Vovó, Totó");
     await user.upload(
       screen.getByTestId("studio-photo-input"),
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
     );
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
     expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
-    expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
+    expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
     expect(screen.queryByLabelText(/nome do pai/i)).not.toBeInTheDocument();
     expect(upload).toHaveBeenCalledWith(
       expect.any(String),
@@ -155,7 +155,6 @@ describe("Studio — tema do banner", () => {
         extraNames: "Vovó, Totó",
         gender: "m",
         subject: "pai",
-        quantity: "20",
         clientName: "Ana Souza",
         clientEmail: "ana@email.com",
         clientPhone: "11999999999",
@@ -173,7 +172,7 @@ describe("Studio — tema do banner", () => {
     render(<Studio />);
     await openBook(user);
 
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
@@ -184,9 +183,10 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText("frente.jpg")).toBeInTheDocument();
     expect(screen.getByText("sorriso.jpg")).toBeInTheDocument();
     expect(screen.getByText(/2 fotos selecionadas/i)).toBeInTheDocument();
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     await screen.findByTestId("studio-order-sent");
     expect(upload).toHaveBeenNthCalledWith(
@@ -210,11 +210,11 @@ describe("Studio — tema do banner", () => {
     render(<Studio />);
 
     await screen.findByTestId("studio-client");
-    expect(screen.queryByRole("button", { name: /criar livro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /responsável legal/i })).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent(/preencha nome/i);
-    expect(screen.queryByRole("button", { name: /criar livro/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("checkbox", { name: /responsável legal/i })).not.toBeInTheDocument();
     expect(upload).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
@@ -225,7 +225,7 @@ describe("Studio — tema do banner", () => {
     setToken("test-token");
     render(<Studio />);
 
-    expect(await screen.findByRole("button", { name: /criar livro/i })).toBeInTheDocument();
+    expect(await screen.findByRole("checkbox", { name: /responsável legal/i })).toBeInTheDocument();
     expect(screen.queryByTestId("studio-client")).not.toBeInTheDocument();
   });
 
@@ -257,9 +257,9 @@ describe("Studio — tema do banner", () => {
 
     expect(screen.getByLabelText(/nome do pet/i)).toHaveValue("");
     expect(screen.getByLabelText(/idade do pet/i)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/nome da criança/i)).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(/nome do protagonista/i)).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /^feminino$/i, pressed: true })).toBeInTheDocument();
-    expect(screen.getByText(/foto do pet/i)).toBeInTheDocument();
+    expect(screen.getByText(/foto de um ou mais personagens/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /^masculino$/i }));
     expect(screen.getByRole("button", { name: /^masculino$/i, pressed: true })).toBeInTheDocument();
@@ -271,13 +271,13 @@ describe("Studio — tema do banner", () => {
     window.history.replaceState(
       {},
       "",
-      "/app?tema=pets&campos=nome&titulo=Lucas%20e%20seu%20amigo%20Max&quem=crianca&genero=m&quem2=pet&genero2=m&heroi=Lucas&heroi2=Max",
+      "/app?tema=pets&campos=nome&titulo=Lucas%20e%20seu%20amigo%20Theo&quem=crianca&genero=m&quem2=pet&genero2=m&heroi=Lucas&heroi2=Theo",
     );
     const user = userEvent.setup();
     render(<Studio />);
     await openBook(user);
 
-    expect(screen.getByLabelText(/nome da criança/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/nome do protagonista/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/nome do pet/i)).toBeInTheDocument();
     expect(screen.getAllByRole("button", { name: /^masculino$/i, pressed: true })).toHaveLength(2);
   });
@@ -308,25 +308,26 @@ describe("Studio a11y", () => {
     expect(screen.getByRole("banner")).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveAttribute("id", "studio-main");
     expect(screen.getByRole("heading", { name: /crie a sua história/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/nome da criança/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/nome do protagonista/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/título do livro/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/insira o tema desejado/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
 
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     const fileInput = screen.getByTestId("studio-photo-input");
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
     expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
-    expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
+    expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
   });
 });
 
@@ -338,18 +339,19 @@ describe("Polling do estúdio", () => {
     render(<App />);
     await openBook(user);
 
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(await screen.findByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
     expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
-    expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
 
     const pollTimers = spy.mock.calls.filter((c) => c[1] === 2500);
     expect(pollTimers.length).toBeLessThanOrEqual(2);

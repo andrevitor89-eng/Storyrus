@@ -102,7 +102,6 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
 function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const { lang, setLang, t, langs } = useStudioI18n();
-  const [credits, setCredits] = useState<number | null>(null);
   const [isGuest, setIsGuest] = useState(true);
   const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
   const [accountEmail, setAccountEmail] = useState("");
@@ -123,7 +122,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [temaId, setTemaId] = useState("");
   const [onlyName, setOnlyName] = useState(false);
   const [bookSize, setBookSize] = useState<"M" | "P">("M");
-  const [quantity, setQuantity] = useState("1");
   const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
   const [extraNames, setExtraNames] = useState("");
   const [castWho, setCastWho] = useState<StudioWho>("child");
@@ -134,6 +132,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [askGender, setAskGender] = useState(true);
   const alsoHero = useRef<string | null>(null);
   const [orderSent, setOrderSent] = useState(false);
+  const [generateStep, setGenerateStep] = useState(false);
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
   const [clientName, setClientName] = useState("");
@@ -215,7 +214,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   const refreshCredits = useCallback(async () => {
     try {
-      setCredits((await api.credits()).credits);
+      await api.credits();
     } catch {
       /* ignore */
     }
@@ -227,7 +226,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setIsGuest(me.is_guest);
       setAccountKind(me.is_guest ? "guest" : "account");
       setAccountEmail(me.email);
-      setCredits(me.credits);
     } catch {
       /* ignore */
     }
@@ -348,39 +346,55 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setProject,
   });
 
-  async function start() {
-    if (isDemo) return;
+  function formReady(agreed = mediaConsent) {
+    if (isDemo) return false;
     if (onlyName) {
       if (!childName.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
         setError(t.errMissingFields);
-        return;
+        return false;
       }
     } else if (!childName.trim() || !bookTitle.trim() || !themeText.trim() || childAge.trim() === "" || (alsoWho && !alsoName.trim())) {
       setError(t.errMissingFields);
-      return;
+      return false;
     }
     if (askGender && (!gender || (alsoWho && !alsoGender))) {
       setError(t.errGender);
-      return;
+      return false;
     }
     const signedIn = accountKind === "account";
     const buyerName = signedIn ? oneLine(accountEmail) : oneLine(clientName);
     const buyerEmail = signedIn ? oneLine(accountEmail) : oneLine(clientEmail);
     const buyerPhone = signedIn ? "" : oneLine(clientPhone);
     const buyerAddress = signedIn ? "" : oneLine(clientAddress);
-    const buyerNotes = signedIn ? "" : oneLine(clientNotes);
     if (!signedIn && (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress)) {
       setError(t.errClient);
-      return;
+      return false;
     }
     if (photos.length === 0) {
       setError(t.errPhotoRequired);
-      return;
+      return false;
     }
-    if (!mediaConsent) {
+    if (!agreed) {
       setError(t.errConsentPhoto);
-      return;
+      return false;
     }
+    setError(null);
+    return true;
+  }
+
+  function goToGenerate() {
+    if (!formReady()) return;
+    setGenerateStep(true);
+  }
+
+  async function start(agreed = mediaConsent) {
+    if (!formReady(agreed)) return;
+    const signedIn = accountKind === "account";
+    const buyerName = signedIn ? oneLine(accountEmail) : oneLine(clientName);
+    const buyerEmail = signedIn ? oneLine(accountEmail) : oneLine(clientEmail);
+    const buyerPhone = signedIn ? "" : oneLine(clientPhone);
+    const buyerAddress = signedIn ? "" : oneLine(clientAddress);
+    const buyerNotes = signedIn ? "" : oneLine(clientNotes);
     setBusy(true);
     setError(null);
     try {
@@ -410,7 +424,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
         alsoName: alsoName.trim() || undefined,
         alsoGender: alsoGender ?? undefined,
         alsoSubject: alsoWho ? subjectCode(alsoWho) : undefined,
-        quantity: String(Math.max(1, Math.min(500, Math.floor(Number(quantity) || 1)))),
         clientName: buyerName,
         clientEmail: buyerEmail,
         clientPhone: buyerPhone,
@@ -615,9 +628,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   <a className="kutil" href="/pedidos">
                     Pedidos
                   </a>
-                  <span className="studio-credits-pill" data-testid="studio-credits" aria-live="polite">
-                    {t.credits}: {credits ?? "…"}
-                  </span>
                   {isGuest && (
                     <button
                       type="button"
@@ -788,15 +798,39 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </div>
           )}
 
-          {showBook && (
+          {showBook && generateStep && (
+            <div className="studio-generate-step" data-testid="studio-generate-step">
+              <h3 className="field-label">{t.createProject}</h3>
+              <p className="studio-slogan">{t.generateStepHint}</p>
+              <button type="button" className="kbtn kbtn-soft studio-create" onClick={() => setGenerateStep(false)}>
+                {t.backToForm}
+              </button>
+              <button
+                type="button"
+                className="kbtn kbtn-primary studio-create"
+                disabled={isDemo || busy}
+                data-testid="studio-generate-book"
+                onClick={() => void start()}
+              >
+                {t.createProject}
+              </button>
+            </div>
+          )}
+
+          {showBook && !generateStep && (
           <>
           <div className="how" role="region" aria-labelledby="studio-how-heading">
             <h3 className="field-label" id="studio-how-heading">
               {t.howTitle}
             </h3>
             <ol>
-              {t.how.map((h) => (
-                <li key={h}>{h}</li>
+              {t.how.map((step) => (
+                <li key={step.t}>
+                  <div>
+                    <strong>{step.t}</strong>
+                    <p>{step.p}</p>
+                  </div>
+                </li>
               ))}
             </ol>
           </div>
@@ -962,25 +996,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
-              <label className="studio-field studio-also">
-                {t.quantity}
-                <input
-                  disabled={isDemo}
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={500}
-                  value={quantity}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "") return setQuantity("");
-                    const n = Math.max(1, Math.min(500, Math.floor(Number(v))));
-                    setQuantity(Number.isNaN(n) ? "1" : String(n));
-                  }}
-                  data-testid="studio-quantity"
-                />
-              </label>
-              <p className="muted field-hint">{t.quantityHint}</p>
               <label className="studio-field">
                 {t.otherCharacters}
                 <input
@@ -993,7 +1008,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 />
               </label>
               <p className="muted field-hint">{primary.extras}</p>
-              <p className="studio-field">{companionCopy ? `${primary.photo} · ${companionCopy.photo}` : primary.photo}</p>
+              <p className="studio-field">{t.photoCharacters}</p>
+              <p className="muted field-hint">{t.photoCharactersHint}</p>
               <div
                 className={dragOver ? "studio-drop is-over" : "studio-drop"}
                 data-testid="studio-photo-drop"
@@ -1049,22 +1065,22 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 />
                 {t.consent}
               </label>
-              <div className="studio-actions">
-                <button
-                  type="button"
-                  className="kbtn kbtn-go studio-create"
-                  disabled={locked}
-                  onClick={start}
-                  data-testid="studio-create-project"
-                >
-                  {t.createProject}
-                </button>
-              </div>
+              <button
+                type="button"
+                className="kbtn kbtn-primary studio-create"
+                disabled={isDemo}
+                data-testid="studio-next-page"
+                onClick={goToGenerate}
+              >
+                {t.nextPage}
+              </button>
             </>
           )}
           </>
           )}
         </section>
+          </>
+        )}
 
         {project && (
           <section
@@ -1235,8 +1251,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               {isDemo ? t.createMyStory : t.newProject}
             </button>
           </section>
-        )}
-          </>
         )}
       </main>
     </div>

@@ -6,6 +6,15 @@ import { NotFound } from "./NotFound";
 const Landing = lazy(() =>
   import("./Landing").then((m) => ({ default: m.Landing })),
 );
+const CatalogPage = lazy(() =>
+  import("./CatalogPages").then((m) => ({ default: m.CatalogPage })),
+);
+const CategoryCatalogPage = lazy(() =>
+  import("./CatalogPages").then((m) => ({ default: m.CategoryCatalogPage })),
+);
+const BookPage = lazy(() =>
+  import("./CatalogPages").then((m) => ({ default: m.BookPage })),
+);
 const App = lazy(() => import("./App").then((m) => ({ default: m.App })));
 const Usage = lazy(() =>
   import("./Usage").then((m) => ({ default: m.Usage })),
@@ -18,6 +27,9 @@ const Pedidos = lazy(() =>
  * Roteamento do site:
  *   /              → Landing
  *   /cartoon       → Landing (mesma página, fotos em desenho)
+ *   /catalogo      → Catálogo completo
+ *   /catalogo/:categoria → Catálogo de uma categoria
+ *   /livro/:indice → Página do livro
  *   /app           → Estúdio
  *   /gastos        → Painel privado de custos USD
  *   /landing       → Landing (compatibilidade)
@@ -34,6 +46,9 @@ export function AppRoutes() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/cartoon" element={<Landing variant="cartoon" />} />
+        <Route path="/catalogo" element={<CatalogPage />} />
+        <Route path="/catalogo/:categoria" element={<CategoryCatalogPage />} />
+        <Route path="/livro/:indice" element={<BookPage />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />

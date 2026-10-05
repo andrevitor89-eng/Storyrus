@@ -16,29 +16,30 @@ describe("Fluxo E2E (sem login)", () => {
     const user = userEvent.setup();
     const { container } = render(<App />);
 
-    expect(await screen.findByText(/créditos: 10/i)).toBeInTheDocument();
+    expect(await screen.findByLabelText(/nome do cliente/i)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/nome do cliente/i), "Ana Souza");
     await user.type(screen.getByLabelText(/^e-mail$/i), "ana@email.com");
     await user.type(screen.getByLabelText(/telefone/i), "11999999999");
     await user.type(screen.getByLabelText(/endereço para entrega/i), "Rua A, 10");
     await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
-    await user.type(screen.getByLabelText(/nome da criança/i), "Lila");
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
     await user.type(screen.getByLabelText(/^idade$/i), "5");
     await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
     await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
     const fileInput = container.querySelector('input[type="file"]') as HTMLInputElement;
     const file = new File(["x"], "foto.jpg", { type: "image/jpeg" });
     await user.upload(fileInput, file);
-    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
-    await user.click(screen.getByRole("button", { name: /criar livro/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/pedido enviado/i);
     expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
-    expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /^projeto$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
   }, 15000);
 
   it("abre exemplo pronto sem criar projeto", async () => {

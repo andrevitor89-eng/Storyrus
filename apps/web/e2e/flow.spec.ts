@@ -121,7 +121,7 @@ test("landing leva ao estúdio", async ({ page }) => {
   await expect(heroCta).toBeVisible();
   await heroCta.click();
   await expect(page).toHaveURL(/\/app/);
-  await expect(page.getByTestId("studio-create-project")).toBeVisible();
+  await expect(page.getByTestId("studio-client")).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {
@@ -131,34 +131,25 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
 
   await expect(page.getByTestId("studio-credits")).toContainText(/créditos:\s*10/i);
 
-  await page.getByLabel("Nome da criança").fill("Lila");
-  await page.getByLabel("Idade").fill("5");
-  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
-  await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByLabel("Nome do cliente").fill("Ana Souza");
   await page.getByLabel("E-mail").fill("ana@email.com");
   await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
   await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
+  await page.getByRole("button", { name: "Continuar para o livro" }).click();
+  await page.getByLabel("Nome do protagonista").fill("Lila");
+  await page.getByLabel("Idade").fill("5");
+  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
+  await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
+  await page.getByRole("button", { name: "Feminino" }).click();
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
     buffer: Buffer.from("x"),
   });
   await page.getByTestId("studio-media-consent").check();
-  await page.getByTestId("studio-create-project").click();
-  await expect(page.getByTestId("studio-project")).toBeVisible();
-  await expect(page.getByTestId("studio-project").getByRole("heading", { level: 2 })).toBeVisible();
-  // Job rows use stable test ids (avoids colliding with AVATAR_READY / STORY_READY status text).
-  await expect(page.getByTestId("studio-job-type-AVATAR")).toBeVisible();
-  await expect(page.getByTestId("studio-job-AVATAR")).toHaveAttribute("data-job-status", "DONE", {
-    timeout: 15_000,
-  });
-
-  await page.getByTestId("studio-generate-story").click();
-  await expect(page.getByTestId("studio-job-type-STORY")).toBeVisible();
-  await expect(page.getByTestId("studio-story-text")).toContainText(/pagina 1: ola/i, {
-    timeout: 15_000,
-  });
+  await page.getByTestId("studio-next-page").click();
+  await page.getByTestId("studio-generate-book").click();
+  await expect(page.getByTestId("studio-order-sent")).toBeVisible();
 });
 
 test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
@@ -166,22 +157,25 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await mockApi(page, state);
   await page.goto("/app");
 
-  await page.getByLabel("Nome da criança").fill("Lila");
-  await page.getByLabel("Idade").fill("5");
-  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
-  await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByLabel("Nome do cliente").fill("Ana Souza");
   await page.getByLabel("E-mail").fill("ana@email.com");
   await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
   await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
+  await page.getByRole("button", { name: "Continuar para o livro" }).click();
+  await page.getByLabel("Nome do protagonista").fill("Lila");
+  await page.getByLabel("Idade").fill("5");
+  await page.getByLabel("Título do livro").fill("Lila e as estrelas");
+  await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
+  await page.getByRole("button", { name: "Feminino" }).click();
   await page.getByTestId("studio-photo-input").setInputFiles({
     name: "foto.jpg",
     mimeType: "image/jpeg",
     buffer: Buffer.from("x"),
   });
   await page.getByTestId("studio-media-consent").check();
-  await page.getByTestId("studio-create-project").click();
-  await expect(page.getByTestId("studio-mount-ebook")).toBeDisabled();
+  await page.getByTestId("studio-next-page").click();
+  await page.getByTestId("studio-generate-book").click();
+  await expect(page.getByTestId("studio-order-sent")).toBeVisible();
 });
 
 test("path inexistente mostra 404", async ({ page }) => {

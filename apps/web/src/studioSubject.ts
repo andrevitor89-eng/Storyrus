@@ -71,7 +71,7 @@ export const CAST_BY_CATALOG: Record<number, { quem: string; genero: StudioGende
   21: { quem: "crianca", genero: "m" },
   22: { quem: "pai", genero: "m" },
   23: { quem: "primo", genero: "m" },
-  24: { quem: "crianca", genero: "m", quem2: "pet", genero2: "m", heroi2: "Max" },
+  24: { quem: "crianca", genero: "m", quem2: "pet", genero2: "m", heroi2: "Theo" },
   25: { quem: "crianca", genero: "f" },
 };
 
@@ -86,7 +86,7 @@ type Copy = {
 const COPY: Record<Lang, Record<StudioWho, Copy>> = {
   pt: {
     child: {
-      name: "Nome da criança",
+      name: "Nome do protagonista",
       namePh: "Ex.: Lila",
       age: "Idade",
       photo: "Foto da criança",
@@ -151,7 +151,7 @@ const COPY: Record<Lang, Record<StudioWho, Copy>> = {
   },
   en: {
     child: {
-      name: "Child's name",
+      name: "Protagonist's name",
       namePh: "e.g. Lila",
       age: "Age",
       photo: "Child's photo",
@@ -216,7 +216,7 @@ const COPY: Record<Lang, Record<StudioWho, Copy>> = {
   },
   es: {
     child: {
-      name: "Nombre del niño/a",
+      name: "Nombre del protagonista",
       namePh: "Ej.: Lila",
       age: "Edad",
       photo: "Foto del niño/a",

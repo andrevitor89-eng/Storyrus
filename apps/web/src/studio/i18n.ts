@@ -37,6 +37,8 @@ export type StudioCopy = {
   themeHint: string;
   photoField: string;
   photoFieldHint: string;
+  photoCharacters: string;
+  photoCharactersHint: string;
   photoDrop: string;
   photoDropHint: string;
   photoRemove: string;
@@ -47,7 +49,11 @@ export type StudioCopy = {
   bookSizeM: string;
   bookSizeP: string;
   quantity: string;
-  quantityHint: string;
+  quantityOne: string;
+  quantityCopies: string;
+  quantityPackage: string;
+  quantityCopiesHint: string;
+  quantityPackageHint: string;
   coverType: string;
   coverSoft: string;
   coverHard: string;
@@ -68,12 +74,15 @@ export type StudioCopy = {
   clientNotesPh: string;
   clientContinue: string;
   errClient: string;
+  nextPage: string;
+  backToForm: string;
+  generateStepHint: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
   metaBookTitle: string;
   howTitle: string;
-  how: string[];
+  how: { t: string; p: string }[];
   projectTitle: string;
   metaTheme: string;
   styleLabel: string;
@@ -299,13 +308,13 @@ const pt: StudioCopy = {
   demoCta: "Criar a minha história",
   createTitle: "Crie a sua história",
   projectLocked: "✓ Projeto criado — os campos ficam travados até você começar um novo livro.",
-  slogan: "Conte o essencial: quem é o herói, o título, o tema — e uma foto com carinho.",
+  slogan: "Compartilhe informações essenciais: indique quem será o protagonista, escolha o título e o tema da história. Disponibilize fotos nítidas e desenvolvemos uma história personalizada com o tema escolhido, transformando a pessoa homenageada em protagonista.",
   pickThemes: "",
   pickThemesHint: "",
   groupDatas: "",
   groupEducativo: "",
   nameAgeDedication: "",
-  childName: "Nome da criança",
+  childName: "Nome do protagonista",
   childNamePh: "Ex.: Lila",
   childAge: "Idade",
   childAgePh: "Ex.: 5",
@@ -317,8 +326,10 @@ const pt: StudioCopy = {
     "Quer incluir mais alguém na história (papai, mamãe, irmãos, o pet da família)? Descreva aqui e envie, no campo de foto abaixo, uma imagem que mostre essas pessoas ou animais.",
   photoField: "Foto do protagonista",
   photoFieldHint: "Envie mais de uma foto.",
-  photoDrop: "Arraste, cole ou clique para escolher",
-  photoDropHint: "Envie mais de uma foto: de frente, sorrindo e de corpo inteiro. Pode arrastar do computador ou colar com Ctrl+V.",
+  photoCharacters: "Foto de um ou mais personagens",
+  photoCharactersHint: "Envie fotos do protagonista da sua história. Escolha quem fará parte do seu livro. Adicione fotos de um ou mais personagens relacionadas à história que deseja criar.",
+  photoDrop: "Envie foto nítida do personagem",
+  photoDropHint: "Inclua fotos adicionais de um ou mais personagens relacionadas à história que deseja criar.",
   photoRemove: "Remover",
   photoSelected: (n) => (n === 1 ? "1 foto selecionada. Pode enviar mais." : `${n} fotos selecionadas.`),
   dedication: "Dedicatória (2ª página do livro)",
@@ -326,11 +337,15 @@ const pt: StudioCopy = {
   bookSize: "Tamanho do livro",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
-  quantity: "Quantidade",
-  quantityHint: "Deixe 1 para um livro só. Para lembrancinha de aniversário, casamento ou festa, coloque quantos exemplares quer.",
+  quantity: "Quantidade de livros",
+  quantityOne: "Único",
+  quantityCopies: "Cópias",
+  quantityPackage: "Pacote",
+  quantityCopiesHint: "Escolha de 2 a 10 exemplares.",
+  quantityPackageHint: "Acima de 10 unidades.",
   coverType: "Tipo de capa",
-  coverSoft: "Capa flexível",
-  coverHard: "Capa dura",
+  coverSoft: "Capa Flexível",
+  coverHard: "Capa Dura",
   artStyle: "Estilo do livro",
   artRealistic: "Realista",
   artCartoon: "Cartoon",
@@ -348,16 +363,18 @@ const pt: StudioCopy = {
   clientNotesPh: "Ex.: entregar à tarde",
   clientContinue: "Continuar para o livro",
   errClient: "Preencha nome, e-mail, telefone e endereço.",
-  createProject: "Criar Livro",
+  nextPage: "Próxima página",
+  backToForm: "Voltar aos dados",
+  generateStepHint: "Os dados e a foto já estão prontos. Agora é só gerar o livro.",
+  createProject: "Gerar o livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
   metaBookTitle: "Título",
   howTitle: "Como funciona",
   how: [
-    "Preencha os dados e envie mais de uma foto: de frente, sorrindo e de corpo inteiro.",
-    "Aprove o personagem ilustrado.",
-    "Gere a história com IA a partir do seu tema.",
-    "Aprove capa e páginas, depois baixe ou peça o impresso.",
+    { t: "Preencha os dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
+    { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
+    { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
   ],
   projectTitle: "Projeto",
   metaTheme: "Tema",
@@ -366,7 +383,7 @@ const pt: StudioCopy = {
   artStyleRealistic: "Rosto realista",
   defaultVoiceName: "Minha voz",
   consent:
-    "Sou o responsável legal e autorizo o uso desta foto (e da voz, se clonar) só para criar este livro. Não usamos para divulgação.",
+    "Declaro ser o responsável legal e autorizo o uso da imagem enviada e, quando aplicável, da voz fornecida exclusivamente para a criação deste livro personalizado. Esses materiais não serão utilizados para divulgação ou publicidade.",
   photoSent: "Foto enviada ✓",
   orderSent: "Pedido enviado.",
   orderFollowup: "Nossa equipe entrará em contato.",
@@ -495,13 +512,13 @@ const en: StudioCopy = {
   demoCta: "Create my story",
   createTitle: "Create your story",
   projectLocked: "✓ Project created — fields stay locked until you start a new book.",
-  slogan: "Share the essentials: hero, title, theme — and a photo with care.",
+  slogan: "Share the essentials: say who the main character will be, and choose the title and theme. Send clear photos and we create a personalized story on that theme, with the person you honor as the hero.",
   pickThemes: "",
   pickThemesHint: "",
   groupDatas: "",
   groupEducativo: "",
   nameAgeDedication: "",
-  childName: "Child's name",
+  childName: "Protagonist's name",
   childNamePh: "e.g. Lila",
   childAge: "Age",
   childAgePh: "e.g. 5",
@@ -513,8 +530,10 @@ const en: StudioCopy = {
     "Want to include someone else in the story (dad, mom, siblings, the family pet)? Describe it here and upload a photo below that shows them.",
   photoField: "Hero photo",
   photoFieldHint: "Send more than one photo.",
-  photoDrop: "Drag, paste, or click to choose",
-  photoDropHint: "Send more than one photo: facing forward, smiling, and full body. Drag them from your computer or paste with Ctrl+V.",
+  photoCharacters: "Photo of one or more characters",
+  photoCharactersHint: "Send photos of your story's main character. Choose who will be in your book. Add photos of one or more characters related to the story you want to create.",
+  photoDrop: "Send a clear photo of the character",
+  photoDropHint: "Include extra photos of one or more characters related to the story you want to create.",
   photoRemove: "Remove",
   photoSelected: (n) => (n === 1 ? "1 photo selected. You can add more." : `${n} photos selected.`),
   dedication: "Dedication (book page 2)",
@@ -522,8 +541,12 @@ const en: StudioCopy = {
   bookSize: "Book size",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
-  quantity: "Quantity",
-  quantityHint: "Leave 1 for a single book. For a birthday, wedding, or party favor, enter how many copies you want.",
+  quantity: "Number of books",
+  quantityOne: "Single",
+  quantityCopies: "Copies",
+  quantityPackage: "Package",
+  quantityCopiesHint: "Choose from 2 to 10 copies.",
+  quantityPackageHint: "More than 10 copies.",
   coverType: "Cover type",
   coverSoft: "Softcover",
   coverHard: "Hardcover",
@@ -544,16 +567,18 @@ const en: StudioCopy = {
   clientNotesPh: "e.g. deliver in the afternoon",
   clientContinue: "Continue to the book",
   errClient: "Fill in name, email, phone, and address.",
-  createProject: "Create Book",
+  nextPage: "Next page",
+  backToForm: "Back to the details",
+  generateStepHint: "The details and photo are ready. Generate the book.",
+  createProject: "Generate the book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
   metaBookTitle: "Title",
   howTitle: "How it works",
   how: [
-    "Fill in the details and send more than one photo: facing forward, smiling, and full body.",
-    "Approve the illustrated character.",
-    "Generate the story with AI from your theme.",
-    "Approve cover and pages, then download or request print.",
+    { t: "Fill in the details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
+    { t: "Follow the creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
+    { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
   ],
   projectTitle: "Project",
   metaTheme: "Theme",
@@ -562,7 +587,7 @@ const en: StudioCopy = {
   artStyleRealistic: "Realistic face",
   defaultVoiceName: "My voice",
   consent:
-    "I am the legal guardian and authorize use of this photo (and voice, if cloned) only to create this book. We do not use it for marketing.",
+    "I declare that I am the legal guardian and authorize the use of the submitted image and, when applicable, the provided voice exclusively to create this personalized book. These materials will not be used for promotion or advertising.",
   photoSent: "Photo uploaded ✓",
   orderSent: "Request sent.",
   orderFollowup: "Our team will be in touch.",
@@ -691,13 +716,13 @@ const es: StudioCopy = {
   demoCta: "Crear mi historia",
   createTitle: "Crea tu historia",
   projectLocked: "✓ Proyecto creado — los campos quedan bloqueados hasta que inicies un libro nuevo.",
-  slogan: "Lo esencial: quién es el héroe, el título, el tema — y una foto con cariño.",
+  slogan: "Comparte lo esencial: indica quién será el protagonista y elige el título y el tema. Envía fotos nítidas y creamos una historia personalizada con el tema elegido, convirtiendo a la persona homenajeada en protagonista.",
   pickThemes: "",
   pickThemesHint: "",
   groupDatas: "",
   groupEducativo: "",
   nameAgeDedication: "",
-  childName: "Nombre del niño/a",
+  childName: "Nombre del protagonista",
   childNamePh: "Ej.: Lila",
   childAge: "Edad",
   childAgePh: "Ej.: 5",
@@ -709,8 +734,10 @@ const es: StudioCopy = {
     "¿Quieres incluir a alguien más en la historia (papá, mamá, hermanos, la mascota)? Descríbelo aquí y sube abajo una foto que los muestre.",
   photoField: "Foto del protagonista",
   photoFieldHint: "Envía más de una foto.",
-  photoDrop: "Arrastra, pega o haz clic para elegir",
-  photoDropHint: "Envía más de una foto: de frente, sonriendo y de cuerpo entero. Puedes arrastrarlas o pegarlas con Ctrl+V.",
+  photoCharacters: "Foto de uno o más personajes",
+  photoCharactersHint: "Envía fotos del protagonista de tu historia. Elige quién formará parte de tu libro. Añade fotos de uno o más personajes relacionadas con la historia que quieres crear.",
+  photoDrop: "Envía una foto nítida del personaje",
+  photoDropHint: "Incluye fotos adicionales de uno o más personajes relacionadas con la historia que quieres crear.",
   photoRemove: "Quitar",
   photoSelected: (n) => (n === 1 ? "1 foto seleccionada. Puedes enviar más." : `${n} fotos seleccionadas.`),
   dedication: "Dedicatoria (2.ª página del libro)",
@@ -718,11 +745,15 @@ const es: StudioCopy = {
   bookSize: "Tamaño del libro",
   bookSizeM: "M — 20 × 20 cm",
   bookSizeP: "P — 15 × 15 cm",
-  quantity: "Cantidad",
-  quantityHint: "Deja 1 para un solo libro. Para recuerdo de cumpleaños, boda o fiesta, indica cuántos ejemplares quieres.",
+  quantity: "Cantidad de libros",
+  quantityOne: "Único",
+  quantityCopies: "Copias",
+  quantityPackage: "Paquete",
+  quantityCopiesHint: "Elige de 2 a 10 ejemplares.",
+  quantityPackageHint: "Más de 10 unidades.",
   coverType: "Tipo de tapa",
-  coverSoft: "Tapa blanda",
-  coverHard: "Tapa dura",
+  coverSoft: "Tapa Blanda",
+  coverHard: "Tapa Dura",
   artStyle: "Estilo del libro",
   artRealistic: "Realista",
   artCartoon: "Cartoon",
@@ -740,16 +771,18 @@ const es: StudioCopy = {
   clientNotesPh: "Ej.: entregar por la tarde",
   clientContinue: "Continuar al libro",
   errClient: "Completa nombre, correo, teléfono y dirección.",
-  createProject: "Crear Libro",
+  nextPage: "Página siguiente",
+  backToForm: "Volver a los datos",
+  generateStepHint: "Los datos y la foto ya están listos. Ahora solo falta generar el libro.",
+  createProject: "Generar el libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
   metaBookTitle: "Título",
   howTitle: "Cómo funciona",
   how: [
-    "Completa los datos y envía más de una foto: de frente, sonriendo y de cuerpo entero.",
-    "Aprueba el personaje ilustrado.",
-    "Genera la historia con IA a partir de tu tema.",
-    "Aprueba portada y páginas, luego descarga o pide el impreso.",
+    { t: "Completa los datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
+    { t: "Acompaña la creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
+    { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
   ],
   projectTitle: "Proyecto",
   metaTheme: "Tema",
@@ -758,7 +791,7 @@ const es: StudioCopy = {
   artStyleRealistic: "Rostro realista",
   defaultVoiceName: "Mi voz",
   consent:
-    "Soy el responsable legal y autorizo el uso de esta foto (y de la voz, si se clona) solo para crear este libro. No la usamos para difusión.",
+    "Declaro ser el responsable legal y autorizo el uso de la imagen enviada y, cuando corresponda, de la voz proporcionada exclusivamente para la creación de este libro personalizado. Estos materiales no se utilizarán para difusión ni publicidad.",
   photoSent: "Foto enviada ✓",
   orderSent: "Pedido enviado.",
   orderFollowup: "Nuestro equipo se pondrá en contacto.",

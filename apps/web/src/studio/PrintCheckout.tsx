@@ -1,6 +1,23 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "../api";
 import type { PrintAddress, PrintOrder } from "../types";
+import { useStudioI18n } from "./useStudioI18n";
+
+type QtyMode = "one" | "copies" | "package";
+
+function modeFor(quantity: number): QtyMode {
+  if (quantity >= 11) return "package";
+  if (quantity >= 2) return "copies";
+  return "one";
+}
+
+function countFor(mode: QtyMode, copies: string, pack: string): number {
+  if (mode === "one") return 1;
+  const raw = Number(mode === "copies" ? copies : pack);
+  const n = Math.floor(raw);
+  if (mode === "copies") return Math.max(2, Math.min(10, Number.isNaN(n) ? 2 : n));
+  return Math.max(11, Math.min(500, Number.isNaN(n) ? 11 : n));
+}
 
 function money(cents: number | null): string {
   if (cents == null) return "—";
@@ -20,10 +37,14 @@ const emptyAddress: PrintAddress = {
 
 /** Endereço, frete e pagamento do impresso. O gateway só abre quando estiver configurado. */
 export function PrintCheckout({ projectId }: { projectId: string }) {
+  const { t } = useStudioI18n();
   const [order, setOrder] = useState<PrintOrder | null>(null);
   const [address, setAddress] = useState<PrintAddress>(emptyAddress);
   const [installments, setInstallments] = useState(1);
   const [note, setNote] = useState<string | null>(null);
+  const [mode, setMode] = useState<QtyMode>("one");
+  const [copies, setCopies] = useState("2");
+  const [pack, setPack] = useState("11");
 
   useEffect(() => {
     let cancel = false;
@@ -32,6 +53,10 @@ export function PrintCheckout({ projectId }: { projectId: string }) {
       .then((next) => {
         if (cancel) return;
         setOrder(next);
+        const qty = next.quantity || 1;
+        setMode(modeFor(qty));
+        if (qty >= 2 && qty <= 10) setCopies(String(qty));
+        if (qty >= 11) setPack(String(qty));
         setAddress({
           recipient_name: next.recipient_name ?? "",
           postal_code: next.postal_code ?? "",
@@ -50,6 +75,19 @@ export function PrintCheckout({ projectId }: { projectId: string }) {
       cancel = true;
     };
   }, [projectId]);
+
+  const quantityLocked = order?.payment_status === "paid" || order?.payment_status === "pending";
+
+  async function applyQuantity(nextMode: QtyMode, nextCopies = copies, nextPack = pack) {
+    const quantity = countFor(nextMode, nextCopies, nextPack);
+    setMode(nextMode);
+    setNote(null);
+    try {
+      setOrder(await api.setPrintQuantity(projectId, quantity));
+    } catch (err) {
+      setNote(err instanceof Error ? err.message : "Não foi possível salvar a quantidade.");
+    }
+  }
 
   async function saveAddress(ev: FormEvent) {
     ev.preventDefault();
@@ -96,9 +134,70 @@ export function PrintCheckout({ projectId }: { projectId: string }) {
     <div style={{ marginTop: 12 }}>
       <p className="muted">
         {order.code}
-        {order.book_price_cents != null ? ` · Livro ${money(order.book_price_cents)}` : ""}
+        {order.book_price_cents != null
+          ? ` · Livro ${money(order.book_price_cents)} × ${order.quantity} = ${money(order.book_price_cents * order.quantity)}`
+          : ""}
         {order.block_reason ? ` · ${order.block_reason}` : ""}
       </p>
+      <div className="studio-choice print-quantity" role="group" aria-label={t.quantity}>
+        <span className="studio-choice-label">{t.quantity}</span>
+        <div className="studio-actions">
+          {(["one", "copies", "package"] as const).map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              className={mode === choice ? "studio-pick is-on" : "studio-pick"}
+              aria-pressed={mode === choice}
+              disabled={quantityLocked}
+              onClick={() => void applyQuantity(choice)}
+            >
+              {choice === "one" ? t.quantityOne : choice === "copies" ? t.quantityCopies : t.quantityPackage}
+            </button>
+          ))}
+        </div>
+        {mode === "copies" && (
+          <label className="studio-field">
+            {t.quantityCopies}
+            <input
+              type="number"
+              inputMode="numeric"
+              min={2}
+              max={10}
+              disabled={quantityLocked}
+              value={copies}
+              data-testid="print-quantity-copies"
+              onChange={(e) => {
+                const value = e.target.value;
+                setCopies(value);
+                const n = Number(value);
+                if (value !== "" && n >= 2 && n <= 10) void applyQuantity("copies", value, pack);
+              }}
+            />
+          </label>
+        )}
+        {mode === "copies" && <p className="muted field-hint">{t.quantityCopiesHint}</p>}
+        {mode === "package" && (
+          <label className="studio-field">
+            {t.quantityPackage}
+            <input
+              type="number"
+              inputMode="numeric"
+              min={11}
+              max={500}
+              disabled={quantityLocked}
+              value={pack}
+              data-testid="print-quantity-package"
+              onChange={(e) => {
+                const value = e.target.value;
+                setPack(value);
+                const n = Number(value);
+                if (value !== "" && n >= 11 && n <= 500) void applyQuantity("package", copies, value);
+              }}
+            />
+          </label>
+        )}
+        {mode === "package" && <p className="muted field-hint">{t.quantityPackageHint}</p>}
+      </div>
       {order.tracking_code && <p role="status">Rastreio {order.tracking_code}</p>}
       <form onSubmit={(ev) => void saveAddress(ev)} style={{ display: "grid", gap: 8, marginTop: 8 }}>
         <label>

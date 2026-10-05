@@ -4,7 +4,7 @@ import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
 
-type Lang = "pt" | "en" | "es";
+export type Lang = "pt" | "en" | "es";
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -133,7 +133,7 @@ const HERO_STRIP: HeroStripBook[] = [
     photo: heroAsset("foto-enzo-primo.png"),
   },
   {
-    name: "Lucas e seu amigo Max",
+    name: "Lucas e seu amigo Theo",
     cover: heroAsset("capa-lucas-max.png"),
     page: heroAsset("pagina-lucas-max.png"),
     photo: heroAsset("foto-lucas-max.png"),
@@ -153,30 +153,25 @@ const HERO_STRIP: HeroStripBook[] = [
 ];
 /** Livros da /cartoon que têm capa, página ou foto em desenho. Os demais ficam só na principal. */
 const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: string }> = {
-  Nano: { cover: "cartoon-capa-nano.jpg", page: "cartoon-pagina-nano.jpg" },
   "Amor de Bisavó": { cover: "cartoon-capa-bisavo.jpg", page: "cartoon-pagina-bisavo.jpg", photo: "cartoon-foto-bisavo.jpg" },
   "Amor de Mãe": { cover: "cartoon-capa-amordemae.jpg", page: "cartoon-pagina-amordemae.jpg", photo: "cartoon-foto-amordemae.jpg" },
   "Davi, o Menino Pastor": { cover: "cartoon-capa-davi.jpg", page: "cartoon-pagina-davi.jpg", photo: "cartoon-foto-davi.jpg" },
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
-  "Meme e Tata": { cover: "cartoon-capa-natal.jpg", page: "cartoon-pagina-natal.jpg", photo: "cartoon-foto-natal.jpg" },
 };
 const CARTOON_COVER: Record<number, string> = {
-  6: "cartoon-capa-nicolas.jpg",
-  7: "cartoon-capa-amordemae.jpg",
-  8: "cartoon-capa-matteo.jpg",
-  9: "cartoon-capa-bisavo.jpg",
-  10: "cartoon-capa-natal.jpg",
-  11: "cartoon-capa-nano.jpg",
-  12: "cartoon-capa-maya.jpg",
-  21: "cartoon-capa-davi.jpg",
-  23: "cartoon-capa-enzo.jpg",
+  5: "cartoon-capa-nicolas.jpg",
+  6: "cartoon-capa-amordemae.jpg",
+  7: "cartoon-capa-matteo.jpg",
+  8: "cartoon-capa-bisavo.jpg",
+  11: "cartoon-capa-maya.jpg",
+  20: "cartoon-capa-davi.jpg",
+  22: "cartoon-capa-enzo.jpg",
 };
 const CARTOON_REVIEW: Record<string, string> = {
   Nicolas: "cartoon-foto-nicolas.jpg",
   "Amor de Mãe": "cartoon-foto-amordemae.jpg",
   Matteo: "cartoon-foto-matteo.jpg",
   "Amor de Bisavó": "cartoon-foto-bisavo.jpg",
-  "Meme e Tata": "cartoon-foto-natal.jpg",
   Maya: "cartoon-foto-maya.jpg",
 };
 
@@ -223,7 +218,6 @@ const CATALOG_IMGS: CatalogImg[] = [
   "capa-emilia-bailarina.jpg",
   "capa-antonio-bicicleta.jpg",
   "capa-sofia-alfabeto.png",
-  { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
   "capa-cristobal-esporte.png",
   "capa-nicolas-maefilho.png",
   { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
@@ -251,7 +245,6 @@ const CATALOG_THEMES = [
   "princess",
   "adventure",
   "alfabetizacao_inicial",
-  "animais_sons",
   "sport",
   "mothers_day",
   "mothers_day",
@@ -274,31 +267,21 @@ const CATALOG_THEMES = [
   "pets",
   "higiene_desfralde",
 ];
-/** Catálogo da principal: no máximo 15, todos com a mesma capa, tamanho e preço. */
-const CATALOG_LIMIT = 15;
+/** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
+const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 5, 14]);
+const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([20, 21, 22, 23, 24, 25]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24]);
 /** Primeiros da vitrine, nesta ordem: Meu Pai, Davi, Enzo. */
-const CATALOG_LEAD = [22, 21, 23];
+const CATALOG_LEAD = [21, 20, 22];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
-const CATALOG_SPEC: Record<Lang, Record<CatalogCoverChoice | CatalogSizeChoice | "pages", string>> = {
-  pt: { soft: "Capa flexível", hard: "Capa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
-  en: { soft: "Softcover", hard: "Hardcover", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 pages." },
-  es: { soft: "Tapa blanda", hard: "Tapa dura", M: "20 × 20 cm", P: "15 × 15 cm", pages: "16 páginas." },
-};
 const CATALOG_PRICE: Record<Lang, string> = {
   pt: "Sob consulta",
   en: "On request",
   es: "Bajo consulta",
 };
-/** 15 × 15 cm (P) R$ 157 e 20 × 20 cm (M) R$ 177. A capa não altera o valor. */
-const CATALOG_AMOUNT: Record<CatalogSizeChoice, string> = { P: "157", M: "177" };
-function catalogPrice(size: CatalogSizeChoice): string {
-  return `R$ ${CATALOG_AMOUNT[size]},00`;
-}
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
   return cover === "Hard" ? "hard" : "soft";
 }
@@ -307,8 +290,16 @@ function catalogSizeChoice(size?: string): CatalogSizeChoice {
 }
 const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
+const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
+const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
+  aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
+  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "pets"],
+  ocasioes: ["christmas", "birthday"],
+  educativo: ["animais_sons", "higiene_desfralde", "biblico"],
+};
 const NAV_CAT_META = [
   {
+    id: "aventuras",
     color: "#5aa6e8",
     subs: [
       { href: "/app?tema=adventure" },
@@ -322,11 +313,12 @@ const NAV_CAT_META = [
     feats: [
       { href: "/app?tema=princess", catalogI: 1 },
       { href: "/app?tema=adventure", catalogI: 0 },
-      { href: "/app?tema=sport", catalogI: 5 },
-      { href: "/app?tema=adventure", catalogI: 11 },
+      { href: "/app?tema=sport", catalogI: 4 },
+      { href: "/app?tema=adventure", catalogI: 10 },
     ],
   },
   {
+    id: "voce-e-eu",
     color: "#b48ad4",
     subs: [
       { href: "/app?tema=mothers_day" },
@@ -337,105 +329,134 @@ const NAV_CAT_META = [
       { href: "/app?tema=pets" },
     ],
     feats: [
+      { href: "/app?tema=mothers_day", catalogI: 5 },
+      { href: "/app?tema=grandparents_love", catalogI: 8 },
+      { href: "/app?tema=family_love", catalogI: 7 },
       { href: "/app?tema=mothers_day", catalogI: 6 },
-      { href: "/app?tema=grandparents_love", catalogI: 9 },
-      { href: "/app?tema=family_love", catalogI: 8 },
-      { href: "/app?tema=mothers_day", catalogI: 7 },
     ],
   },
   {
+    id: "ocasioes",
     color: "#f0b429",
     subs: [
-      { href: "/app?tema=dia_da_mulher" },
-      { href: "/app?tema=dia_da_sogra" },
-      { href: "/app?tema=easter" },
-      { href: "/app?tema=mothers_day" },
-      { href: "/app?tema=dia_da_familia" },
-      { href: "/app?tema=dia_do_irmao" },
-      { href: "/app?tema=dia_dos_namorados" },
-      { href: "/app?tema=dia_do_amigo" },
-      { href: "/app?tema=grandparents_love" },
-      { href: "/app?tema=tio_tia" },
-      { href: "/app?tema=fathers_day" },
-      { href: "/app?tema=dia_dos_filhos" },
-      { href: "/app?tema=independencia" },
-      { href: "/app?tema=dia_do_idoso" },
-      { href: "/app?tema=pets" },
-      { href: "/app?tema=childrens_day" },
-      { href: "/app?tema=christmas" },
+      { href: "/app?tema=dia_da_mulher", when: { month: 3, day: 8 } },
+      { href: "/app?tema=dia_da_sogra", when: { month: 3, day: 26 } },
+      { href: "/app?tema=easter", when: "easter" },
+      { href: "/app?tema=mothers_day", when: { month: 5, day: 10 } },
+      { href: "/app?tema=dia_da_familia", when: { month: 5, day: 15 } },
+      { href: "/app?tema=dia_do_irmao", when: { month: 5, day: 30 } },
+      { href: "/app?tema=dia_dos_namorados", when: { month: 6, day: 12 } },
+      { href: "/app?tema=dia_do_amigo", when: { month: 7, day: 20 } },
+      { href: "/app?tema=grandparents_love", when: { month: 7, day: 26 } },
+      { href: "/app?tema=tio_tia", when: { month: 7, day: 26 } },
+      { href: "/app?tema=fathers_day", when: { month: 8, day: 9 } },
+      { href: "/app?tema=dia_dos_filhos", when: { month: 8, day: 11 } },
+      { href: "/app?tema=independencia", when: { month: 9, day: 7 } },
+      { href: "/app?tema=dia_do_idoso", when: { month: 10, day: 1 } },
+      { href: "/app?tema=pets", when: { month: 10, day: 4 } },
+      { href: "/app?tema=childrens_day", when: { month: 10, day: 12 } },
+      { href: "/app?tema=christmas", when: { month: 12, day: 25 } },
       { href: "/app?tema=birthday" },
-      { href: "/app?tema=new_year" },
     ],
     feats: [
-      { href: "/app?tema=christmas", catalogI: 10 },
-      { href: "/app?tema=mothers_day", catalogI: 6 },
-      { href: "/app?tema=mothers_day", catalogI: 7 },
-      { href: "/app?tema=birthday", catalogI: 14 },
+      { href: "/app?tema=christmas", catalogI: 9 },
+      { href: "/app?tema=mothers_day", catalogI: 5 },
+      { href: "/app?tema=grandparents_love", catalogI: 8 },
+      { href: "/app?tema=fathers_day", catalogI: 21 },
     ],
   },
   {
+    id: "educativo",
     color: "#5ec4a8",
     subs: [
-      { href: "/app?tema=alfabetizacao_inicial" },
-      { href: "/app?tema=pensamento_matematico" },
+      { href: "/app?tema=biblico" },
       { href: "/app?tema=cores" },
       { href: "/app?tema=higiene_desfralde" },
-      { href: "/app?tema=vestir_autonomia" },
       { href: "/app?tema=animais_sons" },
-      { href: "/app?tema=transporte_ajudantes" },
-    ],
-    feats: [
-      { href: "/app?tema=alfabetizacao_inicial", catalogI: 3 },
-      { href: "/app?tema=animais_sons", catalogI: 4 },
-    ],
-  },
-  {
-    color: "#f0a0c0",
-    subs: [
       { href: "/app?tema=literacia_emocional" },
       { href: "/app?tema=rotina_dormir" },
       { href: "/app?tema=compartilhar_revezar" },
       { href: "/app?tema=consciencia_corporal" },
     ],
-    feats: [],
-  },
-  {
-    color: "#c9a227",
-    subs: [
-      { href: "/app?tema=biblico" },
-    ],
     feats: [
-      { href: "/app?tema=biblico", catalogI: 21 },
+      { href: "/app?tema=animais_sons", catalogI: 23 },
+      { href: "/app?tema=higiene_desfralde", catalogI: 24 },
+      { href: "/app?tema=biblico", catalogI: 20 },
     ],
   },
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
-  adventure: [2, 11],
-  dinosaurs: [19],
-  underwater: [18],
-  space: [17],
+  adventure: [2, 10],
+  dinosaurs: [18],
+  underwater: [17],
+  space: [16],
   princess: [1],
-  superhero: [16],
-  sport: [0, 5],
-  mothers_day: [6, 7],
-  fathers_day: [22, 15],
-  grandparents_love: [9],
-  dia_do_idoso: [9],
-  family_love: [8],
-  pets: [12, 13, 24],
-  dia_da_mulher: [7, 6, 9, 20],
-  dia_da_familia: [8, 20, 22, 23],
-  tio_tia: [20],
-  christmas: [10],
-  birthday: [14],
-  alfabetizacao_inicial: [3],
-  animais_sons: [4],
-  biblico: [21],
+  superhero: [15],
+  sport: [0, 4],
+  mothers_day: [5, 6],
+  fathers_day: [21, 14],
+  grandparents_love: [8],
+  dia_do_idoso: [8],
+  family_love: [7],
+  pets: [11, 12, 23],
+  dia_da_mulher: [6, 5, 8, 19],
+  dia_da_familia: [7, 19, 21, 22],
+  tio_tia: [19],
+  christmas: [9],
+  animais_sons: [23],
+  higiene_desfralde: [24],
+  biblico: [20],
 };
 function themeFromHref(href: string): string | null {
   const match = href.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
+}
+type OccasionWhen = { month: number; day: number } | "easter";
+function startOfDay(date: Date): Date {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+}
+function easterSunday(year: number): Date {
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31);
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(year, month - 1, day);
+}
+export function nextOccasionDate(when: OccasionWhen, today: Date): Date {
+  const start = startOfDay(today);
+  if (when === "easter") {
+    const thisYear = easterSunday(start.getFullYear());
+    return thisYear >= start ? thisYear : easterSunday(start.getFullYear() + 1);
+  }
+  const next = new Date(start.getFullYear(), when.month - 1, when.day);
+  return next >= start ? next : new Date(start.getFullYear() + 1, when.month - 1, when.day);
+}
+function shiftMonths(date: Date, months: number): Date {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+/** A data entra no menu quando cai entre 6 meses atrás e 4 meses à frente. */
+export function occasionDue(when: OccasionWhen, today: Date): boolean {
+  const start = startOfDay(today);
+  const past = shiftMonths(start, -6);
+  const future = shiftMonths(start, 4);
+  const year = start.getFullYear();
+  const dates = when === "easter"
+    ? [year - 1, year, year + 1].map(easterSunday)
+    : [year - 1, year, year + 1].map((y) => new Date(y, when.month - 1, when.day));
+  return dates.some((date) => date >= past && date <= future);
 }
 function SubLabel({ label }: { label: string }) {
   const [name, date] = label.split(" · ");
@@ -453,21 +474,20 @@ const HERO_BY_CATALOG: Record<number, string> = {
   1: "Emilia",
   2: "Antonio",
   3: "Sofia",
-  4: "Bruno",
-  5: "Cristobal",
-  6: "Nicolas",
-  8: "Matteo",
-  11: "Nano",
-  12: "Maya",
-  13: "Mako",
-  24: "Lucas",
-  14: "Ester",
-  15: "Raquel",
-  16: "Rebeca",
-  17: "Abigail",
-  18: "Miriam",
-  19: "Noé",
-  21: "Davi",
+  4: "Cristobal",
+  5: "Nicolas",
+  7: "Matteo",
+  10: "Nano",
+  11: "Maya",
+  12: "Mako",
+  23: "Lucas",
+  13: "Ester",
+  14: "Raquel",
+  15: "Rebeca",
+  16: "Abigail",
+  17: "Miriam",
+  18: "Noé",
+  20: "Davi",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -603,7 +623,9 @@ const I18N = {
     see_all_books: "Ver todos os livros",
     view_all: "Ver todos",
     cat_empty: "Ainda não temos um exemplo neste tema.",
-    cats_label: "Categorias",
+    cats_label: "Livros",
+    realistic_link: "Realista",
+    cartoon_link: "Livros cartoon",
     quick_links: "Acessos rápidos",
     font_label: "Fonte do título",
     explore: "Explorar agora",
@@ -614,6 +636,7 @@ const I18N = {
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
+    book_carousel: "Carrossel de livros",
     cats: [
       {
         name: "Aventuras",
@@ -622,7 +645,7 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e primos", "Pets"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e Primos", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
       },
       {
@@ -646,24 +669,13 @@ const I18N = {
           "Dia das Crianças · 12 de outubro",
           "Natal · 25 de dezembro",
           "Aniversário",
-          "Ano Novo",
         ],
-        feats: ["Natal", "Dia das Mães", "O Amor de Mãe", "O Aniversário Especial de Ester"],
+        feats: ["Natal", "Dia das Mães", "Dia dos Avós", "Dia dos Pais"],
       },
       {
         name: "Educativo",
-        subs: ["Alfabetização", "Matemática", "Cores", "Higiene", "Vestir-se", "Animais", "Transporte"],
-        feats: ["Alfabetização", "Animais"],
-      },
-      {
-        name: "Sentimentos",
-        subs: ["Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
-        feats: [],
-      },
-      {
-        name: "Bíblico",
-        subs: ["Bíblico"],
-        feats: ["Davi, o Menino Pastor"],
+        subs: ["Bíblico", "Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
+        feats: ["Animais", "Higiene", "Davi, o Menino Pastor"],
       },
     ],
     cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -681,9 +693,9 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
-      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
-      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
+      { t: "Preencha os dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
+      { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
+      { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
@@ -742,7 +754,6 @@ const I18N = {
       { t: "Emilia e os Primeiros Passos da Bailarina", p: "Primeiros passos no ballet com disciplina, equilíbrio e confiança.", cover: "Soft", size: "M", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
       { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e explorar o mundo em pequenas aventuras.", cover: "Soft", size: "M", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
       { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras e descobertas na floresta, alfabetizar brincando.", cover: "Soft", size: "M", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
-      { t: "Bruno em uma aventura animal", p: "Conhecer animais e cuidar da natureza numa jornada gentil.", cover: "Soft", size: "M", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
       { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
       { t: "Nicolas, Meu Primeiro Amor", p: "Um momento de carinho eterno entre mamãe e filho, cheio de ternura para guardar para sempre.", cover: "Soft", size: "M", tag: "Amor de mãe", quote: "Primeiro filho, eterno amor!" },
       { t: "O Amor de Mãe", p: "Pequenas histórias de um grande amor: a ternura da mamãe em cada página, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de mãe", quote: "No colo da mamãe, encontro meu lugar." },
@@ -762,7 +773,7 @@ const I18N = {
       { t: "Davi, o Menino Pastor", p: "Um menino, sua harpa e as ovelhas: coragem e fé numa história para guardar para sempre.", cover: "Hard", size: "M", tag: "Fé e coragem", quote: "Pequeno no campo, grande no coração." },
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê, lado a lado: proteção, carinho e um herói só da família.", cover: "Hard", size: "M", tag: "Papai herói", quote: "Meu herói tem o colo do papai." },
       { t: "Enzo, Meu Primo Predileto", p: "Dois primos, um abraço e o mar: amizade que a família nos dá, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "Primo é amigo que a família nos dá." },
-      { t: "Lucas e seu amigo Max", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max é o amigo de todas as horas." },
+      { t: "Lucas e seu amigo Theo", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Theo é o amigo de todas as horas." },
       { t: "Esther e os Superpoderes da Higiene", p: "Mãos limpas, dentes escovados e um sorriso: hábitos de higiene que viram superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidar de si é um superpoder." },
     ],
     promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
@@ -804,7 +815,9 @@ const I18N = {
     see_all_books: "See all books",
     view_all: "View all",
     cat_empty: "We don't have an example for this theme yet.",
-    cats_label: "Categories",
+    cats_label: "Books",
+    realistic_link: "Realistic",
+    cartoon_link: "Cartoon books",
     quick_links: "Quick links",
     font_label: "Cover font",
     explore: "Explore now",
@@ -815,6 +828,7 @@ const I18N = {
     hero_cta: "Create my book",
     cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
+    book_carousel: "Book carousel",
     cats: [
       {
         name: "Adventures",
@@ -823,7 +837,7 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and cousins", "Pets"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and Cousins", "Pets"],
         feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
       },
       {
@@ -847,24 +861,13 @@ const I18N = {
           "Children's Day · October 12",
           "Christmas · December 25",
           "Birthday",
-          "New Year",
         ],
-        feats: ["Christmas", "Mother's Day", "A Mother's Love", "Ester's Special Birthday"],
+        feats: ["Christmas", "Mother's Day", "Grandparents' Day", "Father's Day"],
       },
       {
         name: "Educational",
-        subs: ["Literacy", "Math", "Colors", "Hygiene", "Getting dressed", "Animals", "Transport"],
-        feats: ["Literacy", "Animals"],
-      },
-      {
-        name: "Feelings",
-        subs: ["Feelings", "Bedtime", "Sharing", "Body"],
-        feats: [],
-      },
-      {
-        name: "Biblical",
-        subs: ["Biblical"],
-        feats: ["David, the Shepherd Boy"],
+        subs: ["Biblical", "Colors", "Hygiene", "Animals", "Feelings", "Bedtime", "Sharing", "Body"],
+        feats: ["Animals", "Hygiene", "David, the Shepherd Boy"],
       },
     ],
     cat_below: "Preserve moments. Gift your family an unforgettable story.",
@@ -882,9 +885,9 @@ const I18N = {
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
-      { t: "We create the character and the story", p: "Story, cover, and pages with the same face." },
-      { t: "You receive and approve the book", p: "See the preview, approve it, and get the printed book." },
+      { t: "Fill in the details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
+      { t: "Follow the creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
+      { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
@@ -943,7 +946,6 @@ const I18N = {
       { t: "Emilia and the Ballerina's First Steps", p: "Ballet's first steps with discipline, balance and confidence.", cover: "Soft", size: "M", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
       { t: "Antonio and His Bicycle", p: "Pedal, learn and explore the world in small adventures.", cover: "Soft", size: "M", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
       { t: "Learning the Alphabet with Sofia", p: "Letters and forest discoveries — literacy through play.", cover: "Soft", size: "M", tag: "Literacy through play", quote: "Every letter opens a new world." },
-      { t: "Bruno on an Animal Adventure", p: "Meet animals and care for nature on a gentle journey.", cover: "Soft", size: "M", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
       { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for the river.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Small paddles, big victories." },
       { t: "Nicolas, My First Love", p: "A tender, eternal moment between mom and son, full of warmth to treasure forever.", cover: "Soft", size: "M", tag: "A mother's love", quote: "First child, eternal love!" },
       { t: "A Mother's Love", p: "Small stories of a big love: mom's tenderness on every page, to treasure forever.", cover: "Hard", size: "M", tag: "A mother's love", quote: "In mom's arms, I find my place." },
@@ -963,7 +965,7 @@ const I18N = {
       { t: "David, the Shepherd Boy", p: "A boy, his harp and the sheep: courage and faith in a story to keep forever.", cover: "Hard", size: "M", tag: "Faith and courage", quote: "Small in the field, great in heart." },
       { t: "My Dad, My Hero", p: "Dad and baby, side by side: protection, care, and a hero who belongs to the family.", cover: "Hard", size: "M", tag: "Dad the hero", quote: "My hero has Dad's arms." },
       { t: "Enzo, My Favorite Cousin", p: "Two cousins, one hug and the sea: a friendship the family gives, to keep forever.", cover: "Hard", size: "M", tag: "Cousin love", quote: "A cousin is the friend family gives us." },
-      { t: "Lucas and his friend Max", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Max is a friend for every hour." },
+      { t: "Lucas and his friend Theo", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Theo is a friend for every hour." },
       { t: "Esther and the Superpowers of Hygiene", p: "Clean hands, brushed teeth and a smile: hygiene habits that become superpowers.", cover: "Hard", size: "M", tag: "Hygiene", quote: "Taking care of yourself is a superpower." },
     ],
     promise_title: "Every detail crafted to feel special",
@@ -1005,7 +1007,9 @@ const I18N = {
     see_all_books: "Ver todos los libros",
     view_all: "Ver todos",
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
-    cats_label: "Categorías",
+    cats_label: "Libros",
+    realistic_link: "Realista",
+    cartoon_link: "Libros cartoon",
     quick_links: "Accesos rápidos",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
@@ -1016,6 +1020,7 @@ const I18N = {
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
+    book_carousel: "Carrusel de libros",
     cats: [
       {
         name: "Aventuras",
@@ -1024,7 +1029,7 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y primos", "Mascotas"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y Primos", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
@@ -1048,24 +1053,13 @@ const I18N = {
           "Día del Niño · 12 de octubre",
           "Navidad · 25 de diciembre",
           "Cumpleaños",
-          "Año Nuevo",
         ],
-        feats: ["Navidad", "Día de la Madre", "El Amor de Mamá", "El Cumpleaños Especial de Ester"],
+        feats: ["Navidad", "Día de la Madre", "Día de los Abuelos", "Día del Padre"],
       },
       {
         name: "Educativo",
-        subs: ["Alfabetización", "Matemáticas", "Colores", "Higiene", "Vestirse", "Animales", "Transporte"],
-        feats: ["Alfabetización", "Animales"],
-      },
-      {
-        name: "Sentimientos",
-        subs: ["Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
-        feats: [],
-      },
-      {
-        name: "Bíblico",
-        subs: ["Bíblico"],
-        feats: ["David, el Niño Pastor"],
+        subs: ["Bíblico", "Colores", "Higiene", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
+        feats: ["Animales", "Higiene", "David, el Niño Pastor"],
       },
     ],
     cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
@@ -1083,9 +1077,9 @@ const I18N = {
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
-      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro." },
-      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
+      { t: "Completa los datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
+      { t: "Acompaña la creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
+      { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
@@ -1144,7 +1138,6 @@ const I18N = {
       { t: "Emilia y los primeros pasos de la bailarina", p: "Primeros pasos en el ballet con disciplina, equilibrio y confianza.", cover: "Soft", size: "M", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
       { t: "Antonio y su bicicleta", p: "Pedalear, aprender y explorar el mundo en pequeñas aventuras.", cover: "Soft", size: "M", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
       { t: "Aprendiendo el alfabeto con Sofia", p: "Letras y descubrimientos en el bosque, alfabetizar jugando.", cover: "Soft", size: "M", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
-      { t: "Bruno en una aventura animal", p: "Conocer animales y cuidar la naturaleza en una jornada gentil.", cover: "Soft", size: "M", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
       { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por el río.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
       { t: "Nicolas, Mi Primer Amor", p: "Un momento de cariño eterno entre mamá e hijo, lleno de ternura para guardar para siempre.", cover: "Soft", size: "M", tag: "Amor de madre", quote: "¡Primer hijo, amor eterno!" },
       { t: "El Amor de Mamá", p: "Pequeñas historias de un gran amor: la ternura de mamá en cada página, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de madre", quote: "En los brazos de mamá, encuentro mi lugar." },
@@ -1164,7 +1157,7 @@ const I18N = {
       { t: "David, el Niño Pastor", p: "Un niño, su arpa y las ovejas: coraje y fe en una historia para guardar para siempre.", cover: "Hard", size: "M", tag: "Fe y coraje", quote: "Pequeño en el campo, grande de corazón." },
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé, lado a lado: protección, cariño y un héroe solo de la familia.", cover: "Hard", size: "M", tag: "Papá héroe", quote: "Mi héroe tiene los brazos de papá." },
       { t: "Enzo, Mi Primo Favorito", p: "Dos primos, un abrazo y el mar: amistad que da la familia, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "El primo es el amigo que da la familia." },
-      { t: "Lucas y su amigo Max", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max es el amigo de todas las horas." },
+      { t: "Lucas y su amigo Theo", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Theo es el amigo de todas las horas." },
       { t: "Esther y los Superpoderes de la Higiene", p: "Manos limpias, dientes cepillados y una sonrisa: hábitos de higiene que se vuelven superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidarse es un superpoder." },
     ],
     promise_title: "Cada detalle pensado para ser especial",
@@ -1458,136 +1451,321 @@ function FlipBook({
   );
 }
 
-function CatalogBookCard({
+// M R$ 177 e P R$ 157. Inglês em dólar e espanhol em euro (câmbio de 2 out 2026: USD 5,22 e EUR 5,88).
+const FORMAT_COPY: Record<Lang, {
+  pages: string;
+  hard: string;
+  soft: string;
+  sizeM: string;
+  sizeP: string;
+  priceM: string;
+  priceP: string;
+  hardText: string;
+  softText: string;
+}> = {
+  pt: {
+    pages: "Livro 16 páginas",
+    hard: "Capa Dura",
+    soft: "Capa Flexível",
+    sizeM: "20 × 20 cm",
+    sizeP: "15 × 15 cm",
+    priceM: "R$ 177,00",
+    priceP: "R$ 157,00",
+    hardText: "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis.",
+    softText: "Mais leve e flexível. Comum em livros e edições econômicas.",
+  },
+  en: {
+    pages: "Book. 16 pages.",
+    hard: "Hardcover",
+    soft: "Softcover",
+    sizeM: "20 × 20 cm",
+    sizeP: "15 × 15 cm",
+    priceM: "$33.91",
+    priceP: "$30.08",
+    hardText: "Heavier, sturdy and durable. Used for special or collectible editions.",
+    softText: "Lighter and flexible. Common in books and economical editions.",
+  },
+  es: {
+    pages: "Libro. 16 páginas.",
+    hard: "Tapa Dura",
+    soft: "Tapa Blanda",
+    sizeM: "20 × 20 cm",
+    sizeP: "15 × 15 cm",
+    priceM: "30,10 €",
+    priceP: "26,70 €",
+    hardText: "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección.",
+    softText: "Más ligera y flexible. Común en libros y ediciones económicas.",
+  },
+};
+export type CatalogCardBook = {
+  t: string;
+  img: string;
+  theme: string;
+  cover?: string;
+  size?: string;
+  tag?: string;
+  heroi?: string;
+  catalogI?: number;
+  story?: string;
+  quote?: string;
+  ebook?: string;
+  video?: string;
+};
+const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string }> = {
+  pt: { summary: "Resumo da história", details: "Detalhes do livro" },
+  en: { summary: "Story summary", details: "Book details" },
+  es: { summary: "Resumen de la historia", details: "Detalles del libro" },
+};
+export function CatalogBookCard({
   book,
   lang,
   personalize,
   modo = "realista",
+  linkBook = true,
+  showStory = false,
+  layout = "card",
 }: {
-  book: {
-    t: string;
-    img: string;
-    theme: string;
-    cover?: string;
-    size?: string;
-    tag?: string;
-    heroi?: string;
-    catalogI?: number;
-    ebook?: string;
-    video?: string;
-  };
+  book: CatalogCardBook;
   lang: Lang;
   personalize: string;
   modo?: "realista" | "cartoon";
+  linkBook?: boolean;
+  showStory?: boolean;
+  layout?: "card" | "page";
 }) {
   const selectable = typeof book.cover === "string" && typeof book.size === "string";
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
-  const spec = CATALOG_SPEC[lang];
+  const copy = FORMAT_COPY[lang];
+  const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
+  const linked = linkBook && bookHref != null;
+  const image = <img src={exUrl(book.img)} alt={book.t} loading="lazy" />;
+  const choices = selectable ? (
+    <div className="cat-badges">
+      <div className="cat-opt" role="group" aria-label={copy.soft}>
+        {(["soft", "hard"] as const).map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            className={cover === choice ? "is-on" : ""}
+            aria-pressed={cover === choice}
+            onClick={() => setCover(choice)}
+          >
+            {choice === "soft" ? copy.soft : copy.hard}
+          </button>
+        ))}
+      </div>
+      <div className="cat-opt" role="group" aria-label={copy.sizeM}>
+        {(["P", "M"] as const).map((choice) => (
+          <button
+            key={choice}
+            type="button"
+            className={size === choice ? "is-on" : ""}
+            aria-pressed={size === choice}
+            onClick={() => setSize(choice)}
+          >
+            {choice}
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : (
+    <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
+  );
+  const pagesLine = <p className="cat-notes-lead">{copy.pages}</p>;
+  const notes = (
+    <div className="cat-notes">
+      <div className="cat-notes-sizes">
+        {(["P", "M"] as const).map((choice) => (
+          <p key={choice} className="cat-note-line">
+            <span className="cat-opt">
+              <button
+                type="button"
+                className={size === choice ? "is-on" : ""}
+                aria-pressed={size === choice}
+                onClick={() => setSize(choice)}
+              >
+                {choice}
+              </button>
+            </span>
+            <span>
+              {choice === "M" ? copy.sizeM : copy.sizeP}:{" "}
+              <span className={size === choice ? "is-price" : undefined}>
+                {choice === "M" ? copy.priceM : copy.priceP}.
+              </span>
+            </span>
+          </p>
+        ))}
+      </div>
+      <div className="cat-note-grid">
+        {(["soft", "hard"] as const).map((choice) => (
+          <div key={choice} className="cat-note-line">
+            <span className="cat-opt">
+              <button
+                type="button"
+                className={cover === choice ? "is-on" : ""}
+                aria-pressed={cover === choice}
+                onClick={() => setCover(choice)}
+              >
+                {choice === "hard" ? copy.hard : copy.soft}
+              </button>
+            </span>
+            <p>{choice === "hard" ? copy.hardText : copy.softText}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+  const go = (
+    <div className="cat-actions">
+      <Link
+        to={personalizeHref({
+          theme: book.theme,
+          title: book.t,
+          historia: book.tag,
+          heroi: book.heroi,
+          size,
+          cover,
+          modo: modo ?? "realista",
+          catalogI: book.catalogI,
+        })}
+        className="kbtn kbtn-primary cat-go"
+        data-testid="landing-personalize"
+      >
+        {personalize}
+      </Link>
+      {book.ebook ? (
+        <a className="kbtn kbtn-ghost" href={exUrl(book.ebook)} download data-testid="landing-ebook-download">
+          {lang === "en" ? "Download PDF" : lang === "es" ? "Descargar PDF" : "Baixar PDF"}
+        </a>
+      ) : null}
+      {book.video ? (
+        <a className="kbtn kbtn-ghost" href={exUrl(book.video)} download data-testid="landing-video-download">
+          {lang === "en" ? "Download video" : lang === "es" ? "Descargar video" : "Baixar vídeo"}
+        </a>
+      ) : null}
+    </div>
+  );
+  if (layout === "page") {
+    const pageCopy = BOOK_PAGE_COPY[lang];
+    return (
+      <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
+        <div className="cat-display">
+          <div className="cat-book">{image}</div>
+        </div>
+        <div className="cat-body">
+          {book.tag ? <p className="book-tag">{book.tag}</p> : null}
+          <h1>{book.t}</h1>
+          {pagesLine}
+          <section className="book-block">
+            <h2>{pageCopy.summary}</h2>
+            {book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
+            {book.quote ? <p className="cat-quote">{book.quote}</p> : null}
+          </section>
+          <section className="book-block">
+            <h2>{pageCopy.details}</h2>
+            {choices}
+            {notes}
+          </section>
+          {go}
+        </div>
+      </article>
+    );
+  }
   return (
     <div className="cat-card reveal" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
         <div className="cat-book">
-          <img src={exUrl(book.img)} alt={book.t} loading="lazy" />
+          {linked ? <Link to={bookHref} className="cat-book-link">{image}</Link> : image}
         </div>
       </div>
       <div className="cat-body">
-        <h3>{book.t}</h3>
-        {selectable ? (
-          <div className="cat-badges">
-            <div className="cat-opt" role="group" aria-label={spec.soft}>
-              {(["soft", "hard"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={cover === choice ? "is-on" : ""}
-                  aria-pressed={cover === choice}
-                  onClick={() => setCover(choice)}
-                >
-                  {choice === "soft" ? "Soft" : "Hard"}
-                </button>
-              ))}
-            </div>
-            <div className="cat-opt" role="group" aria-label={spec.M}>
-              {(["M", "P"] as const).map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className={size === choice ? "is-on" : ""}
-                  aria-pressed={size === choice}
-                  onClick={() => setSize(choice)}
-                >
-                  {choice}
-                </button>
-              ))}
-            </div>
-            <span className="cat-price" data-testid="landing-catalog-price">{catalogPrice(size)}</span>
-          </div>
-        ) : (
-          <span className="cat-price" data-testid="landing-catalog-price">{CATALOG_PRICE[lang]}</span>
-        )}
-        <div className="cat-notes">
-          <p className="cat-notes-lead">
-            {lang === "en" ? "Book. 16 pages." : lang === "es" ? "Libro. 16 páginas." : "Livro 16 páginas"}
-          </p>
-          <p className="cat-notes-sizes">
-            <span>{lang === "en" ? "M - 20 × 20 cm: R$ 177.00." : "M - 20 × 20 cm: R$ 177,00."}</span>
-            <span>{lang === "en" ? "P - 15 × 15 cm: R$ 157.00." : "P - 15 × 15 cm: R$ 157,00."}</span>
-          </p>
-          <div className="cat-note-grid">
-            <div>
-              <strong>{lang === "en" ? "HARD - Hardcover" : lang === "es" ? "HARD - Tapa rígida" : "HARD - Capa rígida"}</strong>
-              <p>
-                {lang === "en"
-                  ? "Heavier, sturdy and durable. Used for special or collectible editions."
-                  : lang === "es"
-                    ? "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección."
-                    : "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis."}
-              </p>
-            </div>
-            <div>
-              <strong>{lang === "en" ? "SOFT - Softcover" : lang === "es" ? "SOFT - Tapa blanda" : "SOFT - Capa flexível"}</strong>
-              <p>
-                {lang === "en"
-                  ? "Lighter and flexible. Common in books and economical editions."
-                  : lang === "es"
-                    ? "Más ligera y flexible. Común en libros y ediciones económicas."
-                    : "Mais leve e flexível. Comum em livros e edições econômicas."}
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="cat-actions">
-          <Link
-            to={personalizeHref({
-              theme: book.theme,
-              title: book.t,
-              historia: book.tag,
-              heroi: book.heroi,
-              size,
-              cover,
-              modo: modo ?? "realista",
-              catalogI: book.catalogI,
-            })}
-            className="kbtn kbtn-primary"
-            data-testid="landing-personalize"
-          >
-            {personalize}
-          </Link>
-          {book.ebook ? (
-            <a className="kbtn kbtn-ghost" href={exUrl(book.ebook)} download data-testid="landing-ebook-download">
-              {lang === "en" ? "Download PDF" : lang === "es" ? "Descargar PDF" : "Baixar PDF"}
-            </a>
-          ) : null}
-          {book.video ? (
-            <a className="kbtn kbtn-ghost" href={exUrl(book.video)} download data-testid="landing-video-download">
-              {lang === "en" ? "Download video" : lang === "es" ? "Descargar video" : "Baixar vídeo"}
-            </a>
-          ) : null}
-        </div>
+        <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
+        {pagesLine}
+        {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
+        {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
+        {choices}
+        {notes}
+        {go}
       </div>
     </div>
   );
+}
+function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
+  if (index === 13) return null;
+  const book = I18N[lang].catalog[index];
+  const theme = CATALOG_THEMES[index];
+  if (!book || !theme || !CATALOG_IMGS[index]) return null;
+  return {
+    t: book.t,
+    story: book.p,
+    quote: book.quote,
+    img: catalogCoverFile(index, lang, "photo"),
+    theme,
+    cover: book.cover,
+    size: book.size,
+    tag: book.tag,
+    heroi: HERO_BY_CATALOG[index],
+    catalogI: index,
+    ebook: index === 22 ? "ebook-meupai-heroi.pdf" : undefined,
+    video: index === 22 ? "video-meupai-heroi.mp4" : undefined,
+  };
+}
+export function readSiteLang(): Lang {
+  try {
+    const s = localStorage.getItem("lang");
+    if (s === "pt" || s === "en" || s === "es") return s;
+  } catch { /* ignore */ }
+  return "pt";
+}
+export function catalogPageCopy(lang: Lang) {
+  const t = I18N[lang];
+  return {
+    title: t.cat_title,
+    personalize: t.personalize,
+    back: t.see_all_books,
+    empty: t.cat_empty,
+    cats: t.cats_label,
+    hiw: t.hiw_title,
+    videos: t.videos_link,
+    reviews: t.reviews_link,
+    cartoon: t.cartoon_link,
+  };
+}
+export function catalogCategory(lang: Lang, id: string) {
+  if (id === "sentimentos") {
+    const name = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
+    return {
+      id,
+      name,
+      color: "#f0a0c0",
+      books: CATALOG_THEMES.flatMap((theme, index) => {
+        if (!FEELING_THEMES.has(theme)) return [];
+        const card = toCatalogCard(lang, index);
+        return card ? [card] : [];
+      }),
+    };
+  }
+  return catalogSections(lang).find((section) => section.id === id) ?? null;
+}
+export function catalogEntry(lang: Lang, index: number) {
+  const card = toCatalogCard(lang, index);
+  if (!card) return null;
+  const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
+  return { ...card, sectionId: section?.id ?? "aventuras" };
+}
+export function catalogSections(lang: Lang) {
+  const names = I18N[lang].cats;
+  return NAV_CAT_META.map((meta, i) => ({
+    id: meta.id,
+    name: names[i]?.name ?? meta.id,
+    color: meta.color,
+    books: CATALOG_THEMES.flatMap((theme, index) => {
+      if (!CATALOG_SECTION_THEMES[meta.id]?.includes(theme)) return [];
+      const card = toCatalogCard(lang, index);
+      return card ? [card] : [];
+    }),
+  }));
 }
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
@@ -1596,6 +1774,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [navOpen, setNavOpen] = useState(false);
   const [openCat, setOpenCat] = useState<number | null>(null);
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
+  const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
   const [lang, setLang] = useState<Lang>(() => {
     try {
@@ -1699,33 +1878,70 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
+    id: NAV_CAT_META[i].id,
     color: NAV_CAT_META[i].color,
-    subs: cat.subs.map((label, j) => {
-      const base = NAV_CAT_META[i].subs[j].href;
-      const theme = themeFromHref(base);
+    subs: cat.subs.flatMap((label, j) => {
+      const meta = NAV_CAT_META[i].subs[j];
+      const when = "when" in meta ? meta.when : undefined;
+      if (when && !occasionDue(when, new Date())) return [];
+      const theme = themeFromHref(meta.href);
       const rawOnly = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
       const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
-      return { label, href: bookTheme ? bookStudioHref(bookTheme, only) : base };
+      return [{
+        label,
+        href: bookTheme ? bookStudioHref(bookTheme, only) : meta.href,
+        due: when ? nextOccasionDate(when, new Date()) : null,
+      }];
+    }).sort((a, b) => {
+      if (a.due && b.due) return a.due.getTime() - b.due.getTime();
+      if (a.due) return -1;
+      if (b.due) return 1;
+      return 0;
     }),
     feats: cat.feats.flatMap((label, j) => {
       const meta = NAV_CAT_META[i].feats[j];
       if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
-      const theme = themeFromHref(meta.href) ?? "adventure";
       return [{
         label,
-        href: bookStudioHref(theme, meta.catalogI),
+        href: `/livro/${meta.catalogI}`,
         img: catalogCoverFile(meta.catalogI, lang, variant),
       }];
-    }),
+    }).slice(0, 4),
   }));
+  const voceEeuCount = navCats.find((cat) => cat.id === "voce-e-eu")?.subs.length ?? 0;
+  const menuCats = navCats.map((cat) => {
+    if (cat.id !== "ocasioes" || cat.subs.length <= voceEeuCount) return cat;
+    const open = cat.subs.filter((sub) => !sub.due);
+    const dated = cat.subs.filter((sub) => sub.due);
+    const room = Math.max(voceEeuCount - open.length, 0);
+    return { ...cat, subs: [...dated.slice(0, room), ...open].slice(0, voceEeuCount) };
+  });
+  const feelingLabel = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
+  const shownCats = variant === "cartoon"
+    ? menuCats.flatMap((cat) => {
+        if (cat.id !== "educativo") return [cat];
+        const isFeeling = (href: string) => FEELING_THEMES.has(themeFromHref(href) ?? "");
+        return [
+          { ...cat, subs: cat.subs.filter((sub) => !isFeeling(sub.href)) },
+          {
+            ...cat,
+            id: "sentimentos",
+            name: feelingLabel,
+            color: "#f0a0c0",
+            subs: cat.subs.filter((sub) => isFeeling(sub.href)),
+            feats: [],
+          },
+        ];
+      })
+    : menuCats;
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: bookStudioHref(CATALOG_THEMES[i] ?? theme, i), img: catalogCoverFile(i, lang, variant) }];
-  });
+    return [{ label: book.t, href: `/livro/${i}`, img: catalogCoverFile(i, lang, variant) }];
+  }).slice(0, 4);
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
 
@@ -1733,6 +1949,29 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     document.documentElement.setAttribute("data-theme", theme);
     try { localStorage.setItem("theme", theme); } catch { /* ignore */ }
   }, [theme]);
+
+  useEffect(() => {
+    const id = window.location.hash.replace("#", "");
+    const el = id ? document.getElementById(id) : null;
+    if (!el) return;
+    const offset = (headerRef.current?.getBoundingClientRect().height ?? 0) + 12;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top });
+  }, []);
+
+  useEffect(() => {
+    const header = headerRef.current;
+    const root = rootRef.current;
+    if (!header || !root) return;
+    const sync = () => {
+      root.style.setProperty("--khead-h", `${Math.ceil(header.getBoundingClientRect().height)}px`);
+    };
+    sync();
+    if (typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver(sync);
+    observer.observe(header);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
@@ -1760,6 +1999,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         setMobileCat(null);
         setOpenCat(null);
         setSubHover(null);
+        setFeatCat(null);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -1773,6 +2013,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       if (target && headerRef.current?.contains(target)) return;
       setOpenCat(null);
       setSubHover(null);
+      setFeatCat(null);
       setNavOpen(false);
       setMobileCat(null);
     };
@@ -1785,6 +2026,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     setMobileCat(null);
     setOpenCat(null);
     setSubHover(null);
+    setFeatCat(null);
   };
 
   return (
@@ -1805,7 +2047,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <div
                   className={`kcat${openCat === 0 ? " open" : ""}`}
                   onMouseEnter={() => setOpenCat(0)}
-                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); }}
+                  onMouseLeave={() => { setOpenCat(null); setSubHover(null); setFeatCat(null); }}
                 >
                   <button
                     type="button"
@@ -1821,12 +2063,20 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   </button>
                   <div className="kcat-panel kcat-panel-all" id="cat-panel">
                     <div className="kcat-groups">
-                      {navCats.map((cat, i) => (
-                        <div key={cat.name} className="kcat-group">
-                          <p className="kcat-group-name">
+                      {shownCats.map((cat, i) => (
+                        <div
+                          key={cat.id}
+                          className="kcat-group"
+                          style={{ "--group": cat.color } as CSSProperties}
+                          onMouseEnter={() => {
+                            setFeatCat(i);
+                            setSubHover((cur) => (cur?.cat === i ? cur : null));
+                          }}
+                        >
+                          <Link to={`/catalogo/${cat.id}`} className="kcat-group-name" onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
-                          </p>
+                          </Link>
                           <ul className="kcat-subs">
                             {cat.subs.map((sub, j) => (
                               <li key={sub.label} className={subHover?.cat === i && subHover.sub === j ? "on" : ""}>
@@ -1844,11 +2094,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     </div>
                     <div className="kcat-feats" data-testid="landing-cat-feats">
                       {(() => {
-                        const activeCat = subHover ? navCats[subHover.cat] : null;
-                        const activeSub = subHover && activeCat ? activeCat.subs[subHover.sub] : null;
+                        const hoverCat = subHover ? shownCats[subHover.cat] : featCat != null ? shownCats[featCat] : null;
+                        const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
                         const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
-                        const shown = activeTheme ? menuBooks(activeTheme) : [];
-                        const allHref = activeTheme ? `/app?tema=${activeTheme}` : "/app";
+                        const shown = (activeTheme ? menuBooks(activeTheme) : hoverCat?.feats ?? []).slice(0, 4);
+                        const allHref = hoverCat ? `/catalogo/${hoverCat.id}` : "/catalogo";
                         return (
                           <>
                             {shown.map((feat) => (
@@ -1879,9 +2129,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
-                <Link to="/cartoon" className={`kcat-btn${variant === "cartoon" ? " on" : ""}`} style={{ "--cat": "#3ecf8e" } as CSSProperties} onClick={closeNav} aria-current={variant === "cartoon" ? "page" : undefined}>
-                  <span className="kcat-dot" style={{ background: "#3ecf8e", boxShadow: "0 0 10px rgba(62,207,142,.95)" }} />
-                  Cartoon
+                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
+                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
                 </Link>
               </nav>
             </div>
@@ -1914,19 +2164,24 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <nav id="site-menu" className={`kmobile${navOpen ? " open" : ""}`} data-testid="landing-site-menu">
           <div className="kmobile-section">
             <p className="kmobile-label">{t.cats_label}</p>
-            {navCats.map((cat, i) => (
-              <div key={cat.name} className={`kmobile-cat${mobileCat === i ? " open" : ""}`}>
-                <button
-                  type="button"
-                  className="kmobile-cat-btn"
-                  aria-expanded={mobileCat === i}
-                  aria-controls={`mobile-cat-${i}`}
-                  onClick={() => setMobileCat(mobileCat === i ? null : i)}
-                >
-                  <span className="kcat-dot" style={{ background: cat.color }} />
-                  {cat.name}
-                  <IcChevron className="faq-chev" />
-                </button>
+            {shownCats.map((cat, i) => (
+              <div key={cat.id} className={`kmobile-cat${mobileCat === i ? " open" : ""}`} style={{ "--group": cat.color } as CSSProperties}>
+                <div className="kmobile-cat-btn">
+                  <Link to={`/catalogo/${cat.id}`} onClick={closeNav}>
+                    <span className="kcat-dot" style={{ background: cat.color }} />
+                    {cat.name}
+                  </Link>
+                  <button
+                    type="button"
+                    className="kmobile-cat-toggle"
+                    aria-expanded={mobileCat === i}
+                    aria-controls={`mobile-cat-${i}`}
+                    aria-label={cat.name}
+                    onClick={() => setMobileCat(mobileCat === i ? null : i)}
+                  >
+                    <IcChevron className="faq-chev" />
+                  </button>
+                </div>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
                     {cat.subs.map((sub) => (
@@ -1936,14 +2191,14 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </div>
               </div>
             ))}
-            <Link to="/app" className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
+            <Link to="/catalogo" className="kmobile-all" onClick={closeNav}>{t.view_all}</Link>
           </div>
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-            <Link className="kmobile-link" to="/cartoon" onClick={closeNav}>Cartoon</Link>
+            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
@@ -1958,7 +2213,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <div className="hero-carousel" aria-label={t.hero_sign}>
+        <p className="hero-carousel-label">{t.book_carousel}</p>
+        <div className="hero-carousel" aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
               const shots = [book.cover[lang], book.page[lang], book.photo[lang]];
@@ -2016,7 +2272,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection ksection-como" id="como">
         <div className="como-panel reveal">
           <h2 className="ktitle">{t.hiw_title}</h2>
-          <p className="ksub">{t.hiw_sub}</p>
+          {classicHow && t.hiw_sub ? <p className="ksub">{t.hiw_sub}</p> : null}
           {classicHow ? (
           <div className="shot-tips shot-tips-classic">
               <h3>{t.shot_title}</h3>
@@ -2038,26 +2294,27 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           ) : null}
           <div className="howex">
             {hiwSteps.map((h, i) => {
-              const tip = classicHow ? null : t.shots[i];
               return (
               <Fragment key={h.t}>
                 <figure className={`howex-card${classicHow
                   ? `${i === 0 ? " howex-card-face" : ""}${i === 1 ? " howex-card-avatar" : ""}${i === 2 ? " howex-card-page" : ""}`
                   : ` howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}`}>
-                  {tip ? (
+                  {!classicHow ? (
                     <div className="howex-lead">
-                      <h3>{tip.t}</h3>
-                      <p>{tip.p}</p>
+                      <h3>{h.t}</h3>
+                      <p>{h.p}</p>
                     </div>
                   ) : null}
                   <div className="howex-media">
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
-                  <figcaption>
-                    <h3>{h.t}</h3>
-                    <p>{h.p}</p>
-                  </figcaption>
+                  {classicHow ? (
+                    <figcaption>
+                      <h3>{h.t}</h3>
+                      <p>{h.p}</p>
+                    </figcaption>
+                  ) : null}
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
@@ -2071,8 +2328,32 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
+        {variant === "cartoon" ? (
+          <>
+            <section className="catalog-section" id="educativo" style={{ "--group": "#5ec4a8" } as CSSProperties}>
+              <h3 className="catalog-section-title">{t.cats[3].name}</h3>
+              <div className="cat-grid">
+                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme)).map((c) => (
+                  <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
+                ))}
+              </div>
+            </section>
+            <section className="catalog-section" id="sentimentos" style={{ "--group": "#f0a0c0" } as CSSProperties}>
+              <h3 className="catalog-section-title">{feelingLabel}</h3>
+              {catalogBooks.some((book) => FEELING_THEMES.has(book.theme)) ? (
+                <div className="cat-grid">
+                  {catalogBooks.filter((book) => FEELING_THEMES.has(book.theme)).map((c) => (
+                    <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
+                  ))}
+                </div>
+              ) : (
+                <p className="kcat-empty">{t.cat_empty}</p>
+              )}
+            </section>
+          </>
+        ) : null}
         <div className="cat-grid">
-          {catalogBooks.map((c) => (
+          {(variant === "cartoon" ? catalogBooks.filter((book) => !CATALOG_SECTION_THEMES.educativo.includes(book.theme) && !FEELING_THEMES.has(book.theme)) : catalogBooks).map((c) => (
             <CatalogBookCard
               key={c.t}
               book={c}

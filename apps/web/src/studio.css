@@ -329,6 +329,14 @@
   gap: 10px;
 }
 
+.studio-app .print-quantity .studio-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.studio-app .print-quantity {
+  margin-top: 16px;
+}
+
 .studio-app .studio-pick {
   min-height: 64px;
   width: 100%;
@@ -427,6 +435,13 @@
   line-height: 1.4;
 }
 
+.studio-app .how li strong {
+  display: block;
+  color: var(--ink);
+  font-weight: 800;
+}
+.studio-app .how li p { margin: 0.15rem 0 0; }
+
 .studio-app .how li::before {
   content: counter(studio-step);
   width: 1.7rem;
@@ -438,19 +453,6 @@
   color: var(--ink);
   font-weight: 800;
   font-size: 0.85rem;
-}
-
-.studio-app .studio-credits-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 14px;
-  border-radius: 999px;
-  background: #182343;
-  color: #e9eefb;
-  font-weight: 800;
-  font-size: 0.92rem;
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.4);
 }
 
 .studio-app .studio-error {
