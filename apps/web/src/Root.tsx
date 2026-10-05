@@ -20,6 +20,12 @@ const Auth = lazy(() => import("./Auth").then((m) => ({ default: m.Auth })));
 const VerifyEmail = lazy(() =>
   import("./VerifyEmail").then((m) => ({ default: m.VerifyEmail })),
 );
+const ForgotPassword = lazy(() =>
+  import("./ForgotPassword").then((m) => ({ default: m.ForgotPassword })),
+);
+const ResetPassword = lazy(() =>
+  import("./ResetPassword").then((m) => ({ default: m.ResetPassword })),
+);
 const Usage = lazy(() =>
   import("./Usage").then((m) => ({ default: m.Usage })),
 );
@@ -40,6 +46,8 @@ const Usuarios = lazy(() =>
  *   /entrar        → Login
  *   /cadastro      → Criar conta
  *   /verificar-email → Confirmação de e-mail (token)
+ *   /esqueci-senha → Pedir link de redefinição
+ *   /redefinir-senha → Nova senha (token)
  *   /app           → Estúdio (conta obrigatória)
  *   /gastos        → Painel privado de custos USD
  *   /pedidos       → Painel privado de pedidos
@@ -64,6 +72,8 @@ export function AppRoutes() {
         <Route path="/entrar" element={<Auth mode="login" />} />
         <Route path="/cadastro" element={<Auth mode="signup" />} />
         <Route path="/verificar-email" element={<VerifyEmail />} />
+        <Route path="/esqueci-senha" element={<ForgotPassword />} />
+        <Route path="/redefinir-senha" element={<ResetPassword />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />

@@ -56,6 +56,7 @@ export const state = {
   city: "Sao Paulo",
   stateUf: "SP",
   pendingVerifyToken: null as string | null,
+  pendingResetToken: null as string | null,
   projects: new Map<string, Project>(),
   jobs: new Map<string, Job[]>(),
   reset() {
@@ -73,6 +74,7 @@ export const state = {
     this.city = "Sao Paulo";
     this.stateUf = "SP";
     this.pendingVerifyToken = null;
+    this.pendingResetToken = null;
     this.projects.clear();
     this.jobs.clear();
   },
@@ -266,6 +268,41 @@ export const handlers = [
     state.isGuest = false;
     state.email = body.email;
     state.emailVerified = true;
+    return HttpResponse.json({ access_token: "test-token" });
+  }),
+  http.post("*/v1/auth/forgot-password", async ({ request }) => {
+    const body = (await request.json()) as { email?: string };
+    if (!body.email) {
+      return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
+    }
+    const known = !state.isGuest && state.email === body.email;
+    if (known) {
+      state.pendingResetToken = "test-reset-token";
+    }
+    return HttpResponse.json({
+      ok: true,
+      message: "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha.",
+      reset_token: known ? state.pendingResetToken : null,
+    });
+  }),
+  http.post("*/v1/auth/reset-password", async ({ request }) => {
+    const body = (await request.json()) as {
+      token?: string;
+      password?: string;
+      password_confirm?: string;
+    };
+    if (
+      !body.token ||
+      body.token !== state.pendingResetToken ||
+      (body.password?.length ?? 0) < 8 ||
+      body.password !== body.password_confirm
+    ) {
+      return HttpResponse.json({ detail: "Link invalido ou expirado" }, { status: 400 });
+    }
+    state.pendingResetToken = null;
+    state.emailVerified = true;
+    state.isGuest = false;
+    state.credits = 10;
     return HttpResponse.json({ access_token: "test-token" });
   }),
   http.get("*/v1/credits", () => HttpResponse.json({ credits: state.credits })),

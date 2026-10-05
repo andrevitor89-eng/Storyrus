@@ -149,6 +149,7 @@ class User(Base):
     terms_accepted_at: Mapped[datetime | None] = mapped_column(nullable=True)
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     email_verify_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    password_reset_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     projects: Mapped[list[Project]] = relationship(back_populates="user")
     voices: Mapped[list[UserVoice]] = relationship(

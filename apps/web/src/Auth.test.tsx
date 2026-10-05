@@ -111,6 +111,22 @@ describe("Auth", () => {
     await waitFor(() => expect(getToken()).toBe("test-token"));
   });
 
+  it("mostra link Esqueci a senha no login", () => {
+    renderAuth("login", "/app?tema=space");
+    const link = screen.getByTestId("auth-forgot");
+    expect(link).toHaveTextContent(/esqueci a senha/i);
+    expect(link).toHaveAttribute(
+      "href",
+      expect.stringContaining("/esqueci-senha"),
+    );
+    expect(link).toHaveAttribute("href", expect.stringContaining("next="));
+  });
+
+  it("não mostra Esqueci a senha no cadastro", () => {
+    renderAuth("signup", "/app");
+    expect(screen.queryByTestId("auth-forgot")).not.toBeInTheDocument();
+  });
+
   it("alterna entre login e cadastro preservando next", async () => {
     const user = userEvent.setup();
     renderAuth("login", "/app?tema=pets");

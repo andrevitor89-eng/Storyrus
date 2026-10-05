@@ -196,7 +196,9 @@ function isAuthPath(path: string): boolean {
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume") ||
     path.startsWith("/v1/auth/upgrade") ||
-    path.startsWith("/v1/auth/verify-email")
+    path.startsWith("/v1/auth/verify-email") ||
+    path.startsWith("/v1/auth/forgot-password") ||
+    path.startsWith("/v1/auth/reset-password")
   );
 }
 
@@ -242,7 +244,9 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     path.startsWith("/v1/auth/login") ||
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume") ||
-    path.startsWith("/v1/auth/verify-email");
+    path.startsWith("/v1/auth/verify-email") ||
+    path.startsWith("/v1/auth/forgot-password") ||
+    path.startsWith("/v1/auth/reset-password");
   if (!skipSession) await ensureSession();
 
   let resp = await reqOnce(path, init);
@@ -344,6 +348,27 @@ export const api = {
     const out = await req<{ access_token: string }>("/v1/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
+    });
+    setToken(out.access_token);
+    return out;
+  },
+  async forgotPassword(email: string) {
+    return req<{ ok: boolean; message: string; reset_token?: string | null }>(
+      "/v1/auth/forgot-password",
+      {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      },
+    );
+  },
+  async resetPassword(token: string, password: string, passwordConfirm: string) {
+    const out = await req<{ access_token: string }>("/v1/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        token,
+        password,
+        password_confirm: passwordConfirm,
+      }),
     });
     setToken(out.access_token);
     return out;
