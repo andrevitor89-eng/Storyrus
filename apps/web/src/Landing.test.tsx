@@ -547,7 +547,6 @@ describe("Landing — CTAs e links", () => {
     for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
-    expect(como.querySelector(".howex-card-receive")).toBeTruthy();
   });
 
   it("mostra os livros do tema ao passar o mouse no submenu", () => {

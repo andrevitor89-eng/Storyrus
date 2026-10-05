@@ -1608,7 +1608,7 @@ export function CatalogBookCard({
     );
   }
   return (
-    <div className="cat-card reveal" data-testid="landing-catalog-card" data-format="catalog">
+    <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
         <div className="cat-book">
           {linked ? <Link to={bookHref} className="cat-book-link">{image}</Link> : image}
@@ -2173,7 +2173,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             {hiwSteps.map((h, i) => {
               return (
               <Fragment key={h.t}>
-                <figure className={`howex-card howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}>
+                <figure className="howex-card howex-card-scene">
                   <div className="howex-lead">
                     <h3>{h.t}</h3>
                   </div>
