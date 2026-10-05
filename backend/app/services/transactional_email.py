@@ -73,7 +73,7 @@ def send_verify_email(*, to_email: str, token: str) -> bool:
     )
     html = (
         "<p>Bem-vindo ao <strong>Story R Us</strong>!</p>"
-        f"<p><a href=\"{url}\">Clique aqui para confirmar seu e-mail</a> "
+        f'<p><a href="{url}">Clique aqui para confirmar seu e-mail</a> '
         f"e ativar a conta (válido por {settings.email_verify_ttl_min} minutos).</p>"
     )
     return send_email(to_email=to_email, subject=subject, text=text, html=html)
@@ -94,7 +94,7 @@ def send_password_reset_email(*, to_email: str, token: str) -> bool:
     html = (
         "<p>Recebemos um pedido para redefinir a senha da sua conta "
         "<strong>Story R Us</strong>.</p>"
-        f"<p><a href=\"{url}\">Clique aqui para escolher uma nova senha</a> "
+        f'<p><a href="{url}">Clique aqui para escolher uma nova senha</a> '
         f"(válido por {settings.password_reset_ttl_min} minutos).</p>"
         "<p>Se você não pediu isso, ignore este e-mail.</p>"
     )

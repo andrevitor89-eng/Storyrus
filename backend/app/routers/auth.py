@@ -42,9 +42,7 @@ from app.services.transactional_email import send_password_reset_email, send_ver
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 _SIGNUP_MSG = "Cadastro recebido. Confirme seu e-mail pelo link que enviamos."
-_FORGOT_MSG = (
-    "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
-)
+_FORGOT_MSG = "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
 
 
 def _user_out(user: User) -> UserOut:
@@ -241,9 +239,7 @@ def forgot_password(
     rate_limit.check_password_reset(request, email=str(body.email))
     user = db.scalar(select(User).where(User.email == body.email))
     reset_token: str | None = None
-    if user is not None and not is_guest_user(
-        email=user.email, password_hash=user.password_hash
-    ):
+    if user is not None and not is_guest_user(email=user.email, password_hash=user.password_hash):
         raw_token = create_password_reset_token(str(user.id))
         user.password_reset_token_hash = hash_token(raw_token)
         db.add(user)
