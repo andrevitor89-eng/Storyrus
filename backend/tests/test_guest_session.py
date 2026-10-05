@@ -6,6 +6,7 @@ from jose import jwt
 
 from app.config import settings
 from app.security import create_access_token
+from tests.conftest import signup_and_verify, signup_payload
 
 
 def _auth(token: str) -> dict:
@@ -32,10 +33,7 @@ def test_resume_expired_token_keeps_user_and_projects(client, monkeypatch):
     monkeypatch.setattr(settings, "access_token_ttl_min", 1)
     monkeypatch.setattr(settings, "guest_resume_grace_min", 60 * 24)
 
-    signup = client.post(
-        "/v1/auth/signup", json={"email": "resume@example.com", "password": "password123"}
-    )
-    token = signup.json()["access_token"]
+    token = signup_and_verify(client, "resume@example.com")
     me = client.get("/v1/auth/me", headers=_auth(token)).json()
     pid = client.post("/v1/projects", json={}, headers=_auth(token)).json()["id"]
 
@@ -86,22 +84,27 @@ def test_upgrade_guest_keeps_user_id_and_credits(client):
     me = client.get("/v1/auth/me", headers=_auth(token)).json()
     assert me["is_guest"] is True
     credits_before = me["credits"]
-    # Guest nao cria livro; apos upgrade, mesmo user_id cria projetos.
+    # Guest nao cria livro; apos upgrade+verify, mesmo user_id cria projetos.
     assert client.post("/v1/projects", json={}, headers=_auth(token)).status_code == 403
 
     r = client.post(
         "/v1/auth/upgrade",
-        json={"email": "real@example.com", "password": "password123"},
+        json=signup_payload("real@example.com"),
         headers=_auth(token),
     )
     assert r.status_code == 200
-    upgraded = r.json()["access_token"]
+    verify_token = r.json()["verify_token"]
+    assert verify_token
+    verified = client.post("/v1/auth/verify-email", json={"token": verify_token})
+    assert verified.status_code == 200
+    upgraded = verified.json()["access_token"]
 
     me2 = client.get("/v1/auth/me", headers=_auth(upgraded)).json()
     assert me2["id"] == me["id"]
     assert me2["email"] == "real@example.com"
     assert me2["is_guest"] is False
     assert me2["credits"] == credits_before
+    assert me2["full_name"] == "Ana Souza"
     pid = client.post("/v1/projects", json={}, headers=_auth(upgraded)).json()["id"]
     assert client.get(f"/v1/projects/{pid}", headers=_auth(upgraded)).status_code == 200
 
@@ -118,24 +121,21 @@ def test_upgrade_guest_keeps_user_id_and_credits(client):
 
 
 def test_upgrade_rejects_non_guest(client):
-    client.post("/v1/auth/signup", json={"email": "a@b.com", "password": "password123"})
-    token = client.post(
-        "/v1/auth/login", json={"email": "a@b.com", "password": "password123"}
-    ).json()["access_token"]
+    token = signup_and_verify(client, "a@b.com")
     r = client.post(
         "/v1/auth/upgrade",
-        json={"email": "c@d.com", "password": "password123"},
+        json=signup_payload("c@d.com"),
         headers=_auth(token),
     )
     assert r.status_code == 400
 
 
 def test_upgrade_email_conflict(client):
-    client.post("/v1/auth/signup", json={"email": "taken@x.com", "password": "password123"})
+    assert client.post("/v1/auth/signup", json=signup_payload("taken@x.com")).status_code == 201
     token = client.post("/v1/auth/guest").json()["access_token"]
     r = client.post(
         "/v1/auth/upgrade",
-        json={"email": "taken@x.com", "password": "password123"},
+        json=signup_payload("taken@x.com"),
         headers=_auth(token),
     )
     assert r.status_code == 409
@@ -145,11 +145,8 @@ def test_me_reports_is_guest(client):
     guest_token = client.post("/v1/auth/guest").json()["access_token"]
     assert client.get("/v1/auth/me", headers=_auth(guest_token)).json()["is_guest"] is True
 
-    client.post("/v1/auth/signup", json={"email": "p@q.com", "password": "password123"})
-    real = client.post(
-        "/v1/auth/login", json={"email": "p@q.com", "password": "password123"}
-    ).json()["access_token"]
-    assert client.get("/v1/auth/me", headers=_auth(real)).json()["is_guest"] is False
+    token = signup_and_verify(client, "p@q.com")
+    assert client.get("/v1/auth/me", headers=_auth(token)).json()["is_guest"] is False
 
 
 def test_create_access_token_roundtrip():

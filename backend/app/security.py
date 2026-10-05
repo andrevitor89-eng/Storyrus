@@ -29,11 +29,36 @@ def create_access_token(subject: str, extra: dict | None = None) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
+def create_email_verify_token(subject: str) -> str:
+    now = datetime.now(UTC)
+    payload = {
+        "sub": subject,
+        "purpose": "email_verify",
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.email_verify_ttl_min),
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
 def decode_access_token(token: str) -> dict | None:
     try:
         return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
     except JWTError:
         return None
+
+
+def decode_email_verify_token(token: str) -> dict | None:
+    payload = decode_access_token(token)
+    if not payload or payload.get("purpose") != "email_verify" or "sub" not in payload:
+        return None
+    return payload
+
+
+def hash_token(raw: str) -> str:
+    """Hash estável para guardar o token de verificação no banco."""
+    import hashlib
+
+    return hashlib.sha256(raw.encode("utf-8")).hexdigest()
 
 
 def decode_access_token_allow_expired(token: str) -> dict | None:

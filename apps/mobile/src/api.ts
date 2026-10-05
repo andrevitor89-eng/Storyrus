@@ -195,7 +195,8 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     path.startsWith("/v1/auth/signup") ||
     path.startsWith("/v1/auth/login") ||
     path.startsWith("/v1/auth/guest") ||
-    path.startsWith("/v1/auth/resume");
+    path.startsWith("/v1/auth/resume") ||
+    path.startsWith("/v1/auth/verify-email");
   if (!skipSession) await ensureSession();
 
   const headers: Record<string, string> = {
@@ -228,25 +229,60 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
 
+export type SignupPayload = {
+  email: string;
+  password: string;
+  password_confirm: string;
+  full_name: string;
+  phone: string;
+  postal_code: string;
+  street: string;
+  number: string;
+  complement?: string | null;
+  district: string;
+  city: string;
+  state: string;
+  accept_terms: boolean;
+};
+
+export type MeUser = {
+  id: string;
+  email: string;
+  credits: number;
+  is_guest: boolean;
+  email_verified: boolean;
+  full_name: string | null;
+  phone: string | null;
+  postal_code: string | null;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  district: string | null;
+  city: string | null;
+  state: string | null;
+};
+
 export const api = {
   guest: () =>
     req<{ access_token: string }>("/v1/auth/guest", { method: "POST" }),
-  signup: async (email: string, password: string) => {
-    const out = await req<{ access_token: string }>("/v1/auth/signup", {
+  signup: async (payload: SignupPayload) =>
+    req<{ ok: boolean; message: string; verify_token?: string | null }>("/v1/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
+    }),
+  verifyEmail: async (tokenValue: string) => {
+    const out = await req<{ access_token: string }>("/v1/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token: tokenValue }),
     });
     setToken(out.access_token);
     return out;
   },
-  upgrade: async (email: string, password: string) => {
-    const out = await req<{ access_token: string }>("/v1/auth/upgrade", {
+  upgrade: async (payload: SignupPayload) =>
+    req<{ ok: boolean; message: string; verify_token?: string | null }>("/v1/auth/upgrade", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
-    });
-    setToken(out.access_token);
-    return out;
-  },
+      body: JSON.stringify(payload),
+    }),
   login: async (email: string, password: string) => {
     const out = await req<{ access_token: string }>("/v1/auth/login", {
       method: "POST",
@@ -255,8 +291,9 @@ export const api = {
     setToken(out.access_token);
     return out;
   },
-  me: () =>
-    req<{ id: string; email: string; credits: number; is_guest: boolean }>("/v1/auth/me"),
+  me: () => req<MeUser>("/v1/auth/me"),
+  updateMe: (payload: Partial<SignupPayload>) =>
+    req<MeUser>("/v1/auth/me", { method: "PATCH", body: JSON.stringify(payload) }),
   credits: () => req<{ credits: number }>("/v1/credits"),
   createProject: (
     theme?: Theme,

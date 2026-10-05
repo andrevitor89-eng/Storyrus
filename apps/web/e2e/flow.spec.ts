@@ -20,6 +20,17 @@ function makeState() {
     seq: 0,
     email: "e2e@storyrus.app",
     isGuest: false,
+    emailVerified: true,
+    fullName: "E2E User",
+    phone: "11988887777",
+    postalCode: "01310100",
+    street: "Av Paulista",
+    number: "1000",
+    complement: "",
+    district: "Bela Vista",
+    city: "Sao Paulo",
+    stateUf: "SP",
+    pendingVerifyToken: null as string | null,
   };
 }
 
@@ -29,11 +40,58 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   const id = () => `id-${++state.seq}`;
 
   await page.route("**/v1/auth/guest", (r) => json(r, { access_token: "e2e-token" }, 201));
-  await page.route("**/v1/auth/signup", (r) => {
+  await page.route("**/v1/auth/signup", async (r) => {
+    let body: Record<string, string> = {};
+    try {
+      body = (r.request().postDataJSON() as Record<string, string>) || {};
+    } catch {
+      /* ignore */
+    }
     state.isGuest = false;
-    return json(r, { access_token: "e2e-token" }, 201);
+    state.emailVerified = false;
+    state.email = body.email || state.email;
+    state.fullName = body.full_name || state.fullName;
+    state.phone = body.phone || state.phone;
+    state.postalCode = body.postal_code || state.postalCode;
+    state.street = body.street || state.street;
+    state.number = body.number || state.number;
+    state.district = body.district || state.district;
+    state.city = body.city || state.city;
+    state.stateUf = body.state || state.stateUf;
+    // ≥20 chars (mesmo mínimo do schema da API) para o mock e o backend real.
+    state.pendingVerifyToken = "e2e-verify-token-ok!!";
+    return json(
+      r,
+      {
+        ok: true,
+        message: "Cadastro recebido. Confirme seu e-mail pelo link que enviamos.",
+        verify_token: state.pendingVerifyToken,
+      },
+      201,
+    );
+  });
+  await page.route("**/v1/auth/verify-email", async (r) => {
+    let token = "";
+    try {
+      token = String((r.request().postDataJSON() as { token?: string })?.token || "");
+    } catch {
+      /* ignore */
+    }
+    if (!token) {
+      return json(r, { detail: "Link invalido ou expirado" }, 400);
+    }
+    // Aceita o token do mock de signup (ou qualquer token do fluxo e2e).
+    if (state.pendingVerifyToken && token !== state.pendingVerifyToken) {
+      return json(r, { detail: "Link invalido ou expirado" }, 400);
+    }
+    state.emailVerified = true;
+    state.pendingVerifyToken = null;
+    return json(r, { access_token: "e2e-token" });
   });
   await page.route("**/v1/auth/login", (r) => {
+    if (!state.emailVerified) {
+      return json(r, { detail: "Confirme seu e-mail antes de entrar" }, 403);
+    }
     state.isGuest = false;
     return json(r, { access_token: "e2e-token" });
   });
@@ -46,6 +104,16 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
       credits: state.credits,
       created_at: "now",
       is_guest: state.isGuest,
+      email_verified: state.emailVerified,
+      full_name: state.fullName,
+      phone: state.phone,
+      postal_code: state.postalCode,
+      street: state.street,
+      number: state.number,
+      complement: state.complement,
+      district: state.district,
+      city: state.city,
+      state: state.stateUf,
     }),
   );
   await page.route("**/v1/credits", (r) => json(r, { credits: state.credits }));
@@ -129,15 +197,30 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   });
 }
 
-async function loginViaCadastro(page: Page) {
-  await page.goto("/cadastro");
+async function fillSignupForm(page: Page, email = "e2e@storyrus.app") {
+  await page.getByTestId("auth-full-name").fill("E2E User");
+  await page.getByTestId("auth-email").fill(email);
+  await page.getByTestId("auth-phone").fill("11988887777");
+  await page.getByTestId("auth-password").fill("password123");
+  await page.getByTestId("auth-password-confirm").fill("password123");
+  await page.getByTestId("auth-postal-code").fill("01310100");
+  await page.getByTestId("auth-street").fill("Av Paulista");
+  await page.getByTestId("auth-number").fill("1000");
+  await page.getByTestId("auth-district").fill("Bela Vista");
+  await page.getByTestId("auth-city").fill("Sao Paulo");
+  await page.getByTestId("auth-state").fill("SP");
+  await page.getByTestId("auth-accept-terms").check();
+}
+
+async function loginViaEntrar(page: Page) {
+  await page.goto("/entrar");
   await page.getByTestId("auth-email").fill("e2e@storyrus.app");
   await page.getByTestId("auth-password").fill("password123");
   await page.getByTestId("auth-submit").click();
   await expect(page).toHaveURL(/\/app/);
 }
 
-test("landing leva ao cadastro e depois ao estúdio", async ({ page }) => {
+test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
   await page.goto("/", { waitUntil: "domcontentloaded" });
@@ -148,17 +231,18 @@ test("landing leva ao cadastro e depois ao estúdio", async ({ page }) => {
   await heroCta.click();
   await expect(page).toHaveURL(/\/cadastro/);
   await expect(page.getByTestId("auth-page")).toBeVisible();
-  await page.getByTestId("auth-email").fill("e2e@storyrus.app");
-  await page.getByTestId("auth-password").fill("password123");
+  await fillSignupForm(page);
   await page.getByTestId("auth-submit").click();
-  await expect(page).toHaveURL(/\/app/);
+  await expect(page.getByTestId("auth-check-email")).toBeVisible();
+  await page.goto("/verificar-email?token=e2e-verify-token-ok!!");
+  await expect(page).toHaveURL(/\/app/, { timeout: 15_000 });
   await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
-  await loginViaCadastro(page);
+  await loginViaEntrar(page);
 
   await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
   await page.getByLabel("Nome do protagonista").fill("Lila");
@@ -180,7 +264,7 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
 test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
-  await loginViaCadastro(page);
+  await loginViaEntrar(page);
 
   await page.getByLabel("Nome do protagonista").fill("Lila");
   await page.getByRole("spinbutton", { name: "Idade" }).fill("5");
