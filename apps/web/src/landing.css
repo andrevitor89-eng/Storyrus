@@ -335,17 +335,6 @@ a.kcat-group-name.is-chip:focus-visible {
   white-space: nowrap;
   box-shadow: none;
 }
-.kbtn-login {
-  background: #fff;
-  color: var(--ink, #1f3568);
-  border: 2px solid rgba(31, 53, 104, 0.14);
-  box-shadow: none;
-}
-.kbtn-login:hover {
-  background: #f7fbff;
-  border-color: var(--purple, #3a5fae);
-  color: var(--purple, #3a5fae);
-}
 @media (max-width: 1480px) {
   .khead .theme-toggle-label { display: none; }
   .khead .theme-toggle { width: 34px; padding: 0; justify-content: center; gap: 0; }
@@ -376,6 +365,18 @@ a.kcat-group-name.is-chip:focus-visible {
   padding: 15px 28px; border-radius: 999px; font-weight: 800; font-size: 1.16rem;
   color: #fff; box-shadow: 0 8px 0 rgba(31,53,104,.12), 0 12px 24px rgba(58,95,174,.18);
   transition: transform .15s cubic-bezier(.34,1.56,.64,1), box-shadow .15s ease;
+}
+/* After .kbtn so login keeps dark ink on white (not .kbtn's color:#fff). */
+.kbtn.kbtn-login {
+  background: #fff;
+  color: var(--ink, #1f3568);
+  border: 2px solid rgba(31, 53, 104, 0.14);
+  box-shadow: none;
+}
+.kbtn.kbtn-login:hover {
+  background: #f7fbff;
+  border-color: var(--purple, #3a5fae);
+  color: var(--purple, #3a5fae);
 }
 .kbtn:hover { transform: translateY(-3px) scale(1.05) rotate(-1deg); }
 .kbtn:active { transform: translateY(0) scale(.98); }
@@ -2167,7 +2168,7 @@ img.ex-tab-cover {
   box-shadow: 0 0 10px color-mix(in srgb, var(--group, #1f3568) 35%, transparent);
 }
 [data-theme="light"] .kid .khead-links { border-left: none; }
-[data-theme="light"] .kid .kbtn-login {
+[data-theme="light"] .kid .kbtn.kbtn-login {
   background: #fff;
   color: #1f3568;
   border-color: #d5dced;
