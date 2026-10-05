@@ -539,13 +539,11 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByRole("heading", { name: /^dados do livro$/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(1);
     expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(1);
-    expect(screen.getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();
-    expect(screen.getByText(/escolha o tema e o formato do livro/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /criamos o personagem e a história/i })).toBeInTheDocument();
-    expect(screen.getByText(/mesmo rosto da criança/i)).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /você recebe e aprova o livro/i })).toBeInTheDocument();
-    expect(screen.getByText(/receba o livro impresso/i)).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;
+    const firstHow = como.querySelector(".howex-card") as HTMLElement;
+    expect(firstHow.querySelector(".howex-lead")?.textContent).toBe("Preencha os Dados");
+    expect(firstHow.querySelector("figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
     for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
@@ -564,8 +562,8 @@ describe("Landing — CTAs e links", () => {
     expect(within(nav).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
     expect([...nav.querySelectorAll(".kcat-btn")].map((el) => el.textContent?.trim())).toEqual([
       "Livros",
-      "Como funciona",
-      "Livros cartoon",
+      "Como Funciona",
+      "Livros Cartoon",
       "Vídeos",
       "Avaliações",
     ]);
@@ -676,7 +674,8 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByText(/você envia a foto/i)).not.toBeInTheDocument();
     const cartoonComo = document.getElementById("como") as HTMLElement;
     expect(within(cartoonComo).getByRole("heading", { name: "Preencha os Dados" })).toBeInTheDocument();
-    expect(within(cartoonComo).getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();
+    expect(within(cartoonComo).queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
+    expect(cartoonComo.querySelector(".howex-card figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
     for (const file of ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"]) {
       expect(cartoonComo.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }

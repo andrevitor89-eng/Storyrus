@@ -582,7 +582,7 @@ function Faq({ items }: { items: readonly { q: string; a: string }[] }) {
 
 const I18N = {
   pt: {
-    nav: ["Como funciona", "Livros", "Vídeos", "FAQ"],
+    nav: ["Como Funciona", "Livros", "Vídeos", "FAQ"],
     reviews_link: "Avaliações",
     videos_link: "Vídeos",
     my_books: "Meus Livros",
@@ -591,8 +591,8 @@ const I18N = {
     cat_empty: "Ainda não temos um exemplo neste tema.",
     cats_label: "Livros",
     realistic_link: "Realista",
-    cartoon_link: "Livros cartoon",
-    quick_links: "Acessos rápidos",
+    cartoon_link: "Livros Cartoon",
+    quick_links: "Acessos Rápidos",
     font_label: "Fonte do título",
     explore: "Explorar agora",
     eyebrow: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
@@ -607,7 +607,7 @@ const I18N = {
     cats: [
       {
         name: "Aventuras",
-        subs: ["Aventura", "Dinossauros", "Fundo do mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
+        subs: ["Aventura", "Dinossauros", "Fundo do Mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
         feats: ["Princesas", "Aventura", "Cristobal e seu Esporte Favorito", "Nano e suas Aventuras"],
       },
       {
@@ -653,7 +653,7 @@ const I18N = {
     ba_title: "Antes e depois de verdade",
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
-    hiw_title: "Como funciona", hiw_sub: "Você manda as fotos. A gente faz o livro, com seu filho como personagem.",
+    hiw_title: "Como Funciona", hiw_sub: "Você manda as fotos. A gente faz o livro, com seu filho como personagem.",
     hiw: [
       { t: "Envie as fotos", p: "Da criança e de quem entra na história." },
       { t: "A gente cria o livro", p: "Um personagem parecido com a foto e uma história só de vocês." },
@@ -665,9 +665,9 @@ const I18N = {
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
     hiw_foot: [
-      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
-      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
-      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
+      { t: "Envie a Foto e Defina os Detalhes", p: "Escolha o tema e o formato do livro." },
+      { t: "Criamos o Personagem e a História", p: "História, capa e páginas com o mesmo rosto da criança." },
+      { t: "Você Recebe e Aprova o Livro", p: "Veja a prévia, aprove e receba o livro impresso." },
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
@@ -687,7 +687,7 @@ const I18N = {
       "Maria Jesus e a Disciplina no Hockey",
       "Facundo e o Motocross com Cuidado",
     ],
-    vid_title: "Vídeos narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
+    vid_title: "Vídeos Narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
       { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
@@ -706,7 +706,7 @@ const I18N = {
       { t: "Vídeo narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
       { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
     ],
-    cat_title: "Nossos livros", cat_sub: "Cada tema se transforma em uma história ilustrada, com seu filho como protagonista da própria história.",
+    cat_title: "Nossos Livros", cat_sub: "Cada tema se transforma em uma história ilustrada, com seu filho como protagonista da própria história.",
     personalize: "Personalizar",
     a11y_theme: "Alternar tema claro/escuro",
     a11y_menu: "Menu",
@@ -739,7 +739,7 @@ const I18N = {
       { t: "Raquel e Papai: Aventuras para Sempre", p: "Mão na mão com o papai, cada caminho vira memória — uma aventura para guardar para sempre.", cover: "Hard", size: "M", tag: "Papai e eu", quote: "Juntos, a aventura nunca acaba." },
       { t: "Rebeca, a Pequena Grande Heroína", p: "Capa ao vento e coragem no peito: o seu filho salva o dia com o coração.", cover: "Hard", size: "M", tag: "Super-heróis", quote: "Ser herói começa com um sorriso." },
       { t: "Abigail em uma Aventura pelo Espaço", p: "Foguetes, planetas e curiosidade: uma viagem estelar com o seu filho no comando.", cover: "Hard", size: "M", tag: "Espaço", quote: "Coragem, curiosidade e descobertas!" },
-      { t: "Miriam e os Segredos do Fundo do Mar", p: "Tartarugas, corais e amizade: o seu filho explora o oceano com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do mar", quote: "Cuidar do mar é cuidar dos amigos." },
+      { t: "Miriam e os Segredos do Fundo do Mar", p: "Tartarugas, corais e amizade: o seu filho explora o oceano com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do Mar", quote: "Cuidar do mar é cuidar dos amigos." },
       { t: "Noé na Terra dos Dinossauros", p: "Fósseis, amigos gigantes e coragem: uma expedição pré-histórica com o seu filho.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Descobrir juntos é a melhor aventura." },
       { t: "Amor de Tia", p: "O carinho da tia em cada página: colo, riso e um amor que a família guarda para sempre.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Tia é abraço que não acaba." },
       { t: "Davi, o Menino Pastor", p: "Um menino, sua harpa e as ovelhas: coragem e fé numa história para guardar para sempre.", cover: "Hard", size: "M", tag: "Fé e coragem", quote: "Pequeno no campo, grande no coração." },
@@ -748,15 +748,15 @@ const I18N = {
       { t: "Lucas e seu amigo Theo", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Theo é o amigo de todas as horas." },
       { t: "Esther e os Superpoderes da Higiene", p: "Mãos limpas, dentes escovados e um sorriso: hábitos de higiene que viram superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidar de si é um superpoder." },
     ],
-    promise_title: "Um presente personalizado para eternizar momentos inesquecíveis.",
+    promise_title: "Um Presente Personalizado para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
     promise: [
-      { t: "Privacidade da foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
-      { t: "Impressão pensada como presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
-      { t: "Prévia antes de avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
-      { t: "Entrega sem complicação", p: "O PDF fica pronto na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
+      { t: "Privacidade da Foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
+      { t: "Impressão Pensada como Presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
+      { t: "Prévia antes de Avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
+      { t: "Entrega sem Complicação", p: "O PDF fica pronto na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
     ],
-    faq_title: "Perguntas frequentes", faq_sub: "Tudo o que você precisa saber.",
+    faq_title: "Perguntas Frequentes", faq_sub: "Tudo o que você precisa saber.",
     faq: [
       { q: "Como crio um livro personalizado?", a: "Escolha um tema, envie uma foto da criança e adicione o nome e uma dedicatória. A IA transforma a foto em ilustrações e você vê a prévia antes de finalizar." },
       { q: "Posso ver o livro antes?", a: "Sim! Você recebe uma prévia completa (capa e páginas) antes de baixar ou pedir a impressão." },
@@ -765,7 +765,7 @@ const I18N = {
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
       { q: "Como funciona o vídeo narrado?", a: "Depois do ebook pronto, na tela de resultado você pode gerar o vídeo narrado (voz + cenas ilustradas) ou uma animação curta do personagem." },
     ],
-    rev_title: "O que as famílias dizem", rev_sub: "Histórias que viraram memórias para sempre.",
+    rev_title: "O que as Famílias Dizem", rev_sub: "Histórias que viraram memórias para sempre.",
     reviews: [
       { q: "Meu filho pede para ler o livro dele toda noite. Emocionante vê-lo como herói!", name: "Ana C." },
       { q: "Enviei uma foto e recebi um livro lindo. Virou o presente de aniversário da vovó.", name: "Rafael M." },
@@ -773,14 +773,14 @@ const I18N = {
       { q: "O vídeo narrado fez a família toda se emocionar. Vale cada segundo.", name: "Marcos e Bia" },
     ],
     features: ["Histórias personalizadas", "Conexão em família", "Memórias que ficam para sempre", "Um presente inesquecível"],
-    band_title: "Pronto para virar protagonista?",
+    band_title: "Pronto para Virar Protagonista?",
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
     band_cta: "Criar minha conta",
     tagline: "Feito com amor. Criado para encantar.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   en: {
-    nav: ["How it works", "Books", "Videos", "FAQ"],
+    nav: ["How It Works", "Books", "Videos", "FAQ"],
     reviews_link: "Reviews",
     videos_link: "Videos",
     my_books: "My Books",
@@ -789,8 +789,8 @@ const I18N = {
     cat_empty: "We don't have an example for this theme yet.",
     cats_label: "Books",
     realistic_link: "Realistic",
-    cartoon_link: "Cartoon books",
-    quick_links: "Quick links",
+    cartoon_link: "Cartoon Books",
+    quick_links: "Quick Links",
     font_label: "Cover font",
     explore: "Explore now",
     eyebrow: "Preserve moments. Gift your family an unforgettable story.",
@@ -805,7 +805,7 @@ const I18N = {
     cats: [
       {
         name: "Adventures",
-        subs: ["Adventure", "Dinosaurs", "Under the sea", "Space", "Princesses", "Superheroes", "Sports"],
+        subs: ["Adventure", "Dinosaurs", "Under the Sea", "Space", "Princesses", "Superheroes", "Sports"],
         feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport", "Nano and His Adventures"],
       },
       {
@@ -851,21 +851,21 @@ const I18N = {
     ba_title: "Real before and after",
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
-    hiw_title: "How it works", hiw_sub: "You send the photos. We make the book, with your child as the character.",
+    hiw_title: "How It Works", hiw_sub: "You send the photos. We make the book, with your child as the character.",
     hiw: [
       { t: "Send the photos", p: "Of your child and anyone else in the story." },
       { t: "We make the book", p: "A character that looks like the photo, and a story just for you." },
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Fill in the details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
-      { t: "Follow the creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
-      { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
+      { t: "Fill in the Details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
+      { t: "Follow the Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
+      { t: "Review and Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
     hiw_foot: [
-      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
-      { t: "We create the character and the story", p: "Story, cover, and pages with the same face as the child." },
-      { t: "You receive and approve the book", p: "See the preview, approve it, and receive the printed book." },
+      { t: "Send the Photo and Set the Details", p: "Choose the theme and the book format." },
+      { t: "We Create the Character and the Story", p: "Story, cover, and pages with the same face as the child." },
+      { t: "You Receive and Approve the Book", p: "See the preview, approve it, and receive the printed book." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
@@ -885,7 +885,7 @@ const I18N = {
       "Maria Jesus and Hockey Discipline",
       "Facundo and Careful Motocross",
     ],
-    vid_title: "Narrated videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
+    vid_title: "Narrated Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
       { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
@@ -904,7 +904,7 @@ const I18N = {
       { t: "Narrated video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
       { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
     ],
-    cat_title: "Our books", cat_sub: "Each theme becomes an illustrated story, with your child as the hero of their own story.",
+    cat_title: "Our Books", cat_sub: "Each theme becomes an illustrated story, with your child as the hero of their own story.",
     personalize: "Personalize",
     a11y_theme: "Toggle light/dark theme",
     a11y_menu: "Menu",
@@ -937,7 +937,7 @@ const I18N = {
       { t: "Raquel and Dad: Adventures Forever", p: "Hand in hand with dad, every path becomes a memory — an adventure to keep forever.", cover: "Hard", size: "M", tag: "Dad and me", quote: "Together, the adventure never ends." },
       { t: "Rebeca, the Little Great Heroine", p: "Cape in the wind and courage in her heart: your child saves the day with kindness.", cover: "Hard", size: "M", tag: "Superheroes", quote: "Being a hero starts with a smile." },
       { t: "Abigail on a Space Adventure", p: "Rockets, planets and curiosity: a starry journey with your child at the helm.", cover: "Hard", size: "M", tag: "Space", quote: "Courage, curiosity and discovery!" },
-      { t: "Miriam and the Secrets of the Deep Sea", p: "Turtles, coral and friendship: your child explores the ocean with care and wonder.", cover: "Hard", size: "M", tag: "Under the sea", quote: "Caring for the sea is caring for friends." },
+      { t: "Miriam and the Secrets of the Deep Sea", p: "Turtles, coral and friendship: your child explores the ocean with care and wonder.", cover: "Hard", size: "M", tag: "Under the Sea", quote: "Caring for the sea is caring for friends." },
       { t: "Noé in the Land of Dinosaurs", p: "Fossils, giant friends and courage: a prehistoric expedition with your child.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "Discovering together is the best adventure." },
       { t: "An Aunt's Love", p: "An aunt's tenderness on every page: a hug, a laugh, and a love the family keeps forever.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "An aunt's hug never ends." },
       { t: "David, the Shepherd Boy", p: "A boy, his harp and the sheep: courage and faith in a story to keep forever.", cover: "Hard", size: "M", tag: "Faith and courage", quote: "Small in the field, great in heart." },
@@ -946,15 +946,15 @@ const I18N = {
       { t: "Lucas and his friend Theo", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Theo is a friend for every hour." },
       { t: "Esther and the Superpowers of Hygiene", p: "Clean hands, brushed teeth and a smile: hygiene habits that become superpowers.", cover: "Hard", size: "M", tag: "Hygiene", quote: "Taking care of yourself is a superpower." },
     ],
-    promise_title: "Every detail crafted to feel special",
+    promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
     promise: [
-      { t: "Photo privacy", p: "The photo you upload is used only to create the book — never for promotion. The examples on this page are platform demos." },
-      { t: "Print made as a gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
-      { t: "Preview before you continue", p: "You see the cover and pages and understand what you're creating before finishing." },
-      { t: "Hassle-free delivery", p: "The PDF is ready on the platform. Printed books are quoted on request — we send price and timing within 24 hours." },
+      { t: "Photo Privacy", p: "The photo you upload is used only to create the book — never for promotion. The examples on this page are platform demos." },
+      { t: "Print Made as a Gift", p: "Prepared to look beautiful in hand, in shared reading and at the moment you give it." },
+      { t: "Preview Before You Continue", p: "You see the cover and pages and understand what you're creating before finishing." },
+      { t: "Hassle-Free Delivery", p: "The PDF is ready on the platform. Printed books are quoted on request — we send price and timing within 24 hours." },
     ],
-    faq_title: "Frequently asked questions", faq_sub: "Everything you need to know.",
+    faq_title: "Frequently Asked Questions", faq_sub: "Everything you need to know.",
     faq: [
       { q: "How do I create a personalized book?", a: "Pick a theme, upload a photo of your child and add the name and a dedication. The AI turns the photo into illustrations and you see a preview before finishing." },
       { q: "Can I see the book before?", a: "Yes! You get a full preview (cover and pages) before downloading or ordering the print." },
@@ -963,7 +963,7 @@ const I18N = {
       { q: "Can I request changes?", a: "You can! Adjust the name, the dedication and regenerate the illustrations in the preview." },
       { q: "How does the narrated video work?", a: "After the ebook is ready, on the result screen you can generate a narrated video (voice + illustrated scenes) or a short character animation." },
     ],
-    rev_title: "What families say", rev_sub: "Stories that became memories forever.",
+    rev_title: "What Families Say", rev_sub: "Stories that became memories forever.",
     reviews: [
       { q: "My son asks to read his book every night. Seeing him as the hero is moving!", name: "Ana C." },
       { q: "I sent a photo and got a beautiful book. It became grandma's birthday gift.", name: "Rafael M." },
@@ -971,14 +971,14 @@ const I18N = {
       { q: "The narrated video moved the whole family. Worth every second.", name: "Marcos & Bia" },
     ],
     features: ["Personalized stories", "Family connection", "Memories that last forever", "An unforgettable gift"],
-    band_title: "Ready to become the hero?",
+    band_title: "Ready to Become the Hero?",
     band_sub: "Send your photo and get a unique story, made just for you.",
     band_cta: "Create my account",
     tagline: "Made with love. Created to enchant.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
   es: {
-    nav: ["Cómo funciona", "Libros", "Videos", "FAQ"],
+    nav: ["Cómo Funciona", "Libros", "Videos", "FAQ"],
     reviews_link: "Reseñas",
     videos_link: "Videos",
     my_books: "Mis Libros",
@@ -987,8 +987,8 @@ const I18N = {
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
     cats_label: "Libros",
     realistic_link: "Realista",
-    cartoon_link: "Libros cartoon",
-    quick_links: "Accesos rápidos",
+    cartoon_link: "Libros Cartoon",
+    quick_links: "Accesos Rápidos",
     font_label: "Fuente del título",
     explore: "Explorar ahora",
     eyebrow: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
@@ -1003,7 +1003,7 @@ const I18N = {
     cats: [
       {
         name: "Aventuras",
-        subs: ["Aventura", "Dinosaurios", "Fondo del mar", "Espacio", "Princesas", "Superhéroes", "Deportes"],
+        subs: ["Aventura", "Dinosaurios", "Fondo del Mar", "Espacio", "Princesas", "Superhéroes", "Deportes"],
         feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito", "Nano y sus aventuras"],
       },
       {
@@ -1049,21 +1049,21 @@ const I18N = {
     ba_title: "Antes y después de verdad",
     ba_sub: "Fotos reales convertidas en personajes ilustrados.",
     ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
-    hiw_title: "Cómo funciona", hiw_sub: "Tú envías las fotos. Nosotros hacemos el libro, con tu hijo como personaje.",
+    hiw_title: "Cómo Funciona", hiw_sub: "Tú envías las fotos. Nosotros hacemos el libro, con tu hijo como personaje.",
     hiw: [
       { t: "Envía las fotos", p: "Del niño y de quien más entra en la historia." },
       { t: "Creamos el libro", p: "Un personaje parecido a la foto y una historia solo de ustedes." },
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Completa los datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
-      { t: "Acompaña la creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
-      { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+      { t: "Completa los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
+      { t: "Acompaña la Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
+      { t: "Revisa y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     hiw_foot: [
-      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
-      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro del niño." },
-      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
+      { t: "Envía la Foto y Define los Detalles", p: "Elige el tema y el formato del libro." },
+      { t: "Creamos el Personaje y la Historia", p: "Historia, portada y páginas con el mismo rostro del niño." },
+      { t: "Recibes y Apruebas el Libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
@@ -1083,7 +1083,7 @@ const I18N = {
       "Maria Jesus y la disciplina en el hockey",
       "Facundo y el motocross con cuidado",
     ],
-    vid_title: "Videos narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
+    vid_title: "Videos Narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear mi video",
     videos: [
       { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
@@ -1102,7 +1102,7 @@ const I18N = {
       { t: "Video narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear mi video", badge: "" },
       { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear animación", badge: "" },
     ],
-    cat_title: "Nuestros libros", cat_sub: "Cada tema se transforma en una historia ilustrada, con tu hijo como protagonista de su propia historia.",
+    cat_title: "Nuestros Libros", cat_sub: "Cada tema se transforma en una historia ilustrada, con tu hijo como protagonista de su propia historia.",
     personalize: "Personalizar",
     a11y_theme: "Cambiar tema claro/oscuro",
     a11y_menu: "Menú",
@@ -1135,7 +1135,7 @@ const I18N = {
       { t: "Raquel y Papá: Aventuras para Siempre", p: "De la mano con papá, cada camino se vuelve recuerdo — una aventura para guardar para siempre.", cover: "Hard", size: "M", tag: "Papá y yo", quote: "Juntos, la aventura nunca termina." },
       { t: "Rebeca, la Pequeña Gran Heroína", p: "Capa al viento y coraje en el pecho: tu hijo salva el día con el corazón.", cover: "Hard", size: "M", tag: "Superhéroes", quote: "Ser héroe empieza con una sonrisa." },
       { t: "Abigail en una Aventura por el Espacio", p: "Cohetes, planetas y curiosidad: un viaje estelar con tu hijo al mando.", cover: "Hard", size: "M", tag: "Espacio", quote: "¡Coraje, curiosidad y descubrimientos!" },
-      { t: "Miriam y los Secretos del Fondo del Mar", p: "Tortugas, corales y amistad: tu hijo explora el océano con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del mar", quote: "Cuidar el mar es cuidar a los amigos." },
+      { t: "Miriam y los Secretos del Fondo del Mar", p: "Tortugas, corales y amistad: tu hijo explora el océano con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del Mar", quote: "Cuidar el mar es cuidar a los amigos." },
       { t: "Noé en la Tierra de los Dinosaurios", p: "Fósiles, amigos gigantes y coraje: una expedición prehistórica con tu hijo.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Descubrir juntos es la mejor aventura." },
       { t: "El Amor de la Tía", p: "El cariño de la tía en cada página: abrazo, risa y un amor que la familia guarda para siempre.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "El abrazo de la tía no se acaba." },
       { t: "David, el Niño Pastor", p: "Un niño, su arpa y las ovejas: coraje y fe en una historia para guardar para siempre.", cover: "Hard", size: "M", tag: "Fe y coraje", quote: "Pequeño en el campo, grande de corazón." },
@@ -1144,15 +1144,15 @@ const I18N = {
       { t: "Lucas y su amigo Theo", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Theo es el amigo de todas las horas." },
       { t: "Esther y los Superpoderes de la Higiene", p: "Manos limpias, dientes cepillados y una sonrisa: hábitos de higiene que se vuelven superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidarse es un superpoder." },
     ],
-    promise_title: "Cada detalle pensado para ser especial",
+    promise_title: "Cada Detalle Pensado para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
     promise: [
-      { t: "Privacidad de la foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
-      { t: "Impresión pensada como regalo", p: "Preparado para verse hermoso en las manos, en la lectura en familia y al momento de entregarlo." },
-      { t: "Vista previa antes de avanzar", p: "Ves la portada y las páginas y entiendes lo que estás creando antes de finalizar." },
-      { t: "Entrega sin complicaciones", p: "El PDF queda listo en la plataforma. El libro impreso es bajo consulta — en hasta 24h enviamos la cotización y el plazo." },
+      { t: "Privacidad de la Foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
+      { t: "Impresión Pensada como Regalo", p: "Preparado para verse hermoso en las manos, en la lectura en familia y al momento de entregarlo." },
+      { t: "Vista Previa antes de Avanzar", p: "Ves la portada y las páginas y entiendes lo que estás creando antes de finalizar." },
+      { t: "Entrega sin Complicaciones", p: "El PDF queda listo en la plataforma. El libro impreso es bajo consulta — en hasta 24h enviamos la cotización y el plazo." },
     ],
-    faq_title: "Preguntas frecuentes", faq_sub: "Todo lo que necesitas saber.",
+    faq_title: "Preguntas Frecuentes", faq_sub: "Todo lo que necesitas saber.",
     faq: [
       { q: "¿Cómo creo un libro personalizado?", a: "Elige un tema, envía una foto del niño y agrega el nombre y una dedicatoria. La IA transforma la foto en ilustraciones y ves la vista previa antes de finalizar." },
       { q: "¿Puedo ver el libro antes?", a: "¡Sí! Recibes una vista previa completa (portada y páginas) antes de descargar o pedir la impresión." },
@@ -1161,7 +1161,7 @@ const I18N = {
       { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
       { q: "¿Cómo funciona el video narrado?", a: "Después del ebook listo, en la pantalla de resultado puedes generar el video narrado (voz + escenas ilustradas) o una animación corta del personaje." },
     ],
-    rev_title: "Lo que dicen las familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
+    rev_title: "Lo que Dicen las Familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
     reviews: [
       { q: "Mi hijo pide leer su libro todas las noches. ¡Emocionante verlo como héroe!", name: "Ana C." },
       { q: "Envié una foto y recibí un libro hermoso. Se volvió el regalo de cumpleaños de la abuela.", name: "Rafael M." },
@@ -1169,7 +1169,7 @@ const I18N = {
       { q: "El video narrado emocionó a toda la familia. Vale cada segundo.", name: "Marcos y Bia" },
     ],
     features: ["Historias personalizadas", "Conexión en familia", "Recuerdos que quedan para siempre", "Un regalo inolvidable"],
-    band_title: "¿Listo para ser el protagonista?",
+    band_title: "¿Listo para Ser el Protagonista?",
     band_sub: "Envía tu foto y recibe una historia única, creada solo para ti.",
     band_cta: "Crear mi cuenta",
     tagline: "Hecho con amor. Creado para encantar.",
@@ -2176,15 +2176,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <figure className={`howex-card howex-card-scene${i === 2 ? " howex-card-receive" : ""}`}>
                   <div className="howex-lead">
                     <h3>{h.t}</h3>
-                    <p>{h.p}</p>
                   </div>
                   <div className="howex-media">
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
                   <figcaption>
-                    <h3>{t.hiw_foot[i].t}</h3>
-                    <p>{t.hiw_foot[i].p}</p>
+                    <p>{h.p}</p>
                   </figcaption>
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
@@ -2217,7 +2215,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         <h2 className="ktitle reveal promise-heading">
           {lang === "pt" ? (
             <>
-              Um <span className="promise-mark">presente</span> personalizado para eternizar momentos inesquecíveis.
+              Um <span className="promise-mark">Presente</span> Personalizado para Eternizar Momentos Inesquecíveis.
             </>
           ) : t.promise_title}
         </h2>

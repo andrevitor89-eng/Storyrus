@@ -6,7 +6,7 @@ export const THEMES: { id: Theme; emoji: string; group: ThemeGroup; label: strin
   { id: "princess", emoji: "👑", group: "aventura", label: "Princesas" },
   { id: "superhero", emoji: "🦸", group: "aventura", label: "Super-heróis" },
   { id: "space", emoji: "🚀", group: "aventura", label: "Espaço" },
-  { id: "underwater", emoji: "🐠", group: "aventura", label: "Fundo do mar" },
+  { id: "underwater", emoji: "🐠", group: "aventura", label: "Fundo do Mar" },
   { id: "dinosaurs", emoji: "🦕", group: "aventura", label: "Dinossauros" },
   { id: "fantasy", emoji: "🧚", group: "aventura", label: "Fantasia" },
   { id: "birthday", emoji: "🎂", group: "datas", label: "Aniversário" },
@@ -33,9 +33,9 @@ export const THEMES: { id: Theme; emoji: string; group: ThemeGroup; label: strin
 ];
 
 export const THEME_GROUP_LABEL: Record<ThemeGroup, string> = {
-  aventura: "Aventura e fantasia",
-  datas: "Datas comemorativas",
-  educativo: "Temas educativos",
+  aventura: "Aventura e Fantasia",
+  datas: "Datas Comemorativas",
+  educativo: "Temas Educativos",
 };
 
 export function themeLabel(id: string | null | undefined): string {

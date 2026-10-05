@@ -1253,7 +1253,7 @@ a.kcat-group-name.is-chip:focus-visible {
   box-shadow: 0 4px 10px rgba(0,0,0,.4); z-index: 3;
 }
 .howex-card figcaption {
-  padding: 12px 14px 14px; min-height: 7.25rem; flex: 1 0 auto;
+  padding: 12px 14px 14px; min-height: 0; flex: 1 0 auto;
   display: flex; flex-direction: column; justify-content: flex-start;
   overflow: visible; box-sizing: border-box;
   position: relative; z-index: 1;
@@ -1272,7 +1272,7 @@ a.kcat-group-name.is-chip:focus-visible {
   justify-content: flex-start;
   box-sizing: border-box;
 }
-.howex-card .howex-lead h3 { margin: 0 0 6px; color: #fff; font-size: 1.08rem; line-height: 1.25; min-height: 0; }
+.howex-card .howex-lead h3 { margin: 0; color: #fff; font-size: 1.08rem; line-height: 1.25; min-height: 0; }
 .howex-card .howex-lead p { margin: 0; color: #b9c2dc; font-weight: 600; font-size: .92rem; line-height: 1.4; }
 .howex-arrow { color: var(--yellow); align-self: center; animation: nudge 1.5s ease-in-out infinite; }
 .howex-arrow svg { width: 34px; height: 20px; }
