@@ -3,11 +3,12 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Auth, accountGateHref, safeNextPath } from "./Auth";
-import { getToken, setToken } from "./api";
+import { getToken, setAuthFetchTimeoutMsForTests, setToken } from "./api";
 import { state } from "./test/server";
 
 afterEach(() => {
   setToken(null);
+  setAuthFetchTimeoutMsForTests(15_000);
   state.reset();
 });
 
@@ -85,5 +86,27 @@ describe("Auth", () => {
     await user.type(screen.getByTestId("auth-password"), "password123");
     await user.click(screen.getByTestId("auth-submit"));
     expect(await screen.findByTestId("auth-error")).toHaveTextContent(/indisponível/i);
+  });
+
+  it("sai de Aguarde… quando o signup estoura o timeout", async () => {
+    const user = userEvent.setup();
+    setAuthFetchTimeoutMsForTests(80);
+    const { http, delay } = await import("msw");
+    const { server } = await import("./test/server");
+    server.use(
+      http.post("*/v1/auth/signup", async () => {
+        await delay("infinite");
+        return new Response();
+      }),
+    );
+    renderAuth("signup", "/app");
+    await user.type(screen.getByTestId("auth-email"), "x@example.com");
+    await user.type(screen.getByTestId("auth-password"), "password123");
+    await user.click(screen.getByTestId("auth-submit"));
+    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/aguarde/i);
+    expect(await screen.findByTestId("auth-error", {}, { timeout: 3000 })).toHaveTextContent(
+      /indisponível/i,
+    );
+    expect(screen.getByTestId("auth-submit")).not.toBeDisabled();
   });
 });
