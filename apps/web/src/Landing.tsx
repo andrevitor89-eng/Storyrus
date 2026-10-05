@@ -2199,20 +2199,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="ksection" id="catalogo">
         <h2 className="ktitle reveal">{t.cat_title}</h2>
         <p className="ksub reveal">{t.cat_sub}</p>
-        {variant === "cartoon" ? (
-          <>
-            <section className="catalog-section" id="educativo" style={{ "--group": "#5ec4a8" } as CSSProperties}>
-              <h3 className="catalog-section-title">{t.cats[3].name}</h3>
-              <div className="cat-grid">
-                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme) || FEELING_THEMES.has(book.theme)).map((c) => (
-                  <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
-                ))}
-              </div>
-            </section>
-          </>
-        ) : null}
         <div className="cat-grid">
-          {(variant === "cartoon" ? catalogBooks.filter((book) => !CATALOG_SECTION_THEMES.educativo.includes(book.theme) && !FEELING_THEMES.has(book.theme)) : catalogBooks).map((c) => (
+          {catalogBooks.map((c) => (
             <CatalogBookCard
               key={c.t}
               book={c}

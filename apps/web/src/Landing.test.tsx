@@ -665,7 +665,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(cartoonNav).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(within(cartoonNav).queryByRole("link", { name: /^livros cartoon$/i })).not.toBeInTheDocument();
     expect(within(document.querySelector(".kmobile") as HTMLElement).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^educativo$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /^sentimentos$/i })).not.toBeInTheDocument();
     const cartoonGroups = [...document.querySelectorAll("#cat-panel .kcat-group-name")].map((el) => el.textContent ?? "");
     expect(cartoonGroups).toEqual(["Aventuras", "Você e Eu", "Ocasiões Especiais", "Educativo"]);
