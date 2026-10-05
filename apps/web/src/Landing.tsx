@@ -2080,8 +2080,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
               <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
             </div>
-            <div className="khead-links">
-              <Link to="/entrar" data-testid="landing-header-login">{t.cta_login}</Link>
+            <div className="khead-links" data-testid="landing-header-auth">
+              <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-header-login">{t.cta_login}</Link>
               <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
             </div>
           </div>
@@ -2135,8 +2135,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
-          <Link to="/entrar" className="kmobile-link" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
-          <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+          <div className="kmobile-auth" data-testid="landing-mobile-auth">
+            <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
+            <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+          </div>
         </nav>
         </div>
       </header>

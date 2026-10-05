@@ -491,10 +491,14 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
 
     expect(await screen.findByTestId("landing-hero-cta")).toHaveAttribute("href", "/cadastro");
+    expect(screen.getByTestId("landing-header-auth")).toBeInTheDocument();
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
-    expect(screen.getByTestId("landing-mobile-cta")).toHaveAttribute("href", "/cadastro");
+    expect(screen.getByTestId("landing-header-cta")).toHaveClass("kbtn", "kbtn-primary");
     expect(screen.getByTestId("landing-header-login")).toHaveAttribute("href", "/entrar");
+    expect(screen.getByTestId("landing-header-login")).toHaveClass("kbtn", "kbtn-login");
+    expect(screen.getByTestId("landing-mobile-cta")).toHaveAttribute("href", "/cadastro");
     expect(screen.getByTestId("landing-mobile-login")).toHaveAttribute("href", "/entrar");
+    expect(screen.getByTestId("landing-mobile-auth")).toBeInTheDocument();
   });
 
   it("footer liga privacidade e termos", async () => {
