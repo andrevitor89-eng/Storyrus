@@ -1,9 +1,9 @@
 # Story R Us — Mobile (Expo)
 
-App React Native (Expo) que espelha o fluxo do web: **guest-first** → temas /
-nome → criar projeto → consentimento + foto → etapas (avatar, história, ebook,
-vídeo, **vídeo narrado**) → vozes, aprovações e pedido de impressão. Login/signup
-é opcional (botão "Entrar" no estúdio).
+App React Native (Expo) alinhado ao web: **conta obrigatória** (login/signup)
+antes do estúdio → temas / nome → criar projeto → consentimento + foto →
+etapas (avatar, história, ebook, vídeo, **vídeo narrado**) → vozes, aprovações
+e pedido de impressão.
 
 ## Rodar
 
@@ -30,16 +30,17 @@ EXPO_PUBLIC_API_BASE=http://192.168.0.10:8000 npx expo start
 
 Ou edite temporariamente `app.json` → `expo.extra.apiBase`.
 
-O JWT (guest ou conta) é persistido em AsyncStorage (`storyrus_token`).
+O JWT de **conta registrada** é persistido em AsyncStorage (`storyrus_token`).
+Convidados não entram no estúdio.
 
 ## Estrutura
 
 ```
-App.tsx              # boot guest → Studio; Auth opcional
-src/api.ts           # client REST + ensureGuest + AsyncStorage
+App.tsx              # boot → Auth obrigatório → Studio
+src/api.ts           # client REST + ensureSession + AsyncStorage
 src/types.ts
 src/themes.ts        # catálogo de temas (paridade web)
-src/AuthScreen.tsx   # login/signup opcional
+src/AuthScreen.tsx   # login/signup (wall)
 src/StudioScreen.tsx # temas, etapas, aprovações, assets
 src/VoicePanel.tsx   # clone / seleção de voz (narrated-video)
 ```
