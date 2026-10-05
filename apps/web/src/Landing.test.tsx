@@ -514,13 +514,19 @@ describe("Landing — CTAs e links", () => {
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
     expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
-    expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(2);
+    expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /preencha os dados/i })).toHaveLength(2);
+    expect(screen.getAllByRole("heading", { name: /preencha os dados/i })).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^dados do livro$/i })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(2);
-    expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(2);
+    expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(1);
+    expect(screen.getByRole("heading", { name: /envie a foto e defina os detalhes/i })).toBeInTheDocument();
+    expect(screen.getByText(/escolha o tema e o formato do livro/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /criamos o personagem e a história/i })).toBeInTheDocument();
+    expect(screen.getByText(/mesmo rosto da criança/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /você recebe e aprova o livro/i })).toBeInTheDocument();
+    expect(screen.getByText(/receba o livro impresso/i)).toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;
     for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();

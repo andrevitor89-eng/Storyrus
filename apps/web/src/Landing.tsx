@@ -667,6 +667,11 @@ const I18N = {
       { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
+    hiw_foot: [
+      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
+      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
+      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
+    ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
       { t: "A criança", p: "3 a 5 fotos de frente, bem iluminadas, com o rosto inteiro. Sem filtro, chapéu ou óculos." },
@@ -859,6 +864,11 @@ const I18N = {
       { t: "Follow the creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
       { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
+    hiw_foot: [
+      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
+      { t: "We create the character and the story", p: "Story, cover, and pages with the same face as the child." },
+      { t: "You receive and approve the book", p: "See the preview, approve it, and receive the printed book." },
+    ],
     shot_sub: "Send the photo and set the details.",
     shots: [
       { t: "The child", p: "3 to 5 front-facing, well-lit photos, with the full face. No filter, hat, or sunglasses." },
@@ -1050,6 +1060,11 @@ const I18N = {
       { t: "Completa los datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
       { t: "Acompaña la creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
       { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+    ],
+    hiw_foot: [
+      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
+      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro del niño." },
+      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
@@ -1993,7 +2008,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             setSubHover((cur) => (cur?.cat === i ? cur : null));
                           }}
                         >
-                          <Link to={`/catalogo/${cat.id}`} className="kcat-group-name" onClick={closeNav}>
+                          <Link to={`/catalogo/${cat.id}`} className={`kcat-group-name${cat.id === "aventuras" || cat.id === "voce-e-eu" ? " is-chip" : ""}`} onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
                           </Link>
@@ -2229,8 +2244,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <span className="howex-num">{i + 1}</span>
                   </div>
                   <figcaption>
-                    <h3>{h.t}</h3>
-                    <p>{h.p}</p>
+                    <h3>{classicHow ? h.t : t.hiw_foot[i].t}</h3>
+                    <p>{classicHow ? h.p : t.hiw_foot[i].p}</p>
                   </figcaption>
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
