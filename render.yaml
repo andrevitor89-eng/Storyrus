@@ -134,3 +134,5 @@ services:
         value: "0"
       - key: DAILY_CREDITS_CEILING
         value: "0"
+
+# redeploy nudge 2026-10-05T18:10Z
