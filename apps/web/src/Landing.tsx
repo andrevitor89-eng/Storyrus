@@ -135,13 +135,17 @@ const CARTOON_COVER: Record<number, string> = {
   20: "cartoon-capa-davi.jpg",
   22: "cartoon-capa-enzo.jpg",
 };
-const CARTOON_REVIEW: Record<string, string> = {
-  Nicolas: "cartoon-foto-nicolas.jpg",
-  "Amor de Mãe": "cartoon-foto-amordemae.jpg",
-  Matteo: "cartoon-foto-matteo.jpg",
-  "Amor de Bisavó": "cartoon-foto-bisavo.jpg",
-  Maya: "cartoon-foto-maya.jpg",
-};
+/** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
+const CARTOON_REVIEW_PHOTOS = [
+  { tab: "cartoon-foto-nicolas.jpg", name: "Nicolas" },
+  { tab: "cartoon-foto-davi.jpg", name: "Davi" },
+  { tab: "cartoon-foto-maya.jpg", name: "Maya" },
+  { tab: "cartoon-foto-enzo.jpg", name: "Enzo" },
+  { tab: "cartoon-foto-amordemae.jpg", name: "Amor de Mãe" },
+  { tab: "cartoon-foto-natal.jpg", name: "Meme e Tata" },
+  { tab: "cartoon-foto-matteo.jpg", name: "Matteo" },
+  { tab: "cartoon-foto-bisavo.jpg", name: "Amor de Bisavó" },
+] as const;
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
@@ -1763,11 +1767,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           heroi: HERO_BY_CATALOG[i],
           catalogI: i,
         }));
-  const reviewPhotos = REVIEW_PHOTOS.flatMap((photo) => {
-    if (variant !== "cartoon") return [photo];
-    const tab = CARTOON_REVIEW[photo.name];
-    return tab ? [{ ...photo, tab }] : [];
-  });
+  const reviewPhotos = variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS;
   const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
   const heroPage = heroPick % 3;
   const heroBook = heroStrip[heroSeries] ?? heroStrip[0];

@@ -700,7 +700,20 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByRole("button", { name: "Meu Pai, Meu Herói" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Nano" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Meme e Tata" })).not.toBeInTheDocument();
-    expect(screen.getByTestId("landing-review-cover-0")).toHaveAttribute("src", expect.stringContaining("cartoon-foto-nicolas.jpg"));
+    const cartoonReviews = [
+      "cartoon-foto-nicolas.jpg",
+      "cartoon-foto-davi.jpg",
+      "cartoon-foto-maya.jpg",
+      "cartoon-foto-enzo.jpg",
+      "cartoon-foto-amordemae.jpg",
+      "cartoon-foto-natal.jpg",
+      "cartoon-foto-matteo.jpg",
+      "cartoon-foto-bisavo.jpg",
+    ];
+    cartoonReviews.forEach((file, i) => {
+      expect(screen.getByTestId(`landing-review-cover-${i}`)).toHaveAttribute("src", expect.stringContaining(file));
+    });
+    expect(screen.queryByTestId("landing-review-cover-8")).not.toBeInTheDocument();
     expect(within(document.getElementById("como") as HTMLElement).getAllByRole("heading", { name: "Preencha os Dados" })).toHaveLength(1);
   });
 });
