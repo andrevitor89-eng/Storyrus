@@ -270,7 +270,7 @@ const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
 const NAV_CAT_META = [
   {
     id: "aventuras",
-    color: "#5aa6e8",
+    color: "#7aa2ff",
     subs: [
       { href: "/app?tema=adventure" },
       { href: "/app?tema=dinosaurs" },
@@ -1854,24 +1854,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     const room = Math.max(voceEeuCount - open.length, 0);
     return { ...cat, subs: [...dated.slice(0, room), ...open].slice(0, voceEeuCount) };
   });
-  const feelingLabel = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
-  const shownCats = variant === "cartoon"
-    ? menuCats.flatMap((cat) => {
-        if (cat.id !== "educativo") return [cat];
-        const isFeeling = (href: string) => FEELING_THEMES.has(themeFromHref(href) ?? "");
-        return [
-          { ...cat, subs: cat.subs.filter((sub) => !isFeeling(sub.href)) },
-          {
-            ...cat,
-            id: "sentimentos",
-            name: feelingLabel,
-            color: "#f0a0c0",
-            subs: cat.subs.filter((sub) => isFeeling(sub.href)),
-            feats: [],
-          },
-        ];
-      })
-    : menuCats;
+  const shownCats = menuCats;
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
@@ -2058,6 +2041,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
                   {t.hiw_title}
                 </a>
+                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
+                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
+                </Link>
                 <a href="#videos" className="kcat-btn" style={{ "--cat": "#e07a9a" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
                   {t.videos_link}
@@ -2066,10 +2053,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
-                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
-                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
-                </Link>
               </nav>
             </div>
           </div>
@@ -2133,9 +2116,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
+            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
@@ -2150,7 +2133,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <p className="hero-carousel-label">{t.book_carousel}</p>
         <div className="hero-carousel" aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
@@ -2246,12 +2228,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
-                  {classicHow ? (
-                    <figcaption>
-                      <h3>{h.t}</h3>
-                      <p>{h.p}</p>
-                    </figcaption>
-                  ) : null}
+                  <figcaption>
+                    <h3>{h.t}</h3>
+                    <p>{h.p}</p>
+                  </figcaption>
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
@@ -2270,22 +2250,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <section className="catalog-section" id="educativo" style={{ "--group": "#5ec4a8" } as CSSProperties}>
               <h3 className="catalog-section-title">{t.cats[3].name}</h3>
               <div className="cat-grid">
-                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme)).map((c) => (
+                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme) || FEELING_THEMES.has(book.theme)).map((c) => (
                   <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
                 ))}
               </div>
-            </section>
-            <section className="catalog-section" id="sentimentos" style={{ "--group": "#f0a0c0" } as CSSProperties}>
-              <h3 className="catalog-section-title">{feelingLabel}</h3>
-              {catalogBooks.some((book) => FEELING_THEMES.has(book.theme)) ? (
-                <div className="cat-grid">
-                  {catalogBooks.filter((book) => FEELING_THEMES.has(book.theme)).map((c) => (
-                    <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
-                  ))}
-                </div>
-              ) : (
-                <p className="kcat-empty">{t.cat_empty}</p>
-              )}
             </section>
           </>
         ) : null}

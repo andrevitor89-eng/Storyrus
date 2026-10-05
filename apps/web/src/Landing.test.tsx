@@ -513,13 +513,13 @@ describe("Landing — CTAs e links", () => {
 
     expect(screen.getByRole("link", { name: /@storyr\.us/i })).toHaveAttribute("href", "https://www.instagram.com/storyr.us/");
     expect(within(document.querySelector(".kcats") as HTMLElement).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
-    expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(1);
+    expect(screen.getAllByText(/fotos nítidas relacionadas à história/i)).toHaveLength(2);
     expect(screen.queryByRole("heading", { name: /^a criança$/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/dicas para a foto perfeita/i)).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /preencha os dados/i })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: /preencha os dados/i })).toHaveLength(2);
     expect(screen.queryByRole("heading", { name: /^dados do livro$/i })).not.toBeInTheDocument();
-    expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(1);
+    expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(2);
+    expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(2);
     const como = document.getElementById("como") as HTMLElement;
     for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
@@ -537,6 +537,14 @@ describe("Landing — CTAs e links", () => {
     expect(within(nav).getByRole("link", { name: /^vídeos$/i })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: /^avaliações$/i })).toBeInTheDocument();
     expect(within(nav).getByRole("link", { name: /^livros cartoon$/i })).toHaveAttribute("href", "/cartoon");
+    expect([...nav.querySelectorAll(".kcat-btn")].map((el) => el.textContent?.trim())).toEqual([
+      "Livros",
+      "Como funciona",
+      "Livros cartoon",
+      "Vídeos",
+      "Avaliações",
+    ]);
+    expect(screen.queryByText(/^carrossel de livros$/i)).not.toBeInTheDocument();
     const subs = panel.querySelector(".kcat-subs") as HTMLElement;
     const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
     const princesasHref = decodeURIComponent((princesas.getAttribute("href") ?? "").replace(/\+/g, " "));
@@ -631,9 +639,12 @@ describe("Landing — CTAs e links", () => {
     expect(within(cartoonNav).queryByRole("link", { name: /^livros cartoon$/i })).not.toBeInTheDocument();
     expect(within(document.querySelector(".kmobile") as HTMLElement).getByRole("link", { name: /^realista$/i })).toHaveAttribute("href", "/");
     expect(screen.getByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^sentimentos$/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^sentimentos$/i })).not.toBeInTheDocument();
     const cartoonGroups = [...document.querySelectorAll("#cat-panel .kcat-group-name")].map((el) => el.textContent ?? "");
-    expect(cartoonGroups).toEqual(expect.arrayContaining(["Educativo", "Sentimentos"]));
+    expect(cartoonGroups).toEqual(["Aventuras", "Você e Eu", "Ocasiões Especiais", "Educativo"]);
+    const cartoonEducativo = document.querySelectorAll("#cat-panel .kcat-group")[3] as HTMLElement;
+    expect(within(cartoonEducativo).getByRole("link", { name: /^sentimentos$/i })).toBeInTheDocument();
+    expect(within(cartoonEducativo).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /dicas para a foto perfeita/i })).toBeInTheDocument();
     expect(screen.getByText(/você envia a foto/i)).toBeInTheDocument();
 
