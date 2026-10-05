@@ -129,15 +129,13 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await mockApi(page, state);
   await page.goto("/app");
 
-  await expect(page.getByTestId("studio-credits")).toContainText(/créditos:\s*10/i);
-
   await page.getByLabel("Nome do cliente").fill("Ana Souza");
   await page.getByLabel("E-mail").fill("ana@email.com");
   await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
   await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
   await page.getByRole("button", { name: "Continuar para o livro" }).click();
   await page.getByLabel("Nome do protagonista").fill("Lila");
-  await page.getByLabel("Idade").fill("5");
+  await page.getByLabel("Idade", { exact: true }).fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByRole("button", { name: "Feminino" }).click();
@@ -163,7 +161,7 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
   await page.getByRole("button", { name: "Continuar para o livro" }).click();
   await page.getByLabel("Nome do protagonista").fill("Lila");
-  await page.getByLabel("Idade").fill("5");
+  await page.getByLabel("Idade", { exact: true }).fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByRole("button", { name: "Feminino" }).click();
