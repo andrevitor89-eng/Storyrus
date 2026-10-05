@@ -11,11 +11,11 @@ from sqlalchemy.orm import Session
 from app import storage
 from app.config import settings
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import require_registered_user
 from app.models import Asset, AssetKind, OrderTicket, User
 from app.orders import build_book_order_summary, client_registration, parse_extra_names
-from app.security import is_guest_user
 from app.schemas import UploadUrlIn, UploadUrlOut
+from app.security import is_guest_user
 
 from .common import get_owned_project
 
@@ -26,7 +26,7 @@ router = APIRouter()
 def request_photo_upload(
     project_id: uuid.UUID,
     body: UploadUrlIn,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> UploadUrlOut:
     """Gera URL assinada de upload e registra o asset (foto de origem)."""
@@ -93,7 +93,9 @@ def _register_order(
     if len(lang) <= 8:
         project.language = lang
     theme = (theme_label or "").strip()[:500] or (project.theme or "")
-    extras = parse_extra_names(extra_names) + parse_extra_names(", ".join(_stored_extra_names(project)))
+    extras = parse_extra_names(extra_names) + parse_extra_names(
+        ", ".join(_stored_extra_names(project))
+    )
     photo_count = db.scalar(
         select(func.count())
         .select_from(Asset)
@@ -127,7 +129,7 @@ def _register_order(
 @router.post("/{project_id}/photo", response_model=UploadUrlOut, status_code=201)
 async def upload_photo(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
     language: str = Form(""),
@@ -202,7 +204,7 @@ async def upload_photo(
 @router.post("/{project_id}/extra-character", response_model=UploadUrlOut, status_code=201)
 async def upload_extra_character(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
     name: str = "",

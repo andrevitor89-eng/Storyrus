@@ -2,6 +2,7 @@
 
 Rotas autenticadas exigem JWT. Convidados passam por POST /v1/auth/guest,
 que cria um usuario isolado e devolve o token — nunca um guest compartilhado.
+Mutacoes de livro exigem conta registrada via require_registered_user.
 """
 
 import uuid
@@ -12,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import User
-from app.security import decode_access_token
+from app.security import decode_access_token, is_guest_user
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -33,4 +34,11 @@ def get_current_user(
     user = db.get(User, user_id)
     if user is None:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Nao autenticado")
+    return user
+
+
+def require_registered_user(user: User = Depends(get_current_user)) -> User:
+    """Bloqueia convidados em mutacoes de criacao de livro."""
+    if is_guest_user(email=user.email, password_hash=user.password_hash):
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Cadastro necessario")
     return user

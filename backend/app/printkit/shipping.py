@@ -218,7 +218,9 @@ def buy_label(order) -> LabelResult:
         raise ShippingError("Melhor Envio não devolveu o pedido da etiqueta.")
     checkout = _post(f"{_base()}/api/v2/me/shipment/checkout", {"orders": [order_id]})
     if checkout.status_code >= 400:
-        raise ShippingError(f"Melhor Envio recusou o pagamento da etiqueta ({checkout.status_code}).")
+        raise ShippingError(
+            f"Melhor Envio recusou o pagamento da etiqueta ({checkout.status_code})."
+        )
     generated = _post(f"{_base()}/api/v2/me/shipment/generate", {"orders": [order_id]})
     if generated.status_code >= 400:
         raise ShippingError(f"Melhor Envio não gerou a etiqueta ({generated.status_code}).")

@@ -19,9 +19,7 @@ from app.printkit.pricing import book_price_cents
 from app.printkit.shipping import ShippingError, ShippingNotConfigured, buy_label
 from app.printkit.spec import PrintPagesMissing, PrintSpecIncomplete, spec_from_settings
 
-_FILE_STATUSES = frozenset(
-    {"files_ready", "sent_for_validation", "approved", "rejected"}
-)
+_FILE_STATUSES = frozenset({"files_ready", "sent_for_validation", "approved", "rejected"})
 _FORWARD = {
     "files_ready": frozenset({"sent_for_validation"}),
     "sent_for_validation": frozenset({"approved", "rejected"}),

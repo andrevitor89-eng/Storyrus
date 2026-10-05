@@ -143,7 +143,9 @@ def _address(auth_client, pid: str):
 class _FakeGateway:
     name = "fake"
 
-    def create_charge(self, *, order_code: str, amount_cents: int, installments: int) -> ChargeResult:
+    def create_charge(
+        self, *, order_code: str, amount_cents: int, installments: int
+    ) -> ChargeResult:
         assert amount_cents > 0
         assert installments == 3
         return ChargeResult(
@@ -311,7 +313,13 @@ def test_freight_keeps_a_missing_deadline(auth_client, monkeypatch):
             200,
             json=[
                 {"id": 1, "name": "PAC", "price": "19.20", "delivery_time": 8},
-                {"id": 2, "name": "SEDEX", "custom_price": "30.00", "price": "40.00", "delivery_time": None},
+                {
+                    "id": 2,
+                    "name": "SEDEX",
+                    "custom_price": "30.00",
+                    "price": "40.00",
+                    "delivery_time": None,
+                },
                 {"id": 3, "name": "Erro", "error": "sem cobertura", "price": "1.00"},
             ],
             request=httpx.Request("POST", url),
@@ -367,11 +375,18 @@ def test_quantity_is_chosen_at_checkout_and_multiplies_the_book(auth_client, mon
         assert copies.json()["quantity"] == 4
         package = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 12})
         assert package.json()["quantity"] == 12
-        assert auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 0}).status_code == 422
+        assert (
+            auth_client.put(
+                f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 0}
+            ).status_code
+            == 422
+        )
         _address(auth_client, pid)
         auth_client.post(f"/v1/projects/{pid}/print-order/freight")
         auth_client.post(f"/v1/projects/{pid}/print-order/freight/select", json={"service_id": 1})
-        paid = auth_client.post(f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3})
+        paid = auth_client.post(
+            f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3}
+        )
         assert paid.status_code == 200, paid.text
         assert paid.json()["amount_cents"] == 17700 * 12 + 1000
         locked = auth_client.put(f"/v1/projects/{pid}/print-order/quantity", json={"quantity": 2})
@@ -411,7 +426,9 @@ def test_paid_webhook_buys_the_label(auth_client, monkeypatch):
         _address(auth_client, pid)
         auth_client.post(f"/v1/projects/{pid}/print-order/freight")
         auth_client.post(f"/v1/projects/{pid}/print-order/freight/select", json={"service_id": 1})
-        paid = auth_client.post(f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3})
+        paid = auth_client.post(
+            f"/v1/projects/{pid}/print-order/checkout", json={"installments": 3}
+        )
         assert paid.status_code == 200, paid.text
         body = paid.json()
         assert body["amount_cents"] == 17700 + 1000

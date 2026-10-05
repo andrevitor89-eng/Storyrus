@@ -58,6 +58,7 @@ def _install_ssl_hook() -> None:
         verify = False
     elif raw == "system":
         import ssl
+
         import certifi
 
         try:

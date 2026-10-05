@@ -11,9 +11,9 @@ from app import storage
 from app.ai_clients.base import ImageResult, ProviderError
 from app.ai_clients.book_prompts import (
     STYLE as BOOK_STYLE,
-    book_art_direction,
 )
 from app.ai_clients.book_prompts import (
+    book_art_direction,
     costume_extras_for_theme,
     identity_shot,
     name_scene_extras_for_template,
@@ -23,10 +23,10 @@ from app.ai_clients.identity_lock import require_character_ref
 from app.config import settings
 from app.models import Asset, AssetKind, Job, ProjectStatus
 from app.observability.opik_trace import job_metadata, update_trace
+from app.printkit.service import invalidate_print
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.story_templates import illustration_notes, page_layouts
-from app.printkit.service import invalidate_print
 from app.workers import ebook as ebook_builder
 
 from .common import (

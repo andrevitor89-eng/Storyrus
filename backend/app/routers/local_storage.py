@@ -44,7 +44,9 @@ async def put_local_object(key: str, request: Request) -> Response:
     if not data:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "corpo vazio")
     try:
-        storage.put_bytes(key, data, request.headers.get("content-type") or "application/octet-stream")
+        storage.put_bytes(
+            key, data, request.headers.get("content-type") or "application/octet-stream"
+        )
     except storage.StorageNotConfigured as exc:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
     return Response(status_code=204)

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 from app import story_import, story_templates
 from app.config import settings
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import require_registered_user
 from app.models import (
     Asset,
     AssetKind,
@@ -44,7 +44,7 @@ router = APIRouter()
 @router.post("/{project_id}/avatar", response_model=JobAcceptedOut, status_code=202)
 def start_avatar(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
@@ -66,7 +66,7 @@ def start_avatar(
 @router.post("/{project_id}/realistic", response_model=JobAcceptedOut, status_code=202)
 def start_realistic(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
@@ -86,7 +86,7 @@ def start_realistic(
 @router.post("/{project_id}/story", response_model=JobAcceptedOut, status_code=202)
 def start_story(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
@@ -102,7 +102,7 @@ def start_story(
 def set_story_text(
     project_id: uuid.UUID,
     body: StoryTextIn,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> Project:
     """Usar uma história fornecida pelo usuário (digitada ou colada). Sem IA, sem créditos."""
@@ -145,7 +145,7 @@ def set_story_text(
 def apply_story_template(
     project_id: uuid.UUID,
     body: StoryTemplateApplyIn,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> Project:
     """Usar uma história pronta do catálogo, personalizada com o nome da criança.
@@ -198,7 +198,7 @@ def apply_story_template(
 @router.post("/{project_id}/story/extract", response_model=StoryExtractOut)
 async def extract_story(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     file: UploadFile = File(...),
 ) -> StoryExtractOut:
@@ -225,7 +225,7 @@ async def extract_story(
 @router.post("/{project_id}/ebook", response_model=JobAcceptedOut, status_code=202)
 def start_ebook(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
@@ -241,7 +241,7 @@ def start_ebook(
 @router.post("/{project_id}/extra-character", response_model=JobAcceptedOut, status_code=202)
 def start_extra_character(
     project_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
@@ -266,7 +266,7 @@ def start_extra_character(
 def start_video(
     project_id: uuid.UUID,
     body: VideoRequestIn,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
@@ -290,7 +290,7 @@ def start_video(
 def start_narrated_video(
     project_id: uuid.UUID,
     body: NarratedVideoRequestIn | None = None,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:

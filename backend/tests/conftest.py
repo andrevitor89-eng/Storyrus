@@ -84,6 +84,17 @@ def client():
 
 @pytest.fixture()
 def auth_client(client):
+    """Cliente com conta registrada (obrigatoria para criar livros)."""
+    email = "auth@example.com"
+    r = client.post("/v1/auth/signup", json={"email": email, "password": "password123"})
+    assert r.status_code == 201, r.text
+    token = r.json()["access_token"]
+    client.headers.update({"Authorization": f"Bearer {token}"})
+    return client
+
+
+@pytest.fixture()
+def guest_client(client):
     r = client.post("/v1/auth/guest")
     assert r.status_code == 201, r.text
     token = r.json()["access_token"]
