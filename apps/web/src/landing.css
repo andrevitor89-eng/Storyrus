@@ -1883,15 +1883,27 @@ img.ex-tab-cover {
   .kgrid.outputs { grid-template-columns: 1fr; max-width: 460px; margin-inline: auto; }
   .featurebar { grid-template-columns: repeat(2, 1fr); }
   .feat:nth-child(2) { border-right: none; }
-  .khamb { display: block; }
+  .khamb { display: block; flex-shrink: 0; }
   .khead-links {
     display: flex;
     gap: 6px;
+    flex-shrink: 1;
+    min-width: 0;
   }
   .khead-links .kbtn {
     padding: 7px 10px;
     font-size: .72rem;
     min-height: 32px;
+  }
+  .khead-actions {
+    max-width: 100%;
+    min-width: 0;
+    gap: 8px;
+  }
+  .khead-utils {
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow: visible;
   }
   .kid:not(.studio-app) .khead-main {
     display: flex;
@@ -1926,10 +1938,10 @@ img.ex-tab-cover {
   .khead-main { display: none; }
   .khead .kbrand img { height: 84px; }
   .khead-bar-inner { justify-content: flex-end; align-items: center; min-height: 0; }
-  .khead-actions { grid-column: 2; gap: 10px; margin-left: auto; }
+  .khead-actions { grid-column: 2; gap: 8px; margin-left: auto; max-width: 100%; }
   .khead-utils { gap: 6px; min-height: auto; margin-left: auto; }
-  .khead .theme-toggle-label { display: inline; }
-  .khead .theme-toggle { width: auto; padding: 0 12px; gap: 8px; justify-content: center; }
+  .khead .theme-toggle-label { display: none; }
+  .khead .theme-toggle { width: 34px; padding: 0; gap: 0; justify-content: center; }
   .kutil { font-size: .88rem; padding: 6px 10px; }
   .kutil .ni { width: 16px; height: 16px; }
   .kmobile {

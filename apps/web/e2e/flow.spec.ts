@@ -219,7 +219,10 @@ test("landing sem preço e EN atualiza lang", async ({ page }) => {
 test("menu mobile abre abaixo da logo", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("landing-header-login")).toBeVisible();
+  await expect(page.getByTestId("landing-header-cta")).toBeVisible();
   const menuBtn = page.getByTestId("landing-menu");
+  await expect(menuBtn).toBeInViewport();
   await menuBtn.click();
   await expect(menuBtn).toHaveAttribute("aria-expanded", "true");
   const logo = page.getByTestId("landing-brand").locator("img");
