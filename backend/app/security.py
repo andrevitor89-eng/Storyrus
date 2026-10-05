@@ -40,6 +40,17 @@ def create_email_verify_token(subject: str) -> str:
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
 
 
+def create_password_reset_token(subject: str) -> str:
+    now = datetime.now(UTC)
+    payload = {
+        "sub": subject,
+        "purpose": "password_reset",
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.password_reset_ttl_min),
+    }
+    return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
 def decode_access_token(token: str) -> dict | None:
     try:
         return jwt.decode(token, settings.jwt_secret, algorithms=[settings.jwt_algorithm])
@@ -50,6 +61,13 @@ def decode_access_token(token: str) -> dict | None:
 def decode_email_verify_token(token: str) -> dict | None:
     payload = decode_access_token(token)
     if not payload or payload.get("purpose") != "email_verify" or "sub" not in payload:
+        return None
+    return payload
+
+
+def decode_password_reset_token(token: str) -> dict | None:
+    payload = decode_access_token(token)
+    if not payload or payload.get("purpose") != "password_reset" or "sub" not in payload:
         return None
     return payload
 

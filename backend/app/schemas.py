@@ -46,6 +46,29 @@ class VerifyEmailIn(BaseModel):
     token: str = Field(min_length=20, max_length=4096)
 
 
+class ForgotPasswordIn(BaseModel):
+    email: EmailStr
+
+
+class ForgotPasswordOut(BaseModel):
+    ok: bool = True
+    message: str
+    # Só fora de prod (testes / local).
+    reset_token: str | None = None
+
+
+class ResetPasswordIn(BaseModel):
+    token: str = Field(min_length=20, max_length=4096)
+    password: str = Field(min_length=8, max_length=128)
+    password_confirm: str = Field(min_length=8, max_length=128)
+
+    @model_validator(mode="after")
+    def _passwords_match(self) -> "ResetPasswordIn":
+        if self.password != self.password_confirm:
+            raise PydanticCustomError("password_mismatch", "As senhas nao coincidem")
+        return self
+
+
 class LoginIn(BaseModel):
     email: EmailStr
     password: str

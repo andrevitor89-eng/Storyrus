@@ -19,6 +19,11 @@ def build_verify_email_url(token: str) -> str:
     return f"{origin}/verificar-email?token={token}"
 
 
+def build_password_reset_url(token: str) -> str:
+    origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
+    return f"{origin}/redefinir-senha?token={token}"
+
+
 def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
     api_key = (settings.resend_api_key or "").strip()
     if not api_key:
@@ -70,5 +75,27 @@ def send_verify_email(*, to_email: str, token: str) -> bool:
         "<p>Bem-vindo ao <strong>Story R Us</strong>!</p>"
         f"<p><a href=\"{url}\">Clique aqui para confirmar seu e-mail</a> "
         f"e ativar a conta (válido por {settings.email_verify_ttl_min} minutos).</p>"
+    )
+    return send_email(to_email=to_email, subject=subject, text=text, html=html)
+
+
+def send_password_reset_email(*, to_email: str, token: str) -> bool:
+    url = build_password_reset_url(token)
+    if not (settings.resend_api_key or "").strip():
+        logger.info("password_reset_link to=%s url=%s", to_email, url)
+    subject = "Redefinir senha — Story R Us"
+    text = (
+        "Recebemos um pedido para redefinir a senha da sua conta Story R Us.\n\n"
+        "Abra o link abaixo para escolher uma nova senha:\n"
+        f"{url}\n\n"
+        f"O link vale por {settings.password_reset_ttl_min} minutos. "
+        "Se você não pediu isso, ignore este e-mail."
+    )
+    html = (
+        "<p>Recebemos um pedido para redefinir a senha da sua conta "
+        "<strong>Story R Us</strong>.</p>"
+        f"<p><a href=\"{url}\">Clique aqui para escolher uma nova senha</a> "
+        f"(válido por {settings.password_reset_ttl_min} minutos).</p>"
+        "<p>Se você não pediu isso, ignore este e-mail.</p>"
     )
     return send_email(to_email=to_email, subject=subject, text=text, html=html)

@@ -35,6 +35,7 @@ const COPY: Record<
     busy: string;
     switchToSignup: string;
     switchToLogin: string;
+    forgotPassword: string;
     back: string;
     checkTitle: string;
     checkLead: string;
@@ -68,6 +69,7 @@ const COPY: Record<
     busy: "Aguarde…",
     switchToSignup: "Criar uma conta",
     switchToLogin: "Já tenho conta",
+    forgotPassword: "Esqueci a senha",
     back: "Voltar ao início",
     checkTitle: "Verifique seu e-mail",
     checkLead: "Enviamos um link de confirmação. Ative a conta antes de entrar no estúdio.",
@@ -100,6 +102,7 @@ const COPY: Record<
     busy: "Please wait…",
     switchToSignup: "Create an account",
     switchToLogin: "I already have an account",
+    forgotPassword: "Forgot password",
     back: "Back to home",
     checkTitle: "Check your email",
     checkLead: "We sent a confirmation link. Activate your account before opening the studio.",
@@ -132,6 +135,7 @@ const COPY: Record<
     busy: "Espera…",
     switchToSignup: "Crear una cuenta",
     switchToLogin: "Ya tengo cuenta",
+    forgotPassword: "Olvidé la contraseña",
     back: "Volver al inicio",
     checkTitle: "Revisa tu correo",
     checkLead: "Enviamos un enlace de confirmación. Activa la cuenta antes de entrar al estudio.",
@@ -478,6 +482,16 @@ export function Auth({ mode }: { mode: AuthMode }) {
               {busy ? t.busy : mode === "login" ? t.loginSubmit : t.signupSubmit}
             </button>
           </form>
+          {mode === "login" && (
+            <p className="auth-foot">
+              <Link
+                to={`/esqueci-senha?next=${encodeURIComponent(next)}`}
+                data-testid="auth-forgot"
+              >
+                {t.forgotPassword}
+              </Link>
+            </p>
+          )}
           <p className="auth-foot">
             <Link to={altHref} data-testid="auth-switch">
               {mode === "login" ? t.switchToSignup : t.switchToLogin}

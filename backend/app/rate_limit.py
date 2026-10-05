@@ -167,3 +167,30 @@ def check_guest(request) -> None:
                 status.HTTP_429_TOO_MANY_REQUESTS,
                 "Muitos convidados deste dispositivo; tente mais tarde",
             )
+
+
+def check_password_reset(request, *, email: str) -> None:
+    """Limita pedidos de redefinição por IP e por e-mail."""
+    from fastapi import HTTPException, status
+
+    window = float(settings.password_reset_rate_limit_window_s)
+    ip = client_ip(request)
+    if not allow(
+        f"pwreset:ip:{ip}",
+        settings.password_reset_rate_limit_per_ip,
+        window,
+    ):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Muitos pedidos deste IP; tente mais tarde",
+        )
+    email_key = (email or "").strip().lower()[:255]
+    if email_key and not allow(
+        f"pwreset:email:{email_key}",
+        settings.password_reset_rate_limit_per_email,
+        window,
+    ):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "Muitos pedidos para este e-mail; tente mais tarde",
+        )
