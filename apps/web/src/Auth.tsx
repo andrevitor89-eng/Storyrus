@@ -105,6 +105,24 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
   const altHref = `${altPath}?next=${encodeURIComponent(next)}`;
 
+  function friendlyAuthError(raw: string): string {
+    const msg = raw.trim();
+    if (/^502\b|^503\b|^504\b/i.test(msg) || /failed to fetch|networkerror|load failed/i.test(msg)) {
+      return mode === "signup"
+        ? "Não foi possível criar a conta agora. O servidor está indisponível — tente de novo em instantes."
+        : "Não foi possível entrar agora. O servidor está indisponível — tente de novo em instantes.";
+    }
+    if (/^409\b/i.test(msg)) {
+      return "Este e-mail já tem conta. Tente entrar.";
+    }
+    if (/^401\b/i.test(msg) || /credencial|senha|password|unauthorized/i.test(msg)) {
+      return "E-mail ou senha incorretos.";
+    }
+    // Strip bare "502: " style prefixes when the body is empty.
+    const cleaned = msg.replace(/^\d{3}:\s*/i, "").trim();
+    return cleaned || msg || "Algo deu errado. Tente novamente.";
+  }
+
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -114,7 +132,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
       else await api.login(email.trim(), password);
       navigate(next, { replace: true });
     } catch (err) {
-      setError((err as Error).message);
+      setError(friendlyAuthError((err as Error).message || ""));
     } finally {
       setBusy(false);
     }
