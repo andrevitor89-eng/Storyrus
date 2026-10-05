@@ -17,6 +17,7 @@ from app.routers import (
     print_orders,
     projects,
     usage,
+    users,
     voices,
     webhooks,
 )
@@ -59,6 +60,7 @@ app.include_router(jobs.router)
 app.include_router(voices.router)
 app.include_router(webhooks.router)
 app.include_router(usage.router)
+app.include_router(users.router)
 app.include_router(print_orders.router)
 app.include_router(local_storage.router)
 

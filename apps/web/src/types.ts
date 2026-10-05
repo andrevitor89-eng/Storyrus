@@ -215,6 +215,19 @@ export interface UsageAnomaly {
   message: string;
 }
 
+export interface OwnerUser {
+  id: string;
+  email: string;
+  credits: number;
+  created_at: string;
+  project_count: number;
+}
+
+export interface OwnerUsersReport {
+  total: number;
+  users: OwnerUser[];
+}
+
 export interface UsageReport {
   timezone: string;
   from_at: string;

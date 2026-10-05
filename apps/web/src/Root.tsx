@@ -23,6 +23,9 @@ const Usage = lazy(() =>
 const Pedidos = lazy(() =>
   import("./Pedidos").then((m) => ({ default: m.Pedidos })),
 );
+const Usuarios = lazy(() =>
+  import("./Usuarios").then((m) => ({ default: m.Usuarios })),
+);
 
 /**
  * Roteamento do site:
@@ -35,6 +38,8 @@ const Pedidos = lazy(() =>
  *   /cadastro      → Criar conta
  *   /app           → Estúdio (conta obrigatória)
  *   /gastos        → Painel privado de custos USD
+ *   /pedidos       → Painel privado de pedidos
+ *   /usuarios      → Painel privado de contas cadastradas
  *   /landing       → Landing (compatibilidade)
  *   /privacidade   → Política de privacidade
  *   /termos        → Termos de uso
@@ -57,6 +62,7 @@ export function AppRoutes() {
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />
+        <Route path="/usuarios" element={<Usuarios />} />
         <Route path="/landing" element={<Landing />} />
         <Route path="/privacidade" element={<Legal kind="privacy" />} />
         <Route path="/privacy" element={<Legal kind="privacy" />} />

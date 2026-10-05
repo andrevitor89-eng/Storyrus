@@ -39,6 +39,21 @@ class UserOut(BaseModel):
     is_guest: bool = False
 
 
+class OwnerUserOut(BaseModel):
+    """Conta cadastrada no painel do dono (sem convidados)."""
+
+    id: uuid.UUID
+    email: EmailStr
+    credits: int
+    created_at: datetime
+    project_count: int = 0
+
+
+class OwnerUsersOut(BaseModel):
+    total: int
+    users: list[OwnerUserOut]
+
+
 # ---- Projects ----
 class ProjectCreateIn(BaseModel):
     style: ProjectStyle = ProjectStyle.CGI_3D

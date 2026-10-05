@@ -220,6 +220,31 @@ export const handlers = [
       ],
     });
   }),
+  http.get("*/v1/users", ({ request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    if (password !== "segredo") {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    return HttpResponse.json({
+      total: 2,
+      users: [
+        {
+          id: "u1",
+          email: "ana@example.com",
+          credits: 12,
+          created_at: "2026-03-01T15:30:00.000Z",
+          project_count: 3,
+        },
+        {
+          id: "u2",
+          email: "bruno@example.com",
+          credits: 5,
+          created_at: "2026-02-10T12:00:00.000Z",
+          project_count: 1,
+        },
+      ],
+    });
+  }),
 
   http.post("*/v1/projects", async ({ request }) => {
     const body = (await request.json()) as { style?: string };
