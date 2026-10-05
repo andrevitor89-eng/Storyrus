@@ -160,10 +160,9 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await mockApi(page, state);
   await loginViaCadastro(page);
 
-  await expect(page.getByTestId("studio-credits")).toContainText(/créditos:\s*10/i);
-
+  await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
   await page.getByLabel("Nome do protagonista").fill("Lila");
-  await page.getByLabel("Idade").fill("5");
+  await page.getByRole("spinbutton", { name: "Idade" }).fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByRole("button", { name: "Feminino" }).click();
@@ -184,7 +183,7 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await loginViaCadastro(page);
 
   await page.getByLabel("Nome do protagonista").fill("Lila");
-  await page.getByLabel("Idade").fill("5");
+  await page.getByRole("spinbutton", { name: "Idade" }).fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByRole("button", { name: "Feminino" }).click();

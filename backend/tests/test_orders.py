@@ -21,12 +21,7 @@ REALISTA = (
     "Fotos anexadas: 2 (arquivos recebidos)"
 )
 
-CLIENT = (
-    "Cliente: Ana Souza\n"
-    "E-mail: ana@email.com\n"
-    "Telefone: 11999999999\n"
-    "Endereço: Rua A, 10"
-)
+CLIENT = "Cliente: Ana Souza\nE-mail: ana@email.com\nTelefone: 11999999999\nEndereço: Rua A, 10"
 
 
 def test_summary_cartoon_lists_child_and_extras():
@@ -225,8 +220,7 @@ def test_realista_order_uses_typed_theme_and_site_language(auth_client, monkeypa
         "Idioma: Inglês\n"
         "Tema: Aventura no espaço\n"
         "Personagens: Lila\n"
-        "Fotos anexadas: 1 (arquivo recebido)\n"
-        + CLIENT
+        "Fotos anexadas: 1 (arquivo recebido)\n" + CLIENT
     )
 
 

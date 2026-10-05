@@ -404,8 +404,7 @@ _REALISTA = (
     "ilustracao editorial infantil premium, suavemente realista, quente e refinada. "
     "Pele com luz suave, iris nitida na mesma fracao do rosto da foto, cabelo fio a fio. "
     "Sem cartoon, anime, caricatura, chibi, 3D plastico, olho de boneca, ombros largos, "
-    "bracos volumosos ou corpo esticado. Identidade rigorosa das fotos. "
-    + _PAGE_LOCK
+    "bracos volumosos ou corpo esticado. Identidade rigorosa das fotos. " + _PAGE_LOCK
 )
 
 _CARTOON = (
@@ -413,8 +412,7 @@ _CARTOON = (
     "contornos suaves, formas arredondadas, olhos levemente maiores, expressoes ludicas, "
     "cores alegres, acabamento editorial. Nao e uma foto suavizada. "
     "Sem anime, manga, chibi extremo, caricatura extrema, 3D plastico ou personagem generico. "
-    "Identidade rigorosa das fotos. "
-    + _PAGE_LOCK
+    "Identidade rigorosa das fotos. " + _PAGE_LOCK
 )
 
 
@@ -423,6 +421,7 @@ def book_art_direction(style: str | None) -> str:
     if (style or "").strip().lower() == "cartoon":
         return _CARTOON
     return _REALISTA
+
 
 CHARACTER_GEN_PREFIX = (
     "Crie um personagem TMT a partir das fotos de "

@@ -776,13 +776,18 @@ async def handle_story(db: Session, job: Job) -> None:
                 )
             )
 
-    size_cm = "20×20 cm" if project.book_size == "M" else "15×15 cm" if project.book_size == "P" else "20×20 cm"
+    size_cm = (
+        "20×20 cm"
+        if project.book_size == "M"
+        else "15×15 cm"
+        if project.book_size == "P"
+        else "20×20 cm"
+    )
     brief += (
         " FORMATO: livro quadrado "
         + size_cm
         + ", corte reto, páginas em sangria total. Cada página é uma estrofe curta, "
-        "educativa, com leve rima só quando sair natural. "
-        + book_art_direction(project.style)
+        "educativa, com leve rima só quando sair natural. " + book_art_direction(project.style)
     )
     update_trace(
         metadata={

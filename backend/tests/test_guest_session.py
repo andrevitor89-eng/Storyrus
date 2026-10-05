@@ -87,9 +87,7 @@ def test_upgrade_guest_keeps_user_id_and_credits(client):
     assert me["is_guest"] is True
     credits_before = me["credits"]
     # Guest nao cria livro; apos upgrade, mesmo user_id cria projetos.
-    assert (
-        client.post("/v1/projects", json={}, headers=_auth(token)).status_code == 403
-    )
+    assert client.post("/v1/projects", json={}, headers=_auth(token)).status_code == 403
 
     r = client.post(
         "/v1/auth/upgrade",
