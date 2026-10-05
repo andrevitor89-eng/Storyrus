@@ -255,7 +255,7 @@ const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
-  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "pets"],
+  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "casamento", "pets"],
   ocasioes: ["christmas", "birthday"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
@@ -288,6 +288,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=grandparents_love" },
       { href: "/app?tema=family_love" },
       { href: "/app" },
+      { href: "/app?tema=casamento" },
       { href: "/app?tema=pets" },
     ],
     feats: [
@@ -616,7 +617,7 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e Primos", "Pets"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e Primos", "Casamento", "Pets"],
         feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
       },
       {
@@ -814,7 +815,7 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and Cousins", "Pets"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and Cousins", "Wedding", "Pets"],
         feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
       },
       {
@@ -1012,7 +1013,7 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y Primos", "Mascotas"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y Primos", "Boda", "Mascotas"],
         feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {

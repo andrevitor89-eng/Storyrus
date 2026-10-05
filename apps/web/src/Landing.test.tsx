@@ -606,6 +606,10 @@ describe("Landing — CTAs e links", () => {
     expect(within(feats).getByRole("link", { name: /cristobal/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /emilia/i })).not.toBeInTheDocument();
 
+    const youLinks = [...panel.querySelectorAll(".kcat-group")[1].querySelectorAll(".kcat-subs a")].map((link) => link.textContent);
+    expect(youLinks[youLinks.indexOf("Pets") - 1]).toBe("Casamento");
+    const casamento = within(panel).getByRole("link", { name: /^casamento$/i });
+    expect(studioTarget(casamento.getAttribute("href"))).toContain("tema=casamento");
     const pets = within(panel).getByRole("link", { name: /^pets$/i });
     expect(studioTarget(pets.getAttribute("href"))).toContain("/app?tema=pets");
     fireEvent.mouseEnter(pets);
