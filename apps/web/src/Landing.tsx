@@ -1967,7 +1967,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             setSubHover((cur) => (cur?.cat === i ? cur : null));
                           }}
                         >
-                          <Link to={`/catalogo/${cat.id}`} className={`kcat-group-name${cat.id === "aventuras" || cat.id === "voce-e-eu" ? " is-chip" : ""}`} onClick={closeNav}>
+                          <Link to={`/catalogo/${cat.id}`} className="kcat-group-name is-chip" onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
                           </Link>

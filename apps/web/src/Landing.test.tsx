@@ -594,8 +594,10 @@ describe("Landing — CTAs e links", () => {
     expect(within(panel).getByRole("link", { name: /^aniversário$/i })).toBeInTheDocument();
     expect(within(panel).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
     expect(within(panel).getByRole("link", { name: /^compartilhar$/i })).toBeInTheDocument();
-    const groupNames = [...panel.querySelectorAll(".kcat-group-name")].map((el) => el.textContent ?? "");
+    const groupNameEls = [...panel.querySelectorAll(".kcat-group-name")];
+    const groupNames = groupNameEls.map((el) => el.textContent ?? "");
     expect(groupNames).toHaveLength(4);
+    expect(groupNameEls.every((el) => el.classList.contains("is-chip"))).toBe(true);
     expect(groupNames.join(" ")).not.toMatch(/sentimentos/i);
     fireEvent.mouseEnter(princesas);
     const feats = screen.getByTestId("landing-cat-feats");
