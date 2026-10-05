@@ -13,8 +13,11 @@ from app.database import get_db
 from app.deps import get_current_user, require_registered_user
 from app.models import User
 from app.schemas import (
+    ForgotPasswordIn,
+    ForgotPasswordOut,
     LoginIn,
     ProfileUpdateIn,
+    ResetPasswordIn,
     ResumeIn,
     SignupIn,
     SignupOut,
@@ -25,18 +28,23 @@ from app.schemas import (
 from app.security import (
     create_access_token,
     create_email_verify_token,
+    create_password_reset_token,
     decode_access_token_allow_expired,
     decode_email_verify_token,
+    decode_password_reset_token,
     hash_password,
     hash_token,
     is_guest_user,
     verify_password,
 )
-from app.services.transactional_email import send_verify_email
+from app.services.transactional_email import send_password_reset_email, send_verify_email
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 _SIGNUP_MSG = "Cadastro recebido. Confirme seu e-mail pelo link que enviamos."
+_FORGOT_MSG = (
+    "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
+)
 
 
 def _user_out(user: User) -> UserOut:
@@ -57,6 +65,7 @@ def _user_out(user: User) -> UserOut:
         district=user.district,
         city=user.city,
         state=user.state,
+        country=user.country,
     )
 
 
@@ -72,6 +81,7 @@ def _apply_profile(user: User, body: SignupIn | ProfileUpdateIn) -> None:
         "district",
         "city",
         "state",
+        "country",
     ):
         if key in data:
             setattr(user, key, data[key])
@@ -218,6 +228,55 @@ def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
             status.HTTP_403_FORBIDDEN,
             "Confirme seu e-mail antes de entrar",
         )
+    return TokenOut(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/forgot-password", response_model=ForgotPasswordOut)
+def forgot_password(
+    body: ForgotPasswordIn,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> ForgotPasswordOut:
+    """Sempre responde OK genérico (não revela se o e-mail existe)."""
+    rate_limit.check_password_reset(request, email=str(body.email))
+    user = db.scalar(select(User).where(User.email == body.email))
+    reset_token: str | None = None
+    if user is not None and not is_guest_user(
+        email=user.email, password_hash=user.password_hash
+    ):
+        raw_token = create_password_reset_token(str(user.id))
+        user.password_reset_token_hash = hash_token(raw_token)
+        db.add(user)
+        db.commit()
+        send_password_reset_email(to_email=user.email, token=raw_token)
+        if settings.app_env != "prod":
+            reset_token = raw_token
+    return ForgotPasswordOut(ok=True, message=_FORGOT_MSG, reset_token=reset_token)
+
+
+@router.post("/reset-password", response_model=TokenOut)
+def reset_password(body: ResetPasswordIn, db: Session = Depends(get_db)) -> TokenOut:
+    payload = decode_password_reset_token(body.token)
+    if not payload:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
+    try:
+        user_id = uuid.UUID(str(payload["sub"]))
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado") from exc
+    user = db.get(User, user_id)
+    if user is None or is_guest_user(email=user.email, password_hash=user.password_hash):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
+    expected = user.password_reset_token_hash
+    if not expected or expected != hash_token(body.token):
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
+    user.password_hash = hash_password(body.password)
+    user.password_reset_token_hash = None
+    # Link no e-mail prova posse da caixa — libera login sem verify separado.
+    if user.email_verified_at is None:
+        user.email_verified_at = datetime.now(UTC)
+        user.email_verify_token_hash = None
+    db.add(user)
+    db.commit()
     return TokenOut(access_token=create_access_token(str(user.id)))
 
 

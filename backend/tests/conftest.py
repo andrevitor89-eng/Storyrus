@@ -97,6 +97,7 @@ def signup_payload(email: str, password: str = "password123", **overrides) -> di
         "district": "Bela Vista",
         "city": "Sao Paulo",
         "state": "SP",
+        "country": "BR",
         "accept_terms": True,
     }
     body.update(overrides)

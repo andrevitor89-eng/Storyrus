@@ -226,6 +226,7 @@ export interface OwnerUser {
   email_verified?: boolean;
   city?: string | null;
   state?: string | null;
+  country?: string | null;
 }
 
 export interface OwnerUsersReport {

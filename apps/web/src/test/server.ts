@@ -55,7 +55,9 @@ export const state = {
   district: "Bela Vista",
   city: "Sao Paulo",
   stateUf: "SP",
+  country: "BR",
   pendingVerifyToken: null as string | null,
+  pendingResetToken: null as string | null,
   projects: new Map<string, Project>(),
   jobs: new Map<string, Job[]>(),
   reset() {
@@ -72,7 +74,9 @@ export const state = {
     this.district = "Bela Vista";
     this.city = "Sao Paulo";
     this.stateUf = "SP";
+    this.country = "BR";
     this.pendingVerifyToken = null;
+    this.pendingResetToken = null;
     this.projects.clear();
     this.jobs.clear();
   },
@@ -165,6 +169,7 @@ export const handlers = [
       district: state.district,
       city: state.city,
       state: state.stateUf,
+      country: state.country,
     }),
   ),
   http.patch("*/v1/auth/me", async ({ request }) => {
@@ -178,6 +183,7 @@ export const handlers = [
     if (body.district != null) state.district = body.district;
     if (body.city != null) state.city = body.city;
     if (body.state != null) state.stateUf = body.state;
+    if (body.country != null) state.country = body.country;
     return HttpResponse.json({
       id: "user-1",
       email: state.email,
@@ -194,6 +200,7 @@ export const handlers = [
       district: state.district,
       city: state.city,
       state: state.stateUf,
+      country: state.country,
     });
   }),
   http.post("*/v1/auth/signup", async ({ request }) => {
@@ -207,9 +214,10 @@ export const handlers = [
       street?: string;
       number?: string;
       complement?: string | null;
-      district?: string;
+      district?: string | null;
       city?: string;
       state?: string;
+      country?: string;
       accept_terms?: boolean;
     };
     if (
@@ -218,7 +226,11 @@ export const handlers = [
       body.password !== body.password_confirm ||
       !body.accept_terms ||
       !body.full_name ||
-      !body.phone
+      !body.phone ||
+      !body.country ||
+      !body.postal_code ||
+      !body.city ||
+      !body.state
     ) {
       return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
     }
@@ -232,9 +244,10 @@ export const handlers = [
     state.street = body.street || state.street;
     state.number = body.number || state.number;
     state.complement = body.complement || "";
-    state.district = body.district || state.district;
+    state.district = body.district || "";
     state.city = body.city || state.city;
     state.stateUf = body.state || state.stateUf;
+    state.country = body.country.toUpperCase();
     state.pendingVerifyToken = "test-verify-token";
     return HttpResponse.json(
       {
@@ -266,6 +279,41 @@ export const handlers = [
     state.isGuest = false;
     state.email = body.email;
     state.emailVerified = true;
+    return HttpResponse.json({ access_token: "test-token" });
+  }),
+  http.post("*/v1/auth/forgot-password", async ({ request }) => {
+    const body = (await request.json()) as { email?: string };
+    if (!body.email) {
+      return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
+    }
+    const known = !state.isGuest && state.email === body.email;
+    if (known) {
+      state.pendingResetToken = "test-reset-token";
+    }
+    return HttpResponse.json({
+      ok: true,
+      message: "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha.",
+      reset_token: known ? state.pendingResetToken : null,
+    });
+  }),
+  http.post("*/v1/auth/reset-password", async ({ request }) => {
+    const body = (await request.json()) as {
+      token?: string;
+      password?: string;
+      password_confirm?: string;
+    };
+    if (
+      !body.token ||
+      body.token !== state.pendingResetToken ||
+      (body.password?.length ?? 0) < 8 ||
+      body.password !== body.password_confirm
+    ) {
+      return HttpResponse.json({ detail: "Link invalido ou expirado" }, { status: 400 });
+    }
+    state.pendingResetToken = null;
+    state.emailVerified = true;
+    state.isGuest = false;
+    state.credits = 10;
     return HttpResponse.json({ access_token: "test-token" });
   }),
   http.get("*/v1/credits", () => HttpResponse.json({ credits: state.credits })),

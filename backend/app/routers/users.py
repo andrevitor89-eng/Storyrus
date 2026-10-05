@@ -49,6 +49,7 @@ def list_users(
             email_verified=user.email_verified_at is not None,
             city=user.city,
             state=user.state,
+            country=user.country,
         )
         for user, count in rows
     ]

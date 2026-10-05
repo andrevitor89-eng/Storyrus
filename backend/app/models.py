@@ -145,10 +145,14 @@ class User(Base):
     complement: Mapped[str | None] = mapped_column(String(80), nullable=True)
     district: Mapped[str | None] = mapped_column(String(80), nullable=True)
     city: Mapped[str | None] = mapped_column(String(80), nullable=True)
-    state: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    # Estado/província/região (UF BR ou nome longo internacional).
+    state: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    # ISO 3166-1 alpha-2 (BR, US, PT…).
+    country: Mapped[str | None] = mapped_column(String(2), nullable=True)
     terms_accepted_at: Mapped[datetime | None] = mapped_column(nullable=True)
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
     email_verify_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    password_reset_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     projects: Mapped[list[Project]] = relationship(back_populates="user")
     voices: Mapped[list[UserVoice]] = relationship(
