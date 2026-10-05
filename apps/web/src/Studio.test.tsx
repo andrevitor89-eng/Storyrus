@@ -20,7 +20,17 @@ function renderApp(initial = "/app") {
 
 beforeEach(() => {
   state.isGuest = false;
+  state.emailVerified = true;
   state.email = "ana@email.com";
+  state.fullName = "Ana Souza";
+  state.phone = "11999999999";
+  state.postalCode = "01310100";
+  state.street = "Av Paulista";
+  state.number = "1000";
+  state.complement = "Sala 1";
+  state.district = "Bela Vista";
+  state.city = "Sao Paulo";
+  state.stateUf = "SP";
   state.credits = 10;
   setToken("test-token");
 });
@@ -163,10 +173,10 @@ describe("Studio — tema do banner", () => {
         extraNames: "Vovó, Totó",
         gender: "m",
         subject: "pai",
-        clientName: "ana@email.com",
+        clientName: "Ana Souza",
         clientEmail: "ana@email.com",
-        clientPhone: "",
-        clientAddress: "",
+        clientPhone: "11999999999",
+        clientAddress: "Av Paulista, 1000, Sala 1, Bela Vista, Sao Paulo, SP, 01310100",
         clientNotes: undefined,
       }),
     );

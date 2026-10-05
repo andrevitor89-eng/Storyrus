@@ -102,8 +102,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
 function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const { lang, setLang, t, langs } = useStudioI18n();
-  const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("account");
+  const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
   const [accountEmail, setAccountEmail] = useState("");
+  const [accountName, setAccountName] = useState("");
   const [clientDone, setClientDone] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -218,8 +219,28 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const refreshMe = useCallback(async () => {
     try {
       const me = await api.me();
-      setAccountKind(me.is_guest ? "guest" : "account");
+      const registered = !me.is_guest && me.email_verified;
+      setAccountKind(registered ? "account" : me.is_guest ? "guest" : "unknown");
       setAccountEmail(me.email);
+      setAccountName(me.full_name?.trim() || "");
+      if (registered) {
+        const addressLine = [
+          me.street,
+          me.number,
+          me.complement,
+          me.district,
+          me.city,
+          me.state,
+          me.postal_code,
+        ]
+          .map((p) => (p || "").trim())
+          .filter(Boolean)
+          .join(", ");
+        if (me.full_name?.trim()) setClientName(me.full_name.trim());
+        setClientEmail(me.email);
+        if (me.phone?.trim()) setClientPhone(me.phone.trim());
+        if (addressLine) setClientAddress(addressLine);
+      }
     } catch {
       /* ignore */
     }
@@ -339,11 +360,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       return false;
     }
     const signedIn = accountKind === "account";
-    const buyerName = signedIn ? oneLine(accountEmail) : oneLine(clientName);
-    const buyerEmail = signedIn ? oneLine(accountEmail) : oneLine(clientEmail);
-    const buyerPhone = signedIn ? "" : oneLine(clientPhone);
-    const buyerAddress = signedIn ? "" : oneLine(clientAddress);
-    if (!signedIn && (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress)) {
+    const buyerName = signedIn ? oneLine(accountName || clientName || accountEmail) : oneLine(clientName);
+    const buyerEmail = signedIn ? oneLine(accountEmail || clientEmail) : oneLine(clientEmail);
+    const buyerPhone = oneLine(clientPhone);
+    const buyerAddress = oneLine(clientAddress);
+    if (!buyerName || !validEmail(buyerEmail) || !buyerPhone || !buyerAddress) {
       setError(t.errClient);
       return false;
     }
@@ -367,11 +388,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   async function start(agreed = mediaConsent) {
     if (!formReady(agreed)) return;
     const signedIn = accountKind === "account";
-    const buyerName = signedIn ? oneLine(accountEmail) : oneLine(clientName);
-    const buyerEmail = signedIn ? oneLine(accountEmail) : oneLine(clientEmail);
-    const buyerPhone = signedIn ? "" : oneLine(clientPhone);
-    const buyerAddress = signedIn ? "" : oneLine(clientAddress);
-    const buyerNotes = signedIn ? "" : oneLine(clientNotes);
+    const buyerName = signedIn ? oneLine(accountName || clientName || accountEmail) : oneLine(clientName);
+    const buyerEmail = signedIn ? oneLine(accountEmail || clientEmail) : oneLine(clientEmail);
+    const buyerPhone = oneLine(clientPhone);
+    const buyerAddress = oneLine(clientAddress);
+    const buyerNotes = oneLine(clientNotes);
     setBusy(true);
     setError(null);
     try {
@@ -604,6 +625,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   </button>
                   <a className="kutil" href="/pedidos">
                     Pedidos
+                  </a>
+                  <a className="kutil" href="/usuarios">
+                    Usuários
                   </a>
                   {onLogout && (
                     <button type="button" className="kutil link" onClick={onLogout} data-testid="studio-logout">

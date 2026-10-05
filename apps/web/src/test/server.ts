@@ -45,12 +45,34 @@ export const state = {
   credits: 0,
   isGuest: true,
   email: "guest-test@storyrus.app",
+  emailVerified: true,
+  fullName: "Ana Souza",
+  phone: "11999999999",
+  postalCode: "01310100",
+  street: "Av Paulista",
+  number: "1000",
+  complement: "Sala 1",
+  district: "Bela Vista",
+  city: "Sao Paulo",
+  stateUf: "SP",
+  pendingVerifyToken: null as string | null,
   projects: new Map<string, Project>(),
   jobs: new Map<string, Job[]>(),
   reset() {
     this.credits = 0;
     this.isGuest = true;
     this.email = "guest-test@storyrus.app";
+    this.emailVerified = true;
+    this.fullName = "Ana Souza";
+    this.phone = "11999999999";
+    this.postalCode = "01310100";
+    this.street = "Av Paulista";
+    this.number = "1000";
+    this.complement = "Sala 1";
+    this.district = "Bela Vista";
+    this.city = "Sao Paulo";
+    this.stateUf = "SP";
+    this.pendingVerifyToken = null;
     this.projects.clear();
     this.jobs.clear();
   },
@@ -105,13 +127,26 @@ export const handlers = [
     return HttpResponse.json({ access_token: "test-token-resumed" });
   }),
   http.post("*/v1/auth/upgrade", async ({ request }) => {
-    const body = (await request.json()) as { email: string; password: string };
-    if (!body.email || (body.password?.length ?? 0) < 8) {
+    const body = (await request.json()) as {
+      email: string;
+      password: string;
+      password_confirm?: string;
+      accept_terms?: boolean;
+      full_name?: string;
+    };
+    if (!body.email || (body.password?.length ?? 0) < 8 || !body.accept_terms) {
       return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
     }
     state.isGuest = false;
     state.email = body.email;
-    return HttpResponse.json({ access_token: "test-token-upgraded" });
+    state.emailVerified = false;
+    state.fullName = body.full_name || state.fullName;
+    state.pendingVerifyToken = "test-verify-token";
+    return HttpResponse.json({
+      ok: true,
+      message: "Cadastro recebido. Confirme seu e-mail pelo link que enviamos.",
+      verify_token: state.pendingVerifyToken,
+    });
   }),
   http.get("*/v1/auth/me", () =>
     HttpResponse.json({
@@ -120,26 +155,117 @@ export const handlers = [
       credits: state.credits,
       created_at: "2026-01-01T00:00:00Z",
       is_guest: state.isGuest,
+      email_verified: state.isGuest || state.emailVerified,
+      full_name: state.fullName,
+      phone: state.phone,
+      postal_code: state.postalCode,
+      street: state.street,
+      number: state.number,
+      complement: state.complement,
+      district: state.district,
+      city: state.city,
+      state: state.stateUf,
     }),
   ),
+  http.patch("*/v1/auth/me", async ({ request }) => {
+    const body = (await request.json()) as Record<string, string | null | undefined>;
+    if (body.full_name != null) state.fullName = body.full_name;
+    if (body.phone != null) state.phone = body.phone;
+    if (body.postal_code != null) state.postalCode = body.postal_code;
+    if (body.street != null) state.street = body.street;
+    if (body.number != null) state.number = body.number;
+    if (body.complement !== undefined) state.complement = body.complement || "";
+    if (body.district != null) state.district = body.district;
+    if (body.city != null) state.city = body.city;
+    if (body.state != null) state.stateUf = body.state;
+    return HttpResponse.json({
+      id: "user-1",
+      email: state.email,
+      credits: state.credits,
+      created_at: "2026-01-01T00:00:00Z",
+      is_guest: state.isGuest,
+      email_verified: state.emailVerified,
+      full_name: state.fullName,
+      phone: state.phone,
+      postal_code: state.postalCode,
+      street: state.street,
+      number: state.number,
+      complement: state.complement,
+      district: state.district,
+      city: state.city,
+      state: state.stateUf,
+    });
+  }),
   http.post("*/v1/auth/signup", async ({ request }) => {
-    const body = (await request.json()) as { email: string; password: string };
-    if (!body.email || (body.password?.length ?? 0) < 8) {
+    const body = (await request.json()) as {
+      email: string;
+      password: string;
+      password_confirm?: string;
+      full_name?: string;
+      phone?: string;
+      postal_code?: string;
+      street?: string;
+      number?: string;
+      complement?: string | null;
+      district?: string;
+      city?: string;
+      state?: string;
+      accept_terms?: boolean;
+    };
+    if (
+      !body.email ||
+      (body.password?.length ?? 0) < 8 ||
+      body.password !== body.password_confirm ||
+      !body.accept_terms ||
+      !body.full_name ||
+      !body.phone
+    ) {
       return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
     }
     state.credits = 10;
     state.isGuest = false;
     state.email = body.email;
-    return HttpResponse.json({ access_token: "test-token" }, { status: 201 });
+    state.emailVerified = false;
+    state.fullName = body.full_name;
+    state.phone = body.phone;
+    state.postalCode = body.postal_code || state.postalCode;
+    state.street = body.street || state.street;
+    state.number = body.number || state.number;
+    state.complement = body.complement || "";
+    state.district = body.district || state.district;
+    state.city = body.city || state.city;
+    state.stateUf = body.state || state.stateUf;
+    state.pendingVerifyToken = "test-verify-token";
+    return HttpResponse.json(
+      {
+        ok: true,
+        message: "Cadastro recebido. Confirme seu e-mail pelo link que enviamos.",
+        verify_token: state.pendingVerifyToken,
+      },
+      { status: 201 },
+    );
+  }),
+  http.post("*/v1/auth/verify-email", async ({ request }) => {
+    const body = (await request.json()) as { token?: string };
+    if (!body.token || body.token !== state.pendingVerifyToken) {
+      return HttpResponse.json({ detail: "Link invalido ou expirado" }, { status: 400 });
+    }
+    state.emailVerified = true;
+    state.pendingVerifyToken = null;
+    return HttpResponse.json({ access_token: "test-token" });
   }),
   http.post("*/v1/auth/login", async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string };
     if (body.password === "wrongpass") {
       return HttpResponse.json({ detail: "Credenciais invalidas" }, { status: 401 });
     }
+    if (!state.emailVerified && !state.isGuest) {
+      return HttpResponse.json({ detail: "Confirme seu e-mail antes de entrar" }, { status: 403 });
+    }
     state.credits = 10;
     state.isGuest = false;
     state.email = body.email;
+    state.emailVerified = true;
     return HttpResponse.json({ access_token: "test-token" });
   }),
   http.get("*/v1/credits", () => HttpResponse.json({ credits: state.credits })),
@@ -216,6 +342,41 @@ export const handlers = [
           print_status: "files_ready",
           tracking_code: "AA123BR",
           payment_status: "paid",
+        },
+      ],
+    });
+  }),
+  http.get("*/v1/users", ({ request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    if (password !== "segredo") {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    return HttpResponse.json({
+      total: 2,
+      users: [
+        {
+          id: "u1",
+          email: "ana@example.com",
+          credits: 12,
+          created_at: "2026-03-01T15:30:00.000Z",
+          project_count: 3,
+          full_name: "Ana Souza",
+          phone: "11999999999",
+          email_verified: true,
+          city: "Sao Paulo",
+          state: "SP",
+        },
+        {
+          id: "u2",
+          email: "bruno@example.com",
+          credits: 5,
+          created_at: "2026-02-10T12:00:00.000Z",
+          project_count: 1,
+          full_name: "Bruno Lima",
+          phone: "21988887777",
+          email_verified: false,
+          city: "Rio de Janeiro",
+          state: "RJ",
         },
       ],
     });

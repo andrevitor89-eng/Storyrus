@@ -48,29 +48,36 @@ export function PrintCheckout({ projectId }: { projectId: string }) {
 
   useEffect(() => {
     let cancel = false;
-    api
-      .printOrder(projectId)
-      .then((next) => {
+    (async () => {
+      try {
+        const [next, me] = await Promise.all([
+          api.printOrder(projectId),
+          api.me().catch(() => null),
+        ]);
         if (cancel) return;
         setOrder(next);
         const qty = next.quantity || 1;
         setMode(modeFor(qty));
         if (qty >= 2 && qty <= 10) setCopies(String(qty));
         if (qty >= 11) setPack(String(qty));
+        const fromOrder = Boolean(next.postal_code || next.street);
         setAddress({
-          recipient_name: next.recipient_name ?? "",
-          postal_code: next.postal_code ?? "",
-          street: next.street ?? "",
-          number: next.number ?? "",
-          complement: next.complement ?? "",
-          district: next.district ?? "",
-          city: next.city ?? "",
-          state: next.state ?? "",
+          recipient_name:
+            next.recipient_name ||
+            (!fromOrder ? me?.full_name || "" : "") ||
+            "",
+          postal_code: next.postal_code || (!fromOrder ? me?.postal_code || "" : "") || "",
+          street: next.street || (!fromOrder ? me?.street || "" : "") || "",
+          number: next.number || (!fromOrder ? me?.number || "" : "") || "",
+          complement: next.complement || (!fromOrder ? me?.complement || "" : "") || "",
+          district: next.district || (!fromOrder ? me?.district || "" : "") || "",
+          city: next.city || (!fromOrder ? me?.city || "" : "") || "",
+          state: next.state || (!fromOrder ? me?.state || "" : "") || "",
         });
-      })
-      .catch((err: Error) => {
-        if (!cancel) setNote(err.message);
-      });
+      } catch (err) {
+        if (!cancel) setNote(err instanceof Error ? err.message : "Erro ao carregar pedido.");
+      }
+    })();
     return () => {
       cancel = true;
     };

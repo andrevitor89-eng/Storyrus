@@ -3,7 +3,8 @@
 import uuid
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, model_validator
+from pydantic_core import PydanticCustomError
 
 from app.models import JobType, ProjectStyle
 
@@ -12,11 +13,60 @@ from app.models import JobType, ProjectStyle
 class SignupIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
+    password_confirm: str = Field(min_length=8, max_length=128)
+    full_name: str = Field(min_length=1, max_length=120)
+    phone: str = Field(min_length=8, max_length=32)
+    postal_code: str = Field(min_length=8, max_length=16)
+    street: str = Field(min_length=1, max_length=160)
+    number: str = Field(min_length=1, max_length=20)
+    complement: str | None = Field(default=None, max_length=80)
+    district: str = Field(min_length=1, max_length=80)
+    city: str = Field(min_length=1, max_length=80)
+    state: str = Field(min_length=2, max_length=2)
+    accept_terms: bool
+
+    @model_validator(mode="after")
+    def _passwords_and_terms(self) -> "SignupIn":
+        if self.password != self.password_confirm:
+            raise PydanticCustomError("password_mismatch", "As senhas nao coincidem")
+        if not self.accept_terms:
+            raise PydanticCustomError("terms_required", "Aceite os termos e a politica de privacidade")
+        self.state = self.state.strip().upper()
+        return self
+
+
+class SignupOut(BaseModel):
+    ok: bool = True
+    message: str
+    # Só fora de prod (testes / local).
+    verify_token: str | None = None
+
+
+class VerifyEmailIn(BaseModel):
+    token: str = Field(min_length=20, max_length=4096)
 
 
 class LoginIn(BaseModel):
     email: EmailStr
     password: str
+
+
+class ProfileUpdateIn(BaseModel):
+    full_name: str | None = Field(default=None, min_length=1, max_length=120)
+    phone: str | None = Field(default=None, min_length=8, max_length=32)
+    postal_code: str | None = Field(default=None, min_length=8, max_length=16)
+    street: str | None = Field(default=None, min_length=1, max_length=160)
+    number: str | None = Field(default=None, min_length=1, max_length=20)
+    complement: str | None = Field(default=None, max_length=80)
+    district: str | None = Field(default=None, min_length=1, max_length=80)
+    city: str | None = Field(default=None, min_length=1, max_length=80)
+    state: str | None = Field(default=None, min_length=2, max_length=2)
+
+    @model_validator(mode="after")
+    def _norm_state(self) -> "ProfileUpdateIn":
+        if self.state is not None:
+            self.state = self.state.strip().upper()
+        return self
 
 
 class ResumeIn(BaseModel):
@@ -37,6 +87,36 @@ class UserOut(BaseModel):
     credits: int
     created_at: datetime
     is_guest: bool = False
+    email_verified: bool = False
+    full_name: str | None = None
+    phone: str | None = None
+    postal_code: str | None = None
+    street: str | None = None
+    number: str | None = None
+    complement: str | None = None
+    district: str | None = None
+    city: str | None = None
+    state: str | None = None
+
+
+class OwnerUserOut(BaseModel):
+    """Conta cadastrada no painel do dono (sem convidados)."""
+
+    id: uuid.UUID
+    email: EmailStr
+    credits: int
+    created_at: datetime
+    project_count: int = 0
+    full_name: str | None = None
+    phone: str | None = None
+    email_verified: bool = False
+    city: str | None = None
+    state: str | None = None
+
+
+class OwnerUsersOut(BaseModel):
+    total: int
+    users: list[OwnerUserOut]
 
 
 # ---- Projects ----

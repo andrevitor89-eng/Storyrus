@@ -38,7 +38,9 @@ def get_current_user(
 
 
 def require_registered_user(user: User = Depends(get_current_user)) -> User:
-    """Bloqueia convidados em mutacoes de criacao de livro."""
+    """Bloqueia convidados e contas com e-mail nao verificado."""
     if is_guest_user(email=user.email, password_hash=user.password_hash):
         raise HTTPException(status.HTTP_403_FORBIDDEN, "Cadastro necessario")
+    if user.email_verified_at is None:
+        raise HTTPException(status.HTTP_403_FORBIDDEN, "Confirme seu e-mail")
     return user

@@ -136,6 +136,19 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     credits: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
     created_at: Mapped[datetime] = mapped_column(default=_now, server_default=func.now())
+    # Perfil (obrigatório no cadastro; nullable para guests / contas legadas).
+    full_name: Mapped[str | None] = mapped_column(String(120), nullable=True)
+    phone: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    postal_code: Mapped[str | None] = mapped_column(String(16), nullable=True)
+    street: Mapped[str | None] = mapped_column(String(160), nullable=True)
+    number: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    complement: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    district: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    city: Mapped[str | None] = mapped_column(String(80), nullable=True)
+    state: Mapped[str | None] = mapped_column(String(2), nullable=True)
+    terms_accepted_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    email_verify_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
     projects: Mapped[list[Project]] = relationship(back_populates="user")
     voices: Mapped[list[UserVoice]] = relationship(

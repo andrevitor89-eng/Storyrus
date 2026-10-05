@@ -35,7 +35,9 @@ export function App() {
       }
       try {
         const me = await api.me();
-        if (!cancelled) setGate(me.is_guest ? "need-account" : "ok");
+        if (!cancelled) {
+          setGate(me.is_guest || !me.email_verified ? "need-account" : "ok");
+        }
       } catch {
         if (!cancelled) setGate("need-account");
       }

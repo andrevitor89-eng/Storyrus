@@ -13,7 +13,7 @@ from app.database import get_db
 from app.models import PrintOrder
 from app.printkit.service import advance_validation, package_zip
 from app.routers.projects.print import to_print_out
-from app.routers.usage import _require_password
+from app.owner_auth import require_owner_password
 from app.schemas import PrintOrderOut, PrintValidationIn
 
 router = APIRouter(prefix="/v1/print-orders", tags=["print"])
@@ -26,7 +26,7 @@ def _order(db: Session, order_id: uuid.UUID) -> PrintOrder:
     return order
 
 
-@router.get("/{order_id}/package", dependencies=[Depends(_require_password)])
+@router.get("/{order_id}/package", dependencies=[Depends(require_owner_password)])
 def download_package(order_id: uuid.UUID, db: Session = Depends(get_db)) -> Response:
     order = _order(db, order_id)
     if order.status not in {"files_ready", "sent_for_validation", "approved", "rejected"}:
@@ -52,7 +52,7 @@ def download_package(order_id: uuid.UUID, db: Session = Depends(get_db)) -> Resp
 @router.post(
     "/{order_id}/validation",
     response_model=PrintOrderOut,
-    dependencies=[Depends(_require_password)],
+    dependencies=[Depends(require_owner_password)],
 )
 def set_validation(
     order_id: uuid.UUID,

@@ -1,6 +1,7 @@
 import type {
   Job,
   JobAccepted,
+  OwnerUsersReport,
   Project,
   PrintAddress,
   PrintOrder,
@@ -194,7 +195,8 @@ function isAuthPath(path: string): boolean {
     path.startsWith("/v1/auth/login") ||
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume") ||
-    path.startsWith("/v1/auth/upgrade")
+    path.startsWith("/v1/auth/upgrade") ||
+    path.startsWith("/v1/auth/verify-email")
   );
 }
 
@@ -239,7 +241,8 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     path.startsWith("/v1/auth/signup") ||
     path.startsWith("/v1/auth/login") ||
     path.startsWith("/v1/auth/guest") ||
-    path.startsWith("/v1/auth/resume");
+    path.startsWith("/v1/auth/resume") ||
+    path.startsWith("/v1/auth/verify-email");
   if (!skipSession) await ensureSession();
 
   let resp = await reqOnce(path, init);
@@ -266,11 +269,73 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
   return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
 }
 
+export type SignupPayload = {
+  email: string;
+  password: string;
+  password_confirm: string;
+  full_name: string;
+  phone: string;
+  postal_code: string;
+  street: string;
+  number: string;
+  complement?: string | null;
+  district: string;
+  city: string;
+  state: string;
+  accept_terms: boolean;
+};
+
+export type MeUser = {
+  id: string;
+  email: string;
+  credits: number;
+  created_at: string;
+  is_guest: boolean;
+  email_verified: boolean;
+  full_name: string | null;
+  phone: string | null;
+  postal_code: string | null;
+  street: string | null;
+  number: string | null;
+  complement: string | null;
+  district: string | null;
+  city: string | null;
+  state: string | null;
+};
+
+export type ProfileUpdatePayload = Partial<
+  Pick<
+    SignupPayload,
+    | "full_name"
+    | "phone"
+    | "postal_code"
+    | "street"
+    | "number"
+    | "complement"
+    | "district"
+    | "city"
+    | "state"
+  >
+>;
+
+export type SignupResult = {
+  ok: boolean;
+  message: string;
+  verify_token?: string | null;
+};
+
 export const api = {
-  async signup(email: string, password: string) {
-    const out = await req<{ access_token: string }>("/v1/auth/signup", {
+  /** Cadastro completo — não emite JWT; usuário deve verificar o e-mail. */
+  async signup(payload: SignupPayload) {
+    return req<SignupResult>("/v1/auth/signup", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
+    });
+  },
+  async verifyEmail(token: string) {
+    const out = await req<{ access_token: string }>("/v1/auth/verify-email", {
+      method: "POST",
+      body: JSON.stringify({ token }),
     });
     setToken(out.access_token);
     return out;
@@ -283,24 +348,22 @@ export const api = {
     setToken(out.access_token);
     return out;
   },
-  /** Guest → conta real no mesmo user_id (mantem projetos). */
-  async upgrade(email: string, password: string) {
-    const out = await req<{ access_token: string }>("/v1/auth/upgrade", {
+  /** Guest → conta real no mesmo user_id (exige verificar e-mail depois). */
+  async upgrade(payload: SignupPayload) {
+    return req<SignupResult>("/v1/auth/upgrade", {
       method: "POST",
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify(payload),
     });
-    setToken(out.access_token);
-    return out;
   },
   logout,
   async me() {
-    return req<{
-      id: string;
-      email: string;
-      credits: number;
-      created_at: string;
-      is_guest: boolean;
-    }>("/v1/auth/me");
+    return req<MeUser>("/v1/auth/me");
+  },
+  async updateMe(payload: ProfileUpdatePayload) {
+    return req<MeUser>("/v1/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(payload),
+    });
   },
   async refresh() {
     return refreshSession();
@@ -615,6 +678,23 @@ export const api = {
       throw err;
     }
     return (await resp.json()) as UsageReport;
+  },
+  async users(password: string) {
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    const resp = await fetch(`${BASE}/v1/users`, { headers });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
+      err.status = resp.status;
+      throw err;
+    }
+    return (await resp.json()) as OwnerUsersReport;
   },
   async downloadPrintPackage(password: string, id: string) {
     const headers = new Headers();

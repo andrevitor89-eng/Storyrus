@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { AppRoutes } from "./Root";
 import { Usage } from "./Usage";
 import { Pedidos } from "./Pedidos";
+import { Usuarios } from "./Usuarios";
 
 describe("Pedidos", () => {
   beforeEach(() => {
@@ -32,6 +33,43 @@ describe("Pedidos", () => {
     expect(detail).toHaveTextContent("AA123BR");
     expect(detail.querySelector("img")).toHaveAttribute("src", "https://fotos.test/crianca.jpg");
     expect(detail.querySelector("a")).toHaveAttribute("href", "https://fotos.test/crianca.jpg");
+  });
+});
+
+describe("Painel /usuarios", () => {
+  beforeEach(() => {
+    sessionStorage.clear();
+  });
+
+  it("rota /usuarios nao cai na landing", async () => {
+    render(
+      <MemoryRouter initialEntries={["/usuarios"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /^usuários$/i })).toBeInTheDocument();
+    expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
+  });
+
+  it("pede senha e mostra contas depois do ok", async () => {
+    const user = userEvent.setup();
+    render(<Usuarios />);
+    expect(screen.getByLabelText(/senha/i)).toBeInTheDocument();
+
+    await user.type(screen.getByLabelText(/senha/i), "errada");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByText(/senha inválida/i)).toBeInTheDocument();
+
+    await user.clear(screen.getByLabelText(/senha/i));
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+
+    expect(await screen.findByText(/2 no total/i)).toBeInTheDocument();
+    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+    expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Ana Souza")).toBeInTheDocument();
+    expect(screen.getByText("12")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
   });
 });
 
