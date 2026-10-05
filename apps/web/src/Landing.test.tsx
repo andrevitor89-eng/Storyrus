@@ -454,7 +454,8 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(heroImgs.some((src) => src.includes("foto-esther-higiene.png"))).toBe(true);
 
     expect(screen.getByTestId("landing-hero-slide-0")).toHaveAttribute("src", expect.stringContaining("capa-meupai-heroi.png"));
-    expect(screen.getByText(/carrusel de libros/i)).toBeInTheDocument();
+    expect(carousel).toHaveAttribute("aria-label", expect.stringMatching(/carrusel de libros/i));
+    expect(screen.queryByText(/^carrusel de libros$/i)).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-hero-slide-1")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-slide-2")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
