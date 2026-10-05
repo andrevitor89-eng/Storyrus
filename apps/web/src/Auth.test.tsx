@@ -72,4 +72,18 @@ describe("Auth", () => {
       expect.stringContaining("next="),
     );
   });
+
+  it("mostra erro legível quando a API responde 502", async () => {
+    const user = userEvent.setup();
+    const { http, HttpResponse } = await import("msw");
+    const { server } = await import("./test/server");
+    server.use(
+      http.post("*/v1/auth/signup", () => HttpResponse.text("bad gateway", { status: 502 })),
+    );
+    renderAuth("signup", "/app");
+    await user.type(screen.getByTestId("auth-email"), "x@example.com");
+    await user.type(screen.getByTestId("auth-password"), "password123");
+    await user.click(screen.getByTestId("auth-submit"));
+    expect(await screen.findByTestId("auth-error")).toHaveTextContent(/indisponível/i);
+  });
 });
