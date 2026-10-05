@@ -256,7 +256,13 @@ export const api = {
     return out;
   },
   me: () =>
-    req<{ id: string; email: string; credits: number; is_guest: boolean }>("/v1/auth/me"),
+    req<{
+      id: string;
+      email: string;
+      credits: number;
+      created_at: string;
+      is_guest: boolean;
+    }>("/v1/auth/me"),
   credits: () => req<{ credits: number }>("/v1/credits"),
   createProject: (
     theme?: Theme,
@@ -276,6 +282,7 @@ export const api = {
         dedication: dedication?.trim() || undefined,
       }),
     }),
+  listProjects: () => req<Project[]>("/v1/projects"),
   getProject: (id: string) => req<Project>(`/v1/projects/${id}`),
   getAssets: (id: string) => req<ProjectAssets>(`/v1/projects/${id}/assets`),
   listJobs: (id: string) => req<Job[]>(`/v1/projects/${id}/jobs`),
@@ -353,6 +360,11 @@ export const api = {
     }
     return (await resp.json()) as UserVoice;
   },
+  setDefaultVoice: (id: string) =>
+    req<UserVoice>(`/v1/voices/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify({ is_default: true }),
+    }),
   deleteVoice: (id: string) => req<void>(`/v1/voices/${id}`, { method: "DELETE" }),
   approveCharacter: (id: string) =>
     req<Project>(`/v1/projects/${id}/avatar/approve`, { method: "POST" }),

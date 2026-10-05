@@ -602,6 +602,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       {colorTheme === "dark" ? t.themeToLight : t.themeToDark}
                     </span>
                   </button>
+                  <a className="kutil" href="/conta" data-testid="studio-conta">
+                    Conta
+                  </a>
                   <a className="kutil" href="/pedidos">
                     Pedidos
                   </a>
