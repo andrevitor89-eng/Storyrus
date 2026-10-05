@@ -10,19 +10,29 @@ from app.models import JobType, ProjectStyle
 
 
 # ---- Auth ----
+def _norm_region(value: str) -> str:
+    """UF curta em maiúsculas; região/estado internacional preserva o texto."""
+    cleaned = value.strip()
+    if len(cleaned) <= 3:
+        return cleaned.upper()
+    return cleaned
+
+
 class SignupIn(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=128)
     password_confirm: str = Field(min_length=8, max_length=128)
     full_name: str = Field(min_length=1, max_length=120)
     phone: str = Field(min_length=8, max_length=32)
-    postal_code: str = Field(min_length=8, max_length=16)
+    # CEP BR (8) ou ZIP/postal internacional (ex. US 5, UK alfanumérico).
+    postal_code: str = Field(min_length=2, max_length=16)
     street: str = Field(min_length=1, max_length=160)
     number: str = Field(min_length=1, max_length=20)
     complement: str | None = Field(default=None, max_length=80)
-    district: str = Field(min_length=1, max_length=80)
+    district: str | None = Field(default=None, max_length=80)
     city: str = Field(min_length=1, max_length=80)
-    state: str = Field(min_length=2, max_length=2)
+    state: str = Field(min_length=1, max_length=80)
+    country: str = Field(min_length=2, max_length=2)
     accept_terms: bool
 
     @model_validator(mode="after")
@@ -31,7 +41,17 @@ class SignupIn(BaseModel):
             raise PydanticCustomError("password_mismatch", "As senhas nao coincidem")
         if not self.accept_terms:
             raise PydanticCustomError("terms_required", "Aceite os termos e a politica de privacidade")
-        self.state = self.state.strip().upper()
+        self.country = self.country.strip().upper()
+        if not self.country.isalpha():
+            raise PydanticCustomError("country_invalid", "Codigo de pais invalido")
+        self.postal_code = self.postal_code.strip()
+        self.state = _norm_region(self.state)
+        if self.district is not None:
+            district = self.district.strip()
+            self.district = district or None
+        if self.complement is not None:
+            complement = self.complement.strip()
+            self.complement = complement or None
         return self
 
 
@@ -54,18 +74,31 @@ class LoginIn(BaseModel):
 class ProfileUpdateIn(BaseModel):
     full_name: str | None = Field(default=None, min_length=1, max_length=120)
     phone: str | None = Field(default=None, min_length=8, max_length=32)
-    postal_code: str | None = Field(default=None, min_length=8, max_length=16)
+    postal_code: str | None = Field(default=None, min_length=2, max_length=16)
     street: str | None = Field(default=None, min_length=1, max_length=160)
     number: str | None = Field(default=None, min_length=1, max_length=20)
     complement: str | None = Field(default=None, max_length=80)
-    district: str | None = Field(default=None, min_length=1, max_length=80)
+    district: str | None = Field(default=None, max_length=80)
     city: str | None = Field(default=None, min_length=1, max_length=80)
-    state: str | None = Field(default=None, min_length=2, max_length=2)
+    state: str | None = Field(default=None, min_length=1, max_length=80)
+    country: str | None = Field(default=None, min_length=2, max_length=2)
 
     @model_validator(mode="after")
-    def _norm_state(self) -> "ProfileUpdateIn":
+    def _norm_address(self) -> "ProfileUpdateIn":
+        if self.country is not None:
+            self.country = self.country.strip().upper()
+            if not self.country.isalpha():
+                raise PydanticCustomError("country_invalid", "Codigo de pais invalido")
+        if self.postal_code is not None:
+            self.postal_code = self.postal_code.strip()
         if self.state is not None:
-            self.state = self.state.strip().upper()
+            self.state = _norm_region(self.state)
+        if self.district is not None:
+            district = self.district.strip()
+            self.district = district or None
+        if self.complement is not None:
+            complement = self.complement.strip()
+            self.complement = complement or None
         return self
 
 
@@ -97,6 +130,7 @@ class UserOut(BaseModel):
     district: str | None = None
     city: str | None = None
     state: str | None = None
+    country: str | None = None
 
 
 class OwnerUserOut(BaseModel):
@@ -112,6 +146,7 @@ class OwnerUserOut(BaseModel):
     email_verified: bool = False
     city: str | None = None
     state: str | None = None
+    country: str | None = None
 
 
 class OwnerUsersOut(BaseModel):

@@ -231,6 +231,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           me.district,
           me.city,
           me.state,
+          me.country,
           me.postal_code,
         ]
           .map((p) => (p || "").trim())
