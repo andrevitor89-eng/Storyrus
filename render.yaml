@@ -49,6 +49,12 @@ services:
         sync: false
       - key: CREDIT_GRANT_SECRET
         sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: PUBLIC_WEB_ORIGIN
+        value: https://storyrus.ai
+      - key: TRANSACTIONAL_FROM_EMAIL
+        sync: false
       - key: OPIK_API_KEY
         sync: false
       - key: OPIK_WORKSPACE

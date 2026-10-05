@@ -60,6 +60,11 @@ class Settings(BaseSettings):
     guest_rate_limit_per_ip: int = 10
     guest_rate_limit_per_fingerprint: int = 5
     guest_rate_limit_window_s: int = 3600
+    # Verificação de e-mail + envio (Resend opcional).
+    email_verify_ttl_min: int = 60 * 24
+    public_web_origin: str = "https://storyrus.ai"
+    resend_api_key: str = ""
+    transactional_from_email: str = "Story R Us <noreply@storyrus.ai>"
 
     # Storage (R2/S3)
     storage_bucket: str = "stories-dev"

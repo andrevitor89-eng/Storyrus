@@ -17,6 +17,9 @@ const BookPage = lazy(() =>
 );
 const App = lazy(() => import("./App").then((m) => ({ default: m.App })));
 const Auth = lazy(() => import("./Auth").then((m) => ({ default: m.Auth })));
+const VerifyEmail = lazy(() =>
+  import("./VerifyEmail").then((m) => ({ default: m.VerifyEmail })),
+);
 const Usage = lazy(() =>
   import("./Usage").then((m) => ({ default: m.Usage })),
 );
@@ -33,6 +36,7 @@ const Pedidos = lazy(() =>
  *   /livro/:indice → Página do livro
  *   /entrar        → Login
  *   /cadastro      → Criar conta
+ *   /verificar-email → Confirmação de e-mail (token)
  *   /app           → Estúdio (conta obrigatória)
  *   /gastos        → Painel privado de custos USD
  *   /landing       → Landing (compatibilidade)
@@ -54,6 +58,7 @@ export function AppRoutes() {
         <Route path="/livro/:indice" element={<BookPage />} />
         <Route path="/entrar" element={<Auth mode="login" />} />
         <Route path="/cadastro" element={<Auth mode="signup" />} />
+        <Route path="/verificar-email" element={<VerifyEmail />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />

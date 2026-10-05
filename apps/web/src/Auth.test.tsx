@@ -3,6 +3,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { Auth, accountGateHref, safeNextPath } from "./Auth";
+import { VerifyEmail } from "./VerifyEmail";
 import { getToken, setAuthFetchTimeoutMsForTests, setToken } from "./api";
 import { state } from "./test/server";
 
@@ -19,10 +20,32 @@ function renderAuth(mode: "login" | "signup", next = "/app?tema=space") {
       <Routes>
         <Route path="/entrar" element={<Auth mode="login" />} />
         <Route path="/cadastro" element={<Auth mode="signup" />} />
+        <Route path="/verificar-email" element={<VerifyEmail />} />
         <Route path="/app" element={<div data-testid="studio-dest">studio</div>} />
+        <Route path="/termos" element={<div>termos</div>} />
+        <Route path="/privacidade" element={<div>privacidade</div>} />
       </Routes>
     </MemoryRouter>,
   );
+}
+
+async function fillSignup(
+  user: ReturnType<typeof userEvent.setup>,
+  email = "nova@example.com",
+) {
+  await user.type(screen.getByTestId("auth-full-name"), "Ana Souza");
+  await user.type(screen.getByTestId("auth-email"), email);
+  await user.type(screen.getByTestId("auth-phone"), "11999999999");
+  await user.type(screen.getByTestId("auth-password"), "password123");
+  await user.type(screen.getByTestId("auth-password-confirm"), "password123");
+  await user.type(screen.getByTestId("auth-postal-code"), "01310100");
+  await user.type(screen.getByTestId("auth-street"), "Av Paulista");
+  await user.type(screen.getByTestId("auth-number"), "1000");
+  await user.type(screen.getByTestId("auth-complement"), "Sala 1");
+  await user.type(screen.getByTestId("auth-district"), "Bela Vista");
+  await user.type(screen.getByTestId("auth-city"), "Sao Paulo");
+  await user.type(screen.getByTestId("auth-state"), "SP");
+  await user.click(screen.getByTestId("auth-accept-terms"));
 }
 
 describe("safeNextPath / accountGateHref", () => {
@@ -37,22 +60,47 @@ describe("safeNextPath / accountGateHref", () => {
 });
 
 describe("Auth", () => {
-  it("cria conta e redireciona para next", async () => {
+  it("cria conta e mostra tela de verificar e-mail (sem JWT)", async () => {
     const user = userEvent.setup();
     renderAuth("signup", "/app?tema=space");
 
-    await user.type(screen.getByTestId("auth-email"), "nova@example.com");
-    await user.type(screen.getByTestId("auth-password"), "password123");
+    await fillSignup(user);
     await user.click(screen.getByTestId("auth-submit"));
+
+    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+    expect(getToken()).toBeNull();
+    expect(state.email).toBe("nova@example.com");
+    expect(state.emailVerified).toBe(false);
+    expect(screen.queryByTestId("studio-dest")).not.toBeInTheDocument();
+  });
+
+  it("confirma e-mail e entra no estúdio", async () => {
+    state.isGuest = false;
+    state.emailVerified = false;
+    state.pendingVerifyToken = "test-verify-token";
+    state.email = "verify@example.com";
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/verificar-email?token=test-verify-token&next=${encodeURIComponent("/app?tema=space")}`,
+        ]}
+      >
+        <Routes>
+          <Route path="/verificar-email" element={<VerifyEmail />} />
+          <Route path="/app" element={<div data-testid="studio-dest">studio</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
 
     expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
     expect(getToken()).toBe("test-token");
-    expect(state.isGuest).toBe(false);
-    expect(state.email).toBe("nova@example.com");
+    expect(state.emailVerified).toBe(true);
   });
 
   it("faz login e redireciona", async () => {
     const user = userEvent.setup();
+    state.emailVerified = true;
     renderAuth("login", "/app");
 
     await user.type(screen.getByTestId("auth-email"), "ja@example.com");
@@ -82,8 +130,7 @@ describe("Auth", () => {
       http.post("*/v1/auth/signup", () => HttpResponse.text("bad gateway", { status: 502 })),
     );
     renderAuth("signup", "/app");
-    await user.type(screen.getByTestId("auth-email"), "x@example.com");
-    await user.type(screen.getByTestId("auth-password"), "password123");
+    await fillSignup(user, "x@example.com");
     await user.click(screen.getByTestId("auth-submit"));
     expect(await screen.findByTestId("auth-error")).toHaveTextContent(/indisponível/i);
   });
@@ -100,8 +147,7 @@ describe("Auth", () => {
       }),
     );
     renderAuth("signup", "/app");
-    await user.type(screen.getByTestId("auth-email"), "x@example.com");
-    await user.type(screen.getByTestId("auth-password"), "password123");
+    await fillSignup(user, "x@example.com");
     await user.click(screen.getByTestId("auth-submit"));
     expect(screen.getByTestId("auth-submit")).toHaveTextContent(/aguarde/i);
     expect(await screen.findByTestId("auth-error", {}, { timeout: 3000 })).toHaveTextContent(

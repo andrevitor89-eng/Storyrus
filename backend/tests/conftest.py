@@ -82,13 +82,42 @@ def client():
     app.dependency_overrides.clear()
 
 
+def signup_payload(email: str, password: str = "password123", **overrides) -> dict:
+    """Payload completo de cadastro (perfil + termos)."""
+    body = {
+        "email": email,
+        "password": password,
+        "password_confirm": password,
+        "full_name": "Ana Souza",
+        "phone": "11999999999",
+        "postal_code": "01310100",
+        "street": "Av Paulista",
+        "number": "1000",
+        "complement": "Sala 1",
+        "district": "Bela Vista",
+        "city": "Sao Paulo",
+        "state": "SP",
+        "accept_terms": True,
+    }
+    body.update(overrides)
+    return body
+
+
+def signup_and_verify(client, email: str, password: str = "password123", **overrides) -> str:
+    """Cadastra, verifica e-mail e devolve access_token."""
+    r = client.post("/v1/auth/signup", json=signup_payload(email, password, **overrides))
+    assert r.status_code == 201, r.text
+    verify_token = r.json().get("verify_token")
+    assert verify_token, r.text
+    v = client.post("/v1/auth/verify-email", json={"token": verify_token})
+    assert v.status_code == 200, v.text
+    return v.json()["access_token"]
+
+
 @pytest.fixture()
 def auth_client(client):
-    """Cliente com conta registrada (obrigatoria para criar livros)."""
-    email = "auth@example.com"
-    r = client.post("/v1/auth/signup", json={"email": email, "password": "password123"})
-    assert r.status_code == 201, r.text
-    token = r.json()["access_token"]
+    """Cliente com conta registrada e e-mail verificado."""
+    token = signup_and_verify(client, "auth@example.com")
     client.headers.update({"Authorization": f"Bearer {token}"})
     return client
 

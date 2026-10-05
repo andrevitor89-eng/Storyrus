@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
-import { api } from "./api";
+import { api, type SignupPayload } from "./api";
 import "./landing.css";
 
 export type AuthMode = "login" | "signup";
@@ -17,55 +17,127 @@ const COPY: Record<
     signupLead: string;
     email: string;
     password: string;
+    passwordConfirm: string;
+    fullName: string;
+    phone: string;
+    postalCode: string;
+    street: string;
+    number: string;
+    complement: string;
+    district: string;
+    city: string;
+    state: string;
+    acceptTerms: string;
+    terms: string;
+    privacy: string;
     loginSubmit: string;
     signupSubmit: string;
     busy: string;
     switchToSignup: string;
     switchToLogin: string;
     back: string;
+    checkTitle: string;
+    checkLead: string;
+    checkHint: string;
+    passwordMismatch: string;
+    mustAcceptTerms: string;
   }
 > = {
   pt: {
     loginTitle: "Entrar",
     signupTitle: "Criar conta",
     loginLead: "Acesse sua conta para criar livros personalizados.",
-    signupLead: "Cadastre-se para criar livros personalizados.",
+    signupLead: "Cadastre-se com seus dados — usamos o perfil no pedido e no envio.",
     email: "E-mail",
     password: "Senha (mín. 8)",
+    passwordConfirm: "Confirmar senha",
+    fullName: "Nome completo",
+    phone: "Telefone / WhatsApp",
+    postalCode: "CEP",
+    street: "Rua",
+    number: "Número",
+    complement: "Complemento",
+    district: "Bairro",
+    city: "Cidade",
+    state: "UF",
+    acceptTerms: "Li e aceito os",
+    terms: "Termos de uso",
+    privacy: "Política de privacidade",
     loginSubmit: "Entrar",
     signupSubmit: "Criar conta",
     busy: "Aguarde…",
     switchToSignup: "Criar uma conta",
     switchToLogin: "Já tenho conta",
     back: "Voltar ao início",
+    checkTitle: "Verifique seu e-mail",
+    checkLead: "Enviamos um link de confirmação. Ative a conta antes de entrar no estúdio.",
+    checkHint: "Não recebeu? Confira o spam ou tente criar a conta de novo em alguns minutos.",
+    passwordMismatch: "As senhas não coincidem.",
+    mustAcceptTerms: "Aceite os termos e a política de privacidade.",
   },
   en: {
     loginTitle: "Log in",
     signupTitle: "Create account",
     loginLead: "Sign in to create personalized books.",
-    signupLead: "Create an account to make personalized books.",
+    signupLead: "Sign up with your details — we reuse them for orders and shipping.",
     email: "Email",
     password: "Password (min. 8)",
+    passwordConfirm: "Confirm password",
+    fullName: "Full name",
+    phone: "Phone / WhatsApp",
+    postalCode: "ZIP / Postal code",
+    street: "Street",
+    number: "Number",
+    complement: "Apt / Suite",
+    district: "District",
+    city: "City",
+    state: "State",
+    acceptTerms: "I agree to the",
+    terms: "Terms of use",
+    privacy: "Privacy policy",
     loginSubmit: "Log in",
     signupSubmit: "Create account",
     busy: "Please wait…",
     switchToSignup: "Create an account",
     switchToLogin: "I already have an account",
     back: "Back to home",
+    checkTitle: "Check your email",
+    checkLead: "We sent a confirmation link. Activate your account before opening the studio.",
+    checkHint: "Didn't get it? Check spam or try signing up again in a few minutes.",
+    passwordMismatch: "Passwords do not match.",
+    mustAcceptTerms: "Please accept the terms and privacy policy.",
   },
   es: {
     loginTitle: "Entrar",
     signupTitle: "Crear cuenta",
     loginLead: "Accede a tu cuenta para crear libros personalizados.",
-    signupLead: "Regístrate para crear libros personalizados.",
+    signupLead: "Regístrate con tus datos — los usamos en el pedido y el envío.",
     email: "Correo",
     password: "Contraseña (mín. 8)",
+    passwordConfirm: "Confirmar contraseña",
+    fullName: "Nombre completo",
+    phone: "Teléfono / WhatsApp",
+    postalCode: "Código postal",
+    street: "Calle",
+    number: "Número",
+    complement: "Complemento",
+    district: "Barrio",
+    city: "Ciudad",
+    state: "UF",
+    acceptTerms: "Acepto los",
+    terms: "Términos de uso",
+    privacy: "Política de privacidad",
     loginSubmit: "Entrar",
     signupSubmit: "Crear cuenta",
     busy: "Espera…",
     switchToSignup: "Crear una cuenta",
     switchToLogin: "Ya tengo cuenta",
     back: "Volver al inicio",
+    checkTitle: "Revisa tu correo",
+    checkLead: "Enviamos un enlace de confirmación. Activa la cuenta antes de entrar al estudio.",
+    checkHint: "¿No llegó? Revisa spam o vuelve a registrarte en unos minutos.",
+    passwordMismatch: "Las contraseñas no coinciden.",
+    mustAcceptTerms: "Acepta los términos y la política de privacidad.",
   },
 };
 
@@ -91,6 +163,20 @@ export function accountGateHref(nextPath: string): string {
   return `/cadastro?next=${encodeURIComponent(next)}`;
 }
 
+const emptySignup = {
+  full_name: "",
+  phone: "",
+  postal_code: "",
+  street: "",
+  number: "",
+  complement: "",
+  district: "",
+  city: "",
+  state: "",
+  password_confirm: "",
+  accept_terms: false,
+};
+
 export function Auth({ mode }: { mode: AuthMode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -98,8 +184,10 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const t = COPY[readLang()];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [signup, setSignup] = useState(emptySignup);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [checkEmail, setCheckEmail] = useState(false);
 
   const altMode: AuthMode = mode === "login" ? "signup" : "login";
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
@@ -118,10 +206,12 @@ export function Auth({ mode }: { mode: AuthMode }) {
     if (/^409\b/i.test(msg)) {
       return "Este e-mail já tem conta. Tente entrar.";
     }
+    if (/^403\b/i.test(msg) || /confirme seu e-mail|verify|verif/i.test(msg)) {
+      return "Confirme seu e-mail pelo link que enviamos antes de entrar.";
+    }
     if (/^401\b/i.test(msg) || /credencial|senha|password|unauthorized/i.test(msg)) {
       return "E-mail ou senha incorretos.";
     }
-    // Strip bare "502: " style prefixes when the body is empty.
     const cleaned = msg.replace(/^\d{3}:\s*/i, "").trim();
     return cleaned || msg || "Algo deu errado. Tente novamente.";
   }
@@ -131,14 +221,70 @@ export function Auth({ mode }: { mode: AuthMode }) {
     setBusy(true);
     setError(null);
     try {
-      if (mode === "signup") await api.signup(email.trim(), password);
-      else await api.login(email.trim(), password);
+      if (mode === "signup") {
+        if (password !== signup.password_confirm) {
+          setError(t.passwordMismatch);
+          return;
+        }
+        if (!signup.accept_terms) {
+          setError(t.mustAcceptTerms);
+          return;
+        }
+        const payload: SignupPayload = {
+          email: email.trim(),
+          password,
+          password_confirm: signup.password_confirm,
+          full_name: signup.full_name.trim(),
+          phone: signup.phone.trim(),
+          postal_code: signup.postal_code.trim(),
+          street: signup.street.trim(),
+          number: signup.number.trim(),
+          complement: signup.complement.trim() || null,
+          district: signup.district.trim(),
+          city: signup.city.trim(),
+          state: signup.state.trim().toUpperCase(),
+          accept_terms: true,
+        };
+        await api.signup(payload);
+        setCheckEmail(true);
+        return;
+      }
+      await api.login(email.trim(), password);
       navigate(next, { replace: true });
     } catch (err) {
       setError(friendlyAuthError((err as Error).message || ""));
     } finally {
       setBusy(false);
     }
+  }
+
+  if (checkEmail) {
+    return (
+      <div className="kid auth-kid" data-testid="auth-page">
+        <div className="auth-shell">
+          <div className="auth-card" data-testid="auth-check-email">
+            <div className="auth-logo">
+              <Link to="/">
+                <img src={logo} alt="Story R Us" />
+              </Link>
+            </div>
+            <h1>{t.checkTitle}</h1>
+            <p className="auth-lead">{t.checkLead}</p>
+            <p className="auth-lead auth-check-hint">{t.checkHint}</p>
+            <p className="auth-foot">
+              <Link to={`/entrar?next=${encodeURIComponent(next)}`} data-testid="auth-switch">
+                {t.switchToLogin}
+              </Link>
+            </p>
+            <p className="auth-foot">
+              <Link to="/" data-testid="auth-back">
+                {t.back}
+              </Link>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -153,6 +299,19 @@ export function Auth({ mode }: { mode: AuthMode }) {
           <h1>{mode === "login" ? t.loginTitle : t.signupTitle}</h1>
           <p className="auth-lead">{mode === "login" ? t.loginLead : t.signupLead}</p>
           <form className="auth-form" onSubmit={onSubmit} data-testid="auth-form">
+            {mode === "signup" && (
+              <label>
+                {t.fullName}
+                <input
+                  type="text"
+                  required
+                  autoComplete="name"
+                  value={signup.full_name}
+                  onChange={(e) => setSignup({ ...signup, full_name: e.target.value })}
+                  data-testid="auth-full-name"
+                />
+              </label>
+            )}
             <label>
               {t.email}
               <input
@@ -164,6 +323,20 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 data-testid="auth-email"
               />
             </label>
+            {mode === "signup" && (
+              <label>
+                {t.phone}
+                <input
+                  type="tel"
+                  required
+                  minLength={8}
+                  autoComplete="tel"
+                  value={signup.phone}
+                  onChange={(e) => setSignup({ ...signup, phone: e.target.value })}
+                  data-testid="auth-phone"
+                />
+              </label>
+            )}
             <label>
               {t.password}
               <input
@@ -176,6 +349,121 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 data-testid="auth-password"
               />
             </label>
+            {mode === "signup" && (
+              <>
+                <label>
+                  {t.passwordConfirm}
+                  <input
+                    type="password"
+                    required
+                    minLength={8}
+                    autoComplete="new-password"
+                    value={signup.password_confirm}
+                    onChange={(e) => setSignup({ ...signup, password_confirm: e.target.value })}
+                    data-testid="auth-password-confirm"
+                  />
+                </label>
+                <div className="auth-address" data-testid="auth-address">
+                  <label>
+                    {t.postalCode}
+                    <input
+                      type="text"
+                      required
+                      minLength={8}
+                      autoComplete="postal-code"
+                      value={signup.postal_code}
+                      onChange={(e) => setSignup({ ...signup, postal_code: e.target.value })}
+                      data-testid="auth-postal-code"
+                    />
+                  </label>
+                  <label className="auth-span-2">
+                    {t.street}
+                    <input
+                      type="text"
+                      required
+                      autoComplete="street-address"
+                      value={signup.street}
+                      onChange={(e) => setSignup({ ...signup, street: e.target.value })}
+                      data-testid="auth-street"
+                    />
+                  </label>
+                  <label>
+                    {t.number}
+                    <input
+                      type="text"
+                      required
+                      value={signup.number}
+                      onChange={(e) => setSignup({ ...signup, number: e.target.value })}
+                      data-testid="auth-number"
+                    />
+                  </label>
+                  <label>
+                    {t.complement}
+                    <input
+                      type="text"
+                      value={signup.complement}
+                      onChange={(e) => setSignup({ ...signup, complement: e.target.value })}
+                      data-testid="auth-complement"
+                    />
+                  </label>
+                  <label>
+                    {t.district}
+                    <input
+                      type="text"
+                      required
+                      value={signup.district}
+                      onChange={(e) => setSignup({ ...signup, district: e.target.value })}
+                      data-testid="auth-district"
+                    />
+                  </label>
+                  <label>
+                    {t.city}
+                    <input
+                      type="text"
+                      required
+                      autoComplete="address-level2"
+                      value={signup.city}
+                      onChange={(e) => setSignup({ ...signup, city: e.target.value })}
+                      data-testid="auth-city"
+                    />
+                  </label>
+                  <label>
+                    {t.state}
+                    <input
+                      type="text"
+                      required
+                      minLength={2}
+                      maxLength={2}
+                      autoComplete="address-level1"
+                      value={signup.state}
+                      onChange={(e) =>
+                        setSignup({ ...signup, state: e.target.value.toUpperCase() })
+                      }
+                      data-testid="auth-state"
+                    />
+                  </label>
+                </div>
+                <label className="auth-terms">
+                  <input
+                    type="checkbox"
+                    checked={signup.accept_terms}
+                    onChange={(e) => setSignup({ ...signup, accept_terms: e.target.checked })}
+                    data-testid="auth-accept-terms"
+                  />
+                  <span>
+                    {t.acceptTerms}{" "}
+                    <Link to="/termos" target="_blank" rel="noreferrer">
+                      {t.terms}
+                    </Link>{" "}
+                    e{" "}
+                    <Link to="/privacidade" target="_blank" rel="noreferrer">
+                      {t.privacy}
+                    </Link>
+                    .
+                  </span>
+                </label>
+              </>
+            )}
             {error && (
               <p className="auth-error" role="alert" data-testid="auth-error">
                 {error}

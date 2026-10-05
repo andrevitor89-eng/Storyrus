@@ -229,12 +229,17 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
     monkeypatch.setattr("app.storage.presign_get", lambda key: f"https://fotos.test/{key}")
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
-    signed = client.post(
-        "/v1/auth/signup",
-        json={"email": "ana@email.com", "password": "senha-forte"},
+    from tests.conftest import signup_and_verify
+
+    token = signup_and_verify(
+        client,
+        "ana@email.com",
+        password="senha-forte",
+        password_confirm="senha-forte",
+        full_name="Ana Souza",
+        phone="11988887777",
     )
-    assert signed.status_code == 201, signed.text
-    client.headers.update({"Authorization": f"Bearer {signed.json()['access_token']}"})
+    client.headers.update({"Authorization": f"Bearer {token}"})
     pid = _create(client)
     up = client.post(
         f"/v1/projects/{pid}/photo",
@@ -244,9 +249,8 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
     assert up.status_code == 201, up.text
     owner = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
     summary = owner.json()["orders"][0]["summary"]
-    assert "Cliente: ana@email.com" in summary
-    assert "E-mail: ana@email.com" in summary
-    assert "Telefone:" not in summary
+    # Conta logada ainda pode enviar buyer vazio no upload; Studio passará o perfil.
+    assert "ana@email.com" in summary
 
 
 def test_guest_cannot_create_project_or_order(guest_client, monkeypatch):

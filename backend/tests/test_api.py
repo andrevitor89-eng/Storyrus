@@ -1,5 +1,7 @@
 """Testes do fluxo: auth, creditos, idempotencia, backpressure, ownership."""
 
+from tests.conftest import signup_and_verify, signup_payload
+
 
 def test_health(client, monkeypatch):
     from app.config import settings
@@ -14,16 +16,16 @@ def test_health(client, monkeypatch):
 
 
 def test_signup_gives_bonus_credits(client):
-    client.post("/v1/auth/signup", json={"email": "x@y.com", "password": "password123"})
-    r = client.post("/v1/auth/login", json={"email": "x@y.com", "password": "password123"})
-    token = r.json()["access_token"]
+    token = signup_and_verify(client, "x@y.com")
     me = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
     assert me.json()["credits"] == 10  # SIGNUP_BONUS_CREDITS default
+    assert me.json()["email_verified"] is True
+    assert me.json()["full_name"] == "Ana Souza"
 
 
 def test_duplicate_signup_conflicts(client):
-    client.post("/v1/auth/signup", json={"email": "d@d.com", "password": "password123"})
-    r = client.post("/v1/auth/signup", json={"email": "d@d.com", "password": "password123"})
+    assert client.post("/v1/auth/signup", json=signup_payload("d@d.com")).status_code == 201
+    r = client.post("/v1/auth/signup", json=signup_payload("d@d.com"))
     assert r.status_code == 409
 
 
@@ -42,10 +44,8 @@ def test_guest_cannot_create_project(client):
 
 
 def test_accounts_are_isolated(client):
-    a = client.post("/v1/auth/signup", json={"email": "a@x.com", "password": "password123"})
-    b = client.post("/v1/auth/signup", json={"email": "b@x.com", "password": "password123"})
-    assert a.status_code == 201 and b.status_code == 201
-    ta, tb = a.json()["access_token"], b.json()["access_token"]
+    ta = signup_and_verify(client, "a@x.com")
+    tb = signup_and_verify(client, "b@x.com")
     assert ta != tb
 
     me_a = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {ta}"}).json()
@@ -241,16 +241,12 @@ def test_approve_and_print_require_preview(auth_client):
 
 
 def test_cannot_access_others_project(client):
-    a = client.post(
-        "/v1/auth/signup", json={"email": "owner@x.com", "password": "password123"}
-    ).json()
+    ta = signup_and_verify(client, "owner@x.com")
     pid = client.post(
         "/v1/projects",
         json={"style": "realistic"},
-        headers={"Authorization": f"Bearer {a['access_token']}"},
+        headers={"Authorization": f"Bearer {ta}"},
     ).json()["id"]
-    b = client.post(
-        "/v1/auth/signup", json={"email": "other@x.com", "password": "password123"}
-    ).json()
-    r = client.get(f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"})
+    tb = signup_and_verify(client, "other@x.com")
+    r = client.get(f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {tb}"})
     assert r.status_code == 404
