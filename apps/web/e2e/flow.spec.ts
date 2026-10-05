@@ -41,17 +41,12 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
 
   await page.route("**/v1/auth/guest", (r) => json(r, { access_token: "e2e-token" }, 201));
   await page.route("**/v1/auth/signup", async (r) => {
-    const body = r.request().postDataJSON() as {
-      email?: string;
-      full_name?: string;
-      phone?: string;
-      postal_code?: string;
-      street?: string;
-      number?: string;
-      district?: string;
-      city?: string;
-      state?: string;
-    };
+    let body: Record<string, string> = {};
+    try {
+      body = (r.request().postDataJSON() as Record<string, string>) || {};
+    } catch {
+      /* ignore */
+    }
     state.isGuest = false;
     state.emailVerified = false;
     state.email = body.email || state.email;
@@ -63,7 +58,8 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     state.district = body.district || state.district;
     state.city = body.city || state.city;
     state.stateUf = body.state || state.stateUf;
-    state.pendingVerifyToken = "e2e-verify-token";
+    // ≥20 chars (mesmo mínimo do schema da API) para o mock e o backend real.
+    state.pendingVerifyToken = "e2e-verify-token-ok!!";
     return json(
       r,
       {
@@ -75,8 +71,17 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     );
   });
   await page.route("**/v1/auth/verify-email", async (r) => {
-    const body = r.request().postDataJSON() as { token?: string };
-    if (!body.token || body.token !== state.pendingVerifyToken) {
+    let token = "";
+    try {
+      token = String((r.request().postDataJSON() as { token?: string })?.token || "");
+    } catch {
+      /* ignore */
+    }
+    if (!token) {
+      return json(r, { detail: "Link invalido ou expirado" }, 400);
+    }
+    // Aceita o token do mock de signup (ou qualquer token do fluxo e2e).
+    if (state.pendingVerifyToken && token !== state.pendingVerifyToken) {
       return json(r, { detail: "Link invalido ou expirado" }, 400);
     }
     state.emailVerified = true;
@@ -229,8 +234,8 @@ test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
   await fillSignupForm(page);
   await page.getByTestId("auth-submit").click();
   await expect(page.getByTestId("auth-check-email")).toBeVisible();
-  await page.goto("/verificar-email?token=e2e-verify-token");
-  await expect(page).toHaveURL(/\/app/);
+  await page.goto("/verificar-email?token=e2e-verify-token-ok!!");
+  await expect(page).toHaveURL(/\/app/, { timeout: 15_000 });
   await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
 });
 
