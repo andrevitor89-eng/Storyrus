@@ -107,7 +107,10 @@ export function Auth({ mode }: { mode: AuthMode }) {
 
   function friendlyAuthError(raw: string): string {
     const msg = raw.trim();
-    if (/^502\b|^503\b|^504\b/i.test(msg) || /failed to fetch|networkerror|load failed/i.test(msg)) {
+    if (
+      /^502\b|^503\b|^504\b/i.test(msg) ||
+      /failed to fetch|networkerror|load failed|demorou demais|abort/i.test(msg)
+    ) {
       return mode === "signup"
         ? "Não foi possível criar a conta agora. O servidor está indisponível — tente de novo em instantes."
         : "Não foi possível entrar agora. O servidor está indisponível — tente de novo em instantes.";

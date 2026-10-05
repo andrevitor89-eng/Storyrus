@@ -180,13 +180,58 @@ export function resetStepIdempotencyState(): void {
   stepInFlight.clear();
 }
 
+/** Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout). */
+export let authFetchTimeoutMs = 15_000;
+
+/** Só para testes — restaura o valor padrão depois. */
+export function setAuthFetchTimeoutMsForTests(ms: number): void {
+  authFetchTimeoutMs = ms;
+}
+
+function isAuthPath(path: string): boolean {
+  return (
+    path.startsWith("/v1/auth/signup") ||
+    path.startsWith("/v1/auth/login") ||
+    path.startsWith("/v1/auth/guest") ||
+    path.startsWith("/v1/auth/resume") ||
+    path.startsWith("/v1/auth/upgrade")
+  );
+}
+
 async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> {
   const headers = new Headers(init.headers);
   if (!headers.has("Content-Type") && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
   if (token) headers.set("Authorization", `Bearer ${token}`);
-  return fetch(`${BASE}${path}`, { ...init, headers });
+
+  const timeoutMs = isAuthPath(path) ? authFetchTimeoutMs : undefined;
+  let timedOut = false;
+  const controller = timeoutMs ? new AbortController() : null;
+  const timer = controller
+    ? window.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, timeoutMs)
+    : undefined;
+  try {
+    return await fetch(`${BASE}${path}`, {
+      ...init,
+      headers,
+      signal: init.signal ?? controller?.signal,
+    });
+  } catch (err) {
+    if (timedOut || (err instanceof DOMException && err.name === "AbortError")) {
+      throw new Error(
+        timedOut
+          ? "504: Servidor demorou demais para responder"
+          : ((err as Error).message || "Requisição cancelada"),
+      );
+    }
+    throw err;
+  } finally {
+    if (timer !== undefined) window.clearTimeout(timer);
+  }
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
