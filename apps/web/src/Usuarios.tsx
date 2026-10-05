@@ -120,8 +120,11 @@ export function Usuarios() {
             <table aria-label="Lista de usuários">
               <thead>
                 <tr>
+                  <th>Nome</th>
                   <th>E-mail</th>
+                  <th>Telefone</th>
                   <th>Cadastro</th>
+                  <th>Verificado</th>
                   <th>Créditos</th>
                   <th>Projetos</th>
                 </tr>
@@ -129,8 +132,11 @@ export function Usuarios() {
               <tbody>
                 {(users ?? []).map((user) => (
                   <tr key={user.id}>
+                    <td>{user.full_name || "—"}</td>
                     <td>{user.email}</td>
+                    <td>{user.phone || "—"}</td>
                     <td>{when(user.created_at)}</td>
+                    <td>{user.email_verified ? "Sim" : "Não"}</td>
                     <td>{user.credits}</td>
                     <td>{user.project_count}</td>
                   </tr>

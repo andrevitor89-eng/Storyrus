@@ -44,6 +44,11 @@ def list_users(
             credits=user.credits,
             created_at=user.created_at,
             project_count=int(count or 0),
+            full_name=user.full_name,
+            phone=user.phone,
+            email_verified=user.email_verified_at is not None,
+            city=user.city,
+            state=user.state,
         )
         for user, count in rows
     ]

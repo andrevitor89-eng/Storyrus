@@ -107,6 +107,11 @@ class OwnerUserOut(BaseModel):
     credits: int
     created_at: datetime
     project_count: int = 0
+    full_name: str | None = None
+    phone: str | None = None
+    email_verified: bool = False
+    city: str | None = None
+    state: str | None = None
 
 
 class OwnerUsersOut(BaseModel):

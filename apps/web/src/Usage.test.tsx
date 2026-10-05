@@ -67,6 +67,7 @@ describe("Painel /usuarios", () => {
     expect(await screen.findByText(/2 no total/i)).toBeInTheDocument();
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Ana Souza")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
   });

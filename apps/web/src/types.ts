@@ -221,6 +221,11 @@ export interface OwnerUser {
   credits: number;
   created_at: string;
   project_count: number;
+  full_name?: string | null;
+  phone?: string | null;
+  email_verified?: boolean;
+  city?: string | null;
+  state?: string | null;
 }
 
 export interface OwnerUsersReport {

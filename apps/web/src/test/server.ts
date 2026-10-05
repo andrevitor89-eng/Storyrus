@@ -360,6 +360,11 @@ export const handlers = [
           credits: 12,
           created_at: "2026-03-01T15:30:00.000Z",
           project_count: 3,
+          full_name: "Ana Souza",
+          phone: "11999999999",
+          email_verified: true,
+          city: "Sao Paulo",
+          state: "SP",
         },
         {
           id: "u2",
@@ -367,6 +372,11 @@ export const handlers = [
           credits: 5,
           created_at: "2026-02-10T12:00:00.000Z",
           project_count: 1,
+          full_name: "Bruno Lima",
+          phone: "21988887777",
+          email_verified: false,
+          city: "Rio de Janeiro",
+          state: "RJ",
         },
       ],
     });

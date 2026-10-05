@@ -3,6 +3,7 @@
 from app.config import settings
 from app.database import get_db
 from app.models import Project, User
+from tests.conftest import signup_and_verify
 
 
 def _session(client):
@@ -42,6 +43,12 @@ def test_users_lists_registered_only(auth_client, monkeypatch):
     emails = [u["email"] for u in body["users"]]
     assert "auth@example.com" in emails
     assert all(not email.startswith("guest-") for email in emails)
+    me = next(u for u in body["users"] if u["email"] == "auth@example.com")
+    assert me["full_name"] == "Ana Souza"
+    assert me["phone"] == "11999999999"
+    assert me["email_verified"] is True
+    assert me["city"] == "Sao Paulo"
+    assert me["state"] == "SP"
 
 
 def test_users_project_count(auth_client, monkeypatch):
@@ -63,12 +70,8 @@ def test_users_project_count(auth_client, monkeypatch):
 
 def test_users_ordered_newest_first(client, monkeypatch):
     headers = _owner_headers(monkeypatch)
-    assert client.post(
-        "/v1/auth/signup", json={"email": "old@example.com", "password": "password123"}
-    ).status_code == 201
-    assert client.post(
-        "/v1/auth/signup", json={"email": "new@example.com", "password": "password123"}
-    ).status_code == 201
+    signup_and_verify(client, "old@example.com")
+    signup_and_verify(client, "new@example.com")
 
     # Ajusta created_at para garantir ordem (SQLite pode colapsar timestamps iguais).
     db = _session(client)
@@ -105,6 +108,10 @@ def test_users_excludes_guest_seeded_directly(client, monkeypatch):
                 email="real@example.com",
                 password_hash="hashed",
                 credits=5,
+                full_name="Real User",
+                phone="11988887777",
+                city="Recife",
+                state="PE",
             )
         )
         db.flush()
@@ -119,5 +126,8 @@ def test_users_excludes_guest_seeded_directly(client, monkeypatch):
     body = r.json()
     assert body["total"] == 1
     assert body["users"][0]["email"] == "real@example.com"
+    assert body["users"][0]["full_name"] == "Real User"
+    assert body["users"][0]["phone"] == "11988887777"
     assert body["users"][0]["project_count"] == 1
     assert body["users"][0]["credits"] == 5
+    assert body["users"][0]["email_verified"] is False
