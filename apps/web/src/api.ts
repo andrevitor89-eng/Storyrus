@@ -333,6 +333,9 @@ export const api = {
       }),
     });
   },
+  async listProjects() {
+    return req<Project[]>("/v1/projects");
+  },
   async getProject(id: string) {
     return req<Project>(`/v1/projects/${id}`);
   },

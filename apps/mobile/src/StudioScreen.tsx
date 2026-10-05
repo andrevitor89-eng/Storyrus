@@ -35,9 +35,11 @@ const GROUPS: ThemeGroup[] = ["aventura", "datas", "educativo"];
 
 export function StudioScreen({
   onLogout,
+  onOpenConta,
   bootError,
 }: {
   onLogout: () => void | Promise<void>;
+  onOpenConta: () => void;
   bootError?: string | null;
 }) {
   const [credits, setCredits] = useState<number | null>(null);
@@ -275,6 +277,9 @@ export function StudioScreen({
         <Text style={s.brand}>Story R Us</Text>
         <View style={{ flex: 1 }} />
         <Text style={s.muted}>Créditos: {credits ?? "…"}</Text>
+        <Pressable onPress={onOpenConta}>
+          <Text style={s.link}>  Conta</Text>
+        </Pressable>
         <Pressable onPress={() => void onLogout()}>
           <Text style={s.link}>  Sair</Text>
         </Pressable>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, SafeAreaView, StyleSheet, View } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { AuthScreen } from "./src/AuthScreen";
+import { ContaScreen } from "./src/ContaScreen";
 import { StudioScreen } from "./src/StudioScreen";
 import { api, getToken, hydrateToken, logout, ensureSession } from "./src/api";
 
@@ -12,6 +13,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [authed, setAuthed] = useState(false);
   const [bootError, setBootError] = useState<string | null>(null);
+  const [screen, setScreen] = useState<"studio" | "conta">("studio");
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +48,13 @@ export default function App() {
     };
   }, []);
 
+  function handleLogout() {
+    logout();
+    setAuthed(false);
+    setBootError(null);
+    setScreen("studio");
+  }
+
   return (
     <SafeAreaView style={s.root}>
       <StatusBar style="light" />
@@ -58,16 +67,16 @@ export default function App() {
           onAuthed={() => {
             setAuthed(true);
             setBootError(null);
+            setScreen("studio");
           }}
         />
+      ) : screen === "conta" ? (
+        <ContaScreen onBack={() => setScreen("studio")} onLogout={handleLogout} />
       ) : (
         <StudioScreen
           bootError={bootError}
-          onLogout={async () => {
-            logout();
-            setAuthed(false);
-            setBootError(null);
-          }}
+          onOpenConta={() => setScreen("conta")}
+          onLogout={handleLogout}
         />
       )}
     </SafeAreaView>

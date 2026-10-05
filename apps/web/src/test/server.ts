@@ -21,6 +21,7 @@ type Project = {
   id: string;
   status: string;
   style: string | null;
+  child_name?: string | null;
   story_text: string | null;
   ebook_url: string | null;
   video_url: string | null;
@@ -29,6 +30,14 @@ type Project = {
   book_approved_at?: string | null;
   print_requested_at?: string | null;
   print_status?: string | null;
+  created_at: string;
+};
+
+type Voice = {
+  id: string;
+  name: string;
+  is_default: boolean;
+  mime_type: string;
   created_at: string;
 };
 
@@ -47,12 +56,16 @@ export const state = {
   email: "guest-test@storyrus.app",
   projects: new Map<string, Project>(),
   jobs: new Map<string, Job[]>(),
+  voices: [] as Voice[],
+  customVoiceAvailable: false,
   reset() {
     this.credits = 0;
     this.isGuest = true;
     this.email = "guest-test@storyrus.app";
     this.projects.clear();
     this.jobs.clear();
+    this.voices = [];
+    this.customVoiceAvailable = false;
   },
 };
 
@@ -144,8 +157,29 @@ export const handlers = [
   }),
   http.get("*/v1/credits", () => HttpResponse.json({ credits: state.credits })),
   http.get("*/v1/voices", () =>
-    HttpResponse.json({ items: [], custom_voice_available: false }),
+    HttpResponse.json({
+      items: state.voices,
+      custom_voice_available: state.customVoiceAvailable,
+    }),
   ),
+  http.patch("*/v1/voices/:vid", async ({ params, request }) => {
+    const body = (await request.json()) as { is_default?: boolean; name?: string };
+    const voice = state.voices.find((v) => v.id === params.vid);
+    if (!voice) return new HttpResponse(null, { status: 404 });
+    if (body.is_default) {
+      state.voices.forEach((v) => {
+        v.is_default = v.id === voice.id;
+      });
+    }
+    if (body.name != null) voice.name = body.name;
+    return HttpResponse.json(voice);
+  }),
+  http.delete("*/v1/voices/:vid", ({ params }) => {
+    const before = state.voices.length;
+    state.voices = state.voices.filter((v) => v.id !== params.vid);
+    if (state.voices.length === before) return new HttpResponse(null, { status: 404 });
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.get("*/v1/usage", ({ request }) => {
     const password = request.headers.get("X-Usage-Password");
     if (password !== "segredo") {
@@ -222,11 +256,12 @@ export const handlers = [
   }),
 
   http.post("*/v1/projects", async ({ request }) => {
-    const body = (await request.json()) as { style?: string };
+    const body = (await request.json()) as { style?: string; child_name?: string };
     const p: Project = {
       id: id(),
       status: "CREATED",
       style: body.style ?? "cgi_3d",
+      child_name: body.child_name ?? null,
       story_text: null,
       ebook_url: null,
       video_url: null,
@@ -240,6 +275,12 @@ export const handlers = [
     state.projects.set(p.id, p);
     state.jobs.set(p.id, []);
     return HttpResponse.json(p, { status: 201 });
+  }),
+  http.get("*/v1/projects", () => {
+    const list = [...state.projects.values()].sort(
+      (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+    );
+    return HttpResponse.json(list);
   }),
   http.get("*/v1/projects/:pid", ({ params }) => {
     const p = state.projects.get(params.pid as string);
