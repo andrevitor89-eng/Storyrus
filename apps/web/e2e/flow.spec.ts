@@ -13,7 +13,14 @@ type Job = {
 };
 
 function makeState() {
-  return { credits: 10, project: null as any, jobs: [] as Job[], seq: 0 };
+  return {
+    credits: 10,
+    project: null as any,
+    jobs: [] as Job[],
+    seq: 0,
+    email: "e2e@storyrus.app",
+    isGuest: false,
+  };
 }
 
 async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
@@ -22,15 +29,23 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   const id = () => `id-${++state.seq}`;
 
   await page.route("**/v1/auth/guest", (r) => json(r, { access_token: "e2e-token" }, 201));
+  await page.route("**/v1/auth/signup", (r) => {
+    state.isGuest = false;
+    return json(r, { access_token: "e2e-token" }, 201);
+  });
+  await page.route("**/v1/auth/login", (r) => {
+    state.isGuest = false;
+    return json(r, { access_token: "e2e-token" });
+  });
   await page.route("**/v1/auth/refresh", (r) => json(r, { access_token: "e2e-token-refreshed" }));
   await page.route("**/v1/auth/resume", (r) => json(r, { access_token: "e2e-token-resumed" }));
   await page.route("**/v1/auth/me", (r) =>
     json(r, {
       id: "e2e-user",
-      email: "guest-e2e@storyrus.app",
+      email: state.email,
       credits: state.credits,
       created_at: "now",
-      is_guest: true,
+      is_guest: state.isGuest,
     }),
   );
   await page.route("**/v1/credits", (r) => json(r, { credits: state.credits }));
@@ -114,28 +129,40 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   });
 }
 
-test("landing leva ao estúdio", async ({ page }) => {
+async function loginViaCadastro(page: Page) {
+  await page.goto("/cadastro");
+  await page.getByTestId("auth-email").fill("e2e@storyrus.app");
+  await page.getByTestId("auth-password").fill("password123");
+  await page.getByTestId("auth-submit").click();
+  await expect(page).toHaveURL(/\/app/);
+}
+
+test("landing leva ao cadastro e depois ao estúdio", async ({ page }) => {
+  const state = makeState();
+  await mockApi(page, state);
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  // Stable selector: not tied to hero CTA copy (pt/en/es).
   const heroCta = page.getByTestId("landing-hero-cta");
   await expect(heroCta).toBeVisible();
+  await expect(heroCta).toHaveAttribute("href", "/cadastro");
+  await expect(page.getByTestId("landing-header-login")).toHaveAttribute("href", "/entrar");
   await heroCta.click();
+  await expect(page).toHaveURL(/\/cadastro/);
+  await expect(page.getByTestId("auth-page")).toBeVisible();
+  await page.getByTestId("auth-email").fill("e2e@storyrus.app");
+  await page.getByTestId("auth-password").fill("password123");
+  await page.getByTestId("auth-submit").click();
   await expect(page).toHaveURL(/\/app/);
-  await expect(page.getByTestId("studio-client")).toBeVisible();
+  await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
-  await page.goto("/app");
+  await loginViaCadastro(page);
 
-  await page.getByLabel("Nome do cliente").fill("Ana Souza");
-  await page.getByLabel("E-mail").fill("ana@email.com");
-  await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
-  await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
-  await page.getByRole("button", { name: "Continuar para o livro" }).click();
+  await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
   await page.getByLabel("Nome do protagonista").fill("Lila");
-  await page.getByLabel("Idade", { exact: true }).fill("5");
+  await page.getByRole("spinbutton", { name: "Idade" }).fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByRole("button", { name: "Feminino" }).click();
@@ -153,15 +180,10 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
 test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
-  await page.goto("/app");
+  await loginViaCadastro(page);
 
-  await page.getByLabel("Nome do cliente").fill("Ana Souza");
-  await page.getByLabel("E-mail").fill("ana@email.com");
-  await page.getByLabel("Telefone / WhatsApp").fill("11999999999");
-  await page.getByLabel("Endereço para entrega").fill("Rua A, 10");
-  await page.getByRole("button", { name: "Continuar para o livro" }).click();
   await page.getByLabel("Nome do protagonista").fill("Lila");
-  await page.getByLabel("Idade", { exact: true }).fill("5");
+  await page.getByRole("spinbutton", { name: "Idade" }).fill("5");
   await page.getByLabel("Título do livro").fill("Lila e as estrelas");
   await page.getByLabel("Insira o tema desejado").fill("Aventura no espaço");
   await page.getByRole("button", { name: "Feminino" }).click();
@@ -197,7 +219,10 @@ test("landing sem preço e EN atualiza lang", async ({ page }) => {
 test("menu mobile abre abaixo da logo", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByTestId("landing-header-login")).toBeVisible();
+  await expect(page.getByTestId("landing-header-cta")).toBeVisible();
   const menuBtn = page.getByTestId("landing-menu");
+  await expect(menuBtn).toBeInViewport();
   await menuBtn.click();
   await expect(menuBtn).toHaveAttribute("aria-expanded", "true");
   const logo = page.getByTestId("landing-brand").locator("img");

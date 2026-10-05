@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { accountGateHref } from "./Auth";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -300,7 +301,7 @@ const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
 const NAV_CAT_META = [
   {
     id: "aventuras",
-    color: "#5aa6e8",
+    color: "#7aa2ff",
     subs: [
       { href: "/app?tema=adventure" },
       { href: "/app?tema=dinosaurs" },
@@ -409,7 +410,15 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   biblico: [20],
 };
 function themeFromHref(href: string): string | null {
-  const match = href.match(/[?&]tema=([^&]+)/);
+  // Links podem ser /app?tema=… ou /cadastro?next=%2Fapp%3Ftema%3D…
+  let target = href;
+  try {
+    const next = new URL(href, "https://storyrus.local").searchParams.get("next");
+    if (next && next.startsWith("/")) target = next;
+  } catch {
+    /* ignore */
+  }
+  const match = target.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 type OccasionWhen = { month: number; day: number } | "easter";
@@ -508,7 +517,7 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
-  return `/app?${q.toString()}`;
+  return accountGateHref(`/app?${q.toString()}`);
 }
 function studioHref(opts: {
   tema: string;
@@ -529,7 +538,7 @@ function studioHref(opts: {
   q.set("tamanho", opts.size ?? "M");
   q.set("capa", opts.cover ?? "hard");
   q.set("modo", opts.modo ?? "realista");
-  return `/app?${q.toString()}`;
+  return accountGateHref(`/app?${q.toString()}`);
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
@@ -632,7 +641,8 @@ const I18N = {
     eyebrow: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
     h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: " !",
     lead: "Você envia a foto e nós transformamos seu filho em um personagem ilustrado, criando uma aventura personalizada especialmente para ele — um livro para presentear a família e guardar para sempre.",
-    cta_play: "Criar minha conta",
+    cta_login: "Entrar",
+    cta_play: "Criar conta",
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
@@ -696,6 +706,11 @@ const I18N = {
       { t: "Preencha os dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
       { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
+    ],
+    hiw_foot: [
+      { t: "Envie a foto e defina os detalhes", p: "Escolha o tema e o formato do livro." },
+      { t: "Criamos o personagem e a história", p: "História, capa e páginas com o mesmo rosto da criança." },
+      { t: "Você recebe e aprova o livro", p: "Veja a prévia, aprove e receba o livro impresso." },
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
@@ -824,7 +839,8 @@ const I18N = {
     eyebrow: "Preserve moments. Gift your family an unforgettable story.",
     h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: " !",
     lead: "You send the photo and we turn your child into an illustrated character, creating an adventure made just for them — a book to gift the family and keep forever.",
-    cta_play: "Create my account",
+    cta_login: "Log in",
+    cta_play: "Sign up",
     hero_cta: "Create my book",
     cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
@@ -888,6 +904,11 @@ const I18N = {
       { t: "Fill in the details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
       { t: "Follow the creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
       { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
+    ],
+    hiw_foot: [
+      { t: "Send the photo and set the details", p: "Choose the theme and the book format." },
+      { t: "We create the character and the story", p: "Story, cover, and pages with the same face as the child." },
+      { t: "You receive and approve the book", p: "See the preview, approve it, and receive the printed book." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
@@ -1016,7 +1037,8 @@ const I18N = {
     eyebrow: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
     h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: " !",
     lead: "Envías la foto y transformamos a tu hijo en un personaje ilustrado, creando una aventura personalizada especialmente para él — un libro para regalar a la familia y guardar para siempre.",
-    cta_play: "Crear mi cuenta",
+    cta_login: "Entrar",
+    cta_play: "Crear cuenta",
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
@@ -1080,6 +1102,11 @@ const I18N = {
       { t: "Completa los datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
       { t: "Acompaña la creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
       { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+    ],
+    hiw_foot: [
+      { t: "Envía la foto y define los detalles", p: "Elige el tema y el formato del libro." },
+      { t: "Creamos el personaje y la historia", p: "Historia, portada y páginas con el mismo rostro del niño." },
+      { t: "Recibes y apruebas el libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
@@ -1863,9 +1890,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [heroPick, heroBook.name, heroPages.length]);
   const bookStudioHref = (theme: string, catalogI?: number) => {
-    if (catalogI === undefined) return `/app?tema=${theme}`;
+    if (catalogI === undefined) return accountGateHref(`/app?tema=${theme}`);
     const book = t.catalog[catalogI];
-    if (!book) return `/app?tema=${theme}`;
+    if (!book) return accountGateHref(`/app?tema=${theme}`);
     return studioHref({
       tema: theme,
       titulo: book.t,
@@ -1890,7 +1917,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
       return [{
         label,
-        href: bookTheme ? bookStudioHref(bookTheme, only) : meta.href,
+        href: bookTheme ? bookStudioHref(bookTheme, only) : accountGateHref(meta.href),
         due: when ? nextOccasionDate(when, new Date()) : null,
       }];
     }).sort((a, b) => {
@@ -1917,24 +1944,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     const room = Math.max(voceEeuCount - open.length, 0);
     return { ...cat, subs: [...dated.slice(0, room), ...open].slice(0, voceEeuCount) };
   });
-  const feelingLabel = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
-  const shownCats = variant === "cartoon"
-    ? menuCats.flatMap((cat) => {
-        if (cat.id !== "educativo") return [cat];
-        const isFeeling = (href: string) => FEELING_THEMES.has(themeFromHref(href) ?? "");
-        return [
-          { ...cat, subs: cat.subs.filter((sub) => !isFeeling(sub.href)) },
-          {
-            ...cat,
-            id: "sentimentos",
-            name: feelingLabel,
-            color: "#f0a0c0",
-            subs: cat.subs.filter((sub) => isFeeling(sub.href)),
-            feats: [],
-          },
-        ];
-      })
-    : menuCats;
+  const shownCats = menuCats;
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
     const book = t.catalog[i];
@@ -2073,7 +2083,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             setSubHover((cur) => (cur?.cat === i ? cur : null));
                           }}
                         >
-                          <Link to={`/catalogo/${cat.id}`} className="kcat-group-name" onClick={closeNav}>
+                          <Link to={`/catalogo/${cat.id}`} className={`kcat-group-name${cat.id === "aventuras" || cat.id === "voce-e-eu" ? " is-chip" : ""}`} onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
                           </Link>
@@ -2121,6 +2131,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#7aa2ff", boxShadow: "0 0 10px rgba(122,162,255,.9)" }} />
                   {t.hiw_title}
                 </a>
+                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
+                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
+                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
+                </Link>
                 <a href="#videos" className="kcat-btn" style={{ "--cat": "#e07a9a" } as CSSProperties} onClick={closeNav}>
                   <span className="kcat-dot" style={{ background: "#e07a9a", boxShadow: "0 0 10px rgba(224,122,154,.9)" }} />
                   {t.videos_link}
@@ -2129,10 +2143,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="kcat-dot" style={{ background: "#f4b740", boxShadow: "0 0 10px rgba(244,183,64,.95)" }} />
                   {t.reviews_link}
                 </a>
-                <Link to={variant === "cartoon" ? "/" : "/cartoon"} className="kcat-btn" style={{ "--cat": variant === "cartoon" ? "#7aa2ff" : "#3ecf8e" } as CSSProperties} onClick={closeNav}>
-                  <span className="kcat-dot" style={{ background: variant === "cartoon" ? "#7aa2ff" : "#3ecf8e", boxShadow: variant === "cartoon" ? "0 0 10px rgba(122,162,255,.95)" : "0 0 10px rgba(62,207,142,.95)" }} />
-                  {variant === "cartoon" ? t.realistic_link : t.cartoon_link}
-                </Link>
               </nav>
             </div>
           </div>
@@ -2148,8 +2158,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               <button className={lang === "en" ? "on" : ""} onClick={() => setLang("en")} data-testid="landing-lang-en">EN</button>
               <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
             </div>
-            <div className="khead-links">
-              <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
+            <div className="khead-links" data-testid="landing-header-auth">
+              <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-header-login">{t.cta_login}</Link>
+              <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
             </div>
           </div>
           <button
@@ -2196,13 +2207,16 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <div className="kmobile-section">
             <p className="kmobile-label">{t.quick_links}</p>
             <a className="kmobile-link" href="#como" onClick={closeNav}>{t.hiw_title}</a>
+            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#videos" onClick={closeNav}>{t.videos_link}</a>
             <a className="kmobile-link" href="#reviews" onClick={closeNav}>{t.reviews_link}</a>
-            <Link className="kmobile-link" to={variant === "cartoon" ? "/" : "/cartoon"} onClick={closeNav}>{variant === "cartoon" ? t.realistic_link : t.cartoon_link}</Link>
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
-          <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+          <div className="kmobile-auth" data-testid="landing-mobile-auth">
+            <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
+            <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+          </div>
         </nav>
         </div>
       </header>
@@ -2213,7 +2227,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           <h1>{t.h_pre}<em className="g1">{t.w1}</em>{t.c1}<em className="g2">{t.w2}</em>{t.h_suf}</h1>
           <span className="keyebrow"><IcSparkle className="ei" /> {t.hero_sign}</span>
         </div>
-        <p className="hero-carousel-label">{t.book_carousel}</p>
         <div className="hero-carousel" aria-label={t.book_carousel}>
           <div className="hero-carousel-track">
             {[0, 1].map((copy) => heroStrip.map((book, seriesIndex) => {
@@ -2264,7 +2277,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
+          <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
       </section>
 
@@ -2309,12 +2322,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     <img src={exUrl(howImgs[i])} alt={h.t} loading="lazy" />
                     <span className="howex-num">{i + 1}</span>
                   </div>
-                  {classicHow ? (
-                    <figcaption>
-                      <h3>{h.t}</h3>
-                      <p>{h.p}</p>
-                    </figcaption>
-                  ) : null}
+                  <figcaption>
+                    <h3>{classicHow ? h.t : t.hiw_foot[i].t}</h3>
+                    <p>{classicHow ? h.p : t.hiw_foot[i].p}</p>
+                  </figcaption>
                 </figure>
                 {i < hiwSteps.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
               </Fragment>
@@ -2333,22 +2344,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <section className="catalog-section" id="educativo" style={{ "--group": "#5ec4a8" } as CSSProperties}>
               <h3 className="catalog-section-title">{t.cats[3].name}</h3>
               <div className="cat-grid">
-                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme)).map((c) => (
+                {catalogBooks.filter((book) => CATALOG_SECTION_THEMES.educativo.includes(book.theme) || FEELING_THEMES.has(book.theme)).map((c) => (
                   <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
                 ))}
               </div>
-            </section>
-            <section className="catalog-section" id="sentimentos" style={{ "--group": "#f0a0c0" } as CSSProperties}>
-              <h3 className="catalog-section-title">{feelingLabel}</h3>
-              {catalogBooks.some((book) => FEELING_THEMES.has(book.theme)) ? (
-                <div className="cat-grid">
-                  {catalogBooks.filter((book) => FEELING_THEMES.has(book.theme)).map((c) => (
-                    <CatalogBookCard key={c.t} book={c} lang={lang} personalize={t.personalize} modo="cartoon" />
-                  ))}
-                </div>
-              ) : (
-                <p className="kcat-empty">{t.cat_empty}</p>
-              )}
             </section>
           </>
         ) : null}
@@ -2419,7 +2418,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             );
           })}
         </div>
-        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+        <div className="vid-cta"><Link to="/cadastro" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
       </section>
 
       {/* AVALIAÇÕES */}
@@ -2473,7 +2472,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="kband" id="familias">
         <IcSparkle className="twk b1" /><IcStar className="twk b2" />
         <h2>{t.band_title}</h2><p>{t.band_sub}</p>
-        <Link to="/app" className="kbtn kbtn-primary big">{t.band_cta}</Link>
+        <Link to="/cadastro" className="kbtn kbtn-primary big">{t.band_cta}</Link>
       </section>
 
       {/* FOOTER */}

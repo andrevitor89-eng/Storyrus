@@ -1,11 +1,18 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { App } from "./App";
-import { ProgressList } from "./Studio";
+import { setToken } from "./api";
+import { ProgressList, Studio } from "./Studio";
 import type { Job } from "./types";
 import { LANG_STORAGE_KEY } from "./i18n/lang";
 import { state } from "./test/server";
+
+beforeEach(() => {
+  state.isGuest = false;
+  state.email = "ana@email.com";
+  state.credits = 10;
+  setToken("test-token");
+});
 
 afterEach(() => {
   localStorage.removeItem(LANG_STORAGE_KEY);
@@ -30,21 +37,20 @@ function ebookJob(): Job {
 describe("Studio i18n", () => {
   it("carrega inglês a partir do lang da landing (localStorage)", async () => {
     localStorage.setItem(LANG_STORAGE_KEY, "en");
-    state.credits = 10;
-    render(<App />);
+    render(<Studio />);
 
     expect(await screen.findByRole("heading", { name: /create your story/i })).toBeInTheDocument();
-    expect(screen.getByLabelText(/client name/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /continue to the book/i })).toBeInTheDocument();
+    // Conta obrigatória: usuário logado vai direto ao formulário do livro (sem gate de cliente).
+    expect(screen.getByLabelText(/protagonist's name/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /continue to the book/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/credits:/i)).not.toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en");
   });
 
   it("alterna PT → ES e persiste em localStorage", async () => {
     localStorage.setItem(LANG_STORAGE_KEY, "pt");
-    state.credits = 10;
     const user = userEvent.setup();
-    render(<App />);
+    render(<Studio />);
 
     expect(await screen.findByRole("heading", { name: /crie a sua história/i })).toBeInTheDocument();
 

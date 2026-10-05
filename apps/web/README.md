@@ -1,23 +1,19 @@
 # Story R Us — Web (frontend)
 
-Vite + React + TypeScript. Fluxo **guest-first**: o estúdio pede um JWT de
-convidado (`POST /v1/auth/guest`) na primeira chamada à API → refresh/resume
-evitam órfãos → opcional `POST /v1/auth/upgrade` para conta real → criar projeto →
-upload de foto → disparar etapas (avatar/história/ebook/vídeo) com **progresso ao
-vivo** via polling dos jobs.
+Vite + React + TypeScript. Fluxo **conta obrigatória**: landing com Entrar/Criar
+conta → JWT via `POST /v1/auth/login` ou `/signup` → estúdio (`/app`) → criar
+projeto → upload de foto → disparar etapas (avatar/história/ebook/vídeo) com
+**progresso ao vivo** via polling dos jobs.
 
 ## Rotas
 
 `react-router-dom` separa marketing de produto (`Root.tsx`):
 
-- `/` — **Landing** de marketing (bilíngue PT/EN). Os CTAs levam a `/app`.
-- `/app` — **Estúdio** (`App` → `Studio`); sem tela de login.
+- `/` — **Landing** de marketing (PT/EN/ES). CTAs levam a `/cadastro` ou `/entrar`.
+- `/entrar`, `/cadastro` — login e signup (`Auth.tsx`).
+- `/app` — **Estúdio** (`App` → `Studio`); exige conta registrada.
 - `/gastos` — painel privado de custos USD.
 - `/privacidade`, `/termos` (+ aliases EN) — páginas legais.
-
-`App`/`Studio` não dependem do router (os testes os renderizam direto). A landing
-é `Landing.tsx` + `landing.css` (estilos isolados sob `.lp`, sem conflito com o
-tema do estúdio em `styles.css`).
 
 ## Rodar
 
@@ -49,26 +45,16 @@ npm run test:run   # uma passada (CI)
 
 Cobertura dos testes:
 
-- `App.test.tsx` — estúdio sem login → criar projeto → upload → personagem/história
-  com progresso via polling; habilitar ebook após aprovar personagem.
-- `Studio.test.tsx` — componentes de progresso do estúdio.
+- `Auth.test.tsx` — signup/login e redirect `next`.
+- `App.test.tsx` — gate sem sessão → cadastro; com conta → criar livro.
+- `Studio.test.tsx` — presets do catálogo e progresso do estúdio.
+- `Landing.test.tsx` — CTAs de auth e links Personalizar.
 - `Usage.test.tsx` — painel `/gastos`.
 
 Os mocks ficam em `src/test/server.ts` (handlers MSW com estado em memória que imita
-projetos, jobs, guest auth e o avanço de status a cada polling).
+projetos, jobs, auth e o avanço de status a cada polling).
 
 ## Estrutura
 
-```
-src/
-  api.ts        # client REST (token em memória, guest JWT, Idempotency-Key por etapa)
-  types.ts      # tipos compartilhados com a API
-  Studio.tsx    # projeto, upload, etapas e progresso ao vivo
-  App.tsx       # renderiza o Studio (guest-first)
-  Landing.tsx   # landing de marketing (bilíngue PT/EN)
-  landing.css   # estilos da landing, isolados sob .lp
-  Usage.tsx     # painel de gastos
-  Legal.tsx     # privacidade / termos
-  Root.tsx      # roteamento: /, /app, /gastos, legales
-  test/         # setup + servidor MSW
-```
+Ver `src/` — `Landing.tsx` + `landing.css` (marketing), `Auth.tsx` (conta),
+`Studio.tsx` + `studio/` (produto), `api.ts` (cliente HTTP + sessão).

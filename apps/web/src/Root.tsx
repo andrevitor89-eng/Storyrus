@@ -16,6 +16,7 @@ const BookPage = lazy(() =>
   import("./CatalogPages").then((m) => ({ default: m.BookPage })),
 );
 const App = lazy(() => import("./App").then((m) => ({ default: m.App })));
+const Auth = lazy(() => import("./Auth").then((m) => ({ default: m.Auth })));
 const Usage = lazy(() =>
   import("./Usage").then((m) => ({ default: m.Usage })),
 );
@@ -30,7 +31,9 @@ const Pedidos = lazy(() =>
  *   /catalogo      → Catálogo completo
  *   /catalogo/:categoria → Catálogo de uma categoria
  *   /livro/:indice → Página do livro
- *   /app           → Estúdio
+ *   /entrar        → Login
+ *   /cadastro      → Criar conta
+ *   /app           → Estúdio (conta obrigatória)
  *   /gastos        → Painel privado de custos USD
  *   /landing       → Landing (compatibilidade)
  *   /privacidade   → Política de privacidade
@@ -49,6 +52,8 @@ export function AppRoutes() {
         <Route path="/catalogo" element={<CatalogPage />} />
         <Route path="/catalogo/:categoria" element={<CategoryCatalogPage />} />
         <Route path="/livro/:indice" element={<BookPage />} />
+        <Route path="/entrar" element={<Auth mode="login" />} />
+        <Route path="/cadastro" element={<Auth mode="signup" />} />
         <Route path="/app" element={<App />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />

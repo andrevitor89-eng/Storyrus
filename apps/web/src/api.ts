@@ -25,7 +25,6 @@ function readStoredToken(): string | null {
 }
 
 let token: string | null = readStoredToken();
-let guestPromise: Promise<void> | null = null;
 let refreshPromise: Promise<boolean> | null = null;
 let resumePromise: Promise<boolean> | null = null;
 
@@ -115,41 +114,33 @@ export async function resumeSession(oldToken: string): Promise<boolean> {
   return resumePromise;
 }
 
-async function mintGuest(): Promise<void> {
-  const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
-  if (!resp.ok) {
-    let detail = resp.statusText;
-    try {
-      detail = (await resp.json()).detail ?? detail;
-    } catch {
-      /* corpo vazio */
-    }
-    throw new Error(`${resp.status}: ${detail}`);
+/**
+ * Garante sessão de conta (sem mintar convidado).
+ * Refresh/resume se o JWT existir; sem token → 401 para a UI redirecionar.
+ */
+export async function ensureSession(): Promise<void> {
+  if (!token) {
+    throw new Error("401: Nao autenticado");
   }
-  const data = (await resp.json()) as { access_token: string };
-  setToken(data.access_token);
+  if (tokenExpired(token)) {
+    const old = token;
+    const ok = await resumeSession(old);
+    if (ok) return;
+    setToken(null);
+    throw new Error("401: Nao autenticado");
+  }
+  if (tokenExpiresSoon(token)) {
+    void refreshSession();
+  }
 }
 
+/** @deprecated Use ensureSession — web não mintar mais guest automaticamente. */
 export async function ensureGuest(): Promise<void> {
-  if (token) {
-    if (tokenExpired(token)) {
-      const old = token;
-      const ok = await resumeSession(old);
-      if (ok) return;
-      setToken(null);
-    } else {
-      if (tokenExpiresSoon(token)) {
-        void refreshSession();
-      }
-      return;
-    }
-  }
-  if (!guestPromise) {
-    guestPromise = mintGuest().finally(() => {
-      guestPromise = null;
-    });
-  }
-  await guestPromise;
+  return ensureSession();
+}
+
+export function logout(): void {
+  setToken(null);
 }
 
 function uuid(): string {
@@ -199,15 +190,15 @@ async function reqOnce(path: string, init: RequestInit = {}): Promise<Response> 
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const skipGuest =
+  const skipSession =
     path.startsWith("/v1/auth/signup") ||
     path.startsWith("/v1/auth/login") ||
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume");
-  if (!skipGuest) await ensureGuest();
+  if (!skipSession) await ensureSession();
 
   let resp = await reqOnce(path, init);
-  // Token morto: tenta resume do JWT antigo antes de mintar outro guest (STO-26).
+  // Token morto: tenta resume do JWT antigo; sem sucesso limpa a sessão.
   if (resp.status === 401 && token && !path.startsWith("/v1/auth/")) {
     const old = token;
     const resumed = await resumeSession(old);
@@ -215,8 +206,6 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
       resp = await reqOnce(path, init);
     } else {
       setToken(null);
-      await ensureGuest();
-      resp = await reqOnce(path, init);
     }
   }
 
@@ -258,6 +247,7 @@ export const api = {
     setToken(out.access_token);
     return out;
   },
+  logout,
   async me() {
     return req<{
       id: string;

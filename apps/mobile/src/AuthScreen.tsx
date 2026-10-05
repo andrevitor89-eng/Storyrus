@@ -2,15 +2,15 @@ import { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { api } from "./api";
 
-/** Optional login/signup — studio is guest-first; this is not a wall. */
+/** Login/signup obrigatório antes do estúdio. */
 export function AuthScreen({
   onAuthed,
-  onSkip,
+  initialMode = "login",
 }: {
   onAuthed: () => void;
-  onSkip: () => void;
+  initialMode?: "login" | "signup";
 }) {
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +32,9 @@ export function AuthScreen({
 
   return (
     <View style={s.wrap}>
-      <Text style={s.title}>Salvar sessão (opcional)</Text>
+      <Text style={s.title}>{mode === "signup" ? "Criar conta" : "Entrar"}</Text>
       <Text style={s.muted}>
-        Continua como convidado ou cria conta no mesmo lugar (projetos e créditos).
+        É preciso ter uma conta para criar livros personalizados.
       </Text>
 
       <TextInput
@@ -67,10 +67,6 @@ export function AuthScreen({
 
       <Pressable onPress={() => setMode(mode === "signup" ? "login" : "signup")}>
         <Text style={s.link}>{mode === "signup" ? "Já tenho conta" : "Criar uma conta"}</Text>
-      </Pressable>
-
-      <Pressable onPress={onSkip}>
-        <Text style={s.link}>Continuar como convidado</Text>
       </Pressable>
     </View>
   );

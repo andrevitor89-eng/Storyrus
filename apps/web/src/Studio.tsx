@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { api } from "./api";
 import type { Job, Project } from "./types";
 import { demoIdFromSearch, getDemoExample } from "./demoExample";
@@ -102,14 +102,9 @@ export function Studio({ onLogout }: { onLogout?: () => void }) {
 
 function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const { lang, setLang, t, langs } = useStudioI18n();
-  const [isGuest, setIsGuest] = useState(true);
-  const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
+  const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("account");
   const [accountEmail, setAccountEmail] = useState("");
   const [clientDone, setClientDone] = useState(false);
-  const [showUpgrade, setShowUpgrade] = useState(false);
-  const [upgradeEmail, setUpgradeEmail] = useState("");
-  const [upgradePassword, setUpgradePassword] = useState("");
-  const [upgradeBusy, setUpgradeBusy] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photos, setPhotos] = useState<{ key: string; file: File; url: string }[]>([]);
@@ -223,7 +218,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const refreshMe = useCallback(async () => {
     try {
       const me = await api.me();
-      setIsGuest(me.is_guest);
       setAccountKind(me.is_guest ? "guest" : "account");
       setAccountEmail(me.email);
     } catch {
@@ -274,23 +268,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       format
     );
   }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText]);
-
-  async function submitUpgrade(e: FormEvent) {
-    e.preventDefault();
-    setUpgradeBusy(true);
-    setError(null);
-    try {
-      await api.upgrade(upgradeEmail.trim(), upgradePassword);
-      setShowUpgrade(false);
-      setUpgradeEmail("");
-      setUpgradePassword("");
-      await refreshMe();
-    } catch (err) {
-      setError((err as Error).message);
-    } finally {
-      setUpgradeBusy(false);
-    }
-  }
 
   const {
     voices,
@@ -496,7 +473,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   const fieldsLocked = !!project;
   const showBook = isDemo || clientDone || accountKind === "account";
-  const showClient = !isDemo && !clientDone && accountKind !== "account";
+  const showClient = !isDemo && !clientDone && accountKind === "guest";
 
   function finishClient() {
     const buyerName = oneLine(clientName);
@@ -628,20 +605,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   <a className="kutil" href="/pedidos">
                     Pedidos
                   </a>
-                  {isGuest && (
-                    <button
-                      type="button"
-                      className="kutil"
-                      data-testid="studio-upgrade-open"
-                      aria-expanded={showUpgrade}
-                      aria-controls="studio-upgrade-form"
-                      onClick={() => setShowUpgrade((v) => !v)}
-                    >
-                      {t.upgradeOpen}
-                    </button>
-                  )}
                   {onLogout && (
-                    <button type="button" className="kutil link" onClick={onLogout}>
+                    <button type="button" className="kutil link" onClick={onLogout} data-testid="studio-logout">
                       {t.logout}
                     </button>
                   )}
@@ -660,49 +625,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           </section>
         ) : (
           <>
-        {showUpgrade && isGuest && (
-          <form
-            id="studio-upgrade-form"
-            className="studio-card upgrade-form"
-            onSubmit={submitUpgrade}
-            data-testid="studio-upgrade-form"
-          >
-            <h2>{t.upgradeTitle}</h2>
-            <p className="muted">{t.upgradeHint}</p>
-            <label>
-              {t.upgradeEmail}
-              <input
-                type="email"
-                required
-                autoComplete="email"
-                value={upgradeEmail}
-                data-testid="studio-upgrade-email"
-                onChange={(e) => setUpgradeEmail(e.target.value)}
-              />
-            </label>
-            <label>
-              {t.upgradePassword}
-              <input
-                type="password"
-                required
-                minLength={8}
-                autoComplete="new-password"
-                value={upgradePassword}
-                data-testid="studio-upgrade-password"
-                onChange={(e) => setUpgradePassword(e.target.value)}
-              />
-            </label>
-            <div className="studio-actions">
-              <button type="submit" className="kbtn kbtn-primary" disabled={upgradeBusy} data-testid="studio-upgrade-submit">
-                {upgradeBusy ? t.upgradeSaving : t.upgradeSubmit}
-              </button>
-              <button type="button" className="link" onClick={() => setShowUpgrade(false)}>
-                {t.upgradeLater}
-              </button>
-            </div>
-          </form>
-        )}
-
         {isDemo && (
           <div className="demo-banner" role="status" aria-live="polite">
             <p>{t.demoBanner}</p>
