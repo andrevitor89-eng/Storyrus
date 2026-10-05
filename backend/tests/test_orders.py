@@ -3,7 +3,6 @@
 from app.config import settings
 from app.orders import build_book_order_summary
 
-
 CARTOON = (
     "NOVO LIVRO STORY R US CARTOON\n"
     "Nome: Lia\n"
