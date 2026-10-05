@@ -93,7 +93,9 @@ def _register_order(
     if len(lang) <= 8:
         project.language = lang
     theme = (theme_label or "").strip()[:500] or (project.theme or "")
-    extras = parse_extra_names(extra_names) + parse_extra_names(", ".join(_stored_extra_names(project)))
+    extras = parse_extra_names(extra_names) + parse_extra_names(
+        ", ".join(_stored_extra_names(project))
+    )
     photo_count = db.scalar(
         select(func.count())
         .select_from(Asset)

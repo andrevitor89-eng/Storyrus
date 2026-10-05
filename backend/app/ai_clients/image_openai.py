@@ -306,9 +306,7 @@ class OpenAIImageProvider:
         """
         if not photo or not illustration:
             raise ProviderError("refine_identity OpenAI exige foto e ilustracao", transient=False)
-        prompt = (
-            REFINE_IDENTITY_AVATAR_PROMPT if "CGI" in (style or "") else REFINE_IDENTITY_PROMPT
-        )
+        prompt = REFINE_IDENTITY_AVATAR_PROMPT if "CGI" in (style or "") else REFINE_IDENTITY_PROMPT
         return await self._generate_with_refs(
             prompt,
             [photo, illustration],

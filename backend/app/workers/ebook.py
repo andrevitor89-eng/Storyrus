@@ -801,7 +801,8 @@ def build_pdf(
             y -= leading
 
     brand_badge(y=12)
-    c.showPage(); fit_page()
+    c.showPage()
+    fit_page()
 
     # -------------------------------------------- 2) POEMA DE ABERTURA
     # Catalogo com dedicatória própria (P1) substitui o poema genérico do México.
@@ -817,7 +818,8 @@ def build_pdf(
         for ln in lines:
             c.drawCentredString(W / 2, y, ln)
             y -= 28
-        c.showPage(); fit_page()
+        c.showPage()
+        fit_page()
 
     # ------------------------- 3) FEITO ESPECIALMENTE PARA {NOME}
     if name or portrait:
@@ -899,7 +901,8 @@ def build_pdf(
         for ln in split_lines(tr["blessing"], F["italic"], 13.5, W * 0.62):
             c.drawCentredString(W / 2, y, ln)
             y -= 20
-        c.showPage(); fit_page()
+        c.showPage()
+        fit_page()
 
     # --------------------------------------- 4) DEDICATORIA DOS PAIS
     if dedication and dedication.strip():
@@ -918,7 +921,8 @@ def build_pdf(
         c.setFillColorRGB(*CORAL)
         c.setFont(F["italic"], 13)
         c.drawCentredString(W / 2, H * 0.32, _win(tr["with_love"]))
-        c.showPage(); fit_page()
+        c.showPage()
+        fit_page()
 
     # ------ 5) PAGINAS (arte em sangria + estrofe mesclada, sem numeracao)
     # Se preview_pages estiver definido, limita as paginas da historia
@@ -952,7 +956,8 @@ def build_pdf(
                     c.setFont(font, size)
                     c.drawCentredString(W / 2, y - size * 0.75, _win(ln))
                 y -= leading
-            c.showPage(); fit_page()
+            c.showPage()
+            fit_page()
             continue
         bg(CREAM)
         ir = reader(p.get("image"))
@@ -963,7 +968,8 @@ def build_pdf(
         else:
             band = (p.get("text_band") or "bottom").strip().lower()
             story_caption(text, "top" if band == "top" else "bottom")
-        c.showPage(); fit_page()
+        c.showPage()
+        fit_page()
 
     # Pagina de preview: aviso de que o livro completo esta disponivel
     if is_preview:
@@ -986,7 +992,8 @@ def build_pdf(
         star(W / 2 - 60, H / 2 - 60, 8, GOLD)
         star(W / 2 + 60, H / 2 - 60, 8, CORAL)
         brand_badge(y=H * 0.28)
-        c.showPage(); fit_page()
+        c.showPage()
+        fit_page()
 
     # --------------------- 6) CONTRACAPA: POEMA DE ENCERRAMENTO
     bg(SKY)
@@ -1002,7 +1009,8 @@ def build_pdf(
     brand_badge(y=H * 0.24)
     star(60, H - 70, 10, GOLD)
     star(W - 64, H - 96, 8, CORAL)
-    c.showPage(); fit_page()
+    c.showPage()
+    fit_page()
 
     # ----------------------------------------- 7) OBRIGADO / THANK YOU
     bg(CREAM)

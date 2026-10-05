@@ -94,9 +94,7 @@ async def print_payment_callback(
         notice = gateway.parse_webhook(raw, x_print_signature)
     except GatewayRejected as exc:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, str(exc)) from exc
-    order = db.scalar(
-        select(PrintOrder).where(PrintOrder.payment_reference == notice.reference)
-    )
+    order = db.scalar(select(PrintOrder).where(PrintOrder.payment_reference == notice.reference))
     if order is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Pedido de impressão não encontrado")
     if notice.paid:
