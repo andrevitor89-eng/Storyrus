@@ -660,7 +660,7 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Preencha os dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
+      { t: "Preencha os Dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
       { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
@@ -1449,36 +1449,36 @@ const FORMAT_COPY: Record<Lang, {
 }> = {
   pt: {
     pages: "Livro 16 páginas",
-    hard: "Capa Dura",
-    soft: "Capa Flexível",
+    hard: "HARD",
+    soft: "SOFT",
     sizeM: "20 × 20 cm",
     sizeP: "15 × 15 cm",
     priceM: "R$ 177,00",
     priceP: "R$ 157,00",
-    hardText: "Mais pesada, resistente e durável. Utilizada em edições especiais ou colecionáveis.",
-    softText: "Mais leve e flexível. Comum em livros e edições econômicas.",
+    hardText: "Resistente e durável. Utilizada em edições especiais ou colecionáveis.",
+    softText: "Leve e flexível. Comum em livros e edições econômicas.",
   },
   en: {
     pages: "Book. 16 pages.",
-    hard: "Hardcover",
-    soft: "Softcover",
+    hard: "HARD",
+    soft: "SOFT",
     sizeM: "20 × 20 cm",
     sizeP: "15 × 15 cm",
     priceM: "$33.91",
     priceP: "$30.08",
-    hardText: "Heavier, sturdy and durable. Used for special or collectible editions.",
-    softText: "Lighter and flexible. Common in books and economical editions.",
+    hardText: "Sturdy and durable. Used for special or collectible editions.",
+    softText: "Light and flexible. Common in books and economical editions.",
   },
   es: {
     pages: "Libro. 16 páginas.",
-    hard: "Tapa Dura",
-    soft: "Tapa Blanda",
+    hard: "HARD",
+    soft: "SOFT",
     sizeM: "20 × 20 cm",
     sizeP: "15 × 15 cm",
     priceM: "30,10 €",
     priceP: "26,70 €",
-    hardText: "Más pesada, resistente y duradera. Utilizada en ediciones especiales o de colección.",
-    softText: "Más ligera y flexible. Común en libros y ediciones económicas.",
+    hardText: "Resistente y duradera. Utilizada en ediciones especiales o de colección.",
+    softText: "Ligera y flexible. Común en libros y ediciones económicas.",
   },
 };
 export type CatalogCardBook = {
@@ -1547,7 +1547,7 @@ export function CatalogBookCard({
         ))}
       </div>
       <div className="cat-note-grid">
-        {(["soft", "hard"] as const).map((choice) => (
+        {(["hard", "soft"] as const).map((choice) => (
           <div key={choice} className="cat-note-line">
             <span className="cat-opt">
               <button

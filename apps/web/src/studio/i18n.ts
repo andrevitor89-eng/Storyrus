@@ -372,7 +372,7 @@ const pt: StudioCopy = {
   metaBookTitle: "Título",
   howTitle: "Como funciona",
   how: [
-    { t: "Preencha os dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
+    { t: "Preencha os Dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
     { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
     { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
   ],
