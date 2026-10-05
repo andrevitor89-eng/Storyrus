@@ -11,9 +11,9 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import PrintOrder
+from app.owner_auth import require_owner_password
 from app.printkit.service import advance_validation, package_zip
 from app.routers.projects.print import to_print_out
-from app.owner_auth import require_owner_password
 from app.schemas import PrintOrderOut, PrintValidationIn
 
 router = APIRouter(prefix="/v1/print-orders", tags=["print"])

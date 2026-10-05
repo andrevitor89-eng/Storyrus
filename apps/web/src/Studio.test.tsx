@@ -176,7 +176,7 @@ describe("Studio — tema do banner", () => {
         clientName: "Ana Souza",
         clientEmail: "ana@email.com",
         clientPhone: "11999999999",
-        clientAddress: "Av Paulista, 1000, Sala 1, Bela Vista, Sao Paulo, SP, 01310100",
+        clientAddress: "Av Paulista, 1000, Sala 1, Bela Vista, Sao Paulo, SP, BR, 01310100",
         clientNotes: undefined,
       }),
     );
@@ -235,7 +235,7 @@ describe("Studio — tema do banner", () => {
     await openBook(user);
 
     const title = screen.getByLabelText(/título do livro/i);
-    expect(title).toHaveValue("Uma história de esporte");
+    expect(title).toHaveValue("Uma História de Esporte");
     expect(screen.getByLabelText(/insira o tema desejado/i)).toHaveValue(
       "Esporte: treino, coragem e superação, com a criança no centro da própria história.",
     );
