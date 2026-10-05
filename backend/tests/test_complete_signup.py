@@ -23,9 +23,7 @@ def test_login_blocked_until_email_verified(client):
     r = client.post("/v1/auth/signup", json=signup_payload("wait@x.com"))
     assert r.status_code == 201
     assert r.json()["verify_token"]
-    login = client.post(
-        "/v1/auth/login", json={"email": "wait@x.com", "password": "password123"}
-    )
+    login = client.post("/v1/auth/login", json={"email": "wait@x.com", "password": "password123"})
     assert login.status_code == 403
     assert "e-mail" in login.json()["detail"].lower()
 

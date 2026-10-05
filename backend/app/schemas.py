@@ -40,7 +40,9 @@ class SignupIn(BaseModel):
         if self.password != self.password_confirm:
             raise PydanticCustomError("password_mismatch", "As senhas nao coincidem")
         if not self.accept_terms:
-            raise PydanticCustomError("terms_required", "Aceite os termos e a politica de privacidade")
+            raise PydanticCustomError(
+                "terms_required", "Aceite os termos e a politica de privacidade"
+            )
         self.country = self.country.strip().upper()
         if not self.country.isalpha():
             raise PydanticCustomError("country_invalid", "Codigo de pais invalido")
