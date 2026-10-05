@@ -55,6 +55,7 @@ export const state = {
   district: "Bela Vista",
   city: "Sao Paulo",
   stateUf: "SP",
+  country: "BR",
   pendingVerifyToken: null as string | null,
   pendingResetToken: null as string | null,
   projects: new Map<string, Project>(),
@@ -73,6 +74,7 @@ export const state = {
     this.district = "Bela Vista";
     this.city = "Sao Paulo";
     this.stateUf = "SP";
+    this.country = "BR";
     this.pendingVerifyToken = null;
     this.pendingResetToken = null;
     this.projects.clear();
@@ -167,6 +169,7 @@ export const handlers = [
       district: state.district,
       city: state.city,
       state: state.stateUf,
+      country: state.country,
     }),
   ),
   http.patch("*/v1/auth/me", async ({ request }) => {
@@ -180,6 +183,7 @@ export const handlers = [
     if (body.district != null) state.district = body.district;
     if (body.city != null) state.city = body.city;
     if (body.state != null) state.stateUf = body.state;
+    if (body.country != null) state.country = body.country;
     return HttpResponse.json({
       id: "user-1",
       email: state.email,
@@ -196,6 +200,7 @@ export const handlers = [
       district: state.district,
       city: state.city,
       state: state.stateUf,
+      country: state.country,
     });
   }),
   http.post("*/v1/auth/signup", async ({ request }) => {
@@ -209,9 +214,10 @@ export const handlers = [
       street?: string;
       number?: string;
       complement?: string | null;
-      district?: string;
+      district?: string | null;
       city?: string;
       state?: string;
+      country?: string;
       accept_terms?: boolean;
     };
     if (
@@ -220,7 +226,11 @@ export const handlers = [
       body.password !== body.password_confirm ||
       !body.accept_terms ||
       !body.full_name ||
-      !body.phone
+      !body.phone ||
+      !body.country ||
+      !body.postal_code ||
+      !body.city ||
+      !body.state
     ) {
       return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
     }
@@ -234,9 +244,10 @@ export const handlers = [
     state.street = body.street || state.street;
     state.number = body.number || state.number;
     state.complement = body.complement || "";
-    state.district = body.district || state.district;
+    state.district = body.district || "";
     state.city = body.city || state.city;
     state.stateUf = body.state || state.stateUf;
+    state.country = body.country.toUpperCase();
     state.pendingVerifyToken = "test-verify-token";
     return HttpResponse.json(
       {

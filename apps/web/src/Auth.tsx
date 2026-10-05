@@ -20,13 +20,17 @@ const COPY: Record<
     passwordConfirm: string;
     fullName: string;
     phone: string;
+    country: string;
     postalCode: string;
+    postalCodeBr: string;
     street: string;
     number: string;
     complement: string;
     district: string;
+    districtOptional: string;
     city: string;
     state: string;
+    stateBr: string;
     acceptTerms: string;
     terms: string;
     privacy: string;
@@ -48,19 +52,23 @@ const COPY: Record<
     loginTitle: "Entrar",
     signupTitle: "Criar conta",
     loginLead: "Acesse sua conta para criar livros personalizados.",
-    signupLead: "Cadastre-se com seus dados — usamos o perfil no pedido e no envio.",
+    signupLead: "Cadastre-se com seus dados — usamos o perfil no pedido e no envio (Brasil e exterior).",
     email: "E-mail",
     password: "Senha (mín. 8)",
     passwordConfirm: "Confirmar senha",
     fullName: "Nome completo",
     phone: "Telefone / WhatsApp",
-    postalCode: "CEP",
-    street: "Rua",
+    country: "País",
+    postalCode: "Código postal",
+    postalCodeBr: "CEP",
+    street: "Rua / endereço",
     number: "Número",
     complement: "Complemento",
     district: "Bairro",
+    districtOptional: "Bairro / distrito (opcional)",
     city: "Cidade",
-    state: "UF",
+    state: "Estado / região",
+    stateBr: "UF",
     acceptTerms: "Li e aceito os",
     terms: "Termos de uso",
     privacy: "Política de privacidade",
@@ -81,19 +89,23 @@ const COPY: Record<
     loginTitle: "Log in",
     signupTitle: "Create account",
     loginLead: "Sign in to create personalized books.",
-    signupLead: "Sign up with your details — we reuse them for orders and shipping.",
+    signupLead: "Sign up with your details — we reuse them for orders and shipping (Brazil and abroad).",
     email: "Email",
     password: "Password (min. 8)",
     passwordConfirm: "Confirm password",
     fullName: "Full name",
     phone: "Phone / WhatsApp",
-    postalCode: "ZIP / Postal code",
-    street: "Street",
+    country: "Country",
+    postalCode: "Postal / ZIP code",
+    postalCodeBr: "CEP (Brazil)",
+    street: "Street address",
     number: "Number",
     complement: "Apt / Suite",
     district: "District",
+    districtOptional: "District / neighborhood (optional)",
     city: "City",
-    state: "State",
+    state: "State / region",
+    stateBr: "State (UF)",
     acceptTerms: "I agree to the",
     terms: "Terms of use",
     privacy: "Privacy policy",
@@ -114,19 +126,23 @@ const COPY: Record<
     loginTitle: "Entrar",
     signupTitle: "Crear cuenta",
     loginLead: "Accede a tu cuenta para crear libros personalizados.",
-    signupLead: "Regístrate con tus datos — los usamos en el pedido y el envío.",
+    signupLead: "Regístrate con tus datos — los usamos en el pedido y el envío (Brasil y el exterior).",
     email: "Correo",
     password: "Contraseña (mín. 8)",
     passwordConfirm: "Confirmar contraseña",
     fullName: "Nombre completo",
     phone: "Teléfono / WhatsApp",
+    country: "País",
     postalCode: "Código postal",
-    street: "Calle",
+    postalCodeBr: "CEP (Brasil)",
+    street: "Calle / dirección",
     number: "Número",
     complement: "Complemento",
     district: "Barrio",
+    districtOptional: "Barrio / distrito (opcional)",
     city: "Ciudad",
-    state: "UF",
+    state: "Estado / región",
+    stateBr: "UF",
     acceptTerms: "Acepto los",
     terms: "Términos de uso",
     privacy: "Política de privacidad",
@@ -144,6 +160,52 @@ const COPY: Record<
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
   },
 };
+
+/** Países mais comuns no cadastro (ISO 3166-1 alpha-2). */
+const COUNTRY_OPTIONS: { code: string; label: Record<Lang, string> }[] = [
+  { code: "BR", label: { pt: "Brasil", en: "Brazil", es: "Brasil" } },
+  { code: "US", label: { pt: "Estados Unidos", en: "United States", es: "Estados Unidos" } },
+  { code: "PT", label: { pt: "Portugal", en: "Portugal", es: "Portugal" } },
+  { code: "ES", label: { pt: "Espanha", en: "Spain", es: "España" } },
+  { code: "AR", label: { pt: "Argentina", en: "Argentina", es: "Argentina" } },
+  { code: "MX", label: { pt: "México", en: "Mexico", es: "México" } },
+  { code: "CL", label: { pt: "Chile", en: "Chile", es: "Chile" } },
+  { code: "CO", label: { pt: "Colômbia", en: "Colombia", es: "Colombia" } },
+  { code: "UY", label: { pt: "Uruguai", en: "Uruguay", es: "Uruguay" } },
+  { code: "PE", label: { pt: "Peru", en: "Peru", es: "Perú" } },
+  { code: "CA", label: { pt: "Canadá", en: "Canada", es: "Canadá" } },
+  { code: "GB", label: { pt: "Reino Unido", en: "United Kingdom", es: "Reino Unido" } },
+  { code: "DE", label: { pt: "Alemanha", en: "Germany", es: "Alemania" } },
+  { code: "FR", label: { pt: "França", en: "France", es: "Francia" } },
+  { code: "IT", label: { pt: "Itália", en: "Italy", es: "Italia" } },
+  { code: "AO", label: { pt: "Angola", en: "Angola", es: "Angola" } },
+  { code: "MZ", label: { pt: "Moçambique", en: "Mozambique", es: "Mozambique" } },
+  { code: "JP", label: { pt: "Japão", en: "Japan", es: "Japón" } },
+  { code: "AU", label: { pt: "Austrália", en: "Australia", es: "Australia" } },
+  { code: "NZ", label: { pt: "Nova Zelândia", en: "New Zealand", es: "Nueva Zelanda" } },
+  { code: "IE", label: { pt: "Irlanda", en: "Ireland", es: "Irlanda" } },
+  { code: "CH", label: { pt: "Suíça", en: "Switzerland", es: "Suiza" } },
+  { code: "NL", label: { pt: "Países Baixos", en: "Netherlands", es: "Países Bajos" } },
+  { code: "BE", label: { pt: "Bélgica", en: "Belgium", es: "Bélgica" } },
+  { code: "SE", label: { pt: "Suécia", en: "Sweden", es: "Suecia" } },
+  { code: "NO", label: { pt: "Noruega", en: "Norway", es: "Noruega" } },
+  { code: "DK", label: { pt: "Dinamarca", en: "Denmark", es: "Dinamarca" } },
+  { code: "FI", label: { pt: "Finlândia", en: "Finland", es: "Finlandia" } },
+  { code: "PL", label: { pt: "Polônia", en: "Poland", es: "Polonia" } },
+  { code: "AE", label: { pt: "Emirados Árabes", en: "United Arab Emirates", es: "Emiratos Árabes" } },
+  { code: "IL", label: { pt: "Israel", en: "Israel", es: "Israel" } },
+  { code: "IN", label: { pt: "Índia", en: "India", es: "India" } },
+  { code: "CN", label: { pt: "China", en: "China", es: "China" } },
+  { code: "KR", label: { pt: "Coreia do Sul", en: "South Korea", es: "Corea del Sur" } },
+  { code: "SG", label: { pt: "Singapura", en: "Singapore", es: "Singapur" } },
+  { code: "ZA", label: { pt: "África do Sul", en: "South Africa", es: "Sudáfrica" } },
+];
+
+function defaultCountry(lang: Lang): string {
+  if (lang === "en") return "US";
+  if (lang === "es") return "ES";
+  return "BR";
+}
 
 function readLang(): Lang {
   try {
@@ -170,6 +232,7 @@ export function accountGateHref(nextPath: string): string {
 const emptySignup = {
   full_name: "",
   phone: "",
+  country: defaultCountry(readLang()),
   postal_code: "",
   street: "",
   number: "",
@@ -186,12 +249,18 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
   const t = COPY[readLang()];
+  const lang = readLang();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [signup, setSignup] = useState(emptySignup);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+
+  const isBrazil = signup.country === "BR";
+  const postalLabel = isBrazil ? t.postalCodeBr : t.postalCode;
+  const stateLabel = isBrazil ? t.stateBr : t.state;
+  const districtLabel = isBrazil ? t.district : t.districtOptional;
 
   const altMode: AuthMode = mode === "login" ? "signup" : "login";
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
@@ -244,9 +313,10 @@ export function Auth({ mode }: { mode: AuthMode }) {
           street: signup.street.trim(),
           number: signup.number.trim(),
           complement: signup.complement.trim() || null,
-          district: signup.district.trim(),
+          district: signup.district.trim() || null,
           city: signup.city.trim(),
-          state: signup.state.trim().toUpperCase(),
+          state: signup.state.trim(),
+          country: signup.country.trim().toUpperCase(),
           accept_terms: true,
         };
         await api.signup(payload);
@@ -368,12 +438,29 @@ export function Auth({ mode }: { mode: AuthMode }) {
                   />
                 </label>
                 <div className="auth-address" data-testid="auth-address">
+                  <label className="auth-span-2">
+                    {t.country}
+                    <select
+                      required
+                      value={signup.country}
+                      onChange={(e) => setSignup({ ...signup, country: e.target.value })}
+                      data-testid="auth-country"
+                      autoComplete="country"
+                    >
+                      {COUNTRY_OPTIONS.map((c) => (
+                        <option key={c.code} value={c.code}>
+                          {c.label[lang]}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
                   <label>
-                    {t.postalCode}
+                    {postalLabel}
                     <input
                       type="text"
                       required
-                      minLength={8}
+                      minLength={2}
+                      maxLength={16}
                       autoComplete="postal-code"
                       value={signup.postal_code}
                       onChange={(e) => setSignup({ ...signup, postal_code: e.target.value })}
@@ -411,10 +498,10 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     />
                   </label>
                   <label>
-                    {t.district}
+                    {districtLabel}
                     <input
                       type="text"
-                      required
+                      required={isBrazil}
                       value={signup.district}
                       onChange={(e) => setSignup({ ...signup, district: e.target.value })}
                       data-testid="auth-district"
@@ -432,16 +519,21 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     />
                   </label>
                   <label>
-                    {t.state}
+                    {stateLabel}
                     <input
                       type="text"
                       required
-                      minLength={2}
-                      maxLength={2}
+                      minLength={1}
+                      maxLength={isBrazil ? 2 : 80}
                       autoComplete="address-level1"
                       value={signup.state}
                       onChange={(e) =>
-                        setSignup({ ...signup, state: e.target.value.toUpperCase() })
+                        setSignup({
+                          ...signup,
+                          state: isBrazil
+                            ? e.target.value.toUpperCase()
+                            : e.target.value,
+                        })
                       }
                       data-testid="auth-state"
                     />

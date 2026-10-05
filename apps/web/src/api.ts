@@ -283,9 +283,10 @@ export type SignupPayload = {
   street: string;
   number: string;
   complement?: string | null;
-  district: string;
+  district?: string | null;
   city: string;
   state: string;
+  country: string;
   accept_terms: boolean;
 };
 
@@ -305,6 +306,7 @@ export type MeUser = {
   district: string | null;
   city: string | null;
   state: string | null;
+  country: string | null;
 };
 
 export type ProfileUpdatePayload = Partial<
@@ -319,6 +321,7 @@ export type ProfileUpdatePayload = Partial<
     | "district"
     | "city"
     | "state"
+    | "country"
   >
 >;
 

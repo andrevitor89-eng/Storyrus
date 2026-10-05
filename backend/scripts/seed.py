@@ -34,6 +34,7 @@ def _ensure_demo_profile(user: User) -> None:
     user.district = user.district or "Bela Vista"
     user.city = user.city or "Sao Paulo"
     user.state = user.state or "SP"
+    user.country = user.country or "BR"
     if user.terms_accepted_at is None:
         user.terms_accepted_at = datetime.now(UTC)
     if user.email_verified_at is None:

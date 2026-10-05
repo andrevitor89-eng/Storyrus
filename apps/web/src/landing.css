@@ -2373,10 +2373,21 @@ img.ex-tab-cover {
   font-weight: 600;
   color: var(--auth-ink);
 }
+.auth-form select {
+  width: 100%;
+  border-radius: 14px;
+  border: 1.5px solid var(--auth-line);
+  background: #f4f7fc;
+  padding: 0.9rem 1.05rem;
+  font: inherit;
+  font-weight: 600;
+  color: var(--auth-ink);
+}
 .auth-form input::placeholder {
   color: #8a93b0;
 }
-.auth-form input:focus {
+.auth-form input:focus,
+.auth-form select:focus {
   outline: 2px solid rgba(58, 95, 174, 0.28);
   border-color: #3a5fae;
   background: #fff;

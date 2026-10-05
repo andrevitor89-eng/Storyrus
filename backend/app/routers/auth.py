@@ -65,6 +65,7 @@ def _user_out(user: User) -> UserOut:
         district=user.district,
         city=user.city,
         state=user.state,
+        country=user.country,
     )
 
 
@@ -80,6 +81,7 @@ def _apply_profile(user: User, body: SignupIn | ProfileUpdateIn) -> None:
         "district",
         "city",
         "state",
+        "country",
     ):
         if key in data:
             setattr(user, key, data[key])

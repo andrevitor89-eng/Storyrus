@@ -14,10 +14,12 @@ describe("Legal", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("heading", { level: 1, name: /privacidade/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { level: 1, name: /política de privacidade|privacidade/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /o que coletamos/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /para que usamos/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /conta de convidado/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /usuários internacionais/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /conta e sessão/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /seus direitos/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /crianças/i })).toBeInTheDocument();
     expect(document.body.textContent).toContain(CONTACT);
     expect(screen.queryByRole("heading", { name: /termos de uso/i })).not.toBeInTheDocument();
@@ -32,11 +34,14 @@ describe("Legal", () => {
 
     expect(screen.getByRole("heading", { level: 1, name: /termos de uso/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /o serviço/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /cadastro e conta/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /responsável legal/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /créditos/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /propriedade/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /créditos e pagamentos/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /impressão e envio/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /usuários internacionais/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /propriedade e uso/i })).toBeInTheDocument();
     expect(screen.getByText(CONTACT)).toBeInTheDocument();
-    expect(screen.queryByRole("heading", { name: /^privacidade$/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^política de privacidade$/i })).not.toBeInTheDocument();
   });
 
   it("oferece links de volta para a página inicial", () => {
@@ -56,8 +61,8 @@ describe("Legal", () => {
 
 describe("Rotas legais (AppRoutes)", () => {
   it.each([
-    ["/privacidade", /privacidade/i],
-    ["/privacy", /privacidade/i],
+    ["/privacidade", /política de privacidade|privacidade/i],
+    ["/privacy", /política de privacidade|privacidade/i],
     ["/termos", /termos de uso/i],
     ["/terms", /termos de uso/i],
   ] as const)("rota %s renderiza o documento correto", async (path, heading) => {

@@ -38,6 +38,7 @@ async function fillSignup(
   await user.type(screen.getByTestId("auth-phone"), "11999999999");
   await user.type(screen.getByTestId("auth-password"), "password123");
   await user.type(screen.getByTestId("auth-password-confirm"), "password123");
+  await user.selectOptions(screen.getByTestId("auth-country"), "BR");
   await user.type(screen.getByTestId("auth-postal-code"), "01310100");
   await user.type(screen.getByTestId("auth-street"), "Av Paulista");
   await user.type(screen.getByTestId("auth-number"), "1000");
@@ -72,6 +73,31 @@ describe("Auth", () => {
     expect(state.email).toBe("nova@example.com");
     expect(state.emailVerified).toBe(false);
     expect(screen.queryByTestId("studio-dest")).not.toBeInTheDocument();
+  });
+
+  it("aceita cadastro com endereço internacional (US)", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+
+    await user.type(screen.getByTestId("auth-full-name"), "Jane Doe");
+    await user.type(screen.getByTestId("auth-email"), "jane@example.com");
+    await user.type(screen.getByTestId("auth-phone"), "+15551234567");
+    await user.type(screen.getByTestId("auth-password"), "password123");
+    await user.type(screen.getByTestId("auth-password-confirm"), "password123");
+    await user.selectOptions(screen.getByTestId("auth-country"), "US");
+    expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("minLength", "2");
+    await user.type(screen.getByTestId("auth-postal-code"), "90210");
+    await user.type(screen.getByTestId("auth-street"), "Rodeo Dr");
+    await user.type(screen.getByTestId("auth-number"), "100");
+    await user.type(screen.getByTestId("auth-city"), "Beverly Hills");
+    await user.type(screen.getByTestId("auth-state"), "California");
+    await user.click(screen.getByTestId("auth-accept-terms"));
+    await user.click(screen.getByTestId("auth-submit"));
+
+    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+    expect(state.country).toBe("US");
+    expect(state.postalCode).toBe("90210");
+    expect(state.stateUf).toBe("California");
   });
 
   it("confirma e-mail e entra no estúdio", async () => {
