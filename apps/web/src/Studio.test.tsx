@@ -1,29 +1,37 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { App } from "./App";
 import { api, setToken } from "./api";
 import { ProgressList, Studio } from "./Studio";
 import type { Job } from "./types";
 import { state } from "./test/server";
 
+function renderApp(initial = "/app") {
+  return render(
+    <MemoryRouter initialEntries={[initial]}>
+      <Routes>
+        <Route path="/app" element={<App />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+}
+
+beforeEach(() => {
+  state.isGuest = false;
+  state.email = "ana@email.com";
+  state.credits = 10;
+  setToken("test-token");
+});
+
 afterEach(() => {
   vi.restoreAllMocks();
   window.history.replaceState({}, "", "/");
 });
 
-async function fillClient(user: ReturnType<typeof userEvent.setup>, notes = "") {
-  await user.type(screen.getByLabelText(/nome do cliente/i), "Ana Souza");
-  await user.type(screen.getByLabelText(/^e-mail$/i), "ana@email.com");
-  await user.type(screen.getByLabelText(/telefone/i), "11999999999");
-  await user.type(screen.getByLabelText(/endereço para entrega/i), "Rua A, 10");
-  if (notes) await user.type(screen.getByLabelText(/observação/i), notes);
-}
-
-async function openBook(user: ReturnType<typeof userEvent.setup>, notes = "") {
-  await screen.findByTestId("studio-client");
-  await fillClient(user, notes);
-  await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
+async function openBook(_user: ReturnType<typeof userEvent.setup>) {
+  expect(screen.queryByTestId("studio-client")).not.toBeInTheDocument();
   await screen.findByRole("checkbox", { name: /responsável legal/i });
 }
 
@@ -128,7 +136,7 @@ describe("Studio — tema do banner", () => {
     );
     const user = userEvent.setup();
     render(<Studio />);
-    await openBook(user, "entregar à tarde");
+    await openBook(user);
 
     await user.type(screen.getByLabelText(/nome do pai/i), "Lia");
     await user.type(screen.getByLabelText(/idade do pai/i), "4");
@@ -155,11 +163,11 @@ describe("Studio — tema do banner", () => {
         extraNames: "Vovó, Totó",
         gender: "m",
         subject: "pai",
-        clientName: "Ana Souza",
+        clientName: "ana@email.com",
         clientEmail: "ana@email.com",
-        clientPhone: "11999999999",
-        clientAddress: "Rua A, 10",
-        clientNotes: "entregar à tarde",
+        clientPhone: "",
+        clientAddress: "",
+        clientNotes: undefined,
       }),
     );
   });
@@ -203,26 +211,7 @@ describe("Studio — tema do banner", () => {
     );
   });
 
-  it("não abre o livro sem o cadastro do cliente", async () => {
-    const upload = vi.spyOn(api, "uploadPhoto");
-    const create = vi.spyOn(api, "createProject");
-    const user = userEvent.setup();
-    render(<Studio />);
-
-    await screen.findByTestId("studio-client");
-    expect(screen.queryByRole("checkbox", { name: /responsável legal/i })).not.toBeInTheDocument();
-    await user.click(screen.getByRole("button", { name: /continuar para o livro/i }));
-
-    expect(await screen.findByRole("alert")).toHaveTextContent(/preencha nome/i);
-    expect(screen.queryByRole("checkbox", { name: /responsável legal/i })).not.toBeInTheDocument();
-    expect(upload).not.toHaveBeenCalled();
-    expect(create).not.toHaveBeenCalled();
-  });
-
-  it("quem já está logado vai direto ao livro", async () => {
-    state.isGuest = false;
-    state.email = "ana@email.com";
-    setToken("test-token");
+  it("conta registrada vai direto ao livro", async () => {
     render(<Studio />);
 
     expect(await screen.findByRole("checkbox", { name: /responsável legal/i })).toBeInTheDocument();
@@ -336,7 +325,7 @@ describe("Polling do estúdio", () => {
     state.credits = 10;
     const spy = vi.spyOn(window, "setInterval");
     const user = userEvent.setup();
-    render(<App />);
+    renderApp("/app");
     await openBook(user);
 
     await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");

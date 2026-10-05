@@ -13,6 +13,18 @@ function renderLanding() {
   );
 }
 
+/** Personalizar aponta para /cadastro?next=… — decodifica o destino do estúdio. */
+function studioTarget(href: string | null): string {
+  if (!href) return "";
+  try {
+    const next = new URL(href, "https://storyrus.local").searchParams.get("next");
+    if (next) return decodeURIComponent(next.replace(/\+/g, " "));
+  } catch {
+    /* ignore */
+  }
+  return decodeURIComponent(href.replace(/\+/g, " "));
+}
+
 beforeAll(() => {
   class IO {
     observe() {}
@@ -244,14 +256,14 @@ describe("Landing — catálogo", () => {
 
     await user.click(within(card).getAllByRole("button", { name: "Capa Flexível" })[0]);
     expect(within(card).getAllByRole("button", { name: "Capa Flexível", pressed: true })).toHaveLength(2);
-    expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("capa=soft"));
+    expect(studioTarget(within(card).getByTestId("landing-personalize").getAttribute("href"))).toContain("capa=soft");
 
     expect(within(card).getByText("R$ 177,00.")).toHaveClass("is-price");
     expect(within(card).getByText("R$ 157,00.")).not.toHaveClass("is-price");
 
     await user.click(within(card).getAllByRole("button", { name: "P" })[0]);
     expect(within(card).getAllByRole("button", { name: "P", pressed: true })).toHaveLength(2);
-    expect(within(card).getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tamanho=P"));
+    expect(studioTarget(within(card).getByTestId("landing-personalize").getAttribute("href"))).toContain("tamanho=P");
     expect(within(card).getAllByRole("button", { name: "M", pressed: false })).toHaveLength(2);
     expect(card.textContent).toContain("20 × 20 cm");
     expect(card.textContent).toContain("15 × 15 cm");
@@ -297,17 +309,18 @@ describe("Landing — catálogo", () => {
 
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize).toHaveLength(14);
-    expect(personalize[0].getAttribute("href")).toContain("tema=fathers_day");
-    expect(personalize[0].getAttribute("href")).toContain("campos=nome");
-    expect(personalize[0].getAttribute("href")).toContain("tamanho=M");
-    expect(personalize[0].getAttribute("href")).toContain("capa=hard");
-    expect(personalize[0].getAttribute("href")).toContain("modo=realista");
-    expect(personalize[0].getAttribute("href")).toContain("titulo=");
-    expect(personalize[0].getAttribute("href")).not.toContain("heroi=");
-    expect(decodeURIComponent((personalize[0].getAttribute("href") ?? "").replace(/\+/g, " "))).toContain("Papai herói");
-    expect(personalize[1].getAttribute("href")).toContain("tema=biblico");
-    expect(personalize[2].getAttribute("href")).toContain("tema=family_love");
-    expect(personalize[10].getAttribute("href")).toContain("tema=pets");
+    const first = studioTarget(personalize[0].getAttribute("href"));
+    expect(first).toContain("tema=fathers_day");
+    expect(first).toContain("campos=nome");
+    expect(first).toContain("tamanho=M");
+    expect(first).toContain("capa=hard");
+    expect(first).toContain("modo=realista");
+    expect(first).toContain("titulo=");
+    expect(first).not.toContain("heroi=");
+    expect(first).toContain("Papai herói");
+    expect(studioTarget(personalize[1].getAttribute("href"))).toContain("tema=biblico");
+    expect(studioTarget(personalize[2].getAttribute("href"))).toContain("tema=family_love");
+    expect(studioTarget(personalize[10].getAttribute("href"))).toContain("tema=pets");
   });
 });
 
@@ -474,12 +487,14 @@ describe("Landing — menu mobile e abas do hero", () => {
 });
 
 describe("Landing — CTAs e links", () => {
-  it("CTAs principais apontam para /app", async () => {
+  it("CTAs principais apontam para cadastro e login", async () => {
     renderLanding();
 
-    expect(await screen.findByTestId("landing-hero-cta")).toHaveAttribute("href", "/app");
-    expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
-    expect(screen.getByTestId("landing-mobile-cta")).toHaveAttribute("href", "/app");
+    expect(await screen.findByTestId("landing-hero-cta")).toHaveAttribute("href", "/cadastro");
+    expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
+    expect(screen.getByTestId("landing-mobile-cta")).toHaveAttribute("href", "/cadastro");
+    expect(screen.getByTestId("landing-header-login")).toHaveAttribute("href", "/entrar");
+    expect(screen.getByTestId("landing-mobile-login")).toHaveAttribute("href", "/entrar");
   });
 
   it("footer liga privacidade e termos", async () => {
@@ -497,7 +512,9 @@ describe("Landing — CTAs e links", () => {
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize.length).toBeGreaterThan(0);
     for (const link of personalize) {
-      expect(link.getAttribute("href")).toMatch(/^\/app\?tema=/);
+      const href = link.getAttribute("href") ?? "";
+      expect(href.startsWith("/cadastro?next=")).toBe(true);
+      expect(decodeURIComponent(href)).toContain("/app?tema=");
     }
   });
 
@@ -548,14 +565,14 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByText(/^carrossel de livros$/i)).not.toBeInTheDocument();
     const subs = panel.querySelector(".kcat-subs") as HTMLElement;
     const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
-    const princesasHref = decodeURIComponent((princesas.getAttribute("href") ?? "").replace(/\+/g, " "));
+    const princesasHref = studioTarget(princesas.getAttribute("href"));
     expect(princesasHref).toContain("tema=princess");
     expect(princesasHref).toContain("Emilia e os Primeiros Passos da Bailarina");
     expect(princesasHref).toContain("heroi=Emilia");
-    expect(within(panel).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/app?tema=sport");
+    expect(studioTarget(within(panel).getByRole("link", { name: /^esportes$/i }).getAttribute("href"))).toContain("/app?tema=sport");
     const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
     expect(biblico.parentElement?.querySelector("a")).toBe(biblico);
-    const biblicoHref = decodeURIComponent((biblico.getAttribute("href") ?? "").replace(/\+/g, " "));
+    const biblicoHref = studioTarget(biblico.getAttribute("href"));
     expect(biblicoHref).toContain("tema=biblico");
     expect(biblicoHref).toContain("Davi, o Menino Pastor");
     expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo/educativo");
@@ -584,7 +601,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(feats).queryByRole("link", { name: /emilia/i })).not.toBeInTheDocument();
 
     const pets = within(panel).getByRole("link", { name: /^pets$/i });
-    expect(pets).toHaveAttribute("href", "/app?tema=pets");
+    expect(studioTarget(pets.getAttribute("href"))).toContain("/app?tema=pets");
     fireEvent.mouseEnter(pets);
     expect(within(feats).getByRole("link", { name: /maya/i })).toBeInTheDocument();
     expect(within(feats).getByRole("link", { name: /mako/i })).toBeInTheDocument();
@@ -707,7 +724,7 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("heading", { name: /detalhes do livro/i })).toBeInTheDocument();
     expect(screen.getByTestId("book-story")).toHaveTextContent(/harpa e as ovelhas/i);
     expect(screen.getByText(/livro 16 páginas/i)).toBeInTheDocument();
-    expect(screen.getByTestId("landing-personalize")).toHaveAttribute("href", expect.stringContaining("tema=biblico"));
+    expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=biblico");
     expect(screen.getByRole("link", { name: /ver todos os livros/i })).toHaveAttribute("href", "/catalogo/educativo");
   });
 

@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { accountGateHref } from "./Auth";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -379,7 +380,15 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   biblico: [20],
 };
 function themeFromHref(href: string): string | null {
-  const match = href.match(/[?&]tema=([^&]+)/);
+  // Links podem ser /app?tema=… ou /cadastro?next=%2Fapp%3Ftema%3D…
+  let target = href;
+  try {
+    const next = new URL(href, "https://storyrus.local").searchParams.get("next");
+    if (next && next.startsWith("/")) target = next;
+  } catch {
+    /* ignore */
+  }
+  const match = target.match(/[?&]tema=([^&]+)/);
   return match ? decodeURIComponent(match[1]) : null;
 }
 type OccasionWhen = { month: number; day: number } | "easter";
@@ -478,7 +487,7 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
-  return `/app?${q.toString()}`;
+  return accountGateHref(`/app?${q.toString()}`);
 }
 function studioHref(opts: {
   tema: string;
@@ -499,7 +508,7 @@ function studioHref(opts: {
   q.set("tamanho", opts.size ?? "M");
   q.set("capa", opts.cover ?? "hard");
   q.set("modo", opts.modo ?? "realista");
-  return `/app?${q.toString()}`;
+  return accountGateHref(`/app?${q.toString()}`);
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
@@ -602,6 +611,7 @@ const I18N = {
     eyebrow: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
     h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: " !",
     lead: "Você envia a foto e nós transformamos seu filho em um personagem ilustrado, criando uma aventura personalizada especialmente para ele — um livro para presentear a família e guardar para sempre.",
+    cta_login: "Entrar",
     cta_play: "Criar minha conta",
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
@@ -794,6 +804,7 @@ const I18N = {
     eyebrow: "Preserve moments. Gift your family an unforgettable story.",
     h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: " !",
     lead: "You send the photo and we turn your child into an illustrated character, creating an adventure made just for them — a book to gift the family and keep forever.",
+    cta_login: "Log in",
     cta_play: "Create my account",
     hero_cta: "Create my book",
     cta_story: "Create my story",
@@ -986,6 +997,7 @@ const I18N = {
     eyebrow: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
     h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: " !",
     lead: "Envías la foto y transformamos a tu hijo en un personaje ilustrado, creando una aventura personalizada especialmente para él — un libro para regalar a la familia y guardar para siempre.",
+    cta_login: "Entrar",
     cta_play: "Crear mi cuenta",
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
@@ -1800,9 +1812,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const bookStudioHref = (theme: string, catalogI?: number) => {
-    if (catalogI === undefined) return `/app?tema=${theme}`;
+    if (catalogI === undefined) return accountGateHref(`/app?tema=${theme}`);
     const book = t.catalog[catalogI];
-    if (!book) return `/app?tema=${theme}`;
+    if (!book) return accountGateHref(`/app?tema=${theme}`);
     return studioHref({
       tema: theme,
       titulo: book.t,
@@ -1827,7 +1839,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
       return [{
         label,
-        href: bookTheme ? bookStudioHref(bookTheme, only) : meta.href,
+        href: bookTheme ? bookStudioHref(bookTheme, only) : accountGateHref(meta.href),
         due: when ? nextOccasionDate(when, new Date()) : null,
       }];
     }).sort((a, b) => {
@@ -2069,7 +2081,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
             </div>
             <div className="khead-links">
-              <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
+              <Link to="/entrar" data-testid="landing-header-login">{t.cta_login}</Link>
+              <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
             </div>
           </div>
           <button
@@ -2122,7 +2135,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
-          <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+          <Link to="/entrar" className="kmobile-link" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
+          <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
         </nav>
         </div>
       </header>
@@ -2183,7 +2197,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
+          <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
       </section>
 
@@ -2324,7 +2338,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             );
           })}
         </div>
-        <div className="vid-cta"><Link to="/app" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+        <div className="vid-cta"><Link to="/cadastro" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
       </section>
 
       {/* AVALIAÇÕES */}
@@ -2378,7 +2392,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="kband" id="familias">
         <IcSparkle className="twk b1" /><IcStar className="twk b2" />
         <h2>{t.band_title}</h2><p>{t.band_sub}</p>
-        <Link to="/app" className="kbtn kbtn-primary big">{t.band_cta}</Link>
+        <Link to="/cadastro" className="kbtn kbtn-primary big">{t.band_cta}</Link>
       </section>
 
       {/* FOOTER */}

@@ -256,16 +256,13 @@ def test_logged_in_account_opens_the_order_without_the_form(client, monkeypatch)
     assert "Telefone:" not in summary
 
 
-def test_photo_without_registration_does_not_open_an_order(auth_client, monkeypatch):
-    stored = []
-    monkeypatch.setattr("app.storage.put_bytes", lambda *args, **kwargs: stored.append(args))
+def test_guest_cannot_create_project_or_order(guest_client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
-    pid = _create(auth_client)
-    up = _photo(auth_client, pid, client_email="")
-    assert up.status_code == 400
-    assert stored == []
-    owner = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    r = guest_client.post("/v1/projects", json={})
+    assert r.status_code == 403
+    assert "Cadastro" in r.json()["detail"]
+    owner = guest_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
     assert owner.json()["orders"] == []
 
 

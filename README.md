@@ -75,13 +75,15 @@ S3-compatible). O compose **não** sobe MinIO — veja `DEPLOY.md`.
 
 ## Fluxo
 
-1. Abre o estúdio (`/app`) — o front pede um **JWT de convidado** (`POST /v1/auth/guest`).
-2. A sessão renova com `POST /v1/auth/refresh` (ou `resume` se o JWT expirou) para não orphanar projetos; opcionalmente **Criar conta** (`/v1/auth/upgrade`) no mesmo `user_id`.
+1. Na landing, **Entrar** (`/entrar`) ou **Criar conta** (`/cadastro`) — JWT de conta
+   via `POST /v1/auth/login` ou `/signup`.
+2. Só com conta registrada abre o estúdio (`/app`). Mutações de livro no backend
+   rejeitam convidados (`403 Cadastro necessario`).
 3. Cria projeto e escolhe o estilo.
 4. Envia a foto (URL assinada).
 5. Dispara as etapas (avatar → história → ebook → vídeo). Cada uma debita créditos,
    enfileira um job e responde **202**; o worker processa e o front acompanha o
    progresso ao vivo.
 
-Signup/login (`POST /v1/auth/signup` / `login`) continuam disponíveis na API
-(ex.: seed/demo e mobile); o web atual é guest-first.
+Guest (`POST /v1/auth/guest`) e upgrade (`/upgrade`) permanecem na API para
+compatibilidade, mas não liberam criação de livros.

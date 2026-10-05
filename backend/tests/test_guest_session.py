@@ -32,8 +32,10 @@ def test_resume_expired_token_keeps_user_and_projects(client, monkeypatch):
     monkeypatch.setattr(settings, "access_token_ttl_min", 1)
     monkeypatch.setattr(settings, "guest_resume_grace_min", 60 * 24)
 
-    guest = client.post("/v1/auth/guest")
-    token = guest.json()["access_token"]
+    signup = client.post(
+        "/v1/auth/signup", json={"email": "resume@example.com", "password": "password123"}
+    )
+    token = signup.json()["access_token"]
     me = client.get("/v1/auth/me", headers=_auth(token)).json()
     pid = client.post("/v1/projects", json={}, headers=_auth(token)).json()["id"]
 
@@ -79,12 +81,15 @@ def test_resume_rejects_too_old_token(client, monkeypatch):
     assert r.status_code == 401
 
 
-def test_upgrade_guest_keeps_projects_and_credits(client):
+def test_upgrade_guest_keeps_user_id_and_credits(client):
     token = client.post("/v1/auth/guest").json()["access_token"]
     me = client.get("/v1/auth/me", headers=_auth(token)).json()
     assert me["is_guest"] is True
     credits_before = me["credits"]
-    pid = client.post("/v1/projects", json={}, headers=_auth(token)).json()["id"]
+    # Guest nao cria livro; apos upgrade, mesmo user_id cria projetos.
+    assert (
+        client.post("/v1/projects", json={}, headers=_auth(token)).status_code == 403
+    )
 
     r = client.post(
         "/v1/auth/upgrade",
@@ -99,6 +104,7 @@ def test_upgrade_guest_keeps_projects_and_credits(client):
     assert me2["email"] == "real@example.com"
     assert me2["is_guest"] is False
     assert me2["credits"] == credits_before
+    pid = client.post("/v1/projects", json={}, headers=_auth(upgraded)).json()["id"]
     assert client.get(f"/v1/projects/{pid}", headers=_auth(upgraded)).status_code == 200
 
     # Login com a conta permanente funciona.

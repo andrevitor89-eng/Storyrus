@@ -12,7 +12,7 @@ from sqlalchemy.orm import Session
 
 from app import storage
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import get_current_user, require_registered_user
 from app.media.tts import (
     TtsError,
     clone_voice,
@@ -153,7 +153,7 @@ async def upload_voice(
     name: str = Form(...),
     file: UploadFile = File(...),
     make_default: str = Form(default="false"),
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> VoiceOut:
     if not elevenlabs_configured():
@@ -213,7 +213,7 @@ async def upload_voice(
 def patch_voice(
     voice_id: uuid.UUID,
     body: VoicePatchIn,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> VoiceOut:
     voice = db.get(UserVoice, voice_id)
@@ -234,7 +234,7 @@ def patch_voice(
 @router.delete("/{voice_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_voice(
     voice_id: uuid.UUID,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> None:
     voice = db.get(UserVoice, voice_id)

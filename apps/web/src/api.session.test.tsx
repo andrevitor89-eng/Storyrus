@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { App } from "./App";
+import { Auth } from "./Auth";
 import { readJwtPayload, setToken } from "./api";
 import { state } from "./test/server";
 
@@ -29,26 +31,44 @@ describe("readJwtPayload", () => {
   });
 });
 
-describe("Studio guest upgrade (STO-26)", () => {
-  it("shows Criar conta for guests and upgrades in place", async () => {
+describe("Studio account gate", () => {
+  it("blocks guests and sends them to cadastro", async () => {
+    state.isGuest = true;
+    state.email = "guest-test@storyrus.app";
+    setToken("test-token");
+
+    render(
+      <MemoryRouter initialEntries={["/app"]}>
+        <Routes>
+          <Route path="/app" element={<App />} />
+          <Route path="/cadastro" element={<Auth mode="signup" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-upgrade-open")).not.toBeInTheDocument();
+  });
+
+  it("shows logout for registered accounts", async () => {
     const user = userEvent.setup();
-    render(<App />);
+    state.isGuest = false;
+    state.email = "parent@example.com";
+    setToken("test-token");
 
-    const open = await screen.findByTestId("studio-upgrade-open");
-    await user.click(open);
+    render(
+      <MemoryRouter initialEntries={["/app"]}>
+        <Routes>
+          <Route path="/app" element={<App />} />
+          <Route path="/entrar" element={<Auth mode="login" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
 
-    expect(await screen.findByTestId("studio-upgrade-form")).toBeInTheDocument();
-    await user.type(screen.getByTestId("studio-upgrade-email"), "parent@example.com");
-    await user.type(screen.getByTestId("studio-upgrade-password"), "password123");
-    await user.click(screen.getByTestId("studio-upgrade-submit"));
-
+    const logout = await screen.findByTestId("studio-logout");
+    await user.click(logout);
     await waitFor(() => {
-      expect(state.isGuest).toBe(false);
-      expect(state.email).toBe("parent@example.com");
-    });
-    await waitFor(() => {
-      expect(screen.queryByTestId("studio-upgrade-form")).not.toBeInTheDocument();
-      expect(screen.queryByTestId("studio-upgrade-open")).not.toBeInTheDocument();
+      expect(screen.getByTestId("auth-page")).toBeInTheDocument();
     });
   });
 });

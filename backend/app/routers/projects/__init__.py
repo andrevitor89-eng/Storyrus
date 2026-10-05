@@ -14,7 +14,7 @@ from sqlalchemy.orm import Session
 
 from app import storage, story_templates
 from app.database import get_db
-from app.deps import get_current_user
+from app.deps import get_current_user, require_registered_user
 from app.models import Asset, AssetKind, Job, Project, User
 from app.schemas import JobOut, ProjectCreateIn, ProjectOut, StoryTemplateOut
 
@@ -28,7 +28,7 @@ router = APIRouter(prefix="/v1/projects", tags=["projects"])
 @router.post("", response_model=ProjectOut, status_code=status.HTTP_201_CREATED)
 def create_project(
     body: ProjectCreateIn,
-    user: User = Depends(get_current_user),
+    user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
 ) -> Project:
     project = Project(

@@ -57,41 +57,32 @@ export function hydrateToken(): Promise<void> {
   return hydratePromise;
 }
 
-/** Guest-first: mint an isolated JWT via POST /v1/auth/guest when none is stored. */
-export async function ensureGuest(): Promise<void> {
+/** Garante sessão de conta (sem mintar convidado). */
+export async function ensureSession(): Promise<void> {
   await hydrateToken();
-  if (token) {
-    if (tokenExpired(token)) {
-      const old = token;
-      const ok = await resumeSession(old);
-      if (ok) return;
-      setToken(null);
-    } else {
-      if (tokenExpiresSoon(token)) {
-        void refreshSession();
-      }
-      return;
-    }
+  if (!token) {
+    throw new Error("401: Nao autenticado");
   }
-  if (!guestPromise) {
-    guestPromise = (async () => {
-      const resp = await fetch(`${BASE}/v1/auth/guest`, { method: "POST" });
-      if (!resp.ok) {
-        let detail = resp.statusText;
-        try {
-          detail = (await resp.json()).detail ?? detail;
-        } catch {
-          /* corpo vazio */
-        }
-        throw new Error(`${resp.status}: ${detail}`);
-      }
-      const data = (await resp.json()) as { access_token: string };
-      setToken(data.access_token);
-    })().finally(() => {
-      guestPromise = null;
-    });
+  if (tokenExpired(token)) {
+    const old = token;
+    const ok = await resumeSession(old);
+    if (ok) return;
+    setToken(null);
+    throw new Error("401: Nao autenticado");
   }
-  await guestPromise;
+  if (tokenExpiresSoon(token)) {
+    void refreshSession();
+  }
+}
+
+/** @deprecated Use ensureSession. */
+export async function ensureGuest(): Promise<void> {
+  return ensureSession();
+}
+
+export function logout(): void {
+  setToken(null);
+  guestPromise = null;
 }
 
 function readJwtPayload(t: string): { exp?: number } | null {
@@ -160,10 +151,9 @@ async function resumeSession(oldToken: string): Promise<boolean> {
   return resumePromise;
 }
 
-/** Clear session and mint a fresh guest (studio "Sair"). */
+/** Clear session (studio "Sair"). */
 export async function resetToGuest(): Promise<void> {
-  setToken(null);
-  await ensureGuest();
+  logout();
 }
 
 function uuid(): string {
@@ -201,12 +191,12 @@ function isHttpErrorMessage(message: string): boolean {
 }
 
 async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
-  const skipGuest =
+  const skipSession =
     path.startsWith("/v1/auth/signup") ||
     path.startsWith("/v1/auth/login") ||
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume");
-  if (!skipGuest) await ensureGuest();
+  if (!skipSession) await ensureSession();
 
   const headers: Record<string, string> = {
     ...(init.headers as Record<string, string>),
@@ -224,9 +214,6 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
       resp = await fetch(`${BASE}${path}`, { ...init, headers });
     } else {
       setToken(null);
-      await ensureGuest();
-      headers.Authorization = `Bearer ${token}`;
-      resp = await fetch(`${BASE}${path}`, { ...init, headers });
     }
   }
   if (!resp.ok) {
@@ -245,18 +232,6 @@ export const api = {
   guest: () =>
     req<{ access_token: string }>("/v1/auth/guest", { method: "POST" }),
   signup: async (email: string, password: string) => {
-    // Prefer upgrade so guest projects are kept (STO-26).
-    try {
-      const out = await req<{ access_token: string }>("/v1/auth/upgrade", {
-        method: "POST",
-        body: JSON.stringify({ email, password }),
-      });
-      setToken(out.access_token);
-      return out;
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "";
-      if (!message.startsWith("400:")) throw err;
-    }
     const out = await req<{ access_token: string }>("/v1/auth/signup", {
       method: "POST",
       body: JSON.stringify({ email, password }),
@@ -354,7 +329,7 @@ export const api = {
   },
   listVoices: () => req<VoiceList>("/v1/voices"),
   async uploadVoice(uri: string, name: string, mimeType: string, makeDefault = false) {
-    await ensureGuest();
+    await ensureSession();
     const ext = uri.split(".").pop()?.split("?")[0] || "m4a";
     const fd = new FormData();
     fd.append("file", {

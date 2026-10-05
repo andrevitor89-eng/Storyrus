@@ -122,9 +122,14 @@ export const handlers = [
       is_guest: state.isGuest,
     }),
   ),
-  http.post("*/v1/auth/signup", async () => {
+  http.post("*/v1/auth/signup", async ({ request }) => {
+    const body = (await request.json()) as { email: string; password: string };
+    if (!body.email || (body.password?.length ?? 0) < 8) {
+      return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
+    }
     state.credits = 10;
     state.isGuest = false;
+    state.email = body.email;
     return HttpResponse.json({ access_token: "test-token" }, { status: 201 });
   }),
   http.post("*/v1/auth/login", async ({ request }) => {

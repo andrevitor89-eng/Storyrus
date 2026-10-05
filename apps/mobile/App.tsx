@@ -3,26 +3,40 @@ import { ActivityIndicator, SafeAreaView, StyleSheet, View } from "react-native"
 import { StatusBar } from "expo-status-bar";
 import { AuthScreen } from "./src/AuthScreen";
 import { StudioScreen } from "./src/StudioScreen";
-import { ensureGuest, hydrateToken, resetToGuest } from "./src/api";
+import { api, getToken, hydrateToken, logout, ensureSession } from "./src/api";
 
 /**
- * Guest-first (espelha o web): abre o estúdio com JWT de convidado.
- * Login/signup opcional via "Entrar"; "Sair" limpa e reminta guest.
+ * Conta obrigatória: login/signup antes do estúdio.
  */
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [authed, setAuthed] = useState(false);
   const [bootError, setBootError] = useState<string | null>(null);
-  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         await hydrateToken();
-        await ensureGuest();
-        if (!cancelled) setBootError(null);
+        if (!getToken()) {
+          if (!cancelled) {
+            setAuthed(false);
+            setBootError(null);
+          }
+          return;
+        }
+        await ensureSession();
+        const me = await api.me();
+        if (!cancelled) {
+          setAuthed(!me.is_guest);
+          setBootError(null);
+        }
       } catch (e) {
-        if (!cancelled) setBootError((e as Error).message);
+        logout();
+        if (!cancelled) {
+          setAuthed(false);
+          setBootError((e as Error).message);
+        }
       } finally {
         if (!cancelled) setReady(true);
       }
@@ -39,22 +53,20 @@ export default function App() {
         <View style={s.boot}>
           <ActivityIndicator color="#5b8cff" size="large" />
         </View>
-      ) : showAuth ? (
+      ) : !authed ? (
         <AuthScreen
-          onAuthed={() => setShowAuth(false)}
-          onSkip={() => setShowAuth(false)}
+          onAuthed={() => {
+            setAuthed(true);
+            setBootError(null);
+          }}
         />
       ) : (
         <StudioScreen
           bootError={bootError}
-          onLogin={() => setShowAuth(true)}
           onLogout={async () => {
-            try {
-              await resetToGuest();
-              setBootError(null);
-            } catch (e) {
-              setBootError((e as Error).message);
-            }
+            logout();
+            setAuthed(false);
+            setBootError(null);
           }}
         />
       )}

@@ -34,9 +34,16 @@ def test_unauthenticated_is_401(client):
     assert client.get("/v1/credits").status_code == 401
 
 
-def test_guest_is_isolated(client):
-    a = client.post("/v1/auth/guest")
-    b = client.post("/v1/auth/guest")
+def test_guest_cannot_create_project(client):
+    token = client.post("/v1/auth/guest").json()["access_token"]
+    r = client.post("/v1/projects", json={}, headers={"Authorization": f"Bearer {token}"})
+    assert r.status_code == 403
+    assert "Cadastro" in r.json()["detail"]
+
+
+def test_accounts_are_isolated(client):
+    a = client.post("/v1/auth/signup", json={"email": "a@x.com", "password": "password123"})
+    b = client.post("/v1/auth/signup", json={"email": "b@x.com", "password": "password123"})
     assert a.status_code == 201 and b.status_code == 201
     ta, tb = a.json()["access_token"], b.json()["access_token"]
     assert ta != tb
@@ -44,7 +51,7 @@ def test_guest_is_isolated(client):
     me_a = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {ta}"}).json()
     me_b = client.get("/v1/auth/me", headers={"Authorization": f"Bearer {tb}"}).json()
     assert me_a["id"] != me_b["id"]
-    assert me_a["email"].startswith("guest-")
+    assert me_a["is_guest"] is False
     assert me_a["credits"] == 10
 
     pid = client.post("/v1/projects", json={}, headers={"Authorization": f"Bearer {ta}"}).json()[
@@ -234,12 +241,16 @@ def test_approve_and_print_require_preview(auth_client):
 
 
 def test_cannot_access_others_project(client):
-    a = client.post("/v1/auth/guest").json()
+    a = client.post(
+        "/v1/auth/signup", json={"email": "owner@x.com", "password": "password123"}
+    ).json()
     pid = client.post(
         "/v1/projects",
         json={"style": "realistic"},
         headers={"Authorization": f"Bearer {a['access_token']}"},
     ).json()["id"]
-    b = client.post("/v1/auth/guest").json()
+    b = client.post(
+        "/v1/auth/signup", json={"email": "other@x.com", "password": "password123"}
+    ).json()
     r = client.get(f"/v1/projects/{pid}", headers={"Authorization": f"Bearer {b['access_token']}"})
     assert r.status_code == 404
