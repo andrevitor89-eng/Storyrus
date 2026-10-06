@@ -36,9 +36,7 @@ def warn_if_email_unconfigured() -> None:
             "não enviam e-mail (só logs). Defina no Render + domínio verificado no Resend."
         )
     else:
-        logger.info(
-            "RESEND_API_KEY ausente: envio transacional desligado (dev ok)"
-        )
+        logger.info("RESEND_API_KEY ausente: envio transacional desligado (dev ok)")
 
 
 def build_verify_email_url(token: str) -> str:

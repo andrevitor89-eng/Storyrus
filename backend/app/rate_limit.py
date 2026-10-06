@@ -169,7 +169,9 @@ def check_guest(request) -> None:
             )
 
 
-def _check_email_gated(request, *, email: str, prefix: str, per_ip: int, per_email: int, window_s: float) -> None:
+def _check_email_gated(
+    request, *, email: str, prefix: str, per_ip: int, per_email: int, window_s: float
+) -> None:
     """Rate limit genérico por IP + e-mail (verify resend / forgot password)."""
     from fastapi import HTTPException, status
 

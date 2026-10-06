@@ -71,10 +71,7 @@ def test_send_email_fails_on_http_error(monkeypatch):
     mock_resp.status_code = 403
     mock_resp.text = '{"message":"domain not verified"}'
     monkeypatch.setattr(te.httpx, "post", lambda *a, **k: mock_resp)
-    assert (
-        te.send_email(to_email="a@b.com", subject="s", text="t", html="<p>t</p>")
-        is False
-    )
+    assert te.send_email(to_email="a@b.com", subject="s", text="t", html="<p>t</p>") is False
 
 
 def test_password_reset_builds_public_url(monkeypatch):

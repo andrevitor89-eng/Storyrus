@@ -44,9 +44,7 @@ from app.services.transactional_email import send_password_reset_email, send_ver
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 _SIGNUP_MSG = "Cadastro recebido. Confirme seu e-mail pelo link que enviamos."
-_RESEND_VERIFY_MSG = (
-    "Se este e-mail estiver pendente de confirmação, enviamos um novo link."
-)
+_RESEND_VERIFY_MSG = "Se este e-mail estiver pendente de confirmação, enviamos um novo link."
 _FORGOT_MSG = "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
 
 
