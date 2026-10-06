@@ -345,7 +345,9 @@ export function Auth({ mode }: { mode: AuthMode }) {
       <div className="kid auth-kid" data-testid="auth-page">
         <div className="auth-shell">
           <div className="auth-card" data-testid="auth-check-email">
-            {langSwitch}
+            <div className="auth-card-head">
+              {langSwitch}
+            </div>
             <div className="auth-logo">
               <Link to="/">
                 <img src={logo} alt="Story R Us" />
@@ -374,7 +376,9 @@ export function Auth({ mode }: { mode: AuthMode }) {
     <div className="kid auth-kid" data-testid="auth-page">
       <div className={`auth-shell${mode === "signup" ? " auth-shell-wide" : ""}`}>
         <div className="auth-card">
-          {langSwitch}
+          <div className="auth-card-head">
+            {langSwitch}
+          </div>
           <div className="auth-logo">
             <Link to="/">
               <img src={logo} alt="Story R Us" />

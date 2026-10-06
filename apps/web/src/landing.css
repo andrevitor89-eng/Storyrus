@@ -2321,6 +2321,8 @@ img.ex-tab-cover {
   width: min(100%, 560px);
 }
 .auth-card {
+  display: flex;
+  flex-direction: column;
   position: relative;
   background: #fff;
   border: 1px solid rgba(255, 255, 255, 0.55);
@@ -2328,14 +2330,16 @@ img.ex-tab-cover {
   box-shadow:
     0 28px 60px rgba(0, 0, 0, 0.35),
     0 0 0 1px rgba(31, 53, 104, 0.06);
-  padding: 1.75rem 1.65rem 1.85rem;
+  padding: 1.15rem 1.65rem 1.85rem;
   color: var(--auth-ink);
 }
+.auth-card-head {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 0.15rem;
+}
 .auth-lang {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-  z-index: 2;
+  position: static;
 }
 .auth-logo {
   display: flex;
@@ -2343,7 +2347,7 @@ img.ex-tab-cover {
   margin: -0.5rem 0 0.15rem;
 }
 .auth-logo img {
-  height: 96px;
+  height: 80px;
   width: auto;
 }
 .auth-card h1 {
