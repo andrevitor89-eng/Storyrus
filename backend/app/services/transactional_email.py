@@ -32,8 +32,8 @@ def warn_if_email_unconfigured() -> None:
         return
     if settings.app_env == "prod":
         logger.warning(
-            "RESEND_API_KEY ausente: verify/forgot-password não enviam e-mail "
-            "(só logs). Defina no Render + domínio verificado no Resend."
+            "RESEND_API_KEY ausente: confirmação de cadastro e esqueci-senha "
+            "não enviam e-mail (só logs). Defina no Render + domínio verificado no Resend."
         )
     else:
         logger.info(

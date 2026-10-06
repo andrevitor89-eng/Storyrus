@@ -267,6 +267,20 @@ export const handlers = [
     state.pendingVerifyToken = null;
     return HttpResponse.json({ access_token: "test-token" });
   }),
+  http.post("*/v1/auth/resend-verify-email", async ({ request }) => {
+    const body = (await request.json()) as { email?: string };
+    if (!body.email) {
+      return HttpResponse.json({ detail: "Dados invalidos" }, { status: 422 });
+    }
+    if (!state.isGuest && state.email === body.email && !state.emailVerified) {
+      state.pendingVerifyToken = "test-verify-token-resent";
+    }
+    return HttpResponse.json({
+      ok: true,
+      message: "Se este e-mail estiver pendente de confirmação, enviamos um novo link.",
+      verify_token: state.pendingVerifyToken,
+    });
+  }),
   http.post("*/v1/auth/login", async ({ request }) => {
     const body = (await request.json()) as { email: string; password: string };
     if (body.password === "wrongpass") {

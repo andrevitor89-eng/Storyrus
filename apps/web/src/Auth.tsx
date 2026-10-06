@@ -44,6 +44,9 @@ const COPY: Record<
     checkTitle: string;
     checkLead: string;
     checkHint: string;
+    checkResend: string;
+    checkResent: string;
+    checkResendBusy: string;
     passwordMismatch: string;
     mustAcceptTerms: string;
   }
@@ -81,7 +84,10 @@ const COPY: Record<
     back: "Voltar ao início",
     checkTitle: "Verifique seu e-mail",
     checkLead: "Enviamos um link de confirmação. Ative a conta antes de entrar no estúdio.",
-    checkHint: "Não recebeu? Confira o spam ou tente criar a conta de novo em alguns minutos.",
+    checkHint: "Não recebeu? Confira o spam ou reenvie o e-mail de confirmação.",
+    checkResend: "Reenviar e-mail de confirmação",
+    checkResent: "Se a conta estiver pendente, enviamos um novo link. Confira a caixa de entrada e o spam.",
+    checkResendBusy: "Reenviando…",
     passwordMismatch: "As senhas não coincidem.",
     mustAcceptTerms: "Aceite os termos e a política de privacidade.",
   },
@@ -118,7 +124,10 @@ const COPY: Record<
     back: "Back to home",
     checkTitle: "Check your email",
     checkLead: "We sent a confirmation link. Activate your account before opening the studio.",
-    checkHint: "Didn't get it? Check spam or try signing up again in a few minutes.",
+    checkHint: "Didn't get it? Check spam or resend the confirmation email.",
+    checkResend: "Resend confirmation email",
+    checkResent: "If the account is still pending, we sent a new link. Check inbox and spam.",
+    checkResendBusy: "Sending…",
     passwordMismatch: "Passwords do not match.",
     mustAcceptTerms: "Please accept the terms and privacy policy.",
   },
@@ -155,7 +164,10 @@ const COPY: Record<
     back: "Volver al inicio",
     checkTitle: "Revisa tu correo",
     checkLead: "Enviamos un enlace de confirmación. Activa la cuenta antes de entrar al estudio.",
-    checkHint: "¿No llegó? Revisa spam o vuelve a registrarte en unos minutos.",
+    checkHint: "¿No llegó? Revisa spam o reenvía el correo de confirmación.",
+    checkResend: "Reenviar correo de confirmación",
+    checkResent: "Si la cuenta sigue pendiente, enviamos un nuevo enlace. Revisa bandeja y spam.",
+    checkResendBusy: "Enviando…",
     passwordMismatch: "Las contraseñas no coinciden.",
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
   },
@@ -256,6 +268,9 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
+  const [resendDone, setResendDone] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
 
   const isBrazil = signup.country === "BR";
   const postalLabel = isBrazil ? t.postalCodeBr : t.postalCode;
@@ -333,6 +348,29 @@ export function Auth({ mode }: { mode: AuthMode }) {
   }
 
   if (checkEmail) {
+    async function onResendVerify() {
+      setResendBusy(true);
+      setResendError(null);
+      try {
+        await api.resendVerifyEmail(email.trim());
+        setResendDone(true);
+      } catch (err) {
+        const msg = ((err as Error).message || "").trim();
+        if (/^429\b/i.test(msg) || /muitos pedidos|too many|rate/i.test(msg)) {
+          setResendError("Muitos pedidos. Aguarde alguns minutos e tente de novo.");
+        } else if (
+          /^502\b|^503\b|^504\b/i.test(msg) ||
+          /failed to fetch|networkerror|load failed|demorou demais|abort/i.test(msg)
+        ) {
+          setResendError("Não foi possível reenviar agora. Tente de novo em instantes.");
+        } else {
+          setResendError(msg.replace(/^\d{3}:\s*/i, "").trim() || "Algo deu errado.");
+        }
+      } finally {
+        setResendBusy(false);
+      }
+    }
+
     return (
       <div className="kid auth-kid" data-testid="auth-page">
         <div className="auth-shell">
@@ -345,6 +383,26 @@ export function Auth({ mode }: { mode: AuthMode }) {
             <h1>{t.checkTitle}</h1>
             <p className="auth-lead">{t.checkLead}</p>
             <p className="auth-lead auth-check-hint">{t.checkHint}</p>
+            {resendDone ? (
+              <p className="auth-lead" data-testid="auth-resend-verify-done">
+                {t.checkResent}
+              </p>
+            ) : (
+              <button
+                type="button"
+                className="kbtn kbtn-primary auth-cta"
+                disabled={resendBusy || !email.trim()}
+                onClick={() => void onResendVerify()}
+                data-testid="auth-resend-verify"
+              >
+                {resendBusy ? t.checkResendBusy : t.checkResend}
+              </button>
+            )}
+            {resendError && (
+              <p className="auth-error" role="alert" data-testid="auth-resend-verify-error">
+                {resendError}
+              </p>
+            )}
             <p className="auth-foot">
               <Link to={`/entrar?next=${encodeURIComponent(next)}`} data-testid="auth-switch">
                 {t.switchToLogin}

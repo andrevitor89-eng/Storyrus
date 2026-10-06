@@ -200,6 +200,7 @@ function isAuthPath(path: string): boolean {
     path.startsWith("/v1/auth/resume") ||
     path.startsWith("/v1/auth/upgrade") ||
     path.startsWith("/v1/auth/verify-email") ||
+    path.startsWith("/v1/auth/resend-verify-email") ||
     path.startsWith("/v1/auth/forgot-password") ||
     path.startsWith("/v1/auth/reset-password")
   );
@@ -248,6 +249,7 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume") ||
     path.startsWith("/v1/auth/verify-email") ||
+    path.startsWith("/v1/auth/resend-verify-email") ||
     path.startsWith("/v1/auth/forgot-password") ||
     path.startsWith("/v1/auth/reset-password");
   if (!skipSession) await ensureSession();
@@ -349,6 +351,13 @@ export const api = {
     });
     setToken(out.access_token);
     return out;
+  },
+  /** Reenvia o e-mail de confirmação de cadastro (resposta sempre genérica). */
+  async resendVerifyEmail(email: string) {
+    return req<SignupResult>("/v1/auth/resend-verify-email", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
   },
   async login(email: string, password: string) {
     const out = await req<{ access_token: string }>("/v1/auth/login", {

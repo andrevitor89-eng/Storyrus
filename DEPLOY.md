@@ -40,7 +40,7 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` — (só se for usar vídeo)
    - `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` — TTS narrado (opcional; sem chave usa edge-tts)
    - `CREDIT_GRANT_SECRET` — só a API; vazio = `POST /v1/credits/grant` recusa. **Nunca** no frontend
-   - `RESEND_API_KEY` — **obrigatório em prod** para verify-email e esqueci-senha (ver **§ E-mail transacional**). Sem chave o endpoint responde OK mas **não envia** e-mail.
+   - `RESEND_API_KEY` — **obrigatório em prod** para **confirmação de cadastro** e esqueci-senha (ver **§ E-mail transacional**). Sem chave a UI ainda diz que enviou, mas **não sai e-mail**.
    - `TRANSACTIONAL_FROM_EMAIL` — Blueprint já define `Story R Us <noreply@storyrus.ai>`; só mude se o domínio verificado no Resend for outro (ex. `noreply@send.storyrus.ai`).
    - `OPIK_API_KEY` / `OPIK_WORKSPACE` / `OPIK_PROJECT_NAME` — tracing Opik (opcional; sem chave o wrapper é no-op). Em prod a API e o worker chamam `opik.configure` no boot; traces de job carregam `request_id` + `job_id` para correlacionar com os logs JSON.
    - `LOG_FORMAT=json` — Blueprint já define; logs estruturados com `request_id` / `job_id` (STO-29). O header `X-Request-ID` é ecoado pela API e persistido no job.
@@ -85,9 +85,14 @@ Passos no Render (painel, sem mudar o Blueprint):
 
 ### E-mail transacional (Resend)
 
-Verify-email e **esqueci a senha** usam a API [Resend](https://resend.com) no backend (`storyrus-api` no Render). O front na Vercel **não** envia e-mail — só o Render precisa da chave.
+Dois fluxos usam a mesma chave Resend no backend (`storyrus-api` no Render):
 
-**Por que a UI diz “enviamos um link” sem chegar nada?** O endpoint `/v1/auth/forgot-password` sempre responde OK genérico (não revela se o e-mail existe). Sem `RESEND_API_KEY`, o envio é no-op e o link só aparece nos logs da API.
+1. **Confirmação de cadastro** — `POST /v1/auth/signup` e `POST /v1/auth/resend-verify-email` → e-mail “Confirme seu e-mail” com link `/verificar-email?token=…`
+2. **Esqueci a senha** — `POST /v1/auth/forgot-password` → e-mail “Redefinir senha” com link `/redefinir-senha?token=…`
+
+O front na Vercel **não** envia e-mail — só o Render precisa de `RESEND_API_KEY`.
+
+**Por que a UI diz “enviamos um link” sem chegar nada?** Signup e reenvio mostram a tela “Verifique seu e-mail”; forgot-password sempre responde OK genérico. Sem `RESEND_API_KEY`, o envio é no-op e o link só aparece nos logs da API (em dev o JSON ainda traz `verify_token` / `reset_token`).
 
 #### Passo a passo
 
@@ -105,7 +110,8 @@ Verify-email e **esqueci a senha** usam a API [Resend](https://resend.com) no ba
    - `PUBLIC_WEB_ORIGIN` = `https://storyrus.ai` (já no Blueprint)
 6. Salve e aguarde o redeploy (ou Manual Deploy). Nos logs do boot deve aparecer `transactional_email_ready` (não o warning `RESEND_API_KEY ausente`).
 7. Confira: `GET https://storyrus-api.onrender.com/health` → `"email_configured": true`.
-8. Teste em https://storyrus.ai/esqueci-senha com um e-mail **cadastrado**. Cheque spam.
+8. Teste **confirmação de cadastro**: https://storyrus.ai/cadastro → criar conta → abrir o e-mail → clicar no link (ou usar **Reenviar e-mail de confirmação** na tela de espera). Cheque spam.
+9. Teste **esqueci a senha**: https://storyrus.ai/esqueci-senha com um e-mail cadastrado.
 
 **Cold start (free):** o primeiro request após hibernação pode demorar >15s. O front espera até ~45s em rotas de auth. Mitigação: plano Starter ou ping periódico em `/health` (§ Beyond free).
 
