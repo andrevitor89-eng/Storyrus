@@ -956,7 +956,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               </label>
               <p className="muted field-hint">{primary.extras}</p>
               <p className="studio-field">{t.photoCharacters}</p>
-              <p className="muted field-hint">{t.photoCharactersHint}</p>
               <div
                 className={dragOver ? "studio-drop is-over" : "studio-drop"}
                 data-testid="studio-photo-drop"

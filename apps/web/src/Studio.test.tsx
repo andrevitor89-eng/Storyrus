@@ -130,9 +130,9 @@ describe("Studio — tema do banner", () => {
     expect(screen.queryByLabelText(/^quantidade de livros$/i)).not.toBeInTheDocument();
     expect(screen.getByLabelText(/selecionar foto do protagonista/i)).toBeInTheDocument();
     expect(screen.getByText(/foto de um ou mais personagens/i)).toBeInTheDocument();
-    expect(screen.getByText(/fotos do protagonista da sua história/i)).toBeInTheDocument();
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/envie foto nítida do personagem/i);
-    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/fotos adicionais de um ou mais personagens/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/envie fotos do protagonista da sua história/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/escolha quem fará parte do seu livro/i);
+    expect(screen.getByTestId("studio-photo-drop")).toHaveTextContent(/adicione fotos de um ou mais personagens/i);
     expect(screen.getByTestId("studio-extra-names")).toBeInTheDocument();
   });
 
