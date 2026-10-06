@@ -17,6 +17,7 @@ from app.schemas import (
     ForgotPasswordOut,
     LoginIn,
     ProfileUpdateIn,
+    ResendVerifyIn,
     ResetPasswordIn,
     ResumeIn,
     SignupIn,
@@ -43,6 +44,16 @@ router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 _SIGNUP_MSG = "Cadastro recebido. Confirme seu e-mail pelo link que enviamos."
 _FORGOT_MSG = "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
+_RESEND_MSG = "Se este e-mail estiver cadastrado e pendente, enviamos um novo link de confirmação."
+
+
+def _is_legacy_unverified(user: User) -> bool:
+    """Conta real anterior à verificação: senha permanente, sem token pendente."""
+    return (
+        user.email_verified_at is None
+        and not user.email_verify_token_hash
+        and not is_guest_user(email=user.email, password_hash=user.password_hash)
+    )
 
 
 def _user_out(user: User) -> UserOut:
@@ -222,11 +233,41 @@ def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
     if is_guest_user(email=user.email, password_hash=user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Credenciais invalidas")
     if user.email_verified_at is None:
-        raise HTTPException(
-            status.HTTP_403_FORBIDDEN,
-            "Confirme seu e-mail antes de entrar",
-        )
+        if _is_legacy_unverified(user):
+            user.email_verified_at = datetime.now(UTC)
+            db.add(user)
+            db.commit()
+        else:
+            raise HTTPException(
+                status.HTTP_403_FORBIDDEN,
+                "Confirme seu e-mail antes de entrar",
+            )
     return TokenOut(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/resend-verify", response_model=SignupOut)
+def resend_verify(
+    body: ResendVerifyIn,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> SignupOut:
+    """Reenvia o link de confirmação. Sempre OK genérico (não revela se o e-mail existe)."""
+    rate_limit.check_password_reset(request, email=str(body.email))
+    user = db.scalar(select(User).where(User.email == body.email))
+    verify_token: str | None = None
+    if (
+        user is not None
+        and not is_guest_user(email=user.email, password_hash=user.password_hash)
+        and user.email_verified_at is None
+    ):
+        raw_token = create_email_verify_token(str(user.id))
+        user.email_verify_token_hash = hash_token(raw_token)
+        db.add(user)
+        db.commit()
+        send_verify_email(to_email=user.email, token=raw_token)
+        if settings.app_env != "prod":
+            verify_token = raw_token
+    return SignupOut(ok=True, message=_RESEND_MSG, verify_token=verify_token)
 
 
 @router.post("/forgot-password", response_model=ForgotPasswordOut)

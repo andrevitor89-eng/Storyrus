@@ -56,3 +56,54 @@ def test_patch_me_updates_profile(client):
     assert body["phone"] == "11911112222"
     assert body["city"] == "Campinas"
     assert body["street"] == "Av Paulista"  # preservado
+
+
+def test_legacy_account_without_verify_token_can_login(client):
+    from app.database import get_db
+    from app.main import app
+    from app.models import User
+    from app.security import hash_password
+
+    db = next(app.dependency_overrides[get_db]())
+    try:
+        db.add(
+            User(
+                email="legacy@x.com",
+                password_hash=hash_password("password123"),
+                credits=10,
+            )
+        )
+        db.commit()
+    finally:
+        db.close()
+
+    login = client.post(
+        "/v1/auth/login",
+        json={"email": "legacy@x.com", "password": "password123"},
+    )
+    assert login.status_code == 200, login.text
+    me = client.get("/v1/auth/me", headers=_auth(login.json()["access_token"]))
+    assert me.status_code == 200
+    assert me.json()["email_verified"] is True
+
+
+def test_resend_verify_then_confirm(client):
+    r = client.post("/v1/auth/signup", json=signup_payload("again@x.com"))
+    assert r.status_code == 201
+    first = r.json()["verify_token"]
+    again = client.post("/v1/auth/resend-verify", json={"email": "again@x.com"})
+    assert again.status_code == 200
+    token = again.json()["verify_token"]
+    assert token
+    assert token != first
+    assert client.post("/v1/auth/verify-email", json={"token": first}).status_code == 400
+    verified = client.post("/v1/auth/verify-email", json={"token": token})
+    assert verified.status_code == 200
+    assert verified.json()["access_token"]
+
+
+def test_resend_verify_unknown_email_is_ok(client):
+    r = client.post("/v1/auth/resend-verify", json={"email": "nobody@x.com"})
+    assert r.status_code == 200
+    assert r.json()["ok"] is True
+    assert r.json().get("verify_token") in (None, "")

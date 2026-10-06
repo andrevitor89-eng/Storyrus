@@ -12,7 +12,7 @@ function demoIdFromSearch(search: string): string | null {
 
 /**
  * Estúdio exige conta registrada (exceto visualização de exemplo ?exemplo=).
- * Sem token ou guest → redireciona para /cadastro preservando o destino.
+ * Sem token, guest ou e-mail não confirmado → cadastro (sessão inválida é limpa).
  */
 export function App() {
   const location = useLocation();
@@ -35,10 +35,15 @@ export function App() {
       }
       try {
         const me = await api.me();
-        if (!cancelled) {
-          setGate(me.is_guest || !me.email_verified ? "need-account" : "ok");
+        if (cancelled) return;
+        if (me.is_guest || !me.email_verified) {
+          api.logout();
+          setGate("need-account");
+          return;
         }
+        setGate("ok");
       } catch {
+        api.logout();
         if (!cancelled) setGate("need-account");
       }
     })();

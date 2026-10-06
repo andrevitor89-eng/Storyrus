@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { App } from "./App";
 import { Auth } from "./Auth";
-import { readJwtPayload, setToken } from "./api";
+import { getToken, readJwtPayload, setToken } from "./api";
 import { state } from "./test/server";
 
 afterEach(() => {
@@ -48,6 +48,26 @@ describe("Studio account gate", () => {
 
     expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
     expect(screen.queryByTestId("studio-upgrade-open")).not.toBeInTheDocument();
+    expect(getToken()).toBeNull();
+  });
+
+  it("blocks unverified registered accounts", async () => {
+    state.isGuest = false;
+    state.emailVerified = false;
+    state.email = "wait@example.com";
+    setToken("test-token");
+
+    render(
+      <MemoryRouter initialEntries={["/app"]}>
+        <Routes>
+          <Route path="/app" element={<App />} />
+          <Route path="/cadastro" element={<Auth mode="signup" />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("auth-page")).toBeInTheDocument();
+    expect(getToken()).toBeNull();
   });
 
   it("shows logout for registered accounts", async () => {

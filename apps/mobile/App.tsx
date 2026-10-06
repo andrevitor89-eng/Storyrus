@@ -28,7 +28,7 @@ export default function App() {
         await ensureSession();
         const me = await api.me();
         if (!cancelled) {
-          setAuthed(!me.is_guest);
+          setAuthed(!me.is_guest && me.email_verified);
           setBootError(null);
         }
       } catch (e) {

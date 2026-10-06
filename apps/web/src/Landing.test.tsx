@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { Landing, occasionDue } from "./Landing";
 import { AppRoutes } from "./Root";
+import { setToken } from "./api";
 
 function renderLanding() {
   return render(
@@ -52,6 +53,7 @@ beforeEach(() => {
 afterEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
+  setToken(null);
 });
 
 describe("Landing — idioma", () => {
@@ -528,6 +530,17 @@ describe("Landing — CTAs e links", () => {
       expect(href.startsWith("/cadastro?next=")).toBe(true);
       expect(decodeURIComponent(href)).toContain("/app?tema=");
     }
+  });
+
+  it("com sessão, Personalizar e CTAs abrem o estúdio", async () => {
+    setToken("test-token");
+    renderLanding();
+    await screen.findByTestId("landing-hero-cta");
+
+    expect(screen.getByTestId("landing-hero-cta")).toHaveAttribute("href", "/app");
+    expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
+    const personalize = screen.getAllByTestId("landing-personalize");
+    expect(personalize[0].getAttribute("href") ?? "").toMatch(/^\/app\?/);
   });
 
   it("ordena as seções e aponta o Instagram para storyr.us", async () => {

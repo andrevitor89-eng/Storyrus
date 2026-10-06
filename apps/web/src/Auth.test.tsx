@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { Auth, accountGateHref, safeNextPath } from "./Auth";
+import { Auth, accountGateHref, safeNextPath, studioEntryHref } from "./Auth";
 import { VerifyEmail } from "./VerifyEmail";
 import { getToken, setAuthFetchTimeoutMsForTests, setToken } from "./api";
 import { state } from "./test/server";
@@ -57,6 +57,14 @@ describe("safeNextPath / accountGateHref", () => {
     expect(accountGateHref("/app?tema=pets")).toBe(
       `/cadastro?next=${encodeURIComponent("/app?tema=pets")}`,
     );
+  });
+
+  it("studioEntryHref vai direto ao estúdio quando há sessão", () => {
+    expect(studioEntryHref("/app?tema=pets")).toBe(
+      `/cadastro?next=${encodeURIComponent("/app?tema=pets")}`,
+    );
+    setToken("test-token");
+    expect(studioEntryHref("/app?tema=pets")).toBe("/app?tema=pets");
   });
 });
 
@@ -196,5 +204,19 @@ describe("Auth", () => {
       /indisponível/i,
     );
     expect(screen.getByTestId("auth-submit")).not.toBeDisabled();
+  });
+
+  it("login com e-mail pendente mostra reenvio", async () => {
+    const user = userEvent.setup();
+    state.isGuest = false;
+    state.emailVerified = false;
+    state.email = "wait@example.com";
+    renderAuth("login", "/app");
+    await user.type(screen.getByTestId("auth-email"), "wait@example.com");
+    await user.type(screen.getByTestId("auth-password"), "password123");
+    await user.click(screen.getByTestId("auth-submit"));
+    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+    await user.click(screen.getByTestId("auth-resend-verify"));
+    expect(await screen.findByTestId("auth-resend-hint")).toBeInTheDocument();
   });
 });
