@@ -2,11 +2,19 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { OwnerNav } from "./OwnerNav";
+import {
+  OWNER_SESSION_TOKEN,
+  apiOwnerPassword,
+  canTryOwnerSession,
+  clearOwnerSecret,
+  ownerGateError,
+  persistOwnerSecret,
+  readOwnerSecret,
+} from "./ownerSession";
 import { useOwnerPageTitle } from "./useOwnerPageTitle";
 import type { UsageEvent, UsageReport } from "./types";
 import "./usage.css";
 
-const STORAGE_KEY = "storyrus.usage.password";
 const STEP_LABEL: Record<string, string> = {
   AVATAR: "Personagem",
   REALISTIC: "Retrato",
@@ -45,45 +53,45 @@ function when(iso: string): string {
 
 export function Usage() {
   useOwnerPageTitle("/gastos");
-  const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
+  const [password, setPassword] = useState(() => readOwnerSecret());
   const [draft, setDraft] = useState("");
   const [data, setData] = useState<UsageReport | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionTried, setSessionTried] = useState(false);
 
   const load = useCallback(async (secret: string) => {
     setLoading(true);
     setError(null);
     try {
-      const report = await api.usage(secret, "2026-09-01", "2026-09-30");
+      const report = await api.usage(apiOwnerPassword(secret), "2026-09-01", "2026-09-30");
       setData(report);
-      sessionStorage.setItem(STORAGE_KEY, secret);
-      setPassword(secret);
+      const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
+      persistOwnerSecret(next);
+      setPassword(next);
     } catch (err) {
       const status = (err as Error & { status?: number }).status;
-      if (status === 401) {
-        sessionStorage.removeItem(STORAGE_KEY);
+      if (status === 401 || status === 429) {
+        clearOwnerSecret();
         setPassword("");
         setData(null);
-        setError("Senha inválida.");
-      } else if (status === 429) {
-        sessionStorage.removeItem(STORAGE_KEY);
-        setPassword("");
-        setData(null);
-        setError("Muitas tentativas. Aguarde e tente de novo.");
-      } else if (status === 503) {
-        setError("Painel ainda não configurado no servidor.");
-      } else {
-        setError(err instanceof Error ? err.message : "Falha ao carregar gastos.");
       }
+      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar gastos."));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (password) void load(password);
-  }, [password, load]);
+    if (password) {
+      void load(password);
+      return;
+    }
+    if (!sessionTried && canTryOwnerSession()) {
+      setSessionTried(true);
+      void load(OWNER_SESSION_TOKEN);
+    }
+  }, [password, load, sessionTried]);
 
   useEffect(() => {
     if (!password) return;
@@ -103,10 +111,13 @@ export function Usage() {
         <div className="usage-gate card auth">
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Gastos da plataforma</h1>
-          <p className="muted">Página privada. Digite a senha combinada.</p>
+          <p className="muted">
+            Página privada do dono. Com a conta do dono logada no estúdio o painel abre sozinho;
+            senão use a senha do painel.
+          </p>
           <form onSubmit={onSubmit}>
             <label>
-              Senha
+              Senha do painel
               <input
                 type="password"
                 autoComplete="current-password"
@@ -137,10 +148,11 @@ export function Usage() {
           className="link"
           type="button"
           onClick={() => {
-            sessionStorage.removeItem(STORAGE_KEY);
+            clearOwnerSecret();
             setPassword("");
             setData(null);
             setDraft("");
+            setSessionTried(true);
           }}
         >
           Sair

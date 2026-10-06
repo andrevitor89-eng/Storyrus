@@ -79,6 +79,36 @@ async function postToken(
   return data.access_token ?? null;
 }
 
+/** Headers dos paineis do dono: senha compartilhada e/ou JWT da sessão. */
+function ownerHeaders(password?: string | null, extra?: HeadersInit): Headers {
+  const headers = new Headers(extra);
+  const secret = (password ?? "").trim();
+  if (secret) headers.set("X-Usage-Password", secret);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  return headers;
+}
+
+async function ownerJson<T>(
+  path: string,
+  password?: string | null,
+  init: RequestInit = {},
+): Promise<T> {
+  const headers = ownerHeaders(password, init.headers);
+  const resp = await fetch(`${BASE}${path}`, { ...init, headers });
+  if (!resp.ok) {
+    let detail = resp.statusText;
+    try {
+      detail = (await resp.json()).detail ?? detail;
+    } catch {
+      /* corpo vazio */
+    }
+    const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
+    err.status = resp.status;
+    throw err;
+  }
+  return resp.status === 204 ? (undefined as T) : ((await resp.json()) as T);
+}
+
 /** Reemite JWT enquanto o atual ainda e aceito pela API. */
 export async function refreshSession(): Promise<boolean> {
   if (!token) return false;
@@ -303,6 +333,7 @@ export type MeUser = {
   created_at: string;
   is_guest: boolean;
   email_verified: boolean;
+  is_owner?: boolean;
   full_name: string | null;
   phone: string | null;
   postal_code: string | null;
@@ -698,124 +729,40 @@ export const api = {
     }
     return resp.json();
   },
-  async usage(password: string, from?: string, to?: string) {
+  async usage(password?: string | null, from?: string, to?: string) {
     const q = new URLSearchParams();
     if (from) q.set("from", from);
     if (to) q.set("to", to);
     const suffix = q.toString() ? `?${q}` : "";
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
-    const resp = await fetch(`${BASE}/v1/usage${suffix}`, { headers });
-    if (!resp.ok) {
-      let detail = resp.statusText;
-      try {
-        detail = (await resp.json()).detail ?? detail;
-      } catch {
-        /* corpo vazio */
-      }
-      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
-      err.status = resp.status;
-      throw err;
-    }
-    return (await resp.json()) as UsageReport;
+    return ownerJson<UsageReport>(`/v1/usage${suffix}`, password);
   },
-  async users(password: string) {
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
-    const resp = await fetch(`${BASE}/v1/users`, { headers });
-    if (!resp.ok) {
-      let detail = resp.statusText;
-      try {
-        detail = (await resp.json()).detail ?? detail;
-      } catch {
-        /* corpo vazio */
-      }
-      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
-      err.status = resp.status;
-      throw err;
-    }
-    return (await resp.json()) as OwnerUsersReport;
+  async users(password?: string | null) {
+    return ownerJson<OwnerUsersReport>("/v1/users", password);
   },
-  async user(password: string, id: string) {
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
-    const resp = await fetch(`${BASE}/v1/users/${id}`, { headers });
-    if (!resp.ok) {
-      let detail = resp.statusText;
-      try {
-        detail = (await resp.json()).detail ?? detail;
-      } catch {
-        /* corpo vazio */
-      }
-      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
-      err.status = resp.status;
-      throw err;
-    }
-    return (await resp.json()) as OwnerUser;
+  async user(password: string | null | undefined, id: string) {
+    return ownerJson<OwnerUser>(`/v1/users/${id}`, password);
   },
-  async updateUser(password: string, id: string, body: OwnerUserUpdate) {
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
-    headers.set("Content-Type", "application/json");
-    const resp = await fetch(`${BASE}/v1/users/${id}`, {
+  async updateUser(password: string | null | undefined, id: string, body: OwnerUserUpdate) {
+    return ownerJson<OwnerUser>(`/v1/users/${id}`, password, {
       method: "PATCH",
-      headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
-    if (!resp.ok) {
-      let detail = resp.statusText;
-      try {
-        detail = (await resp.json()).detail ?? detail;
-      } catch {
-        /* corpo vazio */
-      }
-      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
-      err.status = resp.status;
-      throw err;
-    }
-    return (await resp.json()) as OwnerUser;
   },
-  async deleteUser(password: string, id: string) {
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
-    const resp = await fetch(`${BASE}/v1/users/${id}`, { method: "DELETE", headers });
-    if (!resp.ok) {
-      let detail = resp.statusText;
-      try {
-        detail = (await resp.json()).detail ?? detail;
-      } catch {
-        /* corpo vazio */
-      }
-      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
-      err.status = resp.status;
-      throw err;
-    }
+  async deleteUser(password: string | null | undefined, id: string) {
+    await ownerJson<void>(`/v1/users/${id}`, password, { method: "DELETE" });
   },
-  async downloadPrintPackage(password: string, id: string) {
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
+  async downloadPrintPackage(password: string | null | undefined, id: string) {
+    const headers = ownerHeaders(password);
     const resp = await fetch(`${BASE}/v1/print-orders/${id}/package`, { headers });
     if (!resp.ok) throw new Error("Pacote de produção indisponível.");
     return resp.blob();
   },
-  async setPrintValidation(password: string, id: string, next: string) {
-    const headers = new Headers();
-    headers.set("X-Usage-Password", password);
-    headers.set("Content-Type", "application/json");
-    const resp = await fetch(`${BASE}/v1/print-orders/${id}/validation`, {
+  async setPrintValidation(password: string | null | undefined, id: string, next: string) {
+    return ownerJson<PrintOrder>(`/v1/print-orders/${id}/validation`, password, {
       method: "POST",
-      headers,
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: next }),
     });
-    if (!resp.ok) {
-      let detail = resp.statusText;
-      try {
-        detail = (await resp.json()).detail ?? detail;
-      } catch {
-        /* corpo vazio */
-      }
-      throw new Error(typeof detail === "string" ? detail : "Não foi possível atualizar a validação.");
-    }
-    return (await resp.json()) as PrintOrder;
   },
 };

@@ -39,6 +39,16 @@ describe("Pedidos", () => {
     expect(detail.querySelector("img")).toHaveAttribute("src", "https://fotos.test/crianca.jpg");
     expect(detail.querySelector("a")).toHaveAttribute("href", "https://fotos.test/crianca.jpg");
   });
+
+  it("abre Pedidos com a sessão do dono sem digitar senha", async () => {
+    const { setToken } = await import("./api");
+    const { state } = await import("./test/server");
+    state.isOwner = true;
+    setToken("owner-token");
+    render(<Pedidos />);
+    expect(await screen.findByRole("heading", { name: /novo livro story r us realista/i })).toBeInTheDocument();
+    setToken(null);
+  });
 });
 
 describe("Painel /usuarios", () => {

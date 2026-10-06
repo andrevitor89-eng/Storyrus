@@ -45,9 +45,10 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `PUBLIC_WEB_ORIGIN` — Blueprint já define `https://storyrus.ai` (links nos e-mails).
    - `OPIK_API_KEY` / `OPIK_WORKSPACE` / `OPIK_PROJECT_NAME` — tracing Opik (opcional; sem chave o wrapper é no-op). Em prod a API e o worker chamam `opik.configure` no boot; traces de job carregam `request_id` + `job_id` para correlacionar com os logs JSON.
    - `LOG_FORMAT=json` — Blueprint já define; logs estruturados com `request_id` / `job_id` (STO-29). O header `X-Request-ID` é ecoado pela API e persistido no job.
-   - `USAGE_DASHBOARD_PASSWORD` — senha dos painéis do dono `/gastos`, `/pedidos` e `/usuarios` (opcional; sem ela os painéis respondem 503)
+   - `USAGE_DASHBOARD_PASSWORD` — senha dos painéis do dono `/gastos`, `/pedidos` e `/usuarios` (opcional; sem ela e sem `OWNER_EMAILS` os painéis respondem 503)
    - `USAGE_DASHBOARD_PASSWORD_PREVIOUS` — senha antiga durante rotação (opcional)
-   - `USAGE_LOCKOUT_MAX_ATTEMPTS` / `USAGE_LOCKOUT_WINDOW_S` — trava após falhas (default 5 / 900s)
+   - `OWNER_EMAILS` — e-mails do dono (csv). Default de produção: `eng.andrevitor89@gmail.com`. Com essa conta logada no estúdio, os painéis abrem sem a senha do dashboard
+   - `USAGE_LOCKOUT_MAX_ATTEMPTS` / `USAGE_LOCKOUT_WINDOW_S` — trava após falhas (default 5 / 900s); a senha correta sempre libera
    - `REDIS_URL` — opcional; sem Redis o worker faz polling do Postgres
    - `STORAGE_BUCKET` — ex.: `storyrus`
    - `STORAGE_ENDPOINT_URL` — `https://<ACCOUNT_ID>.r2.cloudflarestorage.com`
