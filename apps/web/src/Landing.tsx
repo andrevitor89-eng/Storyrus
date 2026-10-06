@@ -153,7 +153,7 @@ const CARTOON_REVIEW_PHOTOS = [
 ] as const;
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"];
+const HOW_IMGS = ["cartoon-foto-bisavo.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
@@ -185,6 +185,13 @@ function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): 
   const cartoon = CARTOON_COVER[i];
   if (variant === "cartoon" && cartoon) return catalogImgSrc(cartoon, lang);
   return catalogImgSrc(CATALOG_IMGS[i], lang);
+}
+/** Capa que só existe em desenho: fica na /cartoon, fora das listas realistas. */
+function isCartoonOnlyCover(i: number): boolean {
+  const img = CATALOG_IMGS[i];
+  if (!img) return false;
+  const names = typeof img === "string" ? [img] : Object.values(img);
+  return names.some((name) => name.startsWith("cartoon-"));
 }
 const CATALOG_IMGS: CatalogImg[] = [
   "capa-martin-goleiro.jpg",
@@ -1734,6 +1741,7 @@ export function catalogSections(lang: Lang) {
     name: names[i]?.name ?? meta.id,
     color: meta.color,
     books: CATALOG_THEMES.flatMap((theme, index) => {
+      if (isCartoonOnlyCover(index)) return [];
       if (!CATALOG_SECTION_THEMES[meta.id]?.includes(theme)) return [];
       const card = toCatalogCard(lang, index);
       return card ? [card] : [];
@@ -1794,7 +1802,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         .map((c, i) => ({ c, i }))
         .filter(({ i }) => (variant === "cartoon"
           ? Boolean(CARTOON_COVER[i])
-          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i)))
+          : (CATALOG_NEW_INDEXES.has(i) || i < CATALOG_LIMIT) && !CATALOG_CARTOON_INDEXES.has(i) && !isCartoonOnlyCover(i)))
         .sort((a, b) => {
           const rank = (i: number) => {
             const lead = CATALOG_LEAD.indexOf(i);
@@ -1876,6 +1884,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const shownCats = menuCats;
   const menuBooks = (theme: string) => (MENU_BOOKS[theme] ?? []).flatMap((i) => {
     if (variant === "cartoon" && !CARTOON_COVER[i]) return [];
+    if (variant !== "cartoon" && isCartoonOnlyCover(i)) return [];
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];

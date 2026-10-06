@@ -713,7 +713,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(cartoonComo).getByRole("heading", { name: "Preencha os Dados" })).toBeInTheDocument();
     expect(within(cartoonComo).queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
     expect(cartoonComo.querySelector(".howex-card figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
-    for (const file of ["dica-boa.png", "personagem-avatar.jpg", "cena-dino-floresta.jpg"]) {
+    for (const file of ["cartoon-foto-bisavo.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"]) {
       expect(cartoonComo.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 
@@ -777,6 +777,7 @@ describe("Catálogo e página do livro", () => {
     expect(daviLinks.length).toBeGreaterThan(0);
     expect(daviLinks[0]).toHaveAttribute("href", "/livro/20");
     expect(screen.queryByRole("heading", { name: /o aniversário especial de ester/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /amor de avô/i })).not.toBeInTheDocument();
   });
 
   it("mostra a descrição completa na página do livro", async () => {
