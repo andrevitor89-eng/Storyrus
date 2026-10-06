@@ -1,5 +1,6 @@
 """Hashing de senha e emissao/validacao de JWT."""
 
+import uuid
 from datetime import UTC, datetime, timedelta
 
 from jose import JWTError, jwt
@@ -34,6 +35,7 @@ def create_email_verify_token(subject: str) -> str:
     payload = {
         "sub": subject,
         "purpose": "email_verify",
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + timedelta(minutes=settings.email_verify_ttl_min),
     }
