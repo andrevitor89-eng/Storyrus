@@ -68,6 +68,17 @@ class VerifyEmailIn(BaseModel):
     token: str = Field(min_length=20, max_length=4096)
 
 
+class ResendVerifyEmailIn(BaseModel):
+    email: EmailStr
+
+
+class ResendVerifyEmailOut(BaseModel):
+    ok: bool = True
+    message: str
+    # Só fora de prod (testes / local).
+    verify_token: str | None = None
+
+
 class ForgotPasswordIn(BaseModel):
     email: EmailStr
 

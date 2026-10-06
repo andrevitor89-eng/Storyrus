@@ -9,7 +9,7 @@ import { state } from "./test/server";
 
 afterEach(() => {
   setToken(null);
-  setAuthFetchTimeoutMsForTests(15_000);
+  setAuthFetchTimeoutMsForTests(45_000);
   state.reset();
 });
 
@@ -73,6 +73,19 @@ describe("Auth", () => {
     expect(state.email).toBe("nova@example.com");
     expect(state.emailVerified).toBe(false);
     expect(screen.queryByTestId("studio-dest")).not.toBeInTheDocument();
+  });
+
+  it("reenvia e-mail de confirmação na tela pós-cadastro", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+
+    await fillSignup(user, "reenvio@example.com");
+    await user.click(screen.getByTestId("auth-submit"));
+    expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("auth-resend-verify"));
+    expect(await screen.findByTestId("auth-resend-verify-done")).toBeInTheDocument();
+    expect(state.pendingVerifyToken).toBe("test-verify-token-resent");
   });
 
   it("aceita cadastro com endereço internacional (US)", async () => {

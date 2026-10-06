@@ -169,28 +169,45 @@ def check_guest(request) -> None:
             )
 
 
-def check_password_reset(request, *, email: str) -> None:
-    """Limita pedidos de redefinição por IP e por e-mail."""
+def _check_email_gated(
+    request, *, email: str, prefix: str, per_ip: int, per_email: int, window_s: float
+) -> None:
+    """Rate limit genérico por IP + e-mail (verify resend / forgot password)."""
     from fastapi import HTTPException, status
 
-    window = float(settings.password_reset_rate_limit_window_s)
     ip = client_ip(request)
-    if not allow(
-        f"pwreset:ip:{ip}",
-        settings.password_reset_rate_limit_per_ip,
-        window,
-    ):
+    if not allow(f"{prefix}:ip:{ip}", per_ip, window_s):
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
             "Muitos pedidos deste IP; tente mais tarde",
         )
     email_key = (email or "").strip().lower()[:255]
-    if email_key and not allow(
-        f"pwreset:email:{email_key}",
-        settings.password_reset_rate_limit_per_email,
-        window,
-    ):
+    if email_key and not allow(f"{prefix}:email:{email_key}", per_email, window_s):
         raise HTTPException(
             status.HTTP_429_TOO_MANY_REQUESTS,
             "Muitos pedidos para este e-mail; tente mais tarde",
         )
+
+
+def check_email_verify_resend(request, *, email: str) -> None:
+    """Limita reenvio do link de confirmação de cadastro."""
+    _check_email_gated(
+        request,
+        email=email,
+        prefix="emailverify",
+        per_ip=settings.email_verify_rate_limit_per_ip,
+        per_email=settings.email_verify_rate_limit_per_email,
+        window_s=float(settings.email_verify_rate_limit_window_s),
+    )
+
+
+def check_password_reset(request, *, email: str) -> None:
+    """Limita pedidos de redefinição por IP e por e-mail."""
+    _check_email_gated(
+        request,
+        email=email,
+        prefix="pwreset",
+        per_ip=settings.password_reset_rate_limit_per_ip,
+        per_email=settings.password_reset_rate_limit_per_email,
+        window_s=float(settings.password_reset_rate_limit_window_s),
+    )

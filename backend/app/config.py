@@ -62,6 +62,10 @@ class Settings(BaseSettings):
     guest_rate_limit_window_s: int = 3600
     # Verificação de e-mail + envio (Resend opcional).
     email_verify_ttl_min: int = 60 * 24
+    # Reenvio do link de confirmação de cadastro.
+    email_verify_rate_limit_per_ip: int = 8
+    email_verify_rate_limit_per_email: int = 3
+    email_verify_rate_limit_window_s: int = 3600
     # Redefinição de senha (JWT purpose=password_reset).
     password_reset_ttl_min: int = 60
     password_reset_rate_limit_per_ip: int = 8

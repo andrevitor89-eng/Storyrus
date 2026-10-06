@@ -17,6 +17,8 @@ from app.schemas import (
     ForgotPasswordOut,
     LoginIn,
     ProfileUpdateIn,
+    ResendVerifyEmailIn,
+    ResendVerifyEmailOut,
     ResetPasswordIn,
     ResumeIn,
     SignupIn,
@@ -42,7 +44,19 @@ from app.services.transactional_email import send_password_reset_email, send_ver
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
 
 _SIGNUP_MSG = "Cadastro recebido. Confirme seu e-mail pelo link que enviamos."
+_RESEND_VERIFY_MSG = "Se este e-mail estiver pendente de confirmação, enviamos um novo link."
 _FORGOT_MSG = "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
+
+
+def _issue_verify_email(user: User, db: Session) -> str:
+    """Gera token de confirmação, persiste hash e dispara e-mail Resend."""
+    raw_token = create_email_verify_token(str(user.id))
+    user.email_verify_token_hash = hash_token(raw_token)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    send_verify_email(to_email=user.email, token=raw_token)
+    return raw_token
 
 
 def _user_out(user: User) -> UserOut:
@@ -99,12 +113,7 @@ def signup(body: SignupIn, db: Session = Depends(get_db)) -> SignupOut:
     _apply_profile(user, body)
     db.add(user)
     db.flush()
-    raw_token = create_email_verify_token(str(user.id))
-    user.email_verify_token_hash = hash_token(raw_token)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    send_verify_email(to_email=user.email, token=raw_token)
+    raw_token = _issue_verify_email(user, db)
     verify_token = raw_token if settings.app_env != "prod" else None
     return SignupOut(ok=True, message=_SIGNUP_MSG, verify_token=verify_token)
 
@@ -132,6 +141,27 @@ def verify_email(body: VerifyEmailIn, db: Session = Depends(get_db)) -> TokenOut
     db.add(user)
     db.commit()
     return TokenOut(access_token=create_access_token(str(user.id)))
+
+
+@router.post("/resend-verify-email", response_model=ResendVerifyEmailOut)
+def resend_verify_email(
+    body: ResendVerifyEmailIn,
+    request: Request,
+    db: Session = Depends(get_db),
+) -> ResendVerifyEmailOut:
+    """Reenvia link de confirmação de cadastro. Resposta sempre genérica."""
+    rate_limit.check_email_verify_resend(request, email=str(body.email))
+    user = db.scalar(select(User).where(User.email == body.email))
+    verify_token: str | None = None
+    if (
+        user is not None
+        and not is_guest_user(email=user.email, password_hash=user.password_hash)
+        and user.email_verified_at is None
+    ):
+        raw_token = _issue_verify_email(user, db)
+        if settings.app_env != "prod":
+            verify_token = raw_token
+    return ResendVerifyEmailOut(ok=True, message=_RESEND_VERIFY_MSG, verify_token=verify_token)
 
 
 @router.post("/guest", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
@@ -204,12 +234,7 @@ def upgrade(
     user.terms_accepted_at = datetime.now(UTC)
     user.email_verified_at = None
     _apply_profile(user, body)
-    raw_token = create_email_verify_token(str(user.id))
-    user.email_verify_token_hash = hash_token(raw_token)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    send_verify_email(to_email=user.email, token=raw_token)
+    raw_token = _issue_verify_email(user, db)
     verify_token = raw_token if settings.app_env != "prod" else None
     return SignupOut(ok=True, message=_SIGNUP_MSG, verify_token=verify_token)
 

@@ -181,8 +181,11 @@ export function resetStepIdempotencyState(): void {
   stepInFlight.clear();
 }
 
-/** Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout). */
-export let authFetchTimeoutMs = 15_000;
+/**
+ * Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout).
+ * 45s cobre cold start do Render free (Docker + InsightFace) sem esperar indefinidamente.
+ */
+export let authFetchTimeoutMs = 45_000;
 
 /** Só para testes — restaura o valor padrão depois. */
 export function setAuthFetchTimeoutMsForTests(ms: number): void {
@@ -197,6 +200,7 @@ function isAuthPath(path: string): boolean {
     path.startsWith("/v1/auth/resume") ||
     path.startsWith("/v1/auth/upgrade") ||
     path.startsWith("/v1/auth/verify-email") ||
+    path.startsWith("/v1/auth/resend-verify-email") ||
     path.startsWith("/v1/auth/forgot-password") ||
     path.startsWith("/v1/auth/reset-password")
   );
@@ -245,6 +249,7 @@ async function req<T>(path: string, init: RequestInit = {}): Promise<T> {
     path.startsWith("/v1/auth/guest") ||
     path.startsWith("/v1/auth/resume") ||
     path.startsWith("/v1/auth/verify-email") ||
+    path.startsWith("/v1/auth/resend-verify-email") ||
     path.startsWith("/v1/auth/forgot-password") ||
     path.startsWith("/v1/auth/reset-password");
   if (!skipSession) await ensureSession();
@@ -346,6 +351,13 @@ export const api = {
     });
     setToken(out.access_token);
     return out;
+  },
+  /** Reenvia o e-mail de confirmação de cadastro (resposta sempre genérica). */
+  async resendVerifyEmail(email: string) {
+    return req<SignupResult>("/v1/auth/resend-verify-email", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    });
   },
   async login(email: string, password: string) {
     const out = await req<{ access_token: string }>("/v1/auth/login", {
