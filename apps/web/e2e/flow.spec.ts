@@ -208,7 +208,7 @@ async function fillSignupForm(page: Page, email = "e2e@storyrus.app") {
   await page.getByTestId("auth-number").fill("1000");
   await page.getByTestId("auth-district").fill("Bela Vista");
   await page.getByTestId("auth-city").fill("Sao Paulo");
-  await page.getByTestId("auth-state").fill("SP");
+  await page.getByTestId("auth-state").selectOption("SP");
   await page.getByTestId("auth-accept-terms").check();
 }
 

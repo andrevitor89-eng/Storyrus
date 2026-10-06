@@ -2317,7 +2317,11 @@ img.ex-tab-cover {
   width: min(100%, 440px);
   padding: 1.5rem 1.25rem 2.5rem;
 }
+.auth-shell-wide {
+  width: min(100%, 560px);
+}
 .auth-card {
+  position: relative;
   background: #fff;
   border: 1px solid rgba(255, 255, 255, 0.55);
   border-radius: 28px;
@@ -2326,6 +2330,12 @@ img.ex-tab-cover {
     0 0 0 1px rgba(31, 53, 104, 0.06);
   padding: 1.75rem 1.65rem 1.85rem;
   color: var(--auth-ink);
+}
+.auth-lang {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 2;
 }
 .auth-logo {
   display: flex;
@@ -2391,10 +2401,25 @@ img.ex-tab-cover {
   border-color: #3a5fae;
   background: #fff;
 }
+.auth-section-title {
+  margin: 0.35rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #3a5fae;
+}
 .auth-address {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 0.85rem 0.75rem;
+  padding: 1rem 0.95rem 1.05rem;
+  background: #f7f9fd;
+  border: 1px solid var(--auth-line);
+  border-radius: 18px;
+}
+.auth-address-us {
+  grid-template-columns: 1.4fr 0.9fr 0.9fr;
 }
 .auth-address .auth-span-2 {
   grid-column: 1 / -1;
@@ -2425,8 +2450,12 @@ img.ex-tab-cover {
   margin-top: -0.35rem;
   font-size: 0.92rem;
 }
-@media (max-width: 560px) {
-  .auth-address {
+@media (max-width: 640px) {
+  .auth-shell-wide {
+    width: min(100%, 440px);
+  }
+  .auth-address,
+  .auth-address-us {
     grid-template-columns: 1fr;
   }
   .auth-address .auth-span-2 {
