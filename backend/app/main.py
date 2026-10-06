@@ -22,6 +22,7 @@ from app.routers import (
     webhooks,
 )
 from app.services import jobs as jobs_svc
+from app.services.transactional_email import email_configured, warn_if_email_unconfigured
 
 configure_logging(
     level=settings.log_level,
@@ -29,6 +30,7 @@ configure_logging(
     service="api",
 )
 opik_trace.configure()
+warn_if_email_unconfigured()
 
 # Ao enfileirar um job, notifica o worker via Redis (best-effort; degrada p/ polling).
 jobs_svc.enqueue_fn = queue.notify
@@ -67,8 +69,10 @@ app.include_router(local_storage.router)
 
 @app.get("/health", tags=["meta"])
 def health() -> dict:
-    # STO-28: nao vazar quais provedores estao configurados (ex. ElevenLabs).
+    # STO-28: nao vazar quais provedores de IA estao configurados (ex. ElevenLabs).
+    # email_configured é só booleano (chave Resend presente) — útil p/ ops de esqueci-senha.
     return {
         "status": "ok",
         "env": settings.app_env,
+        "email_configured": email_configured(),
     }

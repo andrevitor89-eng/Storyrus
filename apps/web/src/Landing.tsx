@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { accountGateHref } from "./Auth";
+import { studioEntryHref } from "./Auth";
+import { getToken } from "./api";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -497,7 +498,7 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
-  return accountGateHref(`/app?${q.toString()}`);
+  return studioEntryHref(`/app?${q.toString()}`);
 }
 function studioHref(opts: {
   tema: string;
@@ -518,7 +519,7 @@ function studioHref(opts: {
   q.set("tamanho", opts.size ?? "M");
   q.set("capa", opts.cover ?? "hard");
   q.set("modo", opts.modo ?? "realista");
-  return accountGateHref(`/app?${q.toString()}`);
+  return studioEntryHref(`/app?${q.toString()}`);
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
 
@@ -1774,6 +1775,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
+  const createHref = getToken() ? "/app" : "/cadastro";
   const hiwSteps = t.hiw_main;
   const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
@@ -1817,9 +1819,9 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const bookStudioHref = (theme: string, catalogI?: number) => {
-    if (catalogI === undefined) return accountGateHref(`/app?tema=${theme}`);
+    if (catalogI === undefined) return studioEntryHref(`/app?tema=${theme}`);
     const book = t.catalog[catalogI];
-    if (!book) return accountGateHref(`/app?tema=${theme}`);
+    if (!book) return studioEntryHref(`/app?tema=${theme}`);
     return studioHref({
       tema: theme,
       titulo: book.t,
@@ -1844,7 +1846,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
       return [{
         label,
-        href: bookTheme ? bookStudioHref(bookTheme, only) : accountGateHref(meta.href),
+        href: bookTheme ? bookStudioHref(bookTheme, only) : studioEntryHref(meta.href),
         due: when ? nextOccasionDate(when, new Date()) : null,
       }];
     }).sort((a, b) => {
@@ -2087,7 +2089,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             </div>
             <div className="khead-links" data-testid="landing-header-auth">
               <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-header-login">{t.cta_login}</Link>
-              <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
+              <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
             </div>
           </div>
           <button
@@ -2142,7 +2144,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           </div>
           <div className="kmobile-auth" data-testid="landing-mobile-auth">
             <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
-            <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+            <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
           </div>
         </nav>
         </div>
@@ -2204,7 +2206,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-after">
           <span className="keyebrow"><IcSparkle className="ei" /> {t.eyebrow}</span>
-          <Link to="/cadastro" className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
+          <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-hero-cta">{t.hero_cta}</Link>
         </div>
       </section>
 
@@ -2307,7 +2309,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             );
           })}
         </div>
-        <div className="vid-cta"><Link to="/cadastro" className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
+        <div className="vid-cta"><Link to={createHref} className="kbtn kbtn-primary big">{t.vid_cta}</Link></div>
       </section>
 
       {/* AVALIAÇÕES */}
@@ -2361,7 +2363,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="kband" id="familias">
         <IcSparkle className="twk b1" /><IcStar className="twk b2" />
         <h2>{t.band_title}</h2><p>{t.band_sub}</p>
-        <Link to="/cadastro" className="kbtn kbtn-primary big">{t.band_cta}</Link>
+        <Link to={createHref} className="kbtn kbtn-primary big">{t.band_cta}</Link>
       </section>
 
       {/* FOOTER */}

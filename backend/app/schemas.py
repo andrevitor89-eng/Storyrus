@@ -68,6 +68,10 @@ class VerifyEmailIn(BaseModel):
     token: str = Field(min_length=20, max_length=4096)
 
 
+class ResendVerifyIn(BaseModel):
+    email: EmailStr
+
+
 class ForgotPasswordIn(BaseModel):
     email: EmailStr
 

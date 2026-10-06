@@ -1,6 +1,10 @@
 """Hashing de senha e emissao/validacao de JWT."""
 
+import re
+import secrets
+import uuid
 from datetime import UTC, datetime, timedelta
+from urllib.parse import unquote
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -34,10 +38,29 @@ def create_email_verify_token(subject: str) -> str:
     payload = {
         "sub": subject,
         "purpose": "email_verify",
+        "jti": str(uuid.uuid4()),
         "iat": now,
         "exp": now + timedelta(minutes=settings.email_verify_ttl_min),
     }
     return jwt.encode(payload, settings.jwt_secret, algorithm=settings.jwt_algorithm)
+
+
+def new_email_verify_secret() -> str:
+    """Token curto, sem pontos — cabe no link do e-mail sem quebrar."""
+    return secrets.token_urlsafe(32)
+
+
+def new_password_reset_secret() -> str:
+    """Token curto para link de redefinição (mesmo formato do verify)."""
+    return secrets.token_urlsafe(32)
+
+
+def normalize_verify_token(raw: str | None) -> str:
+    """Remove quebra de linha / encoding de cliente de e-mail."""
+    if not raw:
+        return ""
+    token = unquote(str(raw).strip().strip("<>"))
+    return re.sub(r"\s+", "", token)
 
 
 def create_password_reset_token(subject: str) -> str:

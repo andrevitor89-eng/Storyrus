@@ -2495,3 +2495,19 @@ img.ex-tab-cover {
 .auth-foot a:hover {
   color: #ef8f4b;
 }
+.auth-foot button {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: #3a5fae;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.auth-foot button:hover:not(:disabled) {
+  color: #ef8f4b;
+}
+.auth-foot button:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}

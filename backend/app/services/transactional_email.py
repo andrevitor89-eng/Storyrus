@@ -1,11 +1,13 @@
-"""E-mails transacionais opcionais (Resend).
+"""E-mails transacionais via Resend.
 
 Sem RESEND_API_KEY o envio é no-op e o link fica nos logs (dev devolve o token).
+Em prod, falta de chave gera warning no boot e em cada skip.
 """
 
 from __future__ import annotations
 
 import logging
+from urllib.parse import urlencode
 
 import httpx
 
@@ -13,31 +15,82 @@ from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+RESEND_API_URL = "https://api.resend.com/emails"
+_DEFAULT_FROM = "Story R Us <noreply@storyrus.ai>"
 
-def build_verify_email_url(token: str) -> str:
+
+def email_configured() -> bool:
+    """True quando há chave Resend para envio real."""
+    return bool((settings.resend_api_key or "").strip())
+
+
+def resolved_from_email() -> str:
+    """From efetivo — env vazio no Render não pode zerar o remetente."""
+    raw = (settings.transactional_from_email or "").strip()
+    return raw or _DEFAULT_FROM
+
+
+def warn_if_email_unconfigured() -> None:
+    """Chamar no boot da API: em prod, e-mail sem chave = esqueci-senha/verify mudos."""
+    raw_from = (settings.transactional_from_email or "").strip()
+    if not raw_from:
+        logger.warning(
+            "TRANSACTIONAL_FROM_EMAIL vazio — usando fallback %s "
+            "(no Render, preencha o From ou deixe o valor do Blueprint)",
+            _DEFAULT_FROM,
+        )
+    if email_configured():
+        logger.info(
+            "transactional_email_ready from=%s",
+            resolved_from_email(),
+        )
+        return
+    if settings.app_env == "prod":
+        logger.warning(
+            "RESEND_API_KEY ausente: confirmação de cadastro e esqueci-senha "
+            "não enviam e-mail (só logs). Defina no Render + domínio verificado no Resend."
+        )
+    else:
+        logger.info("RESEND_API_KEY ausente: envio transacional desligado (dev ok)")
+
+
+def build_verify_email_url(token: str, email: str | None = None) -> str:
     origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
-    return f"{origin}/verificar-email?token={token}"
+    query: dict[str, str] = {"token": token}
+    if email:
+        query["email"] = email.strip()
+    return f"{origin}/verificar-email?{urlencode(query)}"
 
 
-def build_password_reset_url(token: str) -> str:
+def build_password_reset_url(token: str, email: str | None = None) -> str:
     origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
-    return f"{origin}/redefinir-senha?token={token}"
+    query: dict[str, str] = {"token": token}
+    if email:
+        query["email"] = email.strip()
+    return f"{origin}/redefinir-senha?{urlencode(query)}"
 
 
 def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
     api_key = (settings.resend_api_key or "").strip()
     if not api_key:
-        logger.info("transactional_email_skipped to=%s subject=%s", to_email, subject)
+        level = logging.WARNING if settings.app_env == "prod" else logging.INFO
+        logger.log(
+            level,
+            "transactional_email_skipped to=%s subject=%s reason=no_resend_api_key",
+            to_email,
+            subject,
+        )
         return False
+    from_email = resolved_from_email()
     try:
         resp = httpx.post(
-            "https://api.resend.com/emails",
+            RESEND_API_URL,
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
             json={
-                "from": settings.transactional_from_email,
+                "from": from_email,
                 "to": [to_email],
                 "subject": subject,
                 "text": text,
@@ -47,13 +100,19 @@ def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
         )
         if resp.status_code >= 300:
             logger.warning(
-                "transactional_email_failed to=%s status=%s body=%s",
+                "transactional_email_failed to=%s status=%s body=%s from=%s",
                 to_email,
                 resp.status_code,
                 resp.text[:300],
+                from_email,
             )
             return False
-        logger.info("transactional_email_sent to=%s subject=%s", to_email, subject)
+        logger.info(
+            "transactional_email_sent to=%s subject=%s from=%s",
+            to_email,
+            subject,
+            from_email,
+        )
         return True
     except Exception as exc:  # noqa: BLE001
         logger.warning("transactional_email_error to=%s err=%s", to_email, exc)
@@ -61,8 +120,8 @@ def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
 
 
 def send_verify_email(*, to_email: str, token: str) -> bool:
-    url = build_verify_email_url(token)
-    if not (settings.resend_api_key or "").strip():
+    url = build_verify_email_url(token, email=to_email)
+    if not email_configured():
         logger.info("verify_email_link to=%s url=%s", to_email, url)
     subject = "Confirme seu e-mail — Story R Us"
     text = (
@@ -80,8 +139,8 @@ def send_verify_email(*, to_email: str, token: str) -> bool:
 
 
 def send_password_reset_email(*, to_email: str, token: str) -> bool:
-    url = build_password_reset_url(token)
-    if not (settings.resend_api_key or "").strip():
+    url = build_password_reset_url(token, email=to_email)
+    if not email_configured():
         logger.info("password_reset_link to=%s url=%s", to_email, url)
     subject = "Redefinir senha — Story R Us"
     text = (

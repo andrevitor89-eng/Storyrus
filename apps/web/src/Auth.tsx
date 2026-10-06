@@ -1,7 +1,7 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
-import { api, type SignupPayload } from "./api";
+import { api, getToken, type SignupPayload } from "./api";
 import "./landing.css";
 
 export type AuthMode = "login" | "signup";
@@ -46,6 +46,9 @@ const COPY: Record<
     checkHint: string;
     passwordMismatch: string;
     mustAcceptTerms: string;
+    resend: string;
+    resendBusy: string;
+    resendOk: string;
   }
 > = {
   pt: {
@@ -84,6 +87,9 @@ const COPY: Record<
     checkHint: "Não recebeu? Confira o spam ou tente criar a conta de novo em alguns minutos.",
     passwordMismatch: "As senhas não coincidem.",
     mustAcceptTerms: "Aceite os termos e a política de privacidade.",
+    resend: "Reenviar e-mail de confirmação",
+    resendBusy: "Enviando…",
+    resendOk: "Se a conta estiver pendente, enviamos um novo link.",
   },
   en: {
     loginTitle: "Log in",
@@ -121,6 +127,9 @@ const COPY: Record<
     checkHint: "Didn't get it? Check spam or try signing up again in a few minutes.",
     passwordMismatch: "Passwords do not match.",
     mustAcceptTerms: "Please accept the terms and privacy policy.",
+    resend: "Resend confirmation email",
+    resendBusy: "Sending…",
+    resendOk: "If the account is still pending, we sent a new link.",
   },
   es: {
     loginTitle: "Entrar",
@@ -158,6 +167,9 @@ const COPY: Record<
     checkHint: "¿No llegó? Revisa spam o vuelve a registrarte en unos minutos.",
     passwordMismatch: "Las contraseñas no coinciden.",
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
+    resend: "Reenviar correo de confirmación",
+    resendBusy: "Enviando…",
+    resendOk: "Si la cuenta está pendiente, enviamos un enlace nuevo.",
   },
 };
 
@@ -223,10 +235,40 @@ export function safeNextPath(raw: string | null | undefined): string {
   return raw;
 }
 
+/**
+ * Token de e-mail (confirmação / senha). Clientes quebram JWT longo;
+ * pega o valor até o próximo parâmetro conhecido e tira espaços.
+ */
+export function readAuthQueryToken(search: string): string {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const match = raw.match(/(?:^|&)token=([^&]*)/i);
+  const value = match?.[1] ?? "";
+  let token = value.replace(/\+/g, "%2B");
+  try {
+    token = decodeURIComponent(token);
+  } catch {
+    token = value;
+  }
+  return token.replace(/\s+/g, "").replace(/^<|>$/g, "");
+}
+
+export function readAuthQueryEmail(search: string): string {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const params = new URLSearchParams(raw);
+  return (params.get("email") || "").trim();
+}
+
 /** Encaminha para o cadastro preservando o destino do estúdio. */
 export function accountGateHref(nextPath: string): string {
   const next = safeNextPath(nextPath);
   return `/cadastro?next=${encodeURIComponent(next)}`;
+}
+
+/** Com sessão local, abre o estúdio; sem token, pede cadastro. */
+export function studioEntryHref(nextPath: string): string {
+  const next = safeNextPath(nextPath);
+  if (getToken()) return next;
+  return accountGateHref(next);
 }
 
 const emptySignup = {
@@ -256,6 +298,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
+  const [resendHint, setResendHint] = useState<string | null>(null);
 
   const isBrazil = signup.country === "BR";
   const postalLabel = isBrazil ? t.postalCodeBr : t.postalCode;
@@ -326,7 +369,27 @@ export function Auth({ mode }: { mode: AuthMode }) {
       await api.login(email.trim(), password);
       navigate(next, { replace: true });
     } catch (err) {
-      setError(friendlyAuthError((err as Error).message || ""));
+      const raw = (err as Error).message || "";
+      if (mode === "login" && (/^403\b/i.test(raw) || /confirme seu e-mail|verify|verif/i.test(raw))) {
+        setCheckEmail(true);
+        return;
+      }
+      setError(friendlyAuthError(raw));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function onResend() {
+    const dest = email.trim();
+    if (!dest) return;
+    setBusy(true);
+    setResendHint(null);
+    try {
+      await api.resendVerify(dest);
+      setResendHint(t.resendOk);
+    } catch {
+      setResendHint(t.resendOk);
     } finally {
       setBusy(false);
     }
@@ -345,6 +408,21 @@ export function Auth({ mode }: { mode: AuthMode }) {
             <h1>{t.checkTitle}</h1>
             <p className="auth-lead">{t.checkLead}</p>
             <p className="auth-lead auth-check-hint">{t.checkHint}</p>
+            {resendHint && (
+              <p className="auth-lead auth-check-hint" data-testid="auth-resend-hint">
+                {resendHint}
+              </p>
+            )}
+            <p className="auth-foot">
+              <button
+                type="button"
+                disabled={busy || !email.trim()}
+                onClick={() => void onResend()}
+                data-testid="auth-resend-verify"
+              >
+                {busy ? t.resendBusy : t.resend}
+              </button>
+            </p>
             <p className="auth-foot">
               <Link to={`/entrar?next=${encodeURIComponent(next)}`} data-testid="auth-switch">
                 {t.switchToLogin}
