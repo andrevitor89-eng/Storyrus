@@ -2,11 +2,23 @@ import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { api, getToken, type SignupPayload } from "./api";
+import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
+import {
+  applyDocumentLang,
+  LANGS,
+  type Lang,
+  readStoredLang,
+  writeStoredLang,
+} from "./i18n/lang";
+import {
+  COUNTRY_GROUPS,
+  defaultCountry,
+  regionProfile,
+  submitStreetNumber,
+} from "./signupRegions";
 import "./landing.css";
 
 export type AuthMode = "login" | "signup";
-
-type Lang = "pt" | "en" | "es";
 
 const COPY: Record<
   Lang,
@@ -15,23 +27,18 @@ const COPY: Record<
     signupTitle: string;
     loginLead: string;
     signupLead: string;
+    accountSection: string;
+    addressSection: string;
     email: string;
     password: string;
     passwordConfirm: string;
     fullName: string;
     phone: string;
     country: string;
-    postalCode: string;
-    postalCodeBr: string;
     street: string;
-    number: string;
-    complement: string;
-    district: string;
-    districtOptional: string;
     city: string;
-    state: string;
-    stateBr: string;
     acceptTerms: string;
+    termsAnd: string;
     terms: string;
     privacy: string;
     loginSubmit: string;
@@ -49,30 +56,36 @@ const COPY: Record<
     resend: string;
     resendBusy: string;
     resendOk: string;
+    langAria: string;
+    unavailableSignup: string;
+    unavailableLogin: string;
+    emailTaken: string;
+    confirmEmail: string;
+    badCredentials: string;
+    genericError: string;
+    cepLooking: string;
+    cepMiss: string;
+    cepError: string;
+    cepOk: string;
   }
 > = {
   pt: {
     loginTitle: "Entrar",
     signupTitle: "Criar conta",
     loginLead: "Acesse sua conta para criar livros personalizados.",
-    signupLead: "Cadastre-se com seus dados — usamos o perfil no pedido e no envio (Brasil e exterior).",
+    signupLead: "Cadastro pensado para Brasil, América Latina e EUA — usamos estes dados no envio.",
+    accountSection: "Sua conta",
+    addressSection: "Endereço de entrega",
     email: "E-mail",
     password: "Senha (mín. 8)",
     passwordConfirm: "Confirmar senha",
     fullName: "Nome completo",
     phone: "Telefone / WhatsApp",
     country: "País",
-    postalCode: "Código postal",
-    postalCodeBr: "CEP",
-    street: "Rua / endereço",
-    number: "Número",
-    complement: "Complemento",
-    district: "Bairro",
-    districtOptional: "Bairro / distrito (opcional)",
+    street: "Rua / avenida",
     city: "Cidade",
-    state: "Estado / região",
-    stateBr: "UF",
     acceptTerms: "Li e aceito os",
+    termsAnd: "e a",
     terms: "Termos de uso",
     privacy: "Política de privacidade",
     loginSubmit: "Entrar",
@@ -90,29 +103,35 @@ const COPY: Record<
     resend: "Reenviar e-mail de confirmação",
     resendBusy: "Enviando…",
     resendOk: "Se a conta estiver pendente, enviamos um novo link.",
+    langAria: "Idioma",
+    unavailableSignup: "Não foi possível criar a conta agora. O servidor está indisponível — tente de novo em instantes.",
+    unavailableLogin: "Não foi possível entrar agora. O servidor está indisponível — tente de novo em instantes.",
+    emailTaken: "Este e-mail já tem conta. Tente entrar.",
+    confirmEmail: "Confirme seu e-mail pelo link que enviamos antes de entrar.",
+    badCredentials: "E-mail ou senha incorretos.",
+    genericError: "Algo deu errado. Tente novamente.",
+    cepLooking: "Buscando endereço…",
+    cepMiss: "CEP não encontrado. Preencha o endereço.",
+    cepError: "Não foi possível buscar o CEP. Preencha o endereço.",
+    cepOk: "Endereço preenchido. Confira e informe o número.",
   },
   en: {
     loginTitle: "Log in",
     signupTitle: "Create account",
     loginLead: "Sign in to create personalized books.",
-    signupLead: "Sign up with your details — we reuse them for orders and shipping (Brazil and abroad).",
+    signupLead: "Built for the US and Latin America — we reuse this for orders and shipping.",
+    accountSection: "Your account",
+    addressSection: "Shipping address",
     email: "Email",
     password: "Password (min. 8)",
     passwordConfirm: "Confirm password",
     fullName: "Full name",
     phone: "Phone / WhatsApp",
     country: "Country",
-    postalCode: "Postal / ZIP code",
-    postalCodeBr: "CEP (Brazil)",
     street: "Street address",
-    number: "Number",
-    complement: "Apt / Suite",
-    district: "District",
-    districtOptional: "District / neighborhood (optional)",
     city: "City",
-    state: "State / region",
-    stateBr: "State (UF)",
     acceptTerms: "I agree to the",
+    termsAnd: "and the",
     terms: "Terms of use",
     privacy: "Privacy policy",
     loginSubmit: "Log in",
@@ -130,29 +149,35 @@ const COPY: Record<
     resend: "Resend confirmation email",
     resendBusy: "Sending…",
     resendOk: "If the account is still pending, we sent a new link.",
+    langAria: "Language",
+    unavailableSignup: "We couldn’t create the account right now. The server is unavailable — try again in a moment.",
+    unavailableLogin: "We couldn’t sign you in right now. The server is unavailable — try again in a moment.",
+    emailTaken: "This email already has an account. Try logging in.",
+    confirmEmail: "Confirm your email with the link we sent before signing in.",
+    badCredentials: "Incorrect email or password.",
+    genericError: "Something went wrong. Please try again.",
+    cepLooking: "Looking up address…",
+    cepMiss: "ZIP/CEP not found. Please fill in the address.",
+    cepError: "Could not look up the CEP. Please fill in the address.",
+    cepOk: "Address filled in. Check it and add the number.",
   },
   es: {
     loginTitle: "Entrar",
     signupTitle: "Crear cuenta",
     loginLead: "Accede a tu cuenta para crear libros personalizados.",
-    signupLead: "Regístrate con tus datos — los usamos en el pedido y el envío (Brasil y el exterior).",
+    signupLead: "Pensado para Latinoamérica, Brasil y EE. UU. — usamos estos datos en el envío.",
+    accountSection: "Tu cuenta",
+    addressSection: "Dirección de envío",
     email: "Correo",
     password: "Contraseña (mín. 8)",
     passwordConfirm: "Confirmar contraseña",
     fullName: "Nombre completo",
     phone: "Teléfono / WhatsApp",
     country: "País",
-    postalCode: "Código postal",
-    postalCodeBr: "CEP (Brasil)",
-    street: "Calle / dirección",
-    number: "Número",
-    complement: "Complemento",
-    district: "Barrio",
-    districtOptional: "Barrio / distrito (opcional)",
+    street: "Calle / avenida",
     city: "Ciudad",
-    state: "Estado / región",
-    stateBr: "UF",
     acceptTerms: "Acepto los",
+    termsAnd: "y la",
     terms: "Términos de uso",
     privacy: "Política de privacidad",
     loginSubmit: "Entrar",
@@ -170,63 +195,26 @@ const COPY: Record<
     resend: "Reenviar correo de confirmación",
     resendBusy: "Enviando…",
     resendOk: "Si la cuenta está pendiente, enviamos un enlace nuevo.",
+    langAria: "Idioma",
+    unavailableSignup: "No fue posible crear la cuenta ahora. El servidor no está disponible — inténtalo en un momento.",
+    unavailableLogin: "No fue posible entrar ahora. El servidor no está disponible — inténtalo en un momento.",
+    emailTaken: "Este correo ya tiene cuenta. Intenta entrar.",
+    confirmEmail: "Confirma tu correo con el enlace que enviamos antes de entrar.",
+    badCredentials: "Correo o contraseña incorrectos.",
+    genericError: "Algo salió mal. Inténtalo de nuevo.",
+    cepLooking: "Buscando dirección…",
+    cepMiss: "CEP no encontrado. Completa la dirección.",
+    cepError: "No fue posible buscar el CEP. Completa la dirección.",
+    cepOk: "Dirección rellenada. Revisa e indica el número.",
   },
 };
 
-/** Países mais comuns no cadastro (ISO 3166-1 alpha-2). */
-const COUNTRY_OPTIONS: { code: string; label: Record<Lang, string> }[] = [
-  { code: "BR", label: { pt: "Brasil", en: "Brazil", es: "Brasil" } },
-  { code: "US", label: { pt: "Estados Unidos", en: "United States", es: "Estados Unidos" } },
-  { code: "PT", label: { pt: "Portugal", en: "Portugal", es: "Portugal" } },
-  { code: "ES", label: { pt: "Espanha", en: "Spain", es: "España" } },
-  { code: "AR", label: { pt: "Argentina", en: "Argentina", es: "Argentina" } },
-  { code: "MX", label: { pt: "México", en: "Mexico", es: "México" } },
-  { code: "CL", label: { pt: "Chile", en: "Chile", es: "Chile" } },
-  { code: "CO", label: { pt: "Colômbia", en: "Colombia", es: "Colombia" } },
-  { code: "UY", label: { pt: "Uruguai", en: "Uruguay", es: "Uruguay" } },
-  { code: "PE", label: { pt: "Peru", en: "Peru", es: "Perú" } },
-  { code: "CA", label: { pt: "Canadá", en: "Canada", es: "Canadá" } },
-  { code: "GB", label: { pt: "Reino Unido", en: "United Kingdom", es: "Reino Unido" } },
-  { code: "DE", label: { pt: "Alemanha", en: "Germany", es: "Alemania" } },
-  { code: "FR", label: { pt: "França", en: "France", es: "Francia" } },
-  { code: "IT", label: { pt: "Itália", en: "Italy", es: "Italia" } },
-  { code: "AO", label: { pt: "Angola", en: "Angola", es: "Angola" } },
-  { code: "MZ", label: { pt: "Moçambique", en: "Mozambique", es: "Mozambique" } },
-  { code: "JP", label: { pt: "Japão", en: "Japan", es: "Japón" } },
-  { code: "AU", label: { pt: "Austrália", en: "Australia", es: "Australia" } },
-  { code: "NZ", label: { pt: "Nova Zelândia", en: "New Zealand", es: "Nueva Zelanda" } },
-  { code: "IE", label: { pt: "Irlanda", en: "Ireland", es: "Irlanda" } },
-  { code: "CH", label: { pt: "Suíça", en: "Switzerland", es: "Suiza" } },
-  { code: "NL", label: { pt: "Países Baixos", en: "Netherlands", es: "Países Bajos" } },
-  { code: "BE", label: { pt: "Bélgica", en: "Belgium", es: "Bélgica" } },
-  { code: "SE", label: { pt: "Suécia", en: "Sweden", es: "Suecia" } },
-  { code: "NO", label: { pt: "Noruega", en: "Norway", es: "Noruega" } },
-  { code: "DK", label: { pt: "Dinamarca", en: "Denmark", es: "Dinamarca" } },
-  { code: "FI", label: { pt: "Finlândia", en: "Finland", es: "Finlandia" } },
-  { code: "PL", label: { pt: "Polônia", en: "Poland", es: "Polonia" } },
-  { code: "AE", label: { pt: "Emirados Árabes", en: "United Arab Emirates", es: "Emiratos Árabes" } },
-  { code: "IL", label: { pt: "Israel", en: "Israel", es: "Israel" } },
-  { code: "IN", label: { pt: "Índia", en: "India", es: "India" } },
-  { code: "CN", label: { pt: "China", en: "China", es: "China" } },
-  { code: "KR", label: { pt: "Coreia do Sul", en: "South Korea", es: "Corea del Sur" } },
-  { code: "SG", label: { pt: "Singapura", en: "Singapore", es: "Singapur" } },
-  { code: "ZA", label: { pt: "África do Sul", en: "South Africa", es: "Sudáfrica" } },
-];
-
-function defaultCountry(lang: Lang): string {
-  if (lang === "en") return "US";
-  if (lang === "es") return "ES";
-  return "BR";
-}
-
-function readLang(): Lang {
-  try {
-    const s = localStorage.getItem("lang");
-    if (s === "en" || s === "es" || s === "pt") return s;
-  } catch {
-    /* ignore */
-  }
-  return "pt";
+function cepStatusText(status: CepStatus, t: (typeof COPY)[Lang]): string | null {
+  if (status === "loading") return t.cepLooking;
+  if (status === "ok") return t.cepOk;
+  if (status === "miss") return t.cepMiss;
+  if (status === "error") return t.cepError;
+  return null;
 }
 
 /** Evita open-redirect: só caminhos relativos internos. */
@@ -271,43 +259,109 @@ export function studioEntryHref(nextPath: string): string {
   return accountGateHref(next);
 }
 
-const emptySignup = {
-  full_name: "",
-  phone: "",
-  country: defaultCountry(readLang()),
-  postal_code: "",
-  street: "",
-  number: "",
-  complement: "",
-  district: "",
-  city: "",
-  state: "",
-  password_confirm: "",
-  accept_terms: false,
-};
+function emptySignup(lang: Lang) {
+  return {
+    full_name: "",
+    phone: "",
+    country: defaultCountry(lang),
+    postal_code: "",
+    street: "",
+    number: "",
+    complement: "",
+    district: "",
+    city: "",
+    state: "",
+    password_confirm: "",
+    accept_terms: false,
+  };
+}
+
+function LangSwitch({
+  lang,
+  onChange,
+  ariaLabel,
+}: {
+  lang: Lang;
+  onChange: (lang: Lang) => void;
+  ariaLabel: string;
+}) {
+  return (
+    <div className="lang auth-lang" role="group" aria-label={ariaLabel} data-testid="auth-lang">
+      {LANGS.map((code) => (
+        <button
+          key={code}
+          type="button"
+          className={lang === code ? "on" : ""}
+          aria-pressed={lang === code}
+          onClick={() => onChange(code)}
+          data-testid={`auth-lang-${code}`}
+        >
+          {code.toUpperCase()}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export function Auth({ mode }: { mode: AuthMode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
-  const t = COPY[readLang()];
-  const lang = readLang();
+  const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
+  const t = COPY[lang];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [signup, setSignup] = useState(emptySignup);
+  const [signup, setSignup] = useState(() => emptySignup(readStoredLang("pt")));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
   const [resendHint, setResendHint] = useState<string | null>(null);
 
-  const isBrazil = signup.country === "BR";
-  const postalLabel = isBrazil ? t.postalCodeBr : t.postalCode;
-  const stateLabel = isBrazil ? t.stateBr : t.state;
-  const districtLabel = isBrazil ? t.district : t.districtOptional;
+  const region = regionProfile(signup.country);
+  const isUsLayout = region.layout === "us";
+  const cepStatus = useCepLookup(
+    signup.postal_code,
+    mode === "signup" && signup.country === "BR",
+    (addr) => {
+      setSignup((prev) => ({
+        ...prev,
+        postal_code: addr.postal_code,
+        street: addr.street || prev.street,
+        district: addr.district || prev.district,
+        city: addr.city || prev.city,
+        state: addr.state || prev.state,
+      }));
+    },
+  );
+
+  function onPostalCodeChange(value: string) {
+    setSignup((prev) => ({
+      ...prev,
+      postal_code: prev.country === "BR" ? formatCep(value) : value,
+    }));
+  }
 
   const altMode: AuthMode = mode === "login" ? "signup" : "login";
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
   const altHref = `${altPath}?next=${encodeURIComponent(next)}`;
+
+  function setLang(nextLang: Lang) {
+    setLangState(nextLang);
+    writeStoredLang(nextLang);
+    applyDocumentLang(nextLang);
+    setSignup((prev) => {
+      const stillDefault =
+        prev.country === defaultCountry(lang) &&
+        !prev.street &&
+        !prev.city &&
+        !prev.postal_code;
+      return stillDefault ? { ...prev, country: defaultCountry(nextLang), state: "" } : prev;
+    });
+  }
+
+  function onCountryChange(country: string) {
+    setSignup((prev) => ({ ...prev, country, state: "", number: prev.number }));
+  }
 
   function friendlyAuthError(raw: string): string {
     const msg = raw.trim();
@@ -315,21 +369,17 @@ export function Auth({ mode }: { mode: AuthMode }) {
       /^502\b|^503\b|^504\b/i.test(msg) ||
       /failed to fetch|networkerror|load failed|demorou demais|abort/i.test(msg)
     ) {
-      return mode === "signup"
-        ? "Não foi possível criar a conta agora. O servidor está indisponível — tente de novo em instantes."
-        : "Não foi possível entrar agora. O servidor está indisponível — tente de novo em instantes.";
+      return mode === "signup" ? t.unavailableSignup : t.unavailableLogin;
     }
-    if (/^409\b/i.test(msg)) {
-      return "Este e-mail já tem conta. Tente entrar.";
-    }
+    if (/^409\b/i.test(msg)) return t.emailTaken;
     if (/^403\b/i.test(msg) || /confirme seu e-mail|verify|verif/i.test(msg)) {
-      return "Confirme seu e-mail pelo link que enviamos antes de entrar.";
+      return t.confirmEmail;
     }
     if (/^401\b/i.test(msg) || /credencial|senha|password|unauthorized/i.test(msg)) {
-      return "E-mail ou senha incorretos.";
+      return t.badCredentials;
     }
     const cleaned = msg.replace(/^\d{3}:\s*/i, "").trim();
-    return cleaned || msg || "Algo deu errado. Tente novamente.";
+    return cleaned || msg || t.genericError;
   }
 
   async function onSubmit(e: FormEvent) {
@@ -354,7 +404,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
           phone: signup.phone.trim(),
           postal_code: signup.postal_code.trim(),
           street: signup.street.trim(),
-          number: signup.number.trim(),
+          number: submitStreetNumber(signup.country, signup.number),
           complement: signup.complement.trim() || null,
           district: signup.district.trim() || null,
           city: signup.city.trim(),
@@ -395,11 +445,18 @@ export function Auth({ mode }: { mode: AuthMode }) {
     }
   }
 
+  const langSwitch = (
+    <LangSwitch lang={lang} onChange={setLang} ariaLabel={t.langAria} />
+  );
+
   if (checkEmail) {
     return (
       <div className="kid auth-kid" data-testid="auth-page">
         <div className="auth-shell">
           <div className="auth-card" data-testid="auth-check-email">
+            <div className="auth-card-head">
+              {langSwitch}
+            </div>
             <div className="auth-logo">
               <Link to="/">
                 <img src={logo} alt="Story R Us" />
@@ -439,19 +496,45 @@ export function Auth({ mode }: { mode: AuthMode }) {
     );
   }
 
+  const isSignup = mode === "signup";
+
   return (
-    <div className="kid auth-kid" data-testid="auth-page">
-      <div className="auth-shell">
-        <div className="auth-card">
-          <div className="auth-logo">
-            <Link to="/">
-              <img src={logo} alt="Story R Us" />
-            </Link>
-          </div>
-          <h1>{mode === "login" ? t.loginTitle : t.signupTitle}</h1>
-          <p className="auth-lead">{mode === "login" ? t.loginLead : t.signupLead}</p>
-          <form className="auth-form" onSubmit={onSubmit} data-testid="auth-form">
-            {mode === "signup" && (
+    <div
+      className={`kid auth-kid${isSignup ? " auth-kid-full" : ""}`}
+      data-testid="auth-page"
+    >
+      <div className={`auth-shell${isSignup ? " auth-shell-full" : ""}`}>
+        <div className={`auth-card${isSignup ? " auth-card-full" : ""}`}>
+          {isSignup ? (
+            <div className="auth-topbar">
+              <Link to="/" className="auth-logo-inline">
+                <img src={logo} alt="Story R Us" />
+              </Link>
+              {langSwitch}
+            </div>
+          ) : (
+            <>
+              <div className="auth-card-head">{langSwitch}</div>
+              <div className="auth-logo">
+                <Link to="/">
+                  <img src={logo} alt="Story R Us" />
+                </Link>
+              </div>
+            </>
+          )}
+          <header className={isSignup ? "auth-hero" : undefined}>
+            <h1>{isSignup ? t.signupTitle : t.loginTitle}</h1>
+            <p className="auth-lead">{isSignup ? t.signupLead : t.loginLead}</p>
+          </header>
+          <form
+            className={`auth-form${isSignup ? " auth-form-full" : ""}`}
+            onSubmit={onSubmit}
+            data-testid="auth-form"
+          >
+            {isSignup && (
+              <p className="auth-section-title auth-span-all">{t.accountSection}</p>
+            )}
+            {isSignup && (
               <label>
                 {t.fullName}
                 <input
@@ -475,7 +558,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 data-testid="auth-email"
               />
             </label>
-            {mode === "signup" && (
+            {isSignup && (
               <label>
                 {t.phone}
                 <input
@@ -483,6 +566,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                   required
                   minLength={8}
                   autoComplete="tel"
+                  placeholder={region.phonePlaceholder}
                   value={signup.phone}
                   onChange={(e) => setSignup({ ...signup, phone: e.target.value })}
                   data-testid="auth-phone"
@@ -501,7 +585,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 data-testid="auth-password"
               />
             </label>
-            {mode === "signup" && (
+            {isSignup && (
               <>
                 <label>
                   {t.passwordConfirm}
@@ -515,109 +599,239 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     data-testid="auth-password-confirm"
                   />
                 </label>
-                <div className="auth-address" data-testid="auth-address">
+                <p className="auth-section-title auth-span-all">{t.addressSection}</p>
+                <div
+                  className={`auth-address auth-span-all${isUsLayout ? " auth-address-us" : ""}`}
+                  data-testid="auth-address"
+                >
                   <label className="auth-span-2">
                     {t.country}
                     <select
                       required
                       value={signup.country}
-                      onChange={(e) => setSignup({ ...signup, country: e.target.value })}
+                      onChange={(e) => onCountryChange(e.target.value)}
                       data-testid="auth-country"
                       autoComplete="country"
                     >
-                      {COUNTRY_OPTIONS.map((c) => (
-                        <option key={c.code} value={c.code}>
-                          {c.label[lang]}
-                        </option>
+                      {COUNTRY_GROUPS.map((group) => (
+                        <optgroup key={group.id} label={group.label[lang]}>
+                          {group.countries.map((c) => (
+                            <option key={c.code} value={c.code}>
+                              {c.label[lang]}
+                            </option>
+                          ))}
+                        </optgroup>
                       ))}
                     </select>
                   </label>
-                  <label>
-                    {postalLabel}
-                    <input
-                      type="text"
-                      required
-                      minLength={2}
-                      maxLength={16}
-                      autoComplete="postal-code"
-                      value={signup.postal_code}
-                      onChange={(e) => setSignup({ ...signup, postal_code: e.target.value })}
-                      data-testid="auth-postal-code"
-                    />
-                  </label>
-                  <label className="auth-span-2">
-                    {t.street}
-                    <input
-                      type="text"
-                      required
-                      autoComplete="street-address"
-                      value={signup.street}
-                      onChange={(e) => setSignup({ ...signup, street: e.target.value })}
-                      data-testid="auth-street"
-                    />
-                  </label>
-                  <label>
-                    {t.number}
-                    <input
-                      type="text"
-                      required
-                      value={signup.number}
-                      onChange={(e) => setSignup({ ...signup, number: e.target.value })}
-                      data-testid="auth-number"
-                    />
-                  </label>
-                  <label>
-                    {t.complement}
-                    <input
-                      type="text"
-                      value={signup.complement}
-                      onChange={(e) => setSignup({ ...signup, complement: e.target.value })}
-                      data-testid="auth-complement"
-                    />
-                  </label>
-                  <label>
-                    {districtLabel}
-                    <input
-                      type="text"
-                      required={isBrazil}
-                      value={signup.district}
-                      onChange={(e) => setSignup({ ...signup, district: e.target.value })}
-                      data-testid="auth-district"
-                    />
-                  </label>
-                  <label>
-                    {t.city}
-                    <input
-                      type="text"
-                      required
-                      autoComplete="address-level2"
-                      value={signup.city}
-                      onChange={(e) => setSignup({ ...signup, city: e.target.value })}
-                      data-testid="auth-city"
-                    />
-                  </label>
-                  <label>
-                    {stateLabel}
-                    <input
-                      type="text"
-                      required
-                      minLength={1}
-                      maxLength={isBrazil ? 2 : 80}
-                      autoComplete="address-level1"
-                      value={signup.state}
-                      onChange={(e) =>
-                        setSignup({
-                          ...signup,
-                          state: isBrazil
-                            ? e.target.value.toUpperCase()
-                            : e.target.value,
-                        })
-                      }
-                      data-testid="auth-state"
-                    />
-                  </label>
+                  {isUsLayout ? (
+                    <>
+                      <label className="auth-span-4">
+                        {t.street}
+                        <input
+                          type="text"
+                          required
+                          autoComplete="street-address"
+                          placeholder={region.streetPlaceholder[lang]}
+                          value={signup.street}
+                          onChange={(e) => setSignup({ ...signup, street: e.target.value })}
+                          data-testid="auth-street"
+                        />
+                      </label>
+                      <label className="auth-span-2">
+                        {region.numberLabel[lang]}
+                        <input
+                          type="text"
+                          required={region.numberRequired}
+                          placeholder={region.numberPlaceholder[lang]}
+                          value={signup.number}
+                          onChange={(e) => setSignup({ ...signup, number: e.target.value })}
+                          data-testid="auth-number"
+                        />
+                      </label>
+                      <label className="auth-span-2">
+                        {t.city}
+                        <input
+                          type="text"
+                          required
+                          autoComplete="address-level2"
+                          value={signup.city}
+                          onChange={(e) => setSignup({ ...signup, city: e.target.value })}
+                          data-testid="auth-city"
+                        />
+                      </label>
+                      <label className="auth-span-2">
+                        {region.stateLabel[lang]}
+                        {region.stateOptions ? (
+                          <select
+                            required
+                            value={signup.state}
+                            onChange={(e) => setSignup({ ...signup, state: e.target.value })}
+                            data-testid="auth-state"
+                            autoComplete="address-level1"
+                          >
+                            <option value="" disabled>
+                              —
+                            </option>
+                            {region.stateOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            required
+                            autoComplete="address-level1"
+                            value={signup.state}
+                            onChange={(e) => setSignup({ ...signup, state: e.target.value })}
+                            data-testid="auth-state"
+                          />
+                        )}
+                      </label>
+                      <label className="auth-span-2">
+                        {region.postalLabel[lang]}
+                        <input
+                          type="text"
+                          required
+                          minLength={2}
+                          maxLength={16}
+                          autoComplete="postal-code"
+                          placeholder={region.postalPlaceholder}
+                          value={signup.postal_code}
+                          onChange={(e) => onPostalCodeChange(e.target.value)}
+                          data-testid="auth-postal-code"
+                        />
+                      </label>
+                    </>
+                  ) : (
+                    <>
+                      <label className="auth-span-2">
+                        {region.postalLabel[lang]}
+                        <input
+                          type="text"
+                          required
+                          minLength={signup.country === "BR" ? 8 : 2}
+                          maxLength={signup.country === "BR" ? 9 : 16}
+                          inputMode={signup.country === "BR" ? "numeric" : undefined}
+                          autoComplete="postal-code"
+                          placeholder={region.postalPlaceholder}
+                          value={signup.postal_code}
+                          onChange={(e) => onPostalCodeChange(e.target.value)}
+                          data-testid="auth-postal-code"
+                        />
+                        {signup.country === "BR" && cepStatusText(cepStatus, t) && (
+                          <span
+                            className={`auth-cep-status is-${cepStatus}`}
+                            data-testid="auth-cep-status"
+                            role="status"
+                          >
+                            {cepStatusText(cepStatus, t)}
+                          </span>
+                        )}
+                      </label>
+                      <label className="auth-span-4">
+                        {t.street}
+                        <input
+                          type="text"
+                          required
+                          autoComplete="street-address"
+                          placeholder={region.streetPlaceholder[lang]}
+                          value={signup.street}
+                          onChange={(e) => setSignup({ ...signup, street: e.target.value })}
+                          data-testid="auth-street"
+                        />
+                      </label>
+                      <label>
+                        {region.numberLabel[lang]}
+                        <input
+                          type="text"
+                          required={region.numberRequired}
+                          placeholder={region.numberPlaceholder[lang]}
+                          value={signup.number}
+                          onChange={(e) => setSignup({ ...signup, number: e.target.value })}
+                          data-testid="auth-number"
+                        />
+                      </label>
+                      {region.showComplement && (
+                        <label>
+                          {region.complementLabel[lang]}
+                          <input
+                            type="text"
+                            value={signup.complement}
+                            onChange={(e) => setSignup({ ...signup, complement: e.target.value })}
+                            data-testid="auth-complement"
+                          />
+                        </label>
+                      )}
+                      {region.showDistrict && (
+                        <label>
+                          {region.districtLabel[lang]}
+                          <input
+                            type="text"
+                            required={region.districtRequired}
+                            value={signup.district}
+                            onChange={(e) => setSignup({ ...signup, district: e.target.value })}
+                            data-testid="auth-district"
+                          />
+                        </label>
+                      )}
+                      <label>
+                        {t.city}
+                        <input
+                          type="text"
+                          required
+                          autoComplete="address-level2"
+                          value={signup.city}
+                          onChange={(e) => setSignup({ ...signup, city: e.target.value })}
+                          data-testid="auth-city"
+                        />
+                      </label>
+                      <label>
+                        {region.stateLabel[lang]}
+                        {region.stateOptions ? (
+                          <select
+                            required
+                            value={signup.state}
+                            onChange={(e) => setSignup({ ...signup, state: e.target.value })}
+                            data-testid="auth-state"
+                            autoComplete="address-level1"
+                          >
+                            <option value="" disabled>
+                              —
+                            </option>
+                            {region.stateOptions.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          <input
+                            type="text"
+                            required
+                            minLength={1}
+                            maxLength={80}
+                            autoComplete="address-level1"
+                            value={signup.state}
+                            onChange={(e) =>
+                              setSignup({
+                                ...signup,
+                                state:
+                                  signup.country === "BR"
+                                    ? e.target.value.toUpperCase()
+                                    : e.target.value,
+                              })
+                            }
+                            data-testid="auth-state"
+                          />
+                        )}
+                      </label>
+                    </>
+                  )}
                 </div>
-                <label className="auth-terms">
+                <label className="auth-terms auth-span-all">
                   <input
                     type="checkbox"
                     checked={signup.accept_terms}
@@ -629,7 +843,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     <Link to="/termos" target="_blank" rel="noreferrer">
                       {t.terms}
                     </Link>{" "}
-                    e{" "}
+                    {t.termsAnd}{" "}
                     <Link to="/privacidade" target="_blank" rel="noreferrer">
                       {t.privacy}
                     </Link>
@@ -639,39 +853,50 @@ export function Auth({ mode }: { mode: AuthMode }) {
               </>
             )}
             {error && (
-              <p className="auth-error" role="alert" data-testid="auth-error">
+              <p className="auth-error auth-span-all" role="alert" data-testid="auth-error">
                 {error}
               </p>
             )}
             <button
               type="submit"
-              className="kbtn kbtn-primary auth-cta"
+              className="kbtn kbtn-primary auth-cta auth-span-all"
               disabled={busy}
               data-testid="auth-submit"
             >
               {busy ? t.busy : mode === "login" ? t.loginSubmit : t.signupSubmit}
             </button>
           </form>
-          {mode === "login" && (
-            <p className="auth-foot">
-              <Link
-                to={`/esqueci-senha?next=${encodeURIComponent(next)}`}
-                data-testid="auth-forgot"
-              >
-                {t.forgotPassword}
+          {isSignup ? (
+            <div className="auth-foot-row">
+              <Link to={altHref} data-testid="auth-switch">
+                {t.switchToLogin}
               </Link>
-            </p>
+              <Link to="/" data-testid="auth-back">
+                {t.back}
+              </Link>
+            </div>
+          ) : (
+            <>
+              <p className="auth-foot">
+                <Link
+                  to={`/esqueci-senha?next=${encodeURIComponent(next)}`}
+                  data-testid="auth-forgot"
+                >
+                  {t.forgotPassword}
+                </Link>
+              </p>
+              <p className="auth-foot">
+                <Link to={altHref} data-testid="auth-switch">
+                  {t.switchToSignup}
+                </Link>
+              </p>
+              <p className="auth-foot">
+                <Link to="/" data-testid="auth-back">
+                  {t.back}
+                </Link>
+              </p>
+            </>
           )}
-          <p className="auth-foot">
-            <Link to={altHref} data-testid="auth-switch">
-              {mode === "login" ? t.switchToSignup : t.switchToLogin}
-            </Link>
-          </p>
-          <p className="auth-foot">
-            <Link to="/" data-testid="auth-back">
-              {t.back}
-            </Link>
-          </p>
         </div>
       </div>
     </div>

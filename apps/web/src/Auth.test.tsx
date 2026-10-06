@@ -11,6 +11,11 @@ afterEach(() => {
   setToken(null);
   setAuthFetchTimeoutMsForTests(15_000);
   state.reset();
+  try {
+    localStorage.removeItem("lang");
+  } catch {
+    /* ignore */
+  }
 });
 
 function renderAuth(mode: "login" | "signup", next = "/app?tema=space") {
@@ -40,12 +45,14 @@ async function fillSignup(
   await user.type(screen.getByTestId("auth-password-confirm"), "password123");
   await user.selectOptions(screen.getByTestId("auth-country"), "BR");
   await user.type(screen.getByTestId("auth-postal-code"), "01310100");
-  await user.type(screen.getByTestId("auth-street"), "Av Paulista");
+  await waitFor(() => {
+    expect(screen.getByTestId("auth-street")).toHaveValue("Avenida Paulista");
+    expect(screen.getByTestId("auth-district")).toHaveValue("Bela Vista");
+    expect(screen.getByTestId("auth-city")).toHaveValue("São Paulo");
+    expect(screen.getByTestId("auth-state")).toHaveValue("SP");
+  });
   await user.type(screen.getByTestId("auth-number"), "1000");
   await user.type(screen.getByTestId("auth-complement"), "Sala 1");
-  await user.type(screen.getByTestId("auth-district"), "Bela Vista");
-  await user.type(screen.getByTestId("auth-city"), "Sao Paulo");
-  await user.type(screen.getByTestId("auth-state"), "SP");
   await user.click(screen.getByTestId("auth-accept-terms"));
 }
 
@@ -101,18 +108,70 @@ describe("Auth", () => {
     await user.type(screen.getByTestId("auth-password-confirm"), "password123");
     await user.selectOptions(screen.getByTestId("auth-country"), "US");
     expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("minLength", "2");
+    expect(screen.queryByTestId("auth-district")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("auth-complement")).not.toBeInTheDocument();
     await user.type(screen.getByTestId("auth-postal-code"), "90210");
     await user.type(screen.getByTestId("auth-street"), "Rodeo Dr");
     await user.type(screen.getByTestId("auth-number"), "100");
     await user.type(screen.getByTestId("auth-city"), "Beverly Hills");
-    await user.type(screen.getByTestId("auth-state"), "California");
+    await user.selectOptions(screen.getByTestId("auth-state"), "CA");
     await user.click(screen.getByTestId("auth-accept-terms"));
     await user.click(screen.getByTestId("auth-submit"));
 
     expect(await screen.findByTestId("auth-check-email")).toBeInTheDocument();
     expect(state.country).toBe("US");
     expect(state.postalCode).toBe("90210");
-    expect(state.stateUf).toBe("California");
+    expect(state.stateUf).toBe("CA");
+  });
+
+  it("preenche endereço automaticamente a partir do CEP", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.type(screen.getByTestId("auth-postal-code"), "01310100");
+    expect(screen.getByTestId("auth-postal-code")).toHaveValue("01310-100");
+    expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/endereço preenchido/i);
+    expect(screen.getByTestId("auth-street")).toHaveValue("Avenida Paulista");
+    expect(screen.getByTestId("auth-district")).toHaveValue("Bela Vista");
+    expect(screen.getByTestId("auth-city")).toHaveValue("São Paulo");
+    expect(screen.getByTestId("auth-state")).toHaveValue("SP");
+  });
+
+  it("avisa quando o CEP não existe", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.type(screen.getByTestId("auth-postal-code"), "00000000");
+    expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/não encontrado/i);
+    expect(screen.getByTestId("auth-street")).toHaveValue("");
+  });
+
+  it("não busca CEP quando o país é EUA", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.selectOptions(screen.getByTestId("auth-country"), "US");
+    await user.type(screen.getByTestId("auth-postal-code"), "01310100");
+    expect(screen.queryByTestId("auth-cep-status")).not.toBeInTheDocument();
+    expect(screen.getByTestId("auth-street")).toHaveValue("");
+  });
+
+  it("adapta labels para México (colonia / estado)", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.selectOptions(screen.getByTestId("auth-country"), "MX");
+    expect(screen.getByTestId("auth-district")).toBeInTheDocument();
+    expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("placeholder", "06600");
+    expect(screen.getByTestId("auth-district").closest("label")).toHaveTextContent(/colonia/i);
+  });
+
+  it("troca idioma no cadastro e destaca Américas", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    expect(screen.getByTestId("auth-lang")).toBeInTheDocument();
+    await user.click(screen.getByTestId("auth-lang-en"));
+    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/create account/i);
+    expect(screen.getByTestId("auth-country")).toHaveValue("US");
+    await user.click(screen.getByTestId("auth-lang-es"));
+    expect(screen.getByTestId("auth-submit")).toHaveTextContent(/crear cuenta/i);
+    expect(screen.getByTestId("auth-country")).toHaveValue("MX");
   });
 
   it("confirma e-mail e entra no estúdio", async () => {

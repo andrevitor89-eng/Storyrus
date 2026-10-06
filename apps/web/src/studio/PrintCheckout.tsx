@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useState } from "react";
 import { api } from "../api";
+import { formatCep, useCepLookup } from "../cepLookup";
 import type { PrintAddress, PrintOrder } from "../types";
 import { useStudioI18n } from "./useStudioI18n";
 
@@ -45,6 +46,16 @@ export function PrintCheckout({ projectId }: { projectId: string }) {
   const [mode, setMode] = useState<QtyMode>("one");
   const [copies, setCopies] = useState("2");
   const [pack, setPack] = useState("11");
+  const cepStatus = useCepLookup(address.postal_code, true, (addr) => {
+    setAddress((prev) => ({
+      ...prev,
+      postal_code: addr.postal_code,
+      street: addr.street || prev.street,
+      district: addr.district || prev.district,
+      city: addr.city || prev.city,
+      state: addr.state || prev.state,
+    }));
+  });
 
   useEffect(() => {
     let cancel = false;
@@ -218,8 +229,17 @@ export function PrintCheckout({ projectId }: { projectId: string }) {
           CEP
           <input
             value={address.postal_code}
-            onChange={(e) => setAddress({ ...address, postal_code: e.target.value })}
+            inputMode="numeric"
+            maxLength={9}
+            autoComplete="postal-code"
+            onChange={(e) => setAddress({ ...address, postal_code: formatCep(e.target.value) })}
           />
+          {cepStatus === "loading" && <small>Buscando endereço…</small>}
+          {cepStatus === "ok" && <small>Endereço preenchido. Confira e informe o número.</small>}
+          {cepStatus === "miss" && <small>CEP não encontrado. Preencha o endereço.</small>}
+          {cepStatus === "error" && (
+            <small>Não foi possível buscar o CEP. Preencha o endereço.</small>
+          )}
         </label>
         <label>
           Rua

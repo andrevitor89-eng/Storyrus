@@ -39,6 +39,16 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   const id = () => `id-${++state.seq}`;
 
+  await page.route(/https?:\/\/viacep\.com\.br\/ws\//, (r) =>
+    json(r, {
+      cep: "01310-100",
+      logradouro: "Avenida Paulista",
+      bairro: "Bela Vista",
+      localidade: "São Paulo",
+      uf: "SP",
+    }),
+  );
+
   await page.route("**/v1/auth/guest", (r) => json(r, { access_token: "e2e-token" }, 201));
   await page.route("**/v1/auth/signup", async (r) => {
     let body: Record<string, string> = {};
@@ -204,11 +214,11 @@ async function fillSignupForm(page: Page, email = "e2e@storyrus.app") {
   await page.getByTestId("auth-password").fill("password123");
   await page.getByTestId("auth-password-confirm").fill("password123");
   await page.getByTestId("auth-postal-code").fill("01310100");
-  await page.getByTestId("auth-street").fill("Av Paulista");
+  await expect(page.getByTestId("auth-street")).toHaveValue(/Paulista/i);
+  await expect(page.getByTestId("auth-district")).toHaveValue("Bela Vista");
+  await expect(page.getByTestId("auth-city")).toHaveValue("São Paulo");
+  await expect(page.getByTestId("auth-state")).toHaveValue("SP");
   await page.getByTestId("auth-number").fill("1000");
-  await page.getByTestId("auth-district").fill("Bela Vista");
-  await page.getByTestId("auth-city").fill("Sao Paulo");
-  await page.getByTestId("auth-state").fill("SP");
   await page.getByTestId("auth-accept-terms").check();
 }
 
