@@ -71,7 +71,7 @@ export const CAST_BY_CATALOG: Record<number, { quem: string; genero: StudioGende
   21: { quem: "crianca", genero: "m" },
   22: { quem: "pai", genero: "m" },
   23: { quem: "primo", genero: "m" },
-  24: { quem: "crianca", genero: "m", quem2: "pet", genero2: "m", heroi2: "Theo" },
+  24: { quem: "crianca", genero: "m", quem2: "pet", genero2: "m", heroi2: "Max" },
   25: { quem: "crianca", genero: "f" },
 };
 

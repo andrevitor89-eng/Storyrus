@@ -284,6 +284,12 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/pagina-esther-higiene.png
 !apps/web/public/exemplos/foto-esther-higiene.png
 !apps/web/public/exemplos/cartoon-*.jpg
+!apps/web/public/exemplos/cartoon-*.png
+!apps/web/public/exemplos/capa-construtor.png
+!apps/web/public/exemplos/capa-heroi-*.png
+!apps/web/public/exemplos/capa-tia-especial.png
+!apps/web/public/exemplos/capa-tia-especial-en.png
+!apps/web/public/exemplos/capa-tia-especial-es.png
 
 .vercel
 .env*

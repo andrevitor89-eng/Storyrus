@@ -101,7 +101,7 @@ const HERO_STRIP: { name: string; cover: HeroAsset; page: HeroAsset; photo: Hero
     photo: heroAsset("foto-enzo-primo.png"),
   },
   {
-    name: "Lucas e seu amigo Theo",
+    name: "Lucas e seu amigo Max",
     cover: heroAsset("capa-lucas-max.png"),
     page: heroAsset("pagina-lucas-max.png"),
     photo: heroAsset("foto-lucas-max.png"),
@@ -126,14 +126,18 @@ const CARTOON_HERO: Record<string, { cover?: string; page?: string; photo?: stri
   "Davi, o Menino Pastor": { cover: "cartoon-capa-davi.jpg", page: "cartoon-pagina-davi.jpg", photo: "cartoon-foto-davi.jpg" },
   "Enzo, Meu Primo Predileto": { cover: "cartoon-capa-enzo.jpg", page: "cartoon-pagina-enzo.jpg", photo: "cartoon-foto-enzo.jpg" },
 };
-const CARTOON_COVER: Record<number, string> = {
+const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   5: "cartoon-capa-nicolas.jpg",
   6: "cartoon-capa-amordemae.jpg",
   7: "cartoon-capa-matteo.jpg",
   8: "cartoon-capa-bisavo.jpg",
   11: "cartoon-capa-maya.jpg",
-  20: "cartoon-capa-davi.jpg",
+  12: "cartoon-capa-mako.png",
+  19: "cartoon-capa-amordetia.png",
+  20: "cartoon-capa-davi.png",
   22: "cartoon-capa-enzo.jpg",
+  23: "cartoon-capa-lucas.png",
+  30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -177,7 +181,8 @@ function catalogImgSrc(img: CatalogImg, lang: Lang): string {
   return typeof img === "string" ? img : img[lang];
 }
 function catalogCoverFile(i: number, lang: Lang, variant: "photo" | "cartoon"): string {
-  if (variant === "cartoon" && CARTOON_COVER[i]) return CARTOON_COVER[i];
+  const cartoon = CARTOON_COVER[i];
+  if (variant === "cartoon" && cartoon) return catalogImgSrc(cartoon, lang);
   return catalogImgSrc(CATALOG_IMGS[i], lang);
 }
 const CATALOG_IMGS: CatalogImg[] = [
@@ -206,6 +211,12 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-enzo-primo.png", en: "capa-enzo-primo.png", es: "capa-enzo-primo.png" },
   { pt: "capa-lucas-max.png", en: "capa-lucas-max.png", es: "capa-lucas-max.png" },
   { pt: "capa-esther-higiene.png", en: "capa-esther-higiene.png", es: "capa-esther-higiene.png" },
+  "capa-construtor.png",
+  { pt: "capa-heroi-bombeiro.png", en: "capa-heroi-bombeiro-en.png", es: "capa-heroi-bombeiro-es.png" },
+  { pt: "capa-heroi-policia.png", en: "capa-heroi-policia-en.png", es: "capa-heroi-policia-es.png" },
+  { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
+  { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
+  { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -233,13 +244,19 @@ const CATALOG_THEMES = [
   "family_love",
   "pets",
   "higiene_desfralde",
+  "adventure",
+  "superhero",
+  "superhero",
+  "pets",
+  "family_love",
+  "grandparents_love",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13]);
+const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 30]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
 /** Primeiros da vitrine, nesta ordem: Meu Pai, Davi, Enzo. */
 const CATALOG_LEAD = [21, 20, 22];
 type CatalogCoverChoice = "soft" | "hard";
@@ -350,22 +367,22 @@ const NAV_CAT_META = [
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
-  adventure: [2, 10],
+  adventure: [2, 10, 25],
   dinosaurs: [18],
   underwater: [17],
   space: [16],
   princess: [1],
-  superhero: [15],
+  superhero: [15, 26, 27],
   sport: [0, 4],
   mothers_day: [5, 6],
   fathers_day: [21, 14],
-  grandparents_love: [8],
-  dia_do_idoso: [8],
-  family_love: [7],
-  pets: [11, 12, 23],
+  grandparents_love: [8, 30],
+  dia_do_idoso: [8, 30],
+  family_love: [7, 29],
+  pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
   dia_da_familia: [7, 19, 21, 22],
-  tio_tia: [19],
+  tio_tia: [19, 29],
   christmas: [9],
   animais_sons: [23],
   higiene_desfralde: [24],
@@ -750,8 +767,14 @@ const I18N = {
       { t: "Davi, o Menino Pastor", p: "Um menino, sua harpa e as ovelhas: coragem e fé numa história para guardar para sempre.", cover: "Hard", size: "M", tag: "Fé e coragem", quote: "Pequeno no campo, grande no coração." },
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê, lado a lado: proteção, carinho e um herói só da família.", cover: "Hard", size: "M", tag: "Papai herói", quote: "Meu herói tem o colo do papai." },
       { t: "Enzo, Meu Primo Predileto", p: "Dois primos, um abraço e o mar: amizade que a família nos dá, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "Primo é amigo que a família nos dá." },
-      { t: "Lucas e seu amigo Theo", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Theo é o amigo de todas as horas." },
+      { t: "Lucas e seu amigo Max", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max é o amigo de todas as horas." },
       { t: "Esther e os Superpoderes da Higiene", p: "Mãos limpas, dentes escovados e um sorriso: hábitos de higiene que viram superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidar de si é um superpoder." },
+      { t: "Pequeno Construtor, Grande Empreendedor", p: "Capacete, blocos e um plano no papel: construir, tentar de novo e ver a ideia ficar de pé.", cover: "Hard", size: "M", tag: "Construir e criar", quote: "Pequenas mãos, grandes ideias." },
+      { t: "Meu Herói Favorito, o Bombeiro", p: "Sirene, coragem e um herói de verdade: o bombeiro que cuida da cidade e da família.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói protege todo mundo." },
+      { t: "Meu Herói Favorito, o Policial", p: "Farda, cuidado e um herói da cidade: o policial que protege quem a gente ama.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói cuida da gente todos os dias." },
+      { t: "Meu Herói Favorito, a Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Natureza e amizade", quote: "Até o menor amigo pode ser um herói." },
+      { t: "Tia Especial, Não Existe Igual", p: "Passeio, colo e risada: a tia que transforma qualquer dia numa memória para guardar.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Com a tia, todo dia vira passeio." },
+      { t: "Amor de Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
     ],
     promise_title: "Um Presente Personalizado para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -948,8 +971,14 @@ const I18N = {
       { t: "David, the Shepherd Boy", p: "A boy, his harp and the sheep: courage and faith in a story to keep forever.", cover: "Hard", size: "M", tag: "Faith and courage", quote: "Small in the field, great in heart." },
       { t: "My Dad, My Hero", p: "Dad and baby, side by side: protection, care, and a hero who belongs to the family.", cover: "Hard", size: "M", tag: "Dad the hero", quote: "My hero has Dad's arms." },
       { t: "Enzo, My Favorite Cousin", p: "Two cousins, one hug and the sea: a friendship the family gives, to keep forever.", cover: "Hard", size: "M", tag: "Cousin love", quote: "A cousin is the friend family gives us." },
-      { t: "Lucas and his friend Theo", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Theo is a friend for every hour." },
+      { t: "Lucas and his friend Max", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Max is a friend for every hour." },
       { t: "Esther and the Superpowers of Hygiene", p: "Clean hands, brushed teeth and a smile: hygiene habits that become superpowers.", cover: "Hard", size: "M", tag: "Hygiene", quote: "Taking care of yourself is a superpower." },
+      { t: "Little Builder, Big Entrepreneur", p: "A hard hat, blocks and a plan on paper: build, try again and watch the idea stand up.", cover: "Hard", size: "M", tag: "Build and create", quote: "Small hands, big ideas." },
+      { t: "My Favorite Hero, the Firefighter", p: "A siren, courage and a real hero: the firefighter who looks after the city and the family.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero protects everyone." },
+      { t: "My Favorite Hero, the Police Officer", p: "A uniform, care and a hero of the city: the officer who protects the people we love.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero looks after us every day." },
+      { t: "My Favorite Hero, the Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Nature and friendship", quote: "Even the smallest friend can be a hero." },
+      { t: "A Special Aunt, One of a Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
+      { t: "Grandpa's Love, My Safe Harbor", p: "Grandpa's arms, the lake and a hug that never ends: a safe harbor just for the family.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "In grandpa's arms, I find my safe harbor." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1146,8 +1175,14 @@ const I18N = {
       { t: "David, el Niño Pastor", p: "Un niño, su arpa y las ovejas: coraje y fe en una historia para guardar para siempre.", cover: "Hard", size: "M", tag: "Fe y coraje", quote: "Pequeño en el campo, grande de corazón." },
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé, lado a lado: protección, cariño y un héroe solo de la familia.", cover: "Hard", size: "M", tag: "Papá héroe", quote: "Mi héroe tiene los brazos de papá." },
       { t: "Enzo, Mi Primo Favorito", p: "Dos primos, un abrazo y el mar: amistad que da la familia, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "El primo es el amigo que da la familia." },
-      { t: "Lucas y su amigo Theo", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Theo es el amigo de todas las horas." },
+      { t: "Lucas y su amigo Max", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max es el amigo de todas las horas." },
       { t: "Esther y los Superpoderes de la Higiene", p: "Manos limpias, dientes cepillados y una sonrisa: hábitos de higiene que se vuelven superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidarse es un superpoder." },
+      { t: "Pequeño Constructor, Gran Emprendedor", p: "Casco, bloques y un plano en el papel: construir, intentar de nuevo y ver la idea de pie.", cover: "Hard", size: "M", tag: "Construir y crear", quote: "Manos pequeñas, grandes ideas." },
+      { t: "Mi Héroe Favorito, el Bombero", p: "Sirena, coraje y un héroe de verdad: el bombero que cuida la ciudad y la familia.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe protege a todo el mundo." },
+      { t: "Mi Héroe Favorito, el Policía", p: "Uniforme, cuidado y un héroe de la ciudad: el policía que protege a quienes amamos.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe cuida de nosotros todos los días." },
+      { t: "Mi Héroe Favorito, la Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Naturaleza y amistad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
+      { t: "Una Tía Especial, No Hay Otra Igual", p: "Paseo, abrazo y risa: la tía que convierte cualquier día en un recuerdo para guardar.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "Con la tía, todo día se vuelve paseo." },
+      { t: "El Amor del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
     ],
     promise_title: "Cada Detalle Pensado para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
