@@ -42,6 +42,7 @@ def _seed_job(client, *, cost_usd, job_type="EBOOK", child="Matteo"):
 def test_usage_without_password_configured_is_503(client, monkeypatch):
     monkeypatch.setattr(settings, "usage_dashboard_password", None)
     monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "")
     r = client.get("/v1/usage")
     assert r.status_code == 503
 
