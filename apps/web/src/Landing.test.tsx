@@ -549,8 +549,23 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getByTestId("landing-header-cta")).toHaveTextContent(/criar meu livro/i);
     expect(screen.queryByTestId("landing-header-login")).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-header-logout")).toBeInTheDocument();
+    expect(screen.queryByTestId("landing-header-orders")).not.toBeInTheDocument();
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize[0].getAttribute("href") ?? "").toMatch(/^\/app\?/);
+  });
+
+  it("com sessão admin, mostra atalho para Pedidos na home", async () => {
+    state.isGuest = false;
+    state.emailVerified = true;
+    state.isOwner = true;
+    state.email = "dono@storyrus.ai";
+    state.fullName = "André Admin";
+    setToken("test-token");
+    renderLanding();
+
+    expect(await screen.findByTestId("landing-header-orders")).toHaveAttribute("href", "/pedidos");
+    expect(screen.getByTestId("landing-header-users")).toHaveAttribute("href", "/usuarios");
+    expect(screen.getByTestId("landing-header-user")).toHaveTextContent("André");
   });
 
   it("com sessão, Sair limpa o header e volta a mostrar Entrar", async () => {

@@ -156,6 +156,13 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
     robots: "noindex, nofollow",
     sitemap: false,
   },
+  {
+    path: "/conta",
+    title: "Meu perfil — Story R Us",
+    description: "Atualize nome, telefone e endereço da sua conta Story R Us.",
+    robots: "noindex, nofollow",
+    sitemap: false,
+  },
 ];
 
 export function staticPageMeta(pathname: string): HtmlPage | null {

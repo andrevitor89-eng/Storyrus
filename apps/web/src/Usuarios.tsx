@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import logo from "./assets/logo.png";
-import { api } from "./api";
+import { api, getToken } from "./api";
 import { OwnerNav } from "./OwnerNav";
 import {
   OWNER_SESSION_TOKEN,
@@ -91,7 +91,11 @@ export function Usuarios() {
         setDetail(null);
         setSelectedId(null);
       }
-      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar usuários."));
+      setError(
+        ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar usuários.", {
+          usedSession: !apiOwnerPassword(secret) && Boolean(getToken()),
+        }),
+      );
     } finally {
       setLoading(false);
     }
@@ -193,8 +197,10 @@ export function Usuarios() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Usuários</h1>
           <p className="muted">
-            Página restrita a contas administradoras. Com a conta admin logada o painel abre sozinho.
-            A senha compartilhada só vale se o servidor ainda estiver com o fallback ligado.
+            Painel admin. O caminho mais simples:{" "}
+            <a href="/entrar?next=%2Fusuarios">entrar com a conta admin</a> — o painel abre sozinho.
+            Alternativa: senha do painel no Render (<code>USAGE_DASHBOARD_PASSWORD</code>), não a senha
+            da conta.
           </p>
           <form onSubmit={onSubmit}>
             <label>

@@ -53,10 +53,20 @@ export function canTryOwnerSession(): boolean {
   return Boolean(getToken());
 }
 
-export function ownerGateError(status: number | undefined, fallback: string): string {
-  if (status === 401 && /administrador/i.test(fallback)) return fallback;
+export function ownerGateError(
+  status: number | undefined,
+  fallback: string,
+  opts?: { usedSession?: boolean },
+): string {
+  const detail = (fallback || "").replace(/^\d{3}:\s*/i, "").trim();
+  if (status === 401 && /administrador/i.test(detail)) {
+    return "Acesso restrito a administradores. Entre com a conta admin ou use a senha do painel (Render).";
+  }
+  if (status === 401 && opts?.usedSession) {
+    return "Esta sessão não é admin. Entre com a conta admin ou use a senha do painel (Render) — não a senha da conta.";
+  }
   if (status === 401) return "Senha inválida. Use a senha do painel (Render), não a da conta.";
   if (status === 429) return "Muitas tentativas. Aguarde alguns minutos ou entre com a conta do dono.";
   if (status === 503) return "Painel ainda não configurado no servidor.";
-  return fallback;
+  return detail || fallback;
 }

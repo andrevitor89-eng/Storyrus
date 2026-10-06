@@ -10,7 +10,7 @@ import "./landing-flip-fold.css";
 type LandingSession =
   | { status: "out" }
   | { status: "loading" }
-  | { status: "in"; name: string; email: string };
+  | { status: "in"; name: string; email: string; isOwner: boolean };
 
 function sessionDisplayName(fullName: string | null | undefined, email: string): string {
   const first = (fullName || "").trim().split(/\s+/)[0];
@@ -646,6 +646,8 @@ const I18N = {
     cta_play: "Criar conta",
     account: "Minha conta",
     logout: "Sair",
+    orders: "Pedidos",
+    users: "Usuários",
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
@@ -852,6 +854,8 @@ const I18N = {
     cta_play: "Sign up",
     account: "My account",
     logout: "Log out",
+    orders: "Orders",
+    users: "Users",
     hero_cta: "Create my book",
     cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
@@ -1058,6 +1062,8 @@ const I18N = {
     cta_play: "Crear cuenta",
     account: "Mi cuenta",
     logout: "Salir",
+    orders: "Pedidos",
+    users: "Usuarios",
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
@@ -1814,6 +1820,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     getToken() ? { status: "loading" } : { status: "out" },
   );
   const signedIn = session.status === "in";
+  const isOwner = session.status === "in" && session.isOwner;
   const createHref = signedIn || getToken() ? "/app" : "/cadastro";
   const headerCtaLabel = signedIn ? t.hero_cta : t.cta_play;
   const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
@@ -1958,6 +1965,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           status: "in",
           name: sessionDisplayName(me.full_name, me.email),
           email: me.email,
+          isOwner: Boolean(me.is_admin || me.is_owner),
         });
       } catch {
         if (!cancelled) setSession({ status: "out" });
@@ -2178,6 +2186,16 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="khead-user" data-testid="landing-header-user">
                     {session.name}
                   </span>
+                  {isOwner && (
+                    <>
+                      <a className="kutil" href="/pedidos" data-testid="landing-header-orders">
+                        {t.orders}
+                      </a>
+                      <a className="kutil" href="/usuarios" data-testid="landing-header-users">
+                        {t.users}
+                      </a>
+                    </>
+                  )}
                   <Link to="/conta" className="kutil" data-testid="landing-header-account">
                     {t.account}
                   </Link>
@@ -2260,6 +2278,16 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <span className="khead-user" data-testid="landing-mobile-user">
                   {session.name}
                 </span>
+                {isOwner && (
+                  <>
+                    <a className="kutil" href="/pedidos" data-testid="landing-mobile-orders" onClick={closeNav}>
+                      {t.orders}
+                    </a>
+                    <a className="kutil" href="/usuarios" data-testid="landing-mobile-users" onClick={closeNav}>
+                      {t.users}
+                    </a>
+                  </>
+                )}
                 <Link to="/conta" className="kutil" data-testid="landing-mobile-account" onClick={closeNav}>
                   {t.account}
                 </Link>

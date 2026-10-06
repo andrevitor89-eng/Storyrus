@@ -1,6 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
-import { api } from "./api";
+import { api, getToken } from "./api";
 import { OwnerNav } from "./OwnerNav";
 import {
   OWNER_SESSION_TOKEN,
@@ -76,7 +76,11 @@ export function Usage() {
         setPassword("");
         setData(null);
       }
-      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar gastos."));
+      setError(
+        ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar gastos.", {
+          usedSession: !apiOwnerPassword(secret) && Boolean(getToken()),
+        }),
+      );
     } finally {
       setLoading(false);
     }
@@ -112,8 +116,10 @@ export function Usage() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Gastos da plataforma</h1>
           <p className="muted">
-            Página restrita a contas administradoras. Com a conta admin logada o painel abre sozinho.
-            A senha compartilhada só vale se o servidor ainda estiver com o fallback ligado.
+            Painel admin. O caminho mais simples:{" "}
+            <a href="/entrar?next=%2Fgastos">entrar com a conta admin</a> — o painel abre sozinho.
+            Alternativa: senha do painel no Render (<code>USAGE_DASHBOARD_PASSWORD</code>), não a senha
+            da conta.
           </p>
           <form onSubmit={onSubmit}>
             <label>

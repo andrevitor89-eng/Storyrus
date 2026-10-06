@@ -98,7 +98,11 @@ export function Pedidos() {
         setPassword("");
         setOrders(null);
       }
-      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar pedidos."));
+      setError(
+        ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar pedidos.", {
+          usedSession: !apiOwnerPassword(secret) && Boolean(getToken()),
+        }),
+      );
     } finally {
       setLoading(false);
     }
@@ -131,8 +135,10 @@ export function Pedidos() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Pedidos</h1>
           <p className="muted">
-            Página restrita a contas administradoras. Com a conta admin logada o painel abre sozinho.
-            A senha compartilhada só vale se o servidor ainda estiver com o fallback ligado.
+            Painel admin. O caminho mais simples:{" "}
+            <a href="/entrar?next=%2Fpedidos">entrar com a conta admin</a> — o painel abre sozinho.
+            Alternativa: senha do painel no Render (<code>USAGE_DASHBOARD_PASSWORD</code>), não a senha
+            da conta.
           </p>
           {getToken() && loading && <p className="muted">Abrindo com a sessão do estúdio…</p>}
           <form onSubmit={onSubmit}>
