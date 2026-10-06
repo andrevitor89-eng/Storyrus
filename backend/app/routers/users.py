@@ -97,9 +97,7 @@ def update_user(
 
     if "email" in data and data["email"] is not None:
         email = str(data["email"]).strip().lower()
-        clash = db.scalar(
-            select(User).where(func.lower(User.email) == email, User.id != user.id)
-        )
+        clash = db.scalar(select(User).where(func.lower(User.email) == email, User.id != user.id))
         if clash is not None:
             raise HTTPException(status.HTTP_409_CONFLICT, "E-mail ja cadastrado")
         user.email = email

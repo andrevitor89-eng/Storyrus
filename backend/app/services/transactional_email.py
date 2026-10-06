@@ -32,6 +32,13 @@ def resolved_from_email() -> str:
 
 def warn_if_email_unconfigured() -> None:
     """Chamar no boot da API: em prod, e-mail sem chave = esqueci-senha/verify mudos."""
+    raw_from = (settings.transactional_from_email or "").strip()
+    if not raw_from:
+        logger.warning(
+            "TRANSACTIONAL_FROM_EMAIL vazio — usando fallback %s "
+            "(no Render, preencha o From ou deixe o valor do Blueprint)",
+            _DEFAULT_FROM,
+        )
     if email_configured():
         logger.info(
             "transactional_email_ready from=%s",
