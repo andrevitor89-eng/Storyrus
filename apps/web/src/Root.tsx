@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Exemplos } from "./Exemplos";
 import { Legal } from "./Legal";
 import { NotFound } from "./NotFound";
 
@@ -59,6 +60,7 @@ const Conta = lazy(() =>
  *   /landing       → Landing (compatibilidade)
  *   /privacidade   → Política de privacidade
  *   /termos        → Termos de uso
+ *   /exemplos      → Demonstrações da plataforma (citadas na privacidade)
  *   *              → 404
  *
  * Landing / Studio (via App) / Usage are lazy-loaded into separate chunks.
@@ -88,6 +90,7 @@ export function AppRoutes() {
         <Route path="/privacy" element={<Legal kind="privacy" />} />
         <Route path="/termos" element={<Legal kind="terms" />} />
         <Route path="/terms" element={<Legal kind="terms" />} />
+        <Route path="/exemplos" element={<Exemplos />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

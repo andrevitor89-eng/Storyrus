@@ -1,5 +1,6 @@
 import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import logo from "./assets/logo.png";
 import { api, getToken, type SignupPayload } from "./api";
 import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
@@ -304,6 +305,7 @@ function LangSwitch({
 }
 
 export function Auth({ mode }: { mode: AuthMode }) {
+  usePageMeta(staticPageMeta(mode === "login" ? "/entrar" : "/cadastro"));
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);

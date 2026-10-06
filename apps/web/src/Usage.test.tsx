@@ -15,6 +15,10 @@ describe("Pedidos", () => {
   it("define o titulo da pagina", () => {
     render(<Pedidos />);
     expect(document.title).toBe("Pedidos — Story R Us");
+    expect(document.querySelector('meta[name="robots"]')).toHaveAttribute(
+      "content",
+      "noindex, nofollow",
+    );
   });
 
   it("abre o pedido detalhado depois da senha", async () => {

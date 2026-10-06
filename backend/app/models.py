@@ -151,6 +151,9 @@ class User(Base):
     country: Mapped[str | None] = mapped_column(String(2), nullable=True)
     terms_accepted_at: Mapped[datetime | None] = mapped_column(nullable=True)
     email_verified_at: Mapped[datetime | None] = mapped_column(nullable=True)
+    # Painéis /gastos, /pedidos e /usuarios. Quem está em OWNER_EMAILS também
+    # é promovido a admin no primeiro acesso autenticado.
+    is_admin: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     email_verify_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     password_reset_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
 

@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
+import { NOT_FOUND_PAGE, usePageMeta } from "./pageMeta";
 import "./landing.css";
 
 export function NotFound() {
+  usePageMeta(NOT_FOUND_PAGE);
   return (
     <div className="kid legal-page">
       <header className="knav">

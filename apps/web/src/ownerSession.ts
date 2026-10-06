@@ -54,6 +54,7 @@ export function canTryOwnerSession(): boolean {
 }
 
 export function ownerGateError(status: number | undefined, fallback: string): string {
+  if (status === 401 && /administrador/i.test(fallback)) return fallback;
   if (status === 401) return "Senha inválida. Use a senha do painel (Render), não a da conta.";
   if (status === 429) return "Muitas tentativas. Aguarde alguns minutos ou entre com a conta do dono.";
   if (status === 503) return "Painel ainda não configurado no servidor.";

@@ -22,6 +22,7 @@ describe("Legal", () => {
     expect(screen.getByRole("heading", { name: /seus direitos/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /crianças/i })).toBeInTheDocument();
     expect(document.body.textContent).toContain(CONTACT);
+    expect(screen.getByRole("link", { name: /^exemplos$/i })).toHaveAttribute("href", "/exemplos");
     expect(screen.queryByRole("heading", { name: /termos de uso/i })).not.toBeInTheDocument();
   });
 

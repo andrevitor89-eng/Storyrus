@@ -224,7 +224,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setAccountKind(registered ? "account" : me.is_guest ? "guest" : "unknown");
       setAccountEmail(me.email);
       setAccountName(me.full_name?.trim() || "");
-      setIsOwner(Boolean(me.is_owner));
+      setIsOwner(Boolean(me.is_admin || me.is_owner));
       if (registered) {
         const addressLine = [
           me.street,

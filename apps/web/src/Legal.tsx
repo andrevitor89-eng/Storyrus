@@ -1,5 +1,6 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import logo from "./assets/logo.png";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import "./landing.css";
 
 const CONTACT = "info@storyrus.ai";
@@ -7,6 +8,12 @@ const UPDATED = "5 de outubro de 2026";
 
 export function Legal({ kind }: { kind: "privacy" | "terms" }) {
   const privacy = kind === "privacy";
+  const { pathname } = useLocation();
+  usePageMeta(
+    privacy
+      ? staticPageMeta(pathname === "/privacy" ? "/privacy" : "/privacidade")
+      : staticPageMeta(pathname === "/terms" ? "/terms" : "/termos"),
+  );
   return (
     <div className="kid legal-page">
       <header className="knav">
@@ -92,7 +99,8 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
             <h2>Exemplos da página inicial</h2>
             <p>
               As fotos e vídeos de demonstração no site são materiais da plataforma, separados do que
-              você envia no estúdio.
+              você envia no estúdio. A página <Link to="/exemplos">exemplos</Link> explica isso e
+              aponta a vitrine da página inicial.
             </p>
 
             <h2>Conta e sessão</h2>

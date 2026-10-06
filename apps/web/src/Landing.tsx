@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { studioEntryHref } from "./Auth";
 import { api, getToken } from "./api";
 import logo from "./assets/logo.png";
@@ -1774,6 +1775,14 @@ export function catalogSections(lang: Lang) {
 }
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
+  const { pathname } = useLocation();
+  usePageMeta(
+    pathname === "/cartoon" || variant === "cartoon"
+      ? staticPageMeta("/cartoon")
+      : pathname === "/landing"
+        ? staticPageMeta("/landing")
+        : staticPageMeta("/"),
+  );
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const [navOpen, setNavOpen] = useState(false);
