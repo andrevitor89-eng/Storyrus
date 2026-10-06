@@ -372,25 +372,45 @@ export function Auth({ mode }: { mode: AuthMode }) {
     );
   }
 
+  const isSignup = mode === "signup";
+
   return (
-    <div className="kid auth-kid" data-testid="auth-page">
-      <div className={`auth-shell${mode === "signup" ? " auth-shell-wide" : ""}`}>
-        <div className="auth-card">
-          <div className="auth-card-head">
-            {langSwitch}
-          </div>
-          <div className="auth-logo">
-            <Link to="/">
-              <img src={logo} alt="Story R Us" />
-            </Link>
-          </div>
-          <h1>{mode === "login" ? t.loginTitle : t.signupTitle}</h1>
-          <p className="auth-lead">{mode === "login" ? t.loginLead : t.signupLead}</p>
-          <form className="auth-form" onSubmit={onSubmit} data-testid="auth-form">
-            {mode === "signup" && (
-              <p className="auth-section-title">{t.accountSection}</p>
+    <div
+      className={`kid auth-kid${isSignup ? " auth-kid-full" : ""}`}
+      data-testid="auth-page"
+    >
+      <div className={`auth-shell${isSignup ? " auth-shell-full" : ""}`}>
+        <div className={`auth-card${isSignup ? " auth-card-full" : ""}`}>
+          {isSignup ? (
+            <div className="auth-topbar">
+              <Link to="/" className="auth-logo auth-logo-inline">
+                <img src={logo} alt="Story R Us" />
+              </Link>
+              {langSwitch}
+            </div>
+          ) : (
+            <>
+              <div className="auth-card-head">{langSwitch}</div>
+              <div className="auth-logo">
+                <Link to="/">
+                  <img src={logo} alt="Story R Us" />
+                </Link>
+              </div>
+            </>
+          )}
+          <header className={isSignup ? "auth-hero" : undefined}>
+            <h1>{isSignup ? t.signupTitle : t.loginTitle}</h1>
+            <p className="auth-lead">{isSignup ? t.signupLead : t.loginLead}</p>
+          </header>
+          <form
+            className={`auth-form${isSignup ? " auth-form-full" : ""}`}
+            onSubmit={onSubmit}
+            data-testid="auth-form"
+          >
+            {isSignup && (
+              <p className="auth-section-title auth-span-all">{t.accountSection}</p>
             )}
-            {mode === "signup" && (
+            {isSignup && (
               <label>
                 {t.fullName}
                 <input
@@ -414,7 +434,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 data-testid="auth-email"
               />
             </label>
-            {mode === "signup" && (
+            {isSignup && (
               <label>
                 {t.phone}
                 <input
@@ -441,7 +461,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 data-testid="auth-password"
               />
             </label>
-            {mode === "signup" && (
+            {isSignup && (
               <>
                 <label>
                   {t.passwordConfirm}
@@ -455,9 +475,9 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     data-testid="auth-password-confirm"
                   />
                 </label>
-                <p className="auth-section-title">{t.addressSection}</p>
+                <p className="auth-section-title auth-span-all">{t.addressSection}</p>
                 <div
-                  className={`auth-address${isUsLayout ? " auth-address-us" : ""}`}
+                  className={`auth-address auth-span-all${isUsLayout ? " auth-address-us" : ""}`}
                   data-testid="auth-address"
                 >
                   <label className="auth-span-2">
@@ -482,7 +502,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                   </label>
                   {isUsLayout ? (
                     <>
-                      <label className="auth-span-2">
+                      <label className="auth-span-4">
                         {t.street}
                         <input
                           type="text"
@@ -505,7 +525,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           data-testid="auth-number"
                         />
                       </label>
-                      <label>
+                      <label className="auth-span-2">
                         {t.city}
                         <input
                           type="text"
@@ -516,7 +536,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           data-testid="auth-city"
                         />
                       </label>
-                      <label>
+                      <label className="auth-span-2">
                         {region.stateLabel[lang]}
                         {region.stateOptions ? (
                           <select
@@ -546,7 +566,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           />
                         )}
                       </label>
-                      <label>
+                      <label className="auth-span-2">
                         {region.postalLabel[lang]}
                         <input
                           type="text"
@@ -563,7 +583,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     </>
                   ) : (
                     <>
-                      <label>
+                      <label className="auth-span-2">
                         {region.postalLabel[lang]}
                         <input
                           type="text"
@@ -577,7 +597,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           data-testid="auth-postal-code"
                         />
                       </label>
-                      <label className="auth-span-2">
+                      <label className="auth-span-4">
                         {t.street}
                         <input
                           type="text"
@@ -677,7 +697,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     </>
                   )}
                 </div>
-                <label className="auth-terms">
+                <label className="auth-terms auth-span-all">
                   <input
                     type="checkbox"
                     checked={signup.accept_terms}
@@ -699,39 +719,50 @@ export function Auth({ mode }: { mode: AuthMode }) {
               </>
             )}
             {error && (
-              <p className="auth-error" role="alert" data-testid="auth-error">
+              <p className="auth-error auth-span-all" role="alert" data-testid="auth-error">
                 {error}
               </p>
             )}
             <button
               type="submit"
-              className="kbtn kbtn-primary auth-cta"
+              className="kbtn kbtn-primary auth-cta auth-span-all"
               disabled={busy}
               data-testid="auth-submit"
             >
               {busy ? t.busy : mode === "login" ? t.loginSubmit : t.signupSubmit}
             </button>
           </form>
-          {mode === "login" && (
-            <p className="auth-foot">
-              <Link
-                to={`/esqueci-senha?next=${encodeURIComponent(next)}`}
-                data-testid="auth-forgot"
-              >
-                {t.forgotPassword}
+          {isSignup ? (
+            <div className="auth-foot-row">
+              <Link to={altHref} data-testid="auth-switch">
+                {t.switchToLogin}
               </Link>
-            </p>
+              <Link to="/" data-testid="auth-back">
+                {t.back}
+              </Link>
+            </div>
+          ) : (
+            <>
+              <p className="auth-foot">
+                <Link
+                  to={`/esqueci-senha?next=${encodeURIComponent(next)}`}
+                  data-testid="auth-forgot"
+                >
+                  {t.forgotPassword}
+                </Link>
+              </p>
+              <p className="auth-foot">
+                <Link to={altHref} data-testid="auth-switch">
+                  {t.switchToSignup}
+                </Link>
+              </p>
+              <p className="auth-foot">
+                <Link to="/" data-testid="auth-back">
+                  {t.back}
+                </Link>
+              </p>
+            </>
           )}
-          <p className="auth-foot">
-            <Link to={altHref} data-testid="auth-switch">
-              {mode === "login" ? t.switchToSignup : t.switchToLogin}
-            </Link>
-          </p>
-          <p className="auth-foot">
-            <Link to="/" data-testid="auth-back">
-              {t.back}
-            </Link>
-          </p>
         </div>
       </div>
     </div>
