@@ -7,12 +7,22 @@ def test_health(client, monkeypatch):
     from app.config import settings
 
     monkeypatch.setattr(settings, "elevenlabs_api_key", "sk-test-eleven")
+    monkeypatch.setattr(settings, "resend_api_key", "")
     body = client.get("/health").json()
     assert body["status"] == "ok"
     assert "env" in body
+    assert body["email_configured"] is False
     # STO-28: /health nao deve vazar se ElevenLabs (ou outros vendors) estao ligados.
     assert "has_elevenlabs" not in body
     assert "elevenlabs" not in body
+
+
+def test_health_email_configured_when_resend_key_set(client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "resend_api_key", "re_test_key")
+    body = client.get("/health").json()
+    assert body["email_configured"] is True
 
 
 def test_signup_gives_bonus_credits(client):

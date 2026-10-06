@@ -40,6 +40,9 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` — (só se for usar vídeo)
    - `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` — TTS narrado (opcional; sem chave usa edge-tts)
    - `CREDIT_GRANT_SECRET` — só a API; vazio = `POST /v1/credits/grant` recusa. **Nunca** no frontend
+   - `RESEND_API_KEY` — **obrigatório em prod** para confirmação de cadastro e esqueci-senha (ver **§ E-mail transacional**). Sem chave a UI ainda diz que enviou, mas **não sai e-mail**.
+   - `TRANSACTIONAL_FROM_EMAIL` — Blueprint já define `Story R Us <noreply@storyrus.ai>`; só mude se o domínio verificado no Resend for outro.
+   - `PUBLIC_WEB_ORIGIN` — Blueprint já define `https://storyrus.ai` (links nos e-mails).
    - `OPIK_API_KEY` / `OPIK_WORKSPACE` / `OPIK_PROJECT_NAME` — tracing Opik (opcional; sem chave o wrapper é no-op). Em prod a API e o worker chamam `opik.configure` no boot; traces de job carregam `request_id` + `job_id` para correlacionar com os logs JSON.
    - `LOG_FORMAT=json` — Blueprint já define; logs estruturados com `request_id` / `job_id` (STO-29). O header `X-Request-ID` é ecoado pela API e persistido no job.
    - `USAGE_DASHBOARD_PASSWORD` — senha dos painéis do dono `/gastos`, `/pedidos` e `/usuarios` (opcional; sem ela os painéis respondem 503)
@@ -80,6 +83,35 @@ Passos no Render (painel, sem mudar o Blueprint):
 - Painel Cloudflare → **R2** → crie um bucket (ex.: `storyrus`).
 - **Manage R2 API Tokens** → crie um token com permissão *Object Read & Write* → use o **Access Key ID** e **Secret Access Key**.
 - Endpoint: `https://<ACCOUNT_ID>.r2.cloudflarestorage.com` (use o ID da conta, não o nome do bucket).
+
+### E-mail transacional (Resend)
+
+Dois fluxos usam a mesma chave Resend no backend (`storyrus-api` no Render):
+
+1. **Confirmação de cadastro** — `POST /v1/auth/signup` e `POST /v1/auth/resend-verify` → e-mail “Confirme seu e-mail” com link `/verificar-email?token=…`
+2. **Esqueci a senha** — `POST /v1/auth/forgot-password` → e-mail “Redefinir senha” com link `/redefinir-senha?token=…`
+
+O front na Vercel **não** envia e-mail — só o Render precisa de `RESEND_API_KEY`.
+
+**Por que a UI diz “enviamos um link” sem chegar nada?** Signup e reenvio mostram a tela “Verifique seu e-mail”; forgot-password sempre responde OK genérico (não revela se o e-mail existe). Sem `RESEND_API_KEY`, o envio é no-op e o link só aparece nos logs da API (em dev o JSON ainda traz `verify_token` / `reset_token`).
+
+#### Passo a passo
+
+1. Crie conta em [resend.com](https://resend.com) → **API Keys** → crie `re_...`.
+2. **Domains** → adicione `storyrus.ai` (ou um subdomínio tipo `send.storyrus.ai`).
+3. No DNS da **GoDaddy** (`storyrus.ai`), adicione **só** os registros que o Resend mostrar (DKIM TXT/CNAME, SPF/MX no host `send`, etc.).
+   - **Não apague** o MX do Microsoft 365 em `@` (`storyrus-ai.mail.protection.outlook.com`).
+   - O MX do Resend fica em **`send`** (subdomínio), não no apex — não conflita com o Outlook.
+4. No Resend, clique **Verify**. Confira em [dns.email](https://dns.email) se os registros propagaram.
+5. No **Render** → **storyrus-api** → **Environment**:
+   - `RESEND_API_KEY` = `re_...`
+   - `TRANSACTIONAL_FROM_EMAIL` = `Story R Us <noreply@storyrus.ai>` (ou o domínio verificado)
+   - `PUBLIC_WEB_ORIGIN` = `https://storyrus.ai` (já no Blueprint)
+6. Salve e aguarde o redeploy (ou Manual Deploy). Nos logs do boot deve aparecer `transactional_email_ready` (não o warning `RESEND_API_KEY ausente`).
+7. Confira: `GET https://storyrus-api.onrender.com/health` → `"email_configured": true`.
+8. Teste **esqueci a senha**: https://storyrus.ai/esqueci-senha com um e-mail cadastrado. Cheque spam.
+
+**Cold start (free):** o primeiro request após hibernação pode demorar. Mitigação: plano Starter ou ping periódico em `/health` (§ Beyond free).
 
 ---
 
@@ -190,5 +222,6 @@ Detalhes: `README.md` (raiz), `Makefile`, `backend/README.md`.
 | Worker    | Render     | Jobs de IA; same always-on em prod |
 | Banco     | Render Postgres | Free ~90 dias; pago em prod |
 | Storage   | Cloudflare R2 | Variáveis `STORAGE_*` |
+| E-mail    | Resend (via Render) | `RESEND_API_KEY` na API; DNS DKIM sem mexer no MX M365 (§ E-mail) |
 | Redis     | — (opcional) | Sem ele, worker faz polling do banco |
 | Mobile    | EAS (Expo) | `apps/mobile/eas.json` + [PUBLISH.md](apps/mobile/PUBLISH.md); segredos fora do git |

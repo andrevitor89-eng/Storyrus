@@ -50,6 +50,11 @@ def new_email_verify_secret() -> str:
     return secrets.token_urlsafe(32)
 
 
+def new_password_reset_secret() -> str:
+    """Token curto para link de redefinição (mesmo formato do verify)."""
+    return secrets.token_urlsafe(32)
+
+
 def normalize_verify_token(raw: str | None) -> str:
     """Remove quebra de linha / encoding de cliente de e-mail."""
     if not raw:

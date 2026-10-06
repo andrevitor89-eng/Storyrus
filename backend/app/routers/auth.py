@@ -1,5 +1,6 @@
 """Cadastro completo, verificação de e-mail, login, guest, refresh/resume e perfil."""
 
+import logging
 import uuid
 from datetime import UTC, datetime, timedelta
 
@@ -28,7 +29,6 @@ from app.schemas import (
 )
 from app.security import (
     create_access_token,
-    create_password_reset_token,
     decode_access_token_allow_expired,
     decode_email_verify_token,
     decode_password_reset_token,
@@ -36,12 +36,14 @@ from app.security import (
     hash_token,
     is_guest_user,
     new_email_verify_secret,
+    new_password_reset_secret,
     normalize_verify_token,
     verify_password,
 )
 from app.services.transactional_email import send_password_reset_email, send_verify_email
 
 router = APIRouter(prefix="/v1/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 _SIGNUP_MSG = "Cadastro recebido. Confirme seu e-mail pelo link que enviamos."
 _FORGOT_MSG = "Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha."
@@ -290,11 +292,16 @@ def forgot_password(
     user = _user_by_email(db, str(body.email))
     reset_token: str | None = None
     if user is not None and not is_guest_user(email=user.email, password_hash=user.password_hash):
-        raw_token = create_password_reset_token(str(user.id))
+        raw_token = new_password_reset_secret()
         user.password_reset_token_hash = hash_token(raw_token)
         db.add(user)
         db.commit()
-        send_password_reset_email(to_email=user.email, token=raw_token)
+        sent = send_password_reset_email(to_email=user.email, token=raw_token)
+        if not sent:
+            logger.warning(
+                "password_reset_email_not_sent to=%s (verifique RESEND_API_KEY / domínio)",
+                user.email,
+            )
         if settings.app_env != "prod":
             reset_token = raw_token
     return ForgotPasswordOut(ok=True, message=_FORGOT_MSG, reset_token=reset_token)
@@ -302,19 +309,22 @@ def forgot_password(
 
 @router.post("/reset-password", response_model=TokenOut)
 def reset_password(body: ResetPasswordIn, db: Session = Depends(get_db)) -> TokenOut:
-    payload = decode_password_reset_token(body.token)
-    if not payload:
+    token = normalize_verify_token(body.token)
+    if not token:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
-    try:
-        user_id = uuid.UUID(str(payload["sub"]))
-    except ValueError as exc:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado") from exc
-    user = db.get(User, user_id)
+    digest = hash_token(token)
+    user = db.scalar(select(User).where(User.password_reset_token_hash == digest))
+    if user is None:
+        payload = decode_password_reset_token(token)
+        if payload and payload.get("sub"):
+            try:
+                user = db.get(User, uuid.UUID(str(payload["sub"])))
+            except ValueError:
+                user = None
     if user is None or is_guest_user(email=user.email, password_hash=user.password_hash):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
     expected = user.password_reset_token_hash
-    token = normalize_verify_token(body.token)
-    if not expected or expected != hash_token(token):
+    if not expected or expected != digest:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
     user.password_hash = hash_password(body.password)
     user.password_reset_token_hash = None

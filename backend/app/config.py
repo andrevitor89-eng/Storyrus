@@ -69,6 +69,7 @@ class Settings(BaseSettings):
     password_reset_rate_limit_window_s: int = 3600
     public_web_origin: str = "https://storyrus.ai"
     resend_api_key: str = ""
+    # Env vazio no Render (sync:false sem valor) não pode sobrescrever o from.
     transactional_from_email: str = "Story R Us <noreply@storyrus.ai>"
 
     # Storage (R2/S3)
