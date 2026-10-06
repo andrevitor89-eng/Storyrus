@@ -257,8 +257,8 @@ const CATALOG_LIMIT = 14;
 const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 30]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
 const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
-/** Primeiros da vitrine, nesta ordem: Meu Pai, Davi, Enzo. */
-const CATALOG_LEAD = [21, 20, 22];
+/** Primeiros da vitrine: livros novos, depois Meu Pai, Davi e Enzo. */
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -1735,6 +1735,12 @@ export function catalogSections(lang: Lang) {
       if (!CATALOG_SECTION_THEMES[meta.id]?.includes(theme)) return [];
       const card = toCatalogCard(lang, index);
       return card ? [card] : [];
+    }).sort((a, b) => {
+      const rank = (i: number) => {
+        const lead = CATALOG_LEAD.indexOf(i);
+        return lead === -1 ? CATALOG_LEAD.length + i : lead;
+      };
+      return rank(a.catalogI) - rank(b.catalogI);
     }),
   }));
 }
