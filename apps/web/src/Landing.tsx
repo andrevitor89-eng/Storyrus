@@ -1,10 +1,22 @@
 import { Fragment, useEffect, useRef, useState, type CSSProperties, type KeyboardEvent as RKeyboardEvent, type MouseEvent as RMouseEvent, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { studioEntryHref } from "./Auth";
-import { getToken } from "./api";
+import { api, getToken } from "./api";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
+
+type LandingSession =
+  | { status: "out" }
+  | { status: "loading" }
+  | { status: "in"; name: string; email: string };
+
+function sessionDisplayName(fullName: string | null | undefined, email: string): string {
+  const first = (fullName || "").trim().split(/\s+/)[0];
+  if (first) return first;
+  const local = email.split("@")[0]?.trim();
+  return local || email;
+}
 
 export type Lang = "pt" | "en" | "es";
 
@@ -631,6 +643,8 @@ const I18N = {
     lead: "Você envia a foto e nós transformamos seu filho em um personagem ilustrado, criando uma aventura personalizada especialmente para ele — um livro para presentear a família e guardar para sempre.",
     cta_login: "Entrar",
     cta_play: "Criar conta",
+    account: "Minha conta",
+    logout: "Sair",
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
@@ -835,6 +849,8 @@ const I18N = {
     lead: "You send the photo and we turn your child into an illustrated character, creating an adventure made just for them — a book to gift the family and keep forever.",
     cta_login: "Log in",
     cta_play: "Sign up",
+    account: "My account",
+    logout: "Log out",
     hero_cta: "Create my book",
     cta_story: "Create my story",
     hero_sign: "One photo. One story. One lasting memory.",
@@ -1039,6 +1055,8 @@ const I18N = {
     lead: "Envías la foto y transformamos a tu hijo en un personaje ilustrado, creando una aventura personalizada especialmente para él — un libro para regalar a la familia y guardar para siempre.",
     cta_login: "Entrar",
     cta_play: "Crear cuenta",
+    account: "Mi cuenta",
+    logout: "Salir",
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
@@ -1783,7 +1801,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     return "fredoka";
   });
   const t = I18N[lang];
-  const createHref = getToken() ? "/app" : "/cadastro";
+  const [session, setSession] = useState<LandingSession>(() =>
+    getToken() ? { status: "loading" } : { status: "out" },
+  );
+  const signedIn = session.status === "in";
+  const createHref = signedIn || getToken() ? "/app" : "/cadastro";
+  const headerCtaLabel = signedIn ? t.hero_cta : t.cta_play;
+  const bandCtaLabel = signedIn ? t.hero_cta : t.band_cta;
   const hiwSteps = t.hiw_main;
   const howImgs = variant === "cartoon" ? HOW_IMGS : HOW_SCENE_IMGS;
   const navHrefs = ["#como", "#catalogo", "#videos", "#faq"];
@@ -1907,6 +1931,35 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   }, [theme]);
 
   useEffect(() => {
+    let cancelled = false;
+    if (!getToken()) {
+      setSession({ status: "out" });
+      return;
+    }
+    setSession((cur) => (cur.status === "in" ? cur : { status: "loading" }));
+    (async () => {
+      try {
+        const me = await api.me();
+        if (cancelled) return;
+        if (me.is_guest || !me.email_verified) {
+          setSession({ status: "out" });
+          return;
+        }
+        setSession({
+          status: "in",
+          name: sessionDisplayName(me.full_name, me.email),
+          email: me.email,
+        });
+      } catch {
+        if (!cancelled) setSession({ status: "out" });
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
     const id = window.location.hash.replace("#", "");
     const el = id ? document.getElementById(id) : null;
     if (!el) return;
@@ -1984,6 +2037,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     setSubHover(null);
     setFeatCat(null);
   };
+
+  function onLogout() {
+    api.logout();
+    setSession({ status: "out" });
+    closeNav();
+  }
 
   return (
     <div className={`kid cover-${coverFont}`} ref={rootRef} id="top">
@@ -2105,8 +2164,32 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               <button className={lang === "es" ? "on" : ""} onClick={() => setLang("es")} data-testid="landing-lang-es">ES</button>
             </div>
             <div className="khead-links" data-testid="landing-header-auth">
-              <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-header-login">{t.cta_login}</Link>
-              <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-header-cta">{t.cta_play}</Link>
+              {signedIn ? (
+                <>
+                  <span className="khead-user" data-testid="landing-header-user">
+                    {session.name}
+                  </span>
+                  <Link to="/conta" className="kutil" data-testid="landing-header-account">
+                    {t.account}
+                  </Link>
+                  <button
+                    type="button"
+                    className="kutil"
+                    data-testid="landing-header-logout"
+                    onClick={onLogout}
+                  >
+                    {t.logout}
+                  </button>
+                  <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">
+                    {headerCtaLabel}
+                  </Link>
+                </>
+              ) : (
+                <>
+                  <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-header-login">{t.cta_login}</Link>
+                  <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-header-cta">{headerCtaLabel}</Link>
+                </>
+              )}
             </div>
           </div>
           <button
@@ -2159,9 +2242,36 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <a className="kmobile-link" href="#catalogo" onClick={closeNav}>{t.nav[1]}</a>
             <a className="kmobile-link" href="#faq" onClick={closeNav}>{t.nav[3]}</a>
           </div>
-          <div className="kmobile-auth" data-testid="landing-mobile-auth">
-            <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
-            <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{t.cta_play}</Link>
+          <div
+            className={`kmobile-auth${signedIn ? " is-signed" : ""}`}
+            data-testid="landing-mobile-auth"
+          >
+            {signedIn ? (
+              <>
+                <span className="khead-user" data-testid="landing-mobile-user">
+                  {session.name}
+                </span>
+                <Link to="/conta" className="kutil" data-testid="landing-mobile-account" onClick={closeNav}>
+                  {t.account}
+                </Link>
+                <button
+                  type="button"
+                  className="kutil"
+                  data-testid="landing-mobile-logout"
+                  onClick={onLogout}
+                >
+                  {t.logout}
+                </button>
+                <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>
+                  {headerCtaLabel}
+                </Link>
+              </>
+            ) : (
+              <>
+                <Link to="/entrar" className="kbtn kbtn-login" data-testid="landing-mobile-login" onClick={closeNav}>{t.cta_login}</Link>
+                <Link to={createHref} className="kbtn kbtn-primary" data-testid="landing-mobile-cta" onClick={closeNav}>{headerCtaLabel}</Link>
+              </>
+            )}
           </div>
         </nav>
         </div>
@@ -2380,7 +2490,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       <section className="kband" id="familias">
         <IcSparkle className="twk b1" /><IcStar className="twk b2" />
         <h2>{t.band_title}</h2><p>{t.band_sub}</p>
-        <Link to={createHref} className="kbtn kbtn-primary big">{t.band_cta}</Link>
+        <Link to={createHref} className="kbtn kbtn-primary big">{bandCtaLabel}</Link>
       </section>
 
       {/* FOOTER */}

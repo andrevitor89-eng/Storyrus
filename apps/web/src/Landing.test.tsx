@@ -5,6 +5,7 @@ import { MemoryRouter } from "react-router-dom";
 import { Landing, occasionDue } from "./Landing";
 import { AppRoutes } from "./Root";
 import { setToken } from "./api";
+import { state } from "./test/server";
 
 function renderLanding() {
   return render(
@@ -533,14 +534,39 @@ describe("Landing — CTAs e links", () => {
   });
 
   it("com sessão, Personalizar e CTAs abrem o estúdio", async () => {
+    state.isGuest = false;
+    state.emailVerified = true;
+    state.email = "ana@email.com";
+    state.fullName = "Ana Souza";
     setToken("test-token");
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
     expect(screen.getByTestId("landing-hero-cta")).toHaveAttribute("href", "/app");
+    expect(await screen.findByTestId("landing-header-account")).toHaveAttribute("href", "/conta");
+    expect(screen.getByTestId("landing-header-user")).toHaveTextContent("Ana");
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
+    expect(screen.getByTestId("landing-header-cta")).toHaveTextContent(/criar meu livro/i);
+    expect(screen.queryByTestId("landing-header-login")).not.toBeInTheDocument();
+    expect(screen.getByTestId("landing-header-logout")).toBeInTheDocument();
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize[0].getAttribute("href") ?? "").toMatch(/^\/app\?/);
+  });
+
+  it("com sessão, Sair limpa o header e volta a mostrar Entrar", async () => {
+    state.isGuest = false;
+    state.emailVerified = true;
+    state.email = "ana@email.com";
+    state.fullName = "Ana Souza";
+    setToken("test-token");
+    const user = userEvent.setup();
+    renderLanding();
+
+    expect(await screen.findByTestId("landing-header-user")).toHaveTextContent("Ana");
+    await user.click(screen.getByTestId("landing-header-logout"));
+    expect(await screen.findByTestId("landing-header-login")).toHaveAttribute("href", "/entrar");
+    expect(screen.queryByTestId("landing-header-account")).not.toBeInTheDocument();
+    expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
   });
 
   it("ordena as seções e aponta o Instagram para storyr.us", async () => {
