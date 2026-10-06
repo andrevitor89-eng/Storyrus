@@ -2515,6 +2515,19 @@ img.ex-tab-cover {
 .auth-address-us {
   grid-template-columns: repeat(6, minmax(0, 1fr));
 }
+.auth-cep-status {
+  font-size: 0.82rem;
+  font-weight: 650;
+  color: #5a6a8a;
+  line-height: 1.35;
+}
+.auth-cep-status.is-ok {
+  color: #2f7a4a;
+}
+.auth-cep-status.is-miss,
+.auth-cep-status.is-error {
+  color: #b42318;
+}
 .auth-address .auth-span-2 {
   grid-column: span 2;
 }

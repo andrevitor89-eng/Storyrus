@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { api, type SignupPayload } from "./api";
+import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
 import {
   applyDocumentLang,
   LANGS,
@@ -59,6 +60,10 @@ const COPY: Record<
     confirmEmail: string;
     badCredentials: string;
     genericError: string;
+    cepLooking: string;
+    cepMiss: string;
+    cepError: string;
+    cepOk: string;
   }
 > = {
   pt: {
@@ -99,6 +104,10 @@ const COPY: Record<
     confirmEmail: "Confirme seu e-mail pelo link que enviamos antes de entrar.",
     badCredentials: "E-mail ou senha incorretos.",
     genericError: "Algo deu errado. Tente novamente.",
+    cepLooking: "Buscando endereço…",
+    cepMiss: "CEP não encontrado. Preencha o endereço.",
+    cepError: "Não foi possível buscar o CEP. Preencha o endereço.",
+    cepOk: "Endereço preenchido. Confira e informe o número.",
   },
   en: {
     loginTitle: "Log in",
@@ -138,6 +147,10 @@ const COPY: Record<
     confirmEmail: "Confirm your email with the link we sent before signing in.",
     badCredentials: "Incorrect email or password.",
     genericError: "Something went wrong. Please try again.",
+    cepLooking: "Looking up address…",
+    cepMiss: "ZIP/CEP not found. Please fill in the address.",
+    cepError: "Could not look up the CEP. Please fill in the address.",
+    cepOk: "Address filled in. Check it and add the number.",
   },
   es: {
     loginTitle: "Entrar",
@@ -177,8 +190,20 @@ const COPY: Record<
     confirmEmail: "Confirma tu correo con el enlace que enviamos antes de entrar.",
     badCredentials: "Correo o contraseña incorrectos.",
     genericError: "Algo salió mal. Inténtalo de nuevo.",
+    cepLooking: "Buscando dirección…",
+    cepMiss: "CEP no encontrado. Completa la dirección.",
+    cepError: "No fue posible buscar el CEP. Completa la dirección.",
+    cepOk: "Dirección rellenada. Revisa e indica el número.",
   },
 };
+
+function cepStatusText(status: CepStatus, t: (typeof COPY)[Lang]): string | null {
+  if (status === "loading") return t.cepLooking;
+  if (status === "ok") return t.cepOk;
+  if (status === "miss") return t.cepMiss;
+  if (status === "error") return t.cepError;
+  return null;
+}
 
 /** Evita open-redirect: só caminhos relativos internos. */
 export function safeNextPath(raw: string | null | undefined): string {
@@ -251,6 +276,27 @@ export function Auth({ mode }: { mode: AuthMode }) {
 
   const region = regionProfile(signup.country);
   const isUsLayout = region.layout === "us";
+  const cepStatus = useCepLookup(
+    signup.postal_code,
+    mode === "signup" && signup.country === "BR",
+    (addr) => {
+      setSignup((prev) => ({
+        ...prev,
+        postal_code: addr.postal_code,
+        street: addr.street || prev.street,
+        district: addr.district || prev.district,
+        city: addr.city || prev.city,
+        state: addr.state || prev.state,
+      }));
+    },
+  );
+
+  function onPostalCodeChange(value: string) {
+    setSignup((prev) => ({
+      ...prev,
+      postal_code: prev.country === "BR" ? formatCep(value) : value,
+    }));
+  }
 
   const altMode: AuthMode = mode === "login" ? "signup" : "login";
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
@@ -576,7 +622,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           autoComplete="postal-code"
                           placeholder={region.postalPlaceholder}
                           value={signup.postal_code}
-                          onChange={(e) => setSignup({ ...signup, postal_code: e.target.value })}
+                          onChange={(e) => onPostalCodeChange(e.target.value)}
                           data-testid="auth-postal-code"
                         />
                       </label>
@@ -588,14 +634,24 @@ export function Auth({ mode }: { mode: AuthMode }) {
                         <input
                           type="text"
                           required
-                          minLength={2}
-                          maxLength={16}
+                          minLength={signup.country === "BR" ? 8 : 2}
+                          maxLength={signup.country === "BR" ? 9 : 16}
+                          inputMode={signup.country === "BR" ? "numeric" : undefined}
                           autoComplete="postal-code"
                           placeholder={region.postalPlaceholder}
                           value={signup.postal_code}
-                          onChange={(e) => setSignup({ ...signup, postal_code: e.target.value })}
+                          onChange={(e) => onPostalCodeChange(e.target.value)}
                           data-testid="auth-postal-code"
                         />
+                        {signup.country === "BR" && cepStatusText(cepStatus, t) && (
+                          <span
+                            className={`auth-cep-status is-${cepStatus}`}
+                            data-testid="auth-cep-status"
+                            role="status"
+                          >
+                            {cepStatusText(cepStatus, t)}
+                          </span>
+                        )}
                       </label>
                       <label className="auth-span-4">
                         {t.street}

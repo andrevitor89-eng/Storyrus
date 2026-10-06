@@ -45,12 +45,14 @@ async function fillSignup(
   await user.type(screen.getByTestId("auth-password-confirm"), "password123");
   await user.selectOptions(screen.getByTestId("auth-country"), "BR");
   await user.type(screen.getByTestId("auth-postal-code"), "01310100");
-  await user.type(screen.getByTestId("auth-street"), "Av Paulista");
+  await waitFor(() => {
+    expect(screen.getByTestId("auth-street")).toHaveValue("Avenida Paulista");
+    expect(screen.getByTestId("auth-district")).toHaveValue("Bela Vista");
+    expect(screen.getByTestId("auth-city")).toHaveValue("São Paulo");
+    expect(screen.getByTestId("auth-state")).toHaveValue("SP");
+  });
   await user.type(screen.getByTestId("auth-number"), "1000");
   await user.type(screen.getByTestId("auth-complement"), "Sala 1");
-  await user.type(screen.getByTestId("auth-district"), "Bela Vista");
-  await user.type(screen.getByTestId("auth-city"), "Sao Paulo");
-  await user.selectOptions(screen.getByTestId("auth-state"), "SP");
   await user.click(screen.getByTestId("auth-accept-terms"));
 }
 
@@ -105,6 +107,35 @@ describe("Auth", () => {
     expect(state.country).toBe("US");
     expect(state.postalCode).toBe("90210");
     expect(state.stateUf).toBe("CA");
+  });
+
+  it("preenche endereço automaticamente a partir do CEP", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.type(screen.getByTestId("auth-postal-code"), "01310100");
+    expect(screen.getByTestId("auth-postal-code")).toHaveValue("01310-100");
+    expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/endereço preenchido/i);
+    expect(screen.getByTestId("auth-street")).toHaveValue("Avenida Paulista");
+    expect(screen.getByTestId("auth-district")).toHaveValue("Bela Vista");
+    expect(screen.getByTestId("auth-city")).toHaveValue("São Paulo");
+    expect(screen.getByTestId("auth-state")).toHaveValue("SP");
+  });
+
+  it("avisa quando o CEP não existe", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.type(screen.getByTestId("auth-postal-code"), "00000000");
+    expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/não encontrado/i);
+    expect(screen.getByTestId("auth-street")).toHaveValue("");
+  });
+
+  it("não busca CEP quando o país é EUA", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.selectOptions(screen.getByTestId("auth-country"), "US");
+    await user.type(screen.getByTestId("auth-postal-code"), "01310100");
+    expect(screen.queryByTestId("auth-cep-status")).not.toBeInTheDocument();
+    expect(screen.getByTestId("auth-street")).toHaveValue("");
   });
 
   it("adapta labels para México (colonia / estado)", async () => {

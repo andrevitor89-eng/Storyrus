@@ -118,6 +118,29 @@ function advance(job: Job, project: Project) {
 }
 
 export const handlers = [
+  http.get(/https?:\/\/viacep\.com\.br\/ws\/(\d{8})\/json\/?/, ({ request }) => {
+    const cep = request.url.match(/ws\/(\d{8})/)?.[1] ?? "";
+    if (cep === "00000000" || cep === "99999999") {
+      return HttpResponse.json({ erro: true });
+    }
+    if (cep === "01310100") {
+      return HttpResponse.json({
+        cep: "01310-100",
+        logradouro: "Avenida Paulista",
+        complemento: "",
+        bairro: "Bela Vista",
+        localidade: "São Paulo",
+        uf: "SP",
+      });
+    }
+    return HttpResponse.json({
+      cep: `${cep.slice(0, 5)}-${cep.slice(5)}`,
+      logradouro: "Rua Teste",
+      bairro: "Centro",
+      localidade: "Sao Paulo",
+      uf: "SP",
+    });
+  }),
   http.post("*/v1/auth/guest", async () => {
     if (state.credits === 0) state.credits = 10;
     state.isGuest = true;
