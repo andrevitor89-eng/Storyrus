@@ -161,7 +161,6 @@
   max-width: 100%;
   transform: none;
   transform-origin: center center;
-  filter: saturate(0.75) brightness(0.92);
 }
 .khead .theme-toggle {
   width: auto; height: 34px; min-height: 34px;
