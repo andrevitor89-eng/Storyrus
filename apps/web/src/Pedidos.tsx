@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { OwnerNav } from "./OwnerNav";
+import { useOwnerPageTitle } from "./useOwnerPageTitle";
 import type { OrderTicket } from "./types";
 import "./usage.css";
 
@@ -63,6 +64,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
 }
 
 export function Pedidos() {
+  useOwnerPageTitle("/pedidos");
   const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
   const [draft, setDraft] = useState("");
   const [orders, setOrders] = useState<OrderTicket[] | null>(null);

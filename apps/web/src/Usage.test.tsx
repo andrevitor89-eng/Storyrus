@@ -12,6 +12,11 @@ describe("Pedidos", () => {
     sessionStorage.clear();
   });
 
+  it("define o titulo da pagina", () => {
+    render(<Pedidos />);
+    expect(document.title).toBe("Pedidos — Story R Us");
+  });
+
   it("abre o pedido detalhado depois da senha", async () => {
     const user = userEvent.setup();
     render(<Pedidos />);
@@ -49,6 +54,7 @@ describe("Painel /usuarios", () => {
     );
     expect(await screen.findByRole("heading", { name: /^usuários$/i })).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
+    expect(document.title).toBe("Usuários — Story R Us");
   });
 
   it("pede senha e mostra contas depois do ok", async () => {
@@ -68,8 +74,10 @@ describe("Painel /usuarios", () => {
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
     expect(screen.getByText("Ana Souza")).toBeInTheDocument();
-    expect(screen.getByText("12")).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
+    expect(screen.getByText("12 créditos")).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
+    expect(screen.getByTestId("owner-user-placeholder")).toHaveTextContent(/clique numa conta na lista/i);
+    expect(screen.queryByTestId("owner-user-detail")).not.toBeInTheDocument();
     const nav = screen.getByTestId("owner-nav");
     expect(nav).toHaveTextContent("Gastos");
     expect(nav).toHaveTextContent("Pedidos");
@@ -84,6 +92,7 @@ describe("Painel /usuarios", () => {
     expect(await screen.findByText(/2 no total/i)).toBeInTheDocument();
 
     await user.click(screen.getByTestId("owner-user-open-u1"));
+    expect(screen.queryByTestId("owner-user-placeholder")).not.toBeInTheDocument();
     expect(await screen.findByTestId("owner-user-street")).toHaveValue("Avenida Paulista");
     expect(screen.getByTestId("owner-user-city")).toHaveValue("Sao Paulo");
     expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
@@ -96,9 +105,9 @@ describe("Painel /usuarios", () => {
 
     expect(await screen.findByTestId("owner-user-saved")).toHaveTextContent(/salvas/i);
     expect(screen.getByText("Ana Silva")).toBeInTheDocument();
-    expect(screen.getByText("40")).toBeInTheDocument();
+    expect(screen.getByText("40 créditos")).toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
-    expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
   });
 
   it("mantem a lista visivel se o detalhe da API ainda nao existir", async () => {
@@ -117,12 +126,38 @@ describe("Painel /usuarios", () => {
 
     await user.click(screen.getByTestId("owner-user-open-u1"));
 
-    expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
+    expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
     expect(screen.getByTestId("owner-user-full-name")).toHaveValue("Ana Souza");
     expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
     expect(screen.queryByText(/falha ao abrir/i)).not.toBeInTheDocument();
+  });
+
+  it("filtra a lista e exclui um usuario depois da confirmacao", async () => {
+    const user = userEvent.setup();
+    render(<Usuarios />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByText("ana@example.com")).toBeInTheDocument();
+
+    await user.type(screen.getByTestId("owner-user-search"), "bruno");
+    expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
+    expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
+
+    await user.clear(screen.getByTestId("owner-user-search"));
+    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("owner-user-open-u1"));
+    await user.click(screen.getByTestId("owner-user-delete"));
+    expect(screen.getByText(/não volta atrás/i)).toBeInTheDocument();
+    await user.click(screen.getByTestId("owner-user-delete-confirm"));
+
+    expect(await screen.findByText(/1 no total/i)).toBeInTheDocument();
+    expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
+    expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
+    expect(screen.queryByTestId("owner-user-detail")).not.toBeInTheDocument();
+    expect(screen.getByTestId("owner-user-placeholder")).toBeInTheDocument();
   });
 });
 
@@ -141,6 +176,7 @@ describe("Painel /gastos", () => {
       await screen.findByRole("heading", { name: /gastos da plataforma/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
+    expect(document.title).toBe("Gastos — Story R Us");
   });
 
   it("pede senha e mostra totais depois do ok", async () => {

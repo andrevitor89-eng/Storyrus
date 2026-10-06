@@ -6,7 +6,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
@@ -132,3 +132,19 @@ def update_user(
     db.commit()
     db.refresh(user)
     return _to_out(db, user)
+
+
+@router.delete("/{user_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_user(
+    user_id: uuid.UUID,
+    _: Annotated[None, Depends(require_owner_password)],
+    db: Annotated[Session, Depends(get_db)],
+) -> Response:
+    """Apaga a conta cadastrada e os projetos ligados a ela."""
+    user = _registered_user(db, user_id)
+    # Carrega filhos para o cascade ORM apagar projetos/vozes no SQLite.
+    _ = user.projects
+    _ = user.voices
+    db.delete(user)
+    db.commit()
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

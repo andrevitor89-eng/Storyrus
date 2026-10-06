@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { OwnerNav } from "./OwnerNav";
+import { useOwnerPageTitle } from "./useOwnerPageTitle";
 import type { UsageEvent, UsageReport } from "./types";
 import "./usage.css";
 
@@ -43,6 +44,7 @@ function when(iso: string): string {
 }
 
 export function Usage() {
+  useOwnerPageTitle("/gastos");
   const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
   const [draft, setDraft] = useState("");
   const [data, setData] = useState<UsageReport | null>(null);

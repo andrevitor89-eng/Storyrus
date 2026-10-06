@@ -154,7 +154,9 @@ class User(Base):
     email_verify_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
     password_reset_token_hash: Mapped[str | None] = mapped_column(String(128), nullable=True)
 
-    projects: Mapped[list[Project]] = relationship(back_populates="user")
+    projects: Mapped[list[Project]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     voices: Mapped[list[UserVoice]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )

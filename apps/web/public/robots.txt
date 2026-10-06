@@ -2,5 +2,8 @@ User-agent: *
 Allow: /
 Disallow: /exemplos/
 Disallow: /app
+Disallow: /gastos
+Disallow: /pedidos
+Disallow: /usuarios
 
 Sitemap: https://storyrus.ai/sitemap.xml
