@@ -214,7 +214,8 @@ export function Usuarios() {
         <div>
           <h1>Usuários</h1>
           <p className="muted">
-            Contas cadastradas (sem convidados). {total} no total. Abra para ver, editar ou excluir.
+            Contas cadastradas (sem convidados). {total} no total. Clique à esquerda para ver, editar
+            ou excluir.
           </p>
         </div>
         <OwnerNav current="usuarios" />
@@ -241,7 +242,7 @@ export function Usuarios() {
         <p className="muted">Nenhuma conta cadastrada ainda.</p>
       ) : (
         <div className="usage-user-layout">
-          <section className="usage-panel">
+          <section className="usage-panel usage-user-list-pane">
             <label className="usage-user-search">
               Buscar
               <input
@@ -258,7 +259,13 @@ export function Usuarios() {
               <ul className="usage-user-list" aria-label="Lista de usuários">
                 {visible.map((user) => (
                   <li key={user.id}>
-                    <article className={`usage-user-card${selectedId === user.id ? " is-on" : ""}`}>
+                    <button
+                      type="button"
+                      className={`usage-user-card${selectedId === user.id ? " is-on" : ""}`}
+                      aria-pressed={selectedId === user.id}
+                      onClick={() => void openUser(user.id)}
+                      data-testid={`owner-user-open-${user.id}`}
+                    >
                       <div className="usage-user-card-top">
                         <div>
                           <strong>{user.full_name || "Sem nome"}</strong>
@@ -276,19 +283,8 @@ export function Usuarios() {
                         <span>
                           {user.project_count} projeto{user.project_count === 1 ? "" : "s"}
                         </span>
-                        <span>Cadastro {when(user.created_at)}</span>
                       </p>
-                      <div className="usage-user-card-actions">
-                        <button
-                          type="button"
-                          className="usage-row-btn"
-                          onClick={() => void openUser(user.id)}
-                          data-testid={`owner-user-open-${user.id}`}
-                        >
-                          Ver / editar
-                        </button>
-                      </div>
-                    </article>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -472,7 +468,15 @@ export function Usuarios() {
                 </div>
               </form>
             </section>
-          ) : null}
+          ) : (
+            <section
+              className="usage-panel usage-user-detail usage-user-empty"
+              data-testid="owner-user-placeholder"
+            >
+              <h2>Dados da conta</h2>
+              <p className="muted">Clique numa conta à esquerda para ver e editar os dados.</p>
+            </section>
+          )}
         </div>
       )}
     </div>

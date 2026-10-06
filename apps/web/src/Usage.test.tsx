@@ -76,6 +76,8 @@ describe("Painel /usuarios", () => {
     expect(screen.getByText("Ana Souza")).toBeInTheDocument();
     expect(screen.getByText("12 créditos")).toBeInTheDocument();
     expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
+    expect(screen.getByTestId("owner-user-placeholder")).toHaveTextContent(/clique numa conta/i);
+    expect(screen.queryByTestId("owner-user-detail")).not.toBeInTheDocument();
     const nav = screen.getByTestId("owner-nav");
     expect(nav).toHaveTextContent("Gastos");
     expect(nav).toHaveTextContent("Pedidos");
@@ -90,6 +92,7 @@ describe("Painel /usuarios", () => {
     expect(await screen.findByText(/2 no total/i)).toBeInTheDocument();
 
     await user.click(screen.getByTestId("owner-user-open-u1"));
+    expect(screen.queryByTestId("owner-user-placeholder")).not.toBeInTheDocument();
     expect(await screen.findByTestId("owner-user-street")).toHaveValue("Avenida Paulista");
     expect(screen.getByTestId("owner-user-city")).toHaveValue("Sao Paulo");
     expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
@@ -154,6 +157,7 @@ describe("Painel /usuarios", () => {
     expect(screen.queryByText("ana@example.com")).not.toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
     expect(screen.queryByTestId("owner-user-detail")).not.toBeInTheDocument();
+    expect(screen.getByTestId("owner-user-placeholder")).toBeInTheDocument();
   });
 });
 
