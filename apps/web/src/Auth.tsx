@@ -535,7 +535,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
               <p className="auth-section-title auth-span-all">{t.accountSection}</p>
             )}
             {isSignup && (
-              <label>
+              <label className="auth-span-all">
                 {t.fullName}
                 <input
                   type="text"
@@ -604,7 +604,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                   className={`auth-address auth-span-all${isUsLayout ? " auth-address-us" : ""}`}
                   data-testid="auth-address"
                 >
-                  <label className="auth-span-2">
+                  <label className="auth-span-all">
                     {t.country}
                     <select
                       required
@@ -626,7 +626,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                   </label>
                   {isUsLayout ? (
                     <>
-                      <label className="auth-span-4">
+                      <label className="auth-span-all">
                         {t.street}
                         <input
                           type="text"
@@ -638,7 +638,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           data-testid="auth-street"
                         />
                       </label>
-                      <label className="auth-span-2">
+                      <label>
                         {region.numberLabel[lang]}
                         <input
                           type="text"
@@ -649,7 +649,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           data-testid="auth-number"
                         />
                       </label>
-                      <label className="auth-span-2">
+                      <label>
                         {t.city}
                         <input
                           type="text"
@@ -660,7 +660,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           data-testid="auth-city"
                         />
                       </label>
-                      <label className="auth-span-2">
+                      <label>
                         {region.stateLabel[lang]}
                         {region.stateOptions ? (
                           <select
@@ -690,7 +690,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           />
                         )}
                       </label>
-                      <label className="auth-span-2">
+                      <label>
                         {region.postalLabel[lang]}
                         <input
                           type="text"
@@ -707,7 +707,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                     </>
                   ) : (
                     <>
-                      <label className="auth-span-2">
+                      <label>
                         {region.postalLabel[lang]}
                         <input
                           type="text"
@@ -731,7 +731,18 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           </span>
                         )}
                       </label>
-                      <label className="auth-span-4">
+                      <label>
+                        {t.city}
+                        <input
+                          type="text"
+                          required
+                          autoComplete="address-level2"
+                          value={signup.city}
+                          onChange={(e) => setSignup({ ...signup, city: e.target.value })}
+                          data-testid="auth-city"
+                        />
+                      </label>
+                      <label className="auth-span-all">
                         {t.street}
                         <input
                           type="text"
@@ -777,17 +788,6 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           />
                         </label>
                       )}
-                      <label>
-                        {t.city}
-                        <input
-                          type="text"
-                          required
-                          autoComplete="address-level2"
-                          value={signup.city}
-                          onChange={(e) => setSignup({ ...signup, city: e.target.value })}
-                          data-testid="auth-city"
-                        />
-                      </label>
                       <label>
                         {region.stateLabel[lang]}
                         {region.stateOptions ? (
