@@ -89,13 +89,17 @@ export function Usuarios() {
   }
 
   async function openUser(id: string) {
+    const fromList = users?.find((item) => item.id === id) ?? null;
     setSelectedId(id);
     setSaved(false);
     setError(null);
+    if (fromList) setDetail(fromList);
     try {
       setDetail(await api.user(password, id));
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao abrir o usuário.");
+      if (!fromList) {
+        setError(err instanceof Error ? err.message : "Falha ao abrir o usuário.");
+      }
     }
   }
 
@@ -240,8 +244,8 @@ export function Usuarios() {
             </div>
           </section>
 
-          <section className="usage-panel usage-user-detail" data-testid="owner-user-detail">
-            {selectedId && detail ? (
+          {selectedId && detail ? (
+            <section className="usage-panel usage-user-detail" data-testid="owner-user-detail">
               <form onSubmit={(ev) => void saveUser(ev)}>
                 <h2>Dados da conta</h2>
                 <p className="muted">
@@ -378,10 +382,8 @@ export function Usuarios() {
                   )}
                 </div>
               </form>
-            ) : (
-              <p className="muted">Selecione um usuário para ver os dados e editar.</p>
-            )}
-          </section>
+            </section>
+          ) : null}
         </div>
       )}
     </div>

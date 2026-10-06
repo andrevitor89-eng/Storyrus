@@ -97,6 +97,32 @@ describe("Painel /usuarios", () => {
     expect(await screen.findByTestId("owner-user-saved")).toHaveTextContent(/salvas/i);
     expect(screen.getByText("Ana Silva")).toBeInTheDocument();
     expect(screen.getByText("40")).toBeInTheDocument();
+    expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
+    expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
+  });
+
+  it("mantem a lista visivel se o detalhe da API ainda nao existir", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server } = await import("./test/server");
+    server.use(
+      http.get("*/v1/users/:id", () =>
+        HttpResponse.json({ detail: "Not Found" }, { status: 404 }),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<Usuarios />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByText("ana@example.com")).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("owner-user-open-u1"));
+
+    expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
+    expect(screen.getByText("ana@example.com")).toBeInTheDocument();
+    expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
+    expect(screen.getByTestId("owner-user-full-name")).toHaveValue("Ana Souza");
+    expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
+    expect(screen.queryByText(/falha ao abrir/i)).not.toBeInTheDocument();
   });
 });
 

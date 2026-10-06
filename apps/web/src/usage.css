@@ -226,9 +226,14 @@
 }
 .usage-user-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr);
+  grid-template-columns: 1fr;
   gap: 1rem;
   align-items: start;
+  margin-top: 1.6rem;
+}
+.usage-user-layout .usage-panel {
+  margin-top: 0;
+  min-width: 0;
 }
 .usage-user-detail h2 {
   margin: 0 0 0.35rem;
