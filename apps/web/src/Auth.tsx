@@ -235,6 +235,29 @@ export function safeNextPath(raw: string | null | undefined): string {
   return raw;
 }
 
+/**
+ * Token de e-mail (confirmação / senha). Clientes quebram JWT longo;
+ * pega o valor até o próximo parâmetro conhecido e tira espaços.
+ */
+export function readAuthQueryToken(search: string): string {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const match = raw.match(/(?:^|&)token=([^&]*)/i);
+  const value = match?.[1] ?? "";
+  let token = value.replace(/\+/g, "%2B");
+  try {
+    token = decodeURIComponent(token);
+  } catch {
+    token = value;
+  }
+  return token.replace(/\s+/g, "").replace(/^<|>$/g, "");
+}
+
+export function readAuthQueryEmail(search: string): string {
+  const raw = search.startsWith("?") ? search.slice(1) : search;
+  const params = new URLSearchParams(raw);
+  return (params.get("email") || "").trim();
+}
+
 /** Encaminha para o cadastro preservando o destino do estúdio. */
 export function accountGateHref(nextPath: string): string {
   const next = safeNextPath(nextPath);

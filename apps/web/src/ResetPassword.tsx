@@ -1,8 +1,8 @@
 import { FormEvent, useMemo, useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { api } from "./api";
-import { safeNextPath } from "./Auth";
+import { readAuthQueryToken, safeNextPath } from "./Auth";
 import "./landing.css";
 
 /**
@@ -10,8 +10,9 @@ import "./landing.css";
  */
 export function ResetPassword() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [params] = useSearchParams();
-  const token = useMemo(() => (params.get("token") || "").trim(), [params]);
+  const token = useMemo(() => readAuthQueryToken(location.search), [location.search]);
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");

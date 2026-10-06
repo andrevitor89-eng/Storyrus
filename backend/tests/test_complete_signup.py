@@ -107,3 +107,48 @@ def test_resend_verify_unknown_email_is_ok(client):
     assert r.status_code == 200
     assert r.json()["ok"] is True
     assert r.json().get("verify_token") in (None, "")
+
+
+def test_login_accepts_email_case_difference(client):
+    signup_and_verify(client, "Case.User@Example.com")
+    login = client.post(
+        "/v1/auth/login",
+        json={"email": "CASE.USER@example.com", "password": "password123"},
+    )
+    assert login.status_code == 200, login.text
+
+
+def test_verify_accepts_token_wrapped_by_email_client(client):
+    r = client.post("/v1/auth/signup", json=signup_payload("wrap@x.com"))
+    token = r.json()["verify_token"]
+    assert token
+    assert "." not in token
+    wrapped = f"{token[:12]}\n {token[12:]}"
+    verified = client.post("/v1/auth/verify-email", json={"token": wrapped})
+    assert verified.status_code == 200, verified.text
+
+
+def test_old_jwt_verify_link_still_works(client):
+    from app.database import get_db
+    from app.main import app
+    from app.models import User
+    from app.security import create_email_verify_token, hash_password, hash_token
+
+    db = next(app.dependency_overrides[get_db]())
+    try:
+        user = User(
+            email="jwtlink@x.com",
+            password_hash=hash_password("password123"),
+            credits=10,
+        )
+        db.add(user)
+        db.flush()
+        raw = create_email_verify_token(str(user.id))
+        user.email_verify_token_hash = hash_token(raw)
+        db.add(user)
+        db.commit()
+    finally:
+        db.close()
+
+    verified = client.post("/v1/auth/verify-email", json={"token": raw})
+    assert verified.status_code == 200, verified.text

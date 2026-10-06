@@ -4,7 +4,7 @@ import uuid
 from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import rate_limit
@@ -28,7 +28,6 @@ from app.schemas import (
 )
 from app.security import (
     create_access_token,
-    create_email_verify_token,
     create_password_reset_token,
     decode_access_token_allow_expired,
     decode_email_verify_token,
@@ -36,6 +35,8 @@ from app.security import (
     hash_password,
     hash_token,
     is_guest_user,
+    new_email_verify_secret,
+    normalize_verify_token,
     verify_password,
 )
 from app.services.transactional_email import send_password_reset_email, send_verify_email
@@ -54,6 +55,24 @@ def _is_legacy_unverified(user: User) -> bool:
         and not user.email_verify_token_hash
         and not is_guest_user(email=user.email, password_hash=user.password_hash)
     )
+
+
+def _norm_email(value: str) -> str:
+    return str(value).strip().lower()
+
+
+def _user_by_email(db: Session, email: str) -> User | None:
+    return db.scalar(select(User).where(func.lower(User.email) == _norm_email(email)))
+
+
+def _issue_verify_email(user: User, db: Session) -> str:
+    raw_token = new_email_verify_secret()
+    user.email_verify_token_hash = hash_token(raw_token)
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+    send_verify_email(to_email=user.email, token=raw_token)
+    return raw_token
 
 
 def _user_out(user: User) -> UserOut:
@@ -98,10 +117,11 @@ def _apply_profile(user: User, body: SignupIn | ProfileUpdateIn) -> None:
 
 @router.post("/signup", response_model=SignupOut, status_code=status.HTTP_201_CREATED)
 def signup(body: SignupIn, db: Session = Depends(get_db)) -> SignupOut:
-    if db.scalar(select(User).where(User.email == body.email)):
+    email = _norm_email(str(body.email))
+    if _user_by_email(db, email):
         raise HTTPException(status.HTTP_409_CONFLICT, "E-mail ja cadastrado")
     user = User(
-        email=body.email,
+        email=email,
         password_hash=hash_password(body.password),
         credits=settings.signup_bonus_credits,
         terms_accepted_at=datetime.now(UTC),
@@ -110,39 +130,37 @@ def signup(body: SignupIn, db: Session = Depends(get_db)) -> SignupOut:
     _apply_profile(user, body)
     db.add(user)
     db.flush()
-    raw_token = create_email_verify_token(str(user.id))
-    user.email_verify_token_hash = hash_token(raw_token)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    send_verify_email(to_email=user.email, token=raw_token)
+    raw_token = _issue_verify_email(user, db)
     verify_token = raw_token if settings.app_env != "prod" else None
     return SignupOut(ok=True, message=_SIGNUP_MSG, verify_token=verify_token)
 
 
 @router.post("/verify-email", response_model=TokenOut)
 def verify_email(body: VerifyEmailIn, db: Session = Depends(get_db)) -> TokenOut:
-    payload = decode_email_verify_token(body.token)
-    if not payload:
+    token = normalize_verify_token(body.token)
+    if not token:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
-    try:
-        user_id = uuid.UUID(str(payload["sub"]))
-    except ValueError as exc:
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado") from exc
-    user = db.get(User, user_id)
+    digest = hash_token(token)
+    user = db.scalar(select(User).where(User.email_verify_token_hash == digest))
+    if user is None:
+        payload = decode_email_verify_token(token)
+        if payload and payload.get("sub"):
+            try:
+                user = db.get(User, uuid.UUID(str(payload["sub"])))
+            except ValueError:
+                user = None
     if user is None or is_guest_user(email=user.email, password_hash=user.password_hash):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
     expected = user.email_verify_token_hash
-    if not expected or expected != hash_token(body.token):
-        # Já verificado: permite reemitir sessão se o e-mail já está ok.
-        if user.email_verified_at is not None:
-            return TokenOut(access_token=create_access_token(str(user.id)))
-        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
-    user.email_verified_at = datetime.now(UTC)
-    user.email_verify_token_hash = None
-    db.add(user)
-    db.commit()
-    return TokenOut(access_token=create_access_token(str(user.id)))
+    if expected and expected == digest:
+        user.email_verified_at = datetime.now(UTC)
+        user.email_verify_token_hash = None
+        db.add(user)
+        db.commit()
+        return TokenOut(access_token=create_access_token(str(user.id)))
+    if user.email_verified_at is not None:
+        return TokenOut(access_token=create_access_token(str(user.id)))
+    raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
 
 
 @router.post("/guest", response_model=TokenOut, status_code=status.HTTP_201_CREATED)
@@ -207,27 +225,22 @@ def upgrade(
     """Converte convidado em conta real no mesmo `user_id` (exige verificar e-mail)."""
     if not is_guest_user(email=user.email, password_hash=user.password_hash):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Conta ja e permanente")
-    if db.scalar(select(User).where(User.email == body.email)):
+    if _user_by_email(db, str(body.email)):
         raise HTTPException(status.HTTP_409_CONFLICT, "E-mail ja cadastrado")
 
-    user.email = body.email
+    user.email = _norm_email(str(body.email))
     user.password_hash = hash_password(body.password)
     user.terms_accepted_at = datetime.now(UTC)
     user.email_verified_at = None
     _apply_profile(user, body)
-    raw_token = create_email_verify_token(str(user.id))
-    user.email_verify_token_hash = hash_token(raw_token)
-    db.add(user)
-    db.commit()
-    db.refresh(user)
-    send_verify_email(to_email=user.email, token=raw_token)
+    raw_token = _issue_verify_email(user, db)
     verify_token = raw_token if settings.app_env != "prod" else None
     return SignupOut(ok=True, message=_SIGNUP_MSG, verify_token=verify_token)
 
 
 @router.post("/login", response_model=TokenOut)
 def login(body: LoginIn, db: Session = Depends(get_db)) -> TokenOut:
-    user = db.scalar(select(User).where(User.email == body.email))
+    user = _user_by_email(db, str(body.email))
     if not user or not verify_password(body.password, user.password_hash):
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Credenciais invalidas")
     if is_guest_user(email=user.email, password_hash=user.password_hash):
@@ -252,19 +265,15 @@ def resend_verify(
     db: Session = Depends(get_db),
 ) -> SignupOut:
     """Reenvia o link de confirmação. Sempre OK genérico (não revela se o e-mail existe)."""
-    rate_limit.check_password_reset(request, email=str(body.email))
-    user = db.scalar(select(User).where(User.email == body.email))
+    rate_limit.check_password_reset(request, email=_norm_email(str(body.email)))
+    user = _user_by_email(db, str(body.email))
     verify_token: str | None = None
     if (
         user is not None
         and not is_guest_user(email=user.email, password_hash=user.password_hash)
         and user.email_verified_at is None
     ):
-        raw_token = create_email_verify_token(str(user.id))
-        user.email_verify_token_hash = hash_token(raw_token)
-        db.add(user)
-        db.commit()
-        send_verify_email(to_email=user.email, token=raw_token)
+        raw_token = _issue_verify_email(user, db)
         if settings.app_env != "prod":
             verify_token = raw_token
     return SignupOut(ok=True, message=_RESEND_MSG, verify_token=verify_token)
@@ -277,8 +286,8 @@ def forgot_password(
     db: Session = Depends(get_db),
 ) -> ForgotPasswordOut:
     """Sempre responde OK genérico (não revela se o e-mail existe)."""
-    rate_limit.check_password_reset(request, email=str(body.email))
-    user = db.scalar(select(User).where(User.email == body.email))
+    rate_limit.check_password_reset(request, email=_norm_email(str(body.email)))
+    user = _user_by_email(db, str(body.email))
     reset_token: str | None = None
     if user is not None and not is_guest_user(email=user.email, password_hash=user.password_hash):
         raw_token = create_password_reset_token(str(user.id))
@@ -304,7 +313,8 @@ def reset_password(body: ResetPasswordIn, db: Session = Depends(get_db)) -> Toke
     if user is None or is_guest_user(email=user.email, password_hash=user.password_hash):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
     expected = user.password_reset_token_hash
-    if not expected or expected != hash_token(body.token):
+    token = normalize_verify_token(body.token)
+    if not expected or expected != hash_token(token):
         raise HTTPException(status.HTTP_400_BAD_REQUEST, "Link invalido ou expirado")
     user.password_hash = hash_password(body.password)
     user.password_reset_token_hash = None

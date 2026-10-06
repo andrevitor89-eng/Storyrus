@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { Auth, accountGateHref, safeNextPath, studioEntryHref } from "./Auth";
+import { Auth, accountGateHref, readAuthQueryToken, safeNextPath, studioEntryHref } from "./Auth";
 import { VerifyEmail } from "./VerifyEmail";
 import { getToken, setAuthFetchTimeoutMsForTests, setToken } from "./api";
 import { state } from "./test/server";
@@ -65,6 +65,13 @@ describe("safeNextPath / accountGateHref", () => {
     );
     setToken("test-token");
     expect(studioEntryHref("/app?tema=pets")).toBe("/app?tema=pets");
+  });
+
+  it("readAuthQueryToken junta token quebrado e decodifica", () => {
+    expect(readAuthQueryToken("?token=abc.def.ghi")).toBe("abc.def.ghi");
+    expect(readAuthQueryToken("?token=abc%0Adef")).toBe("abcdef");
+    expect(readAuthQueryToken("?token=abc.def&email=a%40b.com")).toBe("abc.def");
+    expect(readAuthQueryToken("?token=" + encodeURIComponent("abc.def.ghi"))).toBe("abc.def.ghi");
   });
 });
 
@@ -130,6 +137,32 @@ describe("Auth", () => {
     expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
     expect(getToken()).toBe("test-token");
     expect(state.emailVerified).toBe(true);
+  });
+
+  it("mostra o e-mail do link e permite reenviar se o token falhar", async () => {
+    const user = userEvent.setup();
+    state.isGuest = false;
+    state.emailVerified = false;
+    state.pendingVerifyToken = "test-verify-token";
+    state.email = "verify@example.com";
+
+    render(
+      <MemoryRouter
+        initialEntries={[
+          `/verificar-email?token=wrong-token-value!!&email=${encodeURIComponent("Verify@Example.com")}`,
+        ]}
+      >
+        <Routes>
+          <Route path="/verificar-email" element={<VerifyEmail />} />
+          <Route path="/app" element={<div data-testid="studio-dest">studio</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByTestId("verify-email-error")).toBeInTheDocument();
+    expect(screen.getByTestId("verify-email-address")).toHaveTextContent("Verify@Example.com");
+    await user.click(screen.getByTestId("verify-email-resend"));
+    expect(await screen.findByTestId("verify-email-resend-hint")).toBeInTheDocument();
   });
 
   it("faz login e redireciona", async () => {

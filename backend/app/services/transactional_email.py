@@ -6,6 +6,7 @@ Sem RESEND_API_KEY o envio é no-op e o link fica nos logs (dev devolve o token)
 from __future__ import annotations
 
 import logging
+from urllib.parse import urlencode
 
 import httpx
 
@@ -14,14 +15,17 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-def build_verify_email_url(token: str) -> str:
+def build_verify_email_url(token: str, email: str | None = None) -> str:
     origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
-    return f"{origin}/verificar-email?token={token}"
+    query = {"token": token}
+    if email:
+        query["email"] = email.strip()
+    return f"{origin}/verificar-email?{urlencode(query)}"
 
 
 def build_password_reset_url(token: str) -> str:
     origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
-    return f"{origin}/redefinir-senha?token={token}"
+    return f"{origin}/redefinir-senha?{urlencode({'token': token})}"
 
 
 def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
@@ -61,7 +65,7 @@ def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
 
 
 def send_verify_email(*, to_email: str, token: str) -> bool:
-    url = build_verify_email_url(token)
+    url = build_verify_email_url(token, email=to_email)
     if not (settings.resend_api_key or "").strip():
         logger.info("verify_email_link to=%s url=%s", to_email, url)
     subject = "Confirme seu e-mail — Story R Us"
