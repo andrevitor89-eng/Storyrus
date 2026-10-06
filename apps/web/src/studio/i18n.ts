@@ -223,6 +223,7 @@ const THEMES_PT: Record<Theme, string> = {
   clima_estacoes: "Clima e Estações",
   biblico: "Bíblico",
   casamento: "Casamento",
+  recem_nascidos: "Recém-nascidos",
 };
 
 const THEMES_EN: Record<Theme, string> = {
@@ -256,6 +257,7 @@ const THEMES_EN: Record<Theme, string> = {
   clima_estacoes: "Weather and Seasons",
   biblico: "Biblical",
   casamento: "Wedding",
+  recem_nascidos: "Newborns",
 };
 
 const THEMES_ES: Record<Theme, string> = {
@@ -289,6 +291,7 @@ const THEMES_ES: Record<Theme, string> = {
   clima_estacoes: "Clima y Estaciones",
   biblico: "Bíblico",
   casamento: "Boda",
+  recem_nascidos: "Recién Nacidos",
 };
 
 const pt: StudioCopy = {

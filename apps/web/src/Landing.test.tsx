@@ -327,7 +327,8 @@ describe("Landing — catálogo", () => {
     expect(studioTarget(personalize[1].getAttribute("href"))).toContain("tema=superhero");
     expect(studioTarget(personalize[3].getAttribute("href"))).toContain("tema=pets");
     const pai = personalize.find((link) => studioTarget(link.getAttribute("href")).includes("Meu Pai, Meu Herói"));
-    expect(studioTarget(pai?.getAttribute("href"))).toContain("tema=fathers_day");
+    expect(pai).toBeTruthy();
+    expect(studioTarget(pai ? pai.getAttribute("href") : null)).toContain("tema=fathers_day");
   });
 });
 
@@ -617,7 +618,17 @@ describe("Landing — CTAs e links", () => {
     expect(within(feats).queryByRole("link", { name: /emilia/i })).not.toBeInTheDocument();
 
     const youLinks = [...panel.querySelectorAll(".kcat-group")[1].querySelectorAll(".kcat-subs a")].map((link) => link.textContent);
+    expect(youLinks).toContain("Recém-nascidos");
+    expect(youLinks).toContain("Vovó e Eu");
+    expect(youLinks).not.toContain("Vovó e Vovô");
     expect(youLinks[youLinks.indexOf("Pets") - 1]).toBe("Casamento");
+    const recem = within(panel).getByRole("link", { name: /^recém-nascidos$/i });
+    expect(studioTarget(recem.getAttribute("href"))).toContain("tema=recem_nascidos");
+    const vovo = within(panel).getByRole("link", { name: /^vovó e eu$/i });
+    expect(studioTarget(vovo.getAttribute("href"))).toContain("Amor de Bisavó");
+    fireEvent.mouseEnter(vovo);
+    expect(within(feats).getByRole("link", { name: /amor de bisavó/i })).toBeInTheDocument();
+    expect(within(feats).queryByRole("link", { name: /amor de avô/i })).not.toBeInTheDocument();
     const casamento = within(panel).getByRole("link", { name: /^casamento$/i });
     expect(studioTarget(casamento.getAttribute("href"))).toContain("tema=casamento");
     const pets = within(panel).getByRole("link", { name: /^pets$/i });

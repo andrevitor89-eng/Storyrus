@@ -34,7 +34,8 @@ export type Theme =
   | "transporte_ajudantes"
   | "clima_estacoes"
   | "biblico"
-  | "casamento";
+  | "casamento"
+  | "recem_nascidos";
 
 // História pronta do catálogo (template traduzido, personalizado com o nome).
 export interface StoryTemplate {

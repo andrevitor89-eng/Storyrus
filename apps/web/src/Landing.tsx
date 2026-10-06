@@ -272,7 +272,7 @@ const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
-  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "casamento", "pets"],
+  "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "recem_nascidos", "casamento", "pets"],
   ocasioes: ["christmas", "birthday"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
@@ -305,6 +305,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=grandparents_love" },
       { href: "/app?tema=family_love" },
       { href: "/app" },
+      { href: "/app?tema=recem_nascidos" },
       { href: "/app?tema=casamento" },
       { href: "/app?tema=pets" },
     ],
@@ -376,7 +377,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   sport: [0, 4],
   mothers_day: [5, 6],
   fathers_day: [21, 14],
-  grandparents_love: [8, 30],
+  grandparents_love: [8],
   dia_do_idoso: [8, 30],
   family_love: [7, 29],
   pets: [11, 12, 23, 28],
@@ -634,8 +635,8 @@ const I18N = {
       },
       {
         name: "Você e Eu",
-        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Vovô", "Nossa Família", "Irmãos e Primos", "Casamento", "Pets"],
-        feats: ["Mamãe e Eu", "Vovó e Vovô", "Nossa Família", "O Amor de Mãe"],
+        subs: ["Mamãe e Eu", "Papai e Eu", "Vovó e Eu", "Nossa Família", "Irmãos e Primos", "Recém-nascidos", "Casamento", "Pets"],
+        feats: ["Mamãe e Eu", "Vovó e Eu", "Nossa Família", "O Amor de Mãe"],
       },
       {
         name: "Ocasiões Especiais",
@@ -838,8 +839,8 @@ const I18N = {
       },
       {
         name: "You and Me",
-        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Grandpa", "Our Family", "Siblings and Cousins", "Wedding", "Pets"],
-        feats: ["Mommy and Me", "Grandma and Grandpa", "Our Family", "A Mother's Love"],
+        subs: ["Mommy and Me", "Daddy and Me", "Grandma and Me", "Our Family", "Siblings and Cousins", "Newborns", "Wedding", "Pets"],
+        feats: ["Mommy and Me", "Grandma and Me", "Our Family", "A Mother's Love"],
       },
       {
         name: "Special Occasions",
@@ -1042,8 +1043,8 @@ const I18N = {
       },
       {
         name: "Tú y Yo",
-        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Abuelo", "Nuestra Familia", "Hermanos y Primos", "Boda", "Mascotas"],
-        feats: ["Mamá y Yo", "Abuela y Abuelo", "Nuestra Familia", "El Amor de Mamá"],
+        subs: ["Mamá y Yo", "Papá y Yo", "Abuela y Yo", "Nuestra Familia", "Hermanos y Primos", "Recién Nacidos", "Boda", "Mascotas"],
+        feats: ["Mamá y Yo", "Abuela y Yo", "Nuestra Familia", "El Amor de Mamá"],
       },
       {
         name: "Ocasiones Especiales",
@@ -1740,7 +1741,7 @@ export function catalogSections(lang: Lang) {
         const lead = CATALOG_LEAD.indexOf(i);
         return lead === -1 ? CATALOG_LEAD.length + i : lead;
       };
-      return rank(a.catalogI) - rank(b.catalogI);
+      return rank(a.catalogI ?? Number.MAX_SAFE_INTEGER) - rank(b.catalogI ?? Number.MAX_SAFE_INTEGER);
     }),
   }));
 }
