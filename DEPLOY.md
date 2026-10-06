@@ -42,7 +42,7 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `CREDIT_GRANT_SECRET` — só a API; vazio = `POST /v1/credits/grant` recusa. **Nunca** no frontend
    - `OPIK_API_KEY` / `OPIK_WORKSPACE` / `OPIK_PROJECT_NAME` — tracing Opik (opcional; sem chave o wrapper é no-op). Em prod a API e o worker chamam `opik.configure` no boot; traces de job carregam `request_id` + `job_id` para correlacionar com os logs JSON.
    - `LOG_FORMAT=json` — Blueprint já define; logs estruturados com `request_id` / `job_id` (STO-29). O header `X-Request-ID` é ecoado pela API e persistido no job.
-   - `USAGE_DASHBOARD_PASSWORD` — painel `/gastos` (opcional)
+   - `USAGE_DASHBOARD_PASSWORD` — senha dos painéis do dono `/gastos`, `/pedidos` e `/usuarios` (opcional; sem ela os painéis respondem 503)
    - `USAGE_DASHBOARD_PASSWORD_PREVIOUS` — senha antiga durante rotação (opcional)
    - `USAGE_LOCKOUT_MAX_ATTEMPTS` / `USAGE_LOCKOUT_WINDOW_S` — trava após falhas (default 5 / 900s)
    - `REDIS_URL` — opcional; sem Redis o worker faz polling do Postgres

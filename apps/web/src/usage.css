@@ -16,7 +16,33 @@
   font-size: 1.45rem;
   color: var(--navy);
 }
-.usage-head .link { margin-left: auto; }
+.usage-head .link { margin-left: 0; }
+.usage-owner-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-left: auto;
+}
+.usage-owner-nav a {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--navy);
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--line);
+}
+.usage-owner-nav a:hover {
+  color: #ef8f4b;
+}
+.usage-owner-nav a.is-on {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
 .usage-cards {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

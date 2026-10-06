@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
+import { OwnerNav } from "./OwnerNav";
 import type { UsageEvent, UsageReport } from "./types";
 import "./usage.css";
 
@@ -129,6 +130,7 @@ export function Usage() {
           <h1>Gastos da plataforma</h1>
           <p className="muted">Atualiza a cada 20s · fuso de Brasília · extrato de setembro/2026</p>
         </div>
+        <OwnerNav current="gastos" />
         <button
           className="link"
           type="button"

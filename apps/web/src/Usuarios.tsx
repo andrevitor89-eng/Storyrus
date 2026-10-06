@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
+import { OwnerNav } from "./OwnerNav";
 import type { OwnerUser } from "./types";
 import "./usage.css";
 
@@ -65,7 +66,7 @@ export function Usuarios() {
         <div className="usage-gate card auth">
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Usuários</h1>
-          <p className="muted">Página privada. Use a mesma senha do painel de gastos.</p>
+          <p className="muted">Página privada do dono. Use a mesma senha de Gastos e Pedidos.</p>
           <form onSubmit={onSubmit}>
             <label>
               Senha
@@ -96,6 +97,7 @@ export function Usuarios() {
             Contas cadastradas (sem convidados). {total} no total.
           </p>
         </div>
+        <OwnerNav current="usuarios" />
         <button
           className="link"
           type="button"

@@ -70,6 +70,10 @@ describe("Painel /usuarios", () => {
     expect(screen.getByText("Ana Souza")).toBeInTheDocument();
     expect(screen.getByText("12")).toBeInTheDocument();
     expect(screen.getByRole("table", { name: /lista de usuários/i })).toBeInTheDocument();
+    const nav = screen.getByTestId("owner-nav");
+    expect(nav).toHaveTextContent("Gastos");
+    expect(nav).toHaveTextContent("Pedidos");
+    expect(nav.querySelector('a[aria-current="page"]')).toHaveAttribute("href", "/usuarios");
   });
 });
 

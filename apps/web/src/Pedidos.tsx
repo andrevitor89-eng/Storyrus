@@ -1,6 +1,7 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
+import { OwnerNav } from "./OwnerNav";
 import type { OrderTicket } from "./types";
 import "./usage.css";
 
@@ -148,6 +149,7 @@ export function Pedidos() {
           <h1>Pedidos</h1>
           <p className="muted">Cada livro enviado com foto. Abra um item para ver o pedido inteiro.</p>
         </div>
+        <OwnerNav current="pedidos" />
         <button
           className="link"
           type="button"
