@@ -483,6 +483,18 @@ export const handlers = [
     Object.assign(found, body);
     return HttpResponse.json(found);
   }),
+  http.delete("*/v1/users/:id", ({ params, request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    if (password !== "segredo") {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    const idx = state.ownerUsers.findIndex((item) => item.id === String(params.id));
+    if (idx < 0) {
+      return HttpResponse.json({ detail: "Usuario nao encontrado" }, { status: 404 });
+    }
+    state.ownerUsers.splice(idx, 1);
+    return new HttpResponse(null, { status: 204 });
+  }),
   http.get("*/v1/users", ({ request }) => {
     const password = request.headers.get("X-Usage-Password");
     if (password !== "segredo") {

@@ -1,4 +1,4 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { OwnerNav } from "./OwnerNav";
@@ -10,6 +10,14 @@ const STORAGE_KEY = "storyrus.usage.password";
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
   return new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
+}
+
+function matches(user: OwnerUser, query: string): boolean {
+  const hay = [user.full_name, user.email, user.phone, user.city]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return hay.includes(query.trim().toLowerCase());
 }
 
 const EMPTY: OwnerUser = {
@@ -34,6 +42,7 @@ const EMPTY: OwnerUser = {
 export function Usuarios() {
   const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
   const [draft, setDraft] = useState("");
+  const [query, setQuery] = useState("");
   const [users, setUsers] = useState<OwnerUser[] | null>(null);
   const [total, setTotal] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +50,14 @@ export function Usuarios() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<OwnerUser | null>(null);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const visible = useMemo(
+    () => (users ?? []).filter((user) => (query.trim() ? matches(user, query) : true)),
+    [users, query],
+  );
 
   const load = useCallback(async (secret: string) => {
     setLoading(true);
@@ -92,6 +108,7 @@ export function Usuarios() {
     const fromList = users?.find((item) => item.id === id) ?? null;
     setSelectedId(id);
     setSaved(false);
+    setConfirmDelete(false);
     setError(null);
     if (fromList) setDetail(fromList);
     try {
@@ -140,6 +157,25 @@ export function Usuarios() {
     }
   }
 
+  async function deleteUser() {
+    if (!detail) return;
+    setDeleting(true);
+    setError(null);
+    try {
+      await api.deleteUser(password, detail.id);
+      setUsers((list) => list?.filter((item) => item.id !== detail.id) ?? null);
+      setTotal((n) => Math.max(0, n - 1));
+      setSelectedId(null);
+      setDetail(null);
+      setConfirmDelete(false);
+      setSaved(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Falha ao excluir o usuário.");
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   if (!password || (error && !users)) {
     return (
       <div className="usage">
@@ -176,7 +212,7 @@ export function Usuarios() {
         <div>
           <h1>Usuários</h1>
           <p className="muted">
-            Contas cadastradas (sem convidados). {total} no total. Clique para ver e editar.
+            Contas cadastradas (sem convidados). {total} no total. Abra para ver, editar ou excluir.
           </p>
         </div>
         <OwnerNav current="usuarios" />
@@ -190,6 +226,7 @@ export function Usuarios() {
             setDetail(null);
             setSelectedId(null);
             setDraft("");
+            setQuery("");
           }}
         >
           Sair
@@ -203,31 +240,43 @@ export function Usuarios() {
       ) : (
         <div className="usage-user-layout">
           <section className="usage-panel">
-            <div className="usage-table-wrap">
-              <table aria-label="Lista de usuários">
-                <thead>
-                  <tr>
-                    <th>Nome</th>
-                    <th>E-mail</th>
-                    <th>Telefone</th>
-                    <th>Cadastro</th>
-                    <th>Verificado</th>
-                    <th>Créditos</th>
-                    <th>Projetos</th>
-                    <th></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {(users ?? []).map((user) => (
-                    <tr key={user.id} className={selectedId === user.id ? "is-on" : undefined}>
-                      <td>{user.full_name || "—"}</td>
-                      <td>{user.email}</td>
-                      <td>{user.phone || "—"}</td>
-                      <td>{when(user.created_at)}</td>
-                      <td>{user.email_verified ? "Sim" : "Não"}</td>
-                      <td>{user.credits}</td>
-                      <td>{user.project_count}</td>
-                      <td>
+            <label className="usage-user-search">
+              Buscar
+              <input
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Nome, e-mail, telefone ou cidade"
+                data-testid="owner-user-search"
+              />
+            </label>
+            {visible.length === 0 ? (
+              <p className="muted">Nenhuma conta com esse filtro.</p>
+            ) : (
+              <ul className="usage-user-list" aria-label="Lista de usuários">
+                {visible.map((user) => (
+                  <li key={user.id}>
+                    <article className={`usage-user-card${selectedId === user.id ? " is-on" : ""}`}>
+                      <div className="usage-user-card-top">
+                        <div>
+                          <strong>{user.full_name || "Sem nome"}</strong>
+                          <p className="usage-user-email">{user.email}</p>
+                        </div>
+                        <span
+                          className={`usage-badge${user.email_verified ? " is-ok" : ""}`}
+                        >
+                          {user.email_verified ? "Verificado" : "Não verificado"}
+                        </span>
+                      </div>
+                      <p className="usage-user-meta">
+                        <span>{user.phone || "Sem telefone"}</span>
+                        <span>{user.credits} crédito{user.credits === 1 ? "" : "s"}</span>
+                        <span>
+                          {user.project_count} projeto{user.project_count === 1 ? "" : "s"}
+                        </span>
+                        <span>Cadastro {when(user.created_at)}</span>
+                      </p>
+                      <div className="usage-user-card-actions">
                         <button
                           type="button"
                           className="usage-row-btn"
@@ -236,12 +285,12 @@ export function Usuarios() {
                         >
                           Ver / editar
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                      </div>
+                    </article>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           {selectedId && detail ? (
@@ -254,6 +303,7 @@ export function Usuarios() {
                   {detail.terms_accepted_at ? ` · termos em ${when(detail.terms_accepted_at)}` : ""}
                 </p>
                 <div className="usage-user-form">
+                  <p className="usage-user-section usage-span-2">Contato</p>
                   <label>
                     Nome
                     <input
@@ -299,6 +349,7 @@ export function Usuarios() {
                     />
                     E-mail verificado
                   </label>
+                  <p className="usage-user-section usage-span-2">Endereço</p>
                   <label>
                     CEP / ZIP
                     <input
@@ -361,7 +412,7 @@ export function Usuarios() {
                   </label>
                 </div>
                 <div className="usage-user-actions">
-                  <button type="submit" disabled={saving} data-testid="owner-user-save">
+                  <button type="submit" disabled={saving || deleting} data-testid="owner-user-save">
                     {saving ? "Salvando…" : "Salvar"}
                   </button>
                   <button
@@ -371,6 +422,7 @@ export function Usuarios() {
                       setSelectedId(null);
                       setDetail(null);
                       setSaved(false);
+                      setConfirmDelete(false);
                     }}
                   >
                     Fechar
@@ -379,6 +431,41 @@ export function Usuarios() {
                     <span className="muted" data-testid="owner-user-saved">
                       Alterações salvas.
                     </span>
+                  )}
+                </div>
+                <div className="usage-user-danger">
+                  {confirmDelete ? (
+                    <>
+                      <p className="error">
+                        Apaga a conta {detail.email} e os projetos dela. Isso não volta atrás.
+                      </p>
+                      <button
+                        type="button"
+                        className="usage-btn-danger"
+                        disabled={deleting}
+                        onClick={() => void deleteUser()}
+                        data-testid="owner-user-delete-confirm"
+                      >
+                        {deleting ? "Excluindo…" : "Confirmar exclusão"}
+                      </button>
+                      <button
+                        type="button"
+                        className="link"
+                        disabled={deleting}
+                        onClick={() => setConfirmDelete(false)}
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="usage-btn-danger"
+                      onClick={() => setConfirmDelete(true)}
+                      data-testid="owner-user-delete"
+                    >
+                      Excluir usuário
+                    </button>
                   )}
                 </div>
               </form>

@@ -765,6 +765,22 @@ export const api = {
     }
     return (await resp.json()) as OwnerUser;
   },
+  async deleteUser(password: string, id: string) {
+    const headers = new Headers();
+    headers.set("X-Usage-Password", password);
+    const resp = await fetch(`${BASE}/v1/users/${id}`, { method: "DELETE", headers });
+    if (!resp.ok) {
+      let detail = resp.statusText;
+      try {
+        detail = (await resp.json()).detail ?? detail;
+      } catch {
+        /* corpo vazio */
+      }
+      const err = new Error(`${resp.status}: ${detail}`) as Error & { status?: number };
+      err.status = resp.status;
+      throw err;
+    }
+  },
   async downloadPrintPackage(password: string, id: string) {
     const headers = new Headers();
     headers.set("X-Usage-Password", password);
