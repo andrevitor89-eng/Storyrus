@@ -2,6 +2,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { OwnerNav } from "./OwnerNav";
+import { useOwnerPageTitle } from "./useOwnerPageTitle";
 import type { OwnerUser } from "./types";
 import "./usage.css";
 
@@ -40,6 +41,7 @@ const EMPTY: OwnerUser = {
 };
 
 export function Usuarios() {
+  useOwnerPageTitle("/usuarios");
   const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");

@@ -12,6 +12,11 @@ describe("Pedidos", () => {
     sessionStorage.clear();
   });
 
+  it("define o titulo da pagina", () => {
+    render(<Pedidos />);
+    expect(document.title).toBe("Pedidos — Story R Us");
+  });
+
   it("abre o pedido detalhado depois da senha", async () => {
     const user = userEvent.setup();
     render(<Pedidos />);
@@ -49,6 +54,7 @@ describe("Painel /usuarios", () => {
     );
     expect(await screen.findByRole("heading", { name: /^usuários$/i })).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
+    expect(document.title).toBe("Usuários — Story R Us");
   });
 
   it("pede senha e mostra contas depois do ok", async () => {
@@ -166,6 +172,7 @@ describe("Painel /gastos", () => {
       await screen.findByRole("heading", { name: /gastos da plataforma/i }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
+    expect(document.title).toBe("Gastos — Story R Us");
   });
 
   it("pede senha e mostra totais depois do ok", async () => {
