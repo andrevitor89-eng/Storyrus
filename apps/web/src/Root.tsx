@@ -35,6 +35,9 @@ const Pedidos = lazy(() =>
 const Usuarios = lazy(() =>
   import("./Usuarios").then((m) => ({ default: m.Usuarios })),
 );
+const Conta = lazy(() =>
+  import("./Conta").then((m) => ({ default: m.Conta })),
+);
 
 /**
  * Roteamento do site:
@@ -49,6 +52,7 @@ const Usuarios = lazy(() =>
  *   /esqueci-senha → Pedir link de redefinição
  *   /redefinir-senha → Nova senha (token)
  *   /app           → Estúdio (conta obrigatória)
+ *   /conta         → Perfil do usuário (editar dados)
  *   /gastos        → Painel privado de custos USD
  *   /pedidos       → Painel privado de pedidos
  *   /usuarios      → Painel privado de contas cadastradas
@@ -75,6 +79,7 @@ export function AppRoutes() {
         <Route path="/esqueci-senha" element={<ForgotPassword />} />
         <Route path="/redefinir-senha" element={<ResetPassword />} />
         <Route path="/app" element={<App />} />
+        <Route path="/conta" element={<Conta />} />
         <Route path="/gastos" element={<Usage />} />
         <Route path="/pedidos" element={<Pedidos />} />
         <Route path="/usuarios" element={<Usuarios />} />

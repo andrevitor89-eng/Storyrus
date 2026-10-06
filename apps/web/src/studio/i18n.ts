@@ -7,6 +7,7 @@ export type StudioCopy = {
   themeToLight: string;
   themeToDark: string;
   credits: string;
+  account: string;
   logout: string;
   upgradeOpen: string;
   upgradeTitle: string;
@@ -300,6 +301,7 @@ const pt: StudioCopy = {
   themeToLight: "Claro",
   themeToDark: "Escuro",
   credits: "Créditos",
+  account: "Minha conta",
   logout: "Sair",
   upgradeOpen: "Criar conta",
   upgradeTitle: "Salvar esta sessão",
@@ -504,6 +506,7 @@ const en: StudioCopy = {
   themeToLight: "Light",
   themeToDark: "Dark",
   credits: "Credits",
+  account: "My account",
   logout: "Log out",
   upgradeOpen: "Create account",
   upgradeTitle: "Save this session",
@@ -708,6 +711,7 @@ const es: StudioCopy = {
   themeToLight: "Claro",
   themeToDark: "Oscuro",
   credits: "Créditos",
+  account: "Mi cuenta",
   logout: "Salir",
   upgradeOpen: "Crear cuenta",
   upgradeTitle: "Guardar esta sesión",

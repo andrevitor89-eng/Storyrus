@@ -637,9 +637,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     </>
                   )}
                   {onLogout && (
-                    <button type="button" className="kutil link" onClick={onLogout} data-testid="studio-logout">
-                      {t.logout}
-                    </button>
+                    <>
+                      <a className="kutil" href="/conta" data-testid="studio-account">
+                        {t.account}
+                      </a>
+                      <button type="button" className="kutil link" onClick={onLogout} data-testid="studio-logout">
+                        {t.logout}
+                      </button>
+                    </>
                   )}
                 </div>
               </div>
