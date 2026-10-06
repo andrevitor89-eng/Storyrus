@@ -1,8 +1,8 @@
-"""Acesso aos paineis do dono (gastos, pedidos, usuarios).
+"""Acesso aos paineis admin (gastos, pedidos, usuarios).
 
-Aceita a senha compartilhada (`X-Usage-Password`) ou um JWT de e-mail listado
-em `OWNER_EMAILS` — assim o dono logado no estúdio entra sem digitar a senha
-do painel de novo.
+Aceita JWT de conta com `users.is_admin` (ou e-mail em `OWNER_EMAILS`, que
+promove `is_admin` no primeiro acesso). A senha compartilhada
+(`X-Usage-Password`) só entra se `OWNER_PASSWORD_FALLBACK` estiver ligado.
 """
 
 from __future__ import annotations
@@ -62,11 +62,22 @@ def is_owner_email(email: str | None) -> bool:
     return email.strip().lower() in owner_emails()
 
 
-def _owner_from_bearer(
+def user_is_admin(user: User) -> bool:
+    """Conta verificada com papel de admin, ou e-mail listado em OWNER_EMAILS."""
+    if is_guest_user(email=user.email, password_hash=user.password_hash):
+        return False
+    if user.email_verified_at is None:
+        return False
+    if user.is_admin:
+        return True
+    return is_owner_email(user.email)
+
+
+def _admin_from_bearer(
     creds: HTTPAuthorizationCredentials | None,
     db: Session,
 ) -> User | None:
-    if creds is None or not owner_emails():
+    if creds is None:
         return None
     payload = decode_access_token(creds.credentials)
     if not payload or "sub" not in payload:
@@ -76,14 +87,12 @@ def _owner_from_bearer(
     except ValueError:
         return None
     user = db.get(User, user_id)
-    if user is None:
+    if user is None or not user_is_admin(user):
         return None
-    if is_guest_user(email=user.email, password_hash=user.password_hash):
-        return None
-    if user.email_verified_at is None:
-        return None
-    if not is_owner_email(user.email):
-        return None
+    if not user.is_admin and is_owner_email(user.email):
+        user.is_admin = True
+        db.add(user)
+        db.commit()
     return user
 
 
@@ -95,21 +104,26 @@ def require_owner_password(
 ) -> None:
     accepted = accepted_passwords()
     owners = owner_emails()
-    if not accepted and not owners:
-        raise HTTPException(
-            status.HTTP_503_SERVICE_UNAVAILABLE,
-            "Painel de gastos nao configurado",
-        )
+    fallback = bool(settings.owner_password_fallback)
 
     ip = rate_limit.client_ip(request)
     lock_key = f"usage:fail:{ip}"
     max_attempts = int(settings.usage_lockout_max_attempts)
     window = float(settings.usage_lockout_window_s)
 
-    # Sessão do dono (JWT) — não conta para lockout de senha.
-    if _owner_from_bearer(creds, db) is not None:
+    # Conta admin (JWT) — não conta para lockout de senha.
+    if _admin_from_bearer(creds, db) is not None:
         rate_limit.clear_key(lock_key)
         return
+
+    if not fallback:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Acesso restrito a administradores")
+
+    if not accepted and not owners:
+        raise HTTPException(
+            status.HTTP_503_SERVICE_UNAVAILABLE,
+            "Painel de gastos nao configurado",
+        )
 
     provided = (x_usage_password or "").strip()
     # Senha correta sempre libera, mesmo durante lockout (evita trancar o dono).

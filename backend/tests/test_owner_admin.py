@@ -1,0 +1,86 @@
+"""Papel is_admin nos painéis e fallback da senha compartilhada."""
+
+from datetime import UTC, datetime
+
+from app.config import settings
+from app.database import get_db
+from app.models import User
+
+
+def _is_admin(client, email: str) -> bool:
+    gen = client.app.dependency_overrides[get_db]()
+    db = next(gen)
+    try:
+        user = db.query(User).filter(User.email == email).one()
+        return bool(user.is_admin)
+    finally:
+        db.close()
+
+
+def _set_admin(client, email: str, *, admin: bool) -> None:
+    gen = client.app.dependency_overrides[get_db]()
+    db = next(gen)
+    try:
+        user = db.query(User).filter(User.email == email).one()
+        user.is_admin = admin
+        if user.email_verified_at is None:
+            user.email_verified_at = datetime.now(UTC)
+        db.add(user)
+        db.commit()
+    finally:
+        db.close()
+
+
+def test_is_admin_opens_usage_without_password(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", None)
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "")
+    monkeypatch.setattr(settings, "owner_password_fallback", False)
+    _set_admin(auth_client, "auth@example.com", admin=True)
+
+    ok = auth_client.get("/v1/usage")
+    assert ok.status_code == 200, ok.text
+    me = auth_client.get("/v1/auth/me")
+    assert me.status_code == 200
+    assert me.json()["is_admin"] is True
+    assert me.json()["is_owner"] is True
+
+
+def test_owner_email_promotes_is_admin(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", None)
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "auth@example.com")
+    monkeypatch.setattr(settings, "owner_password_fallback", False)
+    _set_admin(auth_client, "auth@example.com", admin=False)
+
+    ok = auth_client.get("/v1/usage")
+    assert ok.status_code == 200, ok.text
+    assert _is_admin(auth_client, "auth@example.com") is True
+
+
+def test_password_rejected_when_fallback_off(client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "")
+    monkeypatch.setattr(settings, "owner_password_fallback", False)
+    denied = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert denied.status_code == 401
+    assert "administrador" in denied.json()["detail"].lower()
+
+
+def test_non_admin_jwt_rejected_when_fallback_off(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "")
+    monkeypatch.setattr(settings, "owner_password_fallback", False)
+    denied = auth_client.get("/v1/usage")
+    assert denied.status_code == 401
+
+
+def test_password_still_works_when_fallback_on(client, monkeypatch):
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "")
+    monkeypatch.setattr(settings, "owner_password_fallback", True)
+    ok = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert ok.status_code == 200, ok.text
