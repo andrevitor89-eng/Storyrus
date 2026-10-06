@@ -100,10 +100,13 @@ class Settings(BaseSettings):
     cost_video_credits: int = 5
     cost_narrated_video_credits: int = 8
 
-    # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503).
+    # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503),
+    # a menos que OWNER_EMAILS esteja configurado (dono entra com a sessão).
     usage_dashboard_password: str | None = None
     # Senha anterior aceita durante rotacao (grace). Vazio = so a atual.
     usage_dashboard_password_previous: str | None = None
+    # E-mails do dono (csv) que acessam /gastos /pedidos /usuarios com o JWT.
+    owner_emails: str = ""
     # Lockout apos N senhas erradas por IP (0 = desliga). Janela em segundos.
     usage_lockout_max_attempts: int = 5
     usage_lockout_window_s: int = 900

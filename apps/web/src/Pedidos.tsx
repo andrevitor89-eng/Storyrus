@@ -1,12 +1,19 @@
 import { FormEvent, useCallback, useEffect, useState } from "react";
 import logo from "./assets/logo.png";
-import { api } from "./api";
+import { api, getToken } from "./api";
 import { OwnerNav } from "./OwnerNav";
+import {
+  OWNER_SESSION_TOKEN,
+  apiOwnerPassword,
+  canTryOwnerSession,
+  clearOwnerSecret,
+  ownerGateError,
+  persistOwnerSecret,
+  readOwnerSecret,
+} from "./ownerSession";
 import { useOwnerPageTitle } from "./useOwnerPageTitle";
 import type { OrderTicket } from "./types";
 import "./usage.css";
-
-const STORAGE_KEY = "storyrus.usage.password";
 
 function when(iso: string): string {
   return new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" });
@@ -65,48 +72,48 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
 
 export function Pedidos() {
   useOwnerPageTitle("/pedidos");
-  const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
+  const [password, setPassword] = useState(() => readOwnerSecret());
   const [draft, setDraft] = useState("");
   const [orders, setOrders] = useState<OrderTicket[] | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [sessionTried, setSessionTried] = useState(false);
 
   const load = useCallback(async (secret: string) => {
     setLoading(true);
     setError(null);
     try {
-      const report = await api.usage(secret);
+      const report = await api.usage(apiOwnerPassword(secret));
       const list = report.orders ?? [];
       setOrders(list);
       setSelected((cur) => (cur && list.some((order) => order.id === cur) ? cur : list[0]?.id ?? null));
-      sessionStorage.setItem(STORAGE_KEY, secret);
-      setPassword(secret);
+      const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
+      persistOwnerSecret(next);
+      setPassword(next);
     } catch (err) {
       const status = (err as Error & { status?: number }).status;
-      if (status === 401) {
-        sessionStorage.removeItem(STORAGE_KEY);
+      if (status === 401 || status === 429) {
+        clearOwnerSecret();
         setPassword("");
         setOrders(null);
-        setError("Senha inválida.");
-      } else if (status === 429) {
-        sessionStorage.removeItem(STORAGE_KEY);
-        setPassword("");
-        setOrders(null);
-        setError("Muitas tentativas. Aguarde e tente de novo.");
-      } else if (status === 503) {
-        setError("Painel ainda não configurado no servidor.");
-      } else {
-        setError(err instanceof Error ? err.message : "Falha ao carregar pedidos.");
       }
+      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar pedidos."));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (password) void load(password);
-  }, [password, load]);
+    if (password) {
+      void load(password);
+      return;
+    }
+    if (!sessionTried && canTryOwnerSession()) {
+      setSessionTried(true);
+      void load(OWNER_SESSION_TOKEN);
+    }
+  }, [password, load, sessionTried]);
 
   function onSubmit(ev: FormEvent) {
     ev.preventDefault();
@@ -115,6 +122,7 @@ export function Pedidos() {
   }
 
   const current = orders?.find((order) => order.id === selected) ?? null;
+  const ownerSecret = apiOwnerPassword(password);
 
   if (!password || (error && !orders)) {
     return (
@@ -122,10 +130,14 @@ export function Pedidos() {
         <div className="usage-gate card auth">
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Pedidos</h1>
-          <p className="muted">Página privada. Use a mesma senha do painel de gastos.</p>
+          <p className="muted">
+            Página privada do dono. Entre com a senha do painel (a mesma de Gastos) ou com a conta
+            listada em OWNER_EMAILS já logada no estúdio.
+          </p>
+          {getToken() && loading && <p className="muted">Abrindo com a sessão do estúdio…</p>}
           <form onSubmit={onSubmit}>
             <label>
-              Senha
+              Senha do painel
               <input
                 type="password"
                 autoComplete="current-password"
@@ -156,10 +168,11 @@ export function Pedidos() {
           className="link"
           type="button"
           onClick={() => {
-            sessionStorage.removeItem(STORAGE_KEY);
+            clearOwnerSecret();
             setPassword("");
             setOrders(null);
             setDraft("");
+            setSessionTried(true);
           }}
         >
           Sair
@@ -218,7 +231,7 @@ export function Pedidos() {
                   type="button"
                   onClick={() =>
                     void api
-                      .setPrintValidation(password, current.print_order_id as string, "sent_for_validation")
+                      .setPrintValidation(ownerSecret, current.print_order_id as string, "sent_for_validation")
                       .then(() => load(password))
                       .catch((err: Error) => setError(err.message))
                   }
@@ -232,7 +245,7 @@ export function Pedidos() {
                     type="button"
                     onClick={() =>
                       void api
-                        .setPrintValidation(password, current.print_order_id as string, "approved")
+                        .setPrintValidation(ownerSecret, current.print_order_id as string, "approved")
                         .then(() => load(password))
                         .catch((err: Error) => setError(err.message))
                     }
@@ -243,7 +256,7 @@ export function Pedidos() {
                     type="button"
                     onClick={() =>
                       void api
-                        .setPrintValidation(password, current.print_order_id as string, "rejected")
+                        .setPrintValidation(ownerSecret, current.print_order_id as string, "rejected")
                         .then(() => load(password))
                         .catch((err: Error) => setError(err.message))
                     }
@@ -259,7 +272,7 @@ export function Pedidos() {
                   <button
                     type="button"
                     onClick={() =>
-                      void api.downloadPrintPackage(password, current.print_order_id as string).then((blob) => {
+                      void api.downloadPrintPackage(ownerSecret, current.print_order_id as string).then((blob) => {
                         const url = URL.createObjectURL(blob);
                         const link = document.createElement("a");
                         link.href = url;

@@ -64,6 +64,7 @@ const COST: Record<string, number> = {
 export const state = {
   credits: 0,
   isGuest: true,
+  isOwner: false,
   email: "guest-test@storyrus.app",
   emailVerified: true,
   fullName: "Ana Souza",
@@ -84,6 +85,7 @@ export const state = {
   reset() {
     this.credits = 0;
     this.isGuest = true;
+    this.isOwner = false;
     this.email = "guest-test@storyrus.app";
     this.emailVerified = true;
     this.fullName = "Ana Souza";
@@ -248,6 +250,7 @@ export const handlers = [
       created_at: "2026-01-01T00:00:00Z",
       is_guest: state.isGuest,
       email_verified: state.isGuest || state.emailVerified,
+      is_owner: state.isOwner,
       full_name: state.fullName,
       phone: state.phone,
       postal_code: state.postalCode,
@@ -279,6 +282,7 @@ export const handlers = [
       created_at: "2026-01-01T00:00:00Z",
       is_guest: state.isGuest,
       email_verified: state.emailVerified,
+      is_owner: state.isOwner,
       full_name: state.fullName,
       phone: state.phone,
       postal_code: state.postalCode,
@@ -429,7 +433,8 @@ export const handlers = [
   ),
   http.get("*/v1/usage", ({ request }) => {
     const password = request.headers.get("X-Usage-Password");
-    if (password !== "segredo") {
+    const auth = request.headers.get("Authorization") || "";
+    if (password !== "segredo" && !(state.isOwner && auth.startsWith("Bearer "))) {
       return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
     }
     return HttpResponse.json({

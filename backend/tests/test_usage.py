@@ -76,9 +76,49 @@ def test_usage_lockout_after_failed_attempts(client, monkeypatch):
         assert r.status_code in (401, 429)
     locked = client.get("/v1/usage", headers={"X-Usage-Password": "errada"})
     assert locked.status_code == 429
-    # Mesmo senha correta fica bloqueada ate a janela passar / clear.
+    # Senha correta libera mesmo durante o lockout.
     still = client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
-    assert still.status_code == 429
+    assert still.status_code == 200, still.text
+
+
+def test_usage_owner_jwt_bypasses_password(auth_client, monkeypatch):
+    from app import rate_limit
+    from app.database import get_db
+    from app.models import User
+
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "auth@example.com")
+    rate_limit.reset()
+
+    gen = auth_client.app.dependency_overrides[get_db]()
+    db = next(gen)
+    try:
+        user = db.query(User).filter(User.email == "auth@example.com").first()
+        assert user is not None
+        from datetime import UTC, datetime
+
+        if user.email_verified_at is None:
+            user.email_verified_at = datetime.now(UTC)
+            db.add(user)
+            db.commit()
+    finally:
+        db.close()
+
+    ok = auth_client.get("/v1/usage")
+    assert ok.status_code == 200, ok.text
+
+
+def test_usage_owner_jwt_rejects_non_owner(auth_client, monkeypatch):
+    from app import rate_limit
+
+    monkeypatch.setattr(settings, "usage_dashboard_password", "segredo")
+    monkeypatch.setattr(settings, "usage_dashboard_password_previous", None)
+    monkeypatch.setattr(settings, "owner_emails", "dono@storyrus.ai")
+    rate_limit.reset()
+
+    r = auth_client.get("/v1/usage")
+    assert r.status_code == 401
 
 
 def test_usage_success_clears_lockout_counter(client, monkeypatch):

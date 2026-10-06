@@ -2,11 +2,19 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { OwnerNav } from "./OwnerNav";
+import {
+  OWNER_SESSION_TOKEN,
+  apiOwnerPassword,
+  canTryOwnerSession,
+  clearOwnerSecret,
+  ownerGateError,
+  persistOwnerSecret,
+  readOwnerSecret,
+} from "./ownerSession";
 import { useOwnerPageTitle } from "./useOwnerPageTitle";
 import type { OwnerUser } from "./types";
 import "./usage.css";
 
-const STORAGE_KEY = "storyrus.usage.password";
 
 function when(iso: string | null | undefined): string {
   if (!iso) return "—";
@@ -42,7 +50,7 @@ const EMPTY: OwnerUser = {
 
 export function Usuarios() {
   useOwnerPageTitle("/usuarios");
-  const [password, setPassword] = useState(() => sessionStorage.getItem(STORAGE_KEY) ?? "");
+  const [password, setPassword] = useState(() => readOwnerSecret());
   const [draft, setDraft] = useState("");
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState<OwnerUser[] | null>(null);
@@ -55,50 +63,50 @@ export function Usuarios() {
   const [deleting, setDeleting] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [sessionTried, setSessionTried] = useState(false);
 
   const visible = useMemo(
     () => (users ?? []).filter((user) => (query.trim() ? matches(user, query) : true)),
     [users, query],
   );
 
+  const ownerSecret = apiOwnerPassword(password);
+
   const load = useCallback(async (secret: string) => {
     setLoading(true);
     setError(null);
     try {
-      const report = await api.users(secret);
+      const report = await api.users(apiOwnerPassword(secret));
       setUsers(report.users);
       setTotal(report.total);
-      sessionStorage.setItem(STORAGE_KEY, secret);
-      setPassword(secret);
+      const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
+      persistOwnerSecret(next);
+      setPassword(next);
     } catch (err) {
       const status = (err as Error & { status?: number }).status;
-      if (status === 401) {
-        sessionStorage.removeItem(STORAGE_KEY);
+      if (status === 401 || status === 429) {
+        clearOwnerSecret();
         setPassword("");
         setUsers(null);
         setDetail(null);
         setSelectedId(null);
-        setError("Senha inválida.");
-      } else if (status === 429) {
-        sessionStorage.removeItem(STORAGE_KEY);
-        setPassword("");
-        setUsers(null);
-        setDetail(null);
-        setSelectedId(null);
-        setError("Muitas tentativas. Aguarde e tente de novo.");
-      } else if (status === 503) {
-        setError("Painel ainda não configurado no servidor.");
-      } else {
-        setError(err instanceof Error ? err.message : "Falha ao carregar usuários.");
       }
+      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar usuários."));
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    if (password) void load(password);
-  }, [password, load]);
+    if (password) {
+      void load(password);
+      return;
+    }
+    if (!sessionTried && canTryOwnerSession()) {
+      setSessionTried(true);
+      void load(OWNER_SESSION_TOKEN);
+    }
+  }, [password, load, sessionTried]);
 
   function onSubmit(ev: FormEvent) {
     ev.preventDefault();
@@ -114,7 +122,7 @@ export function Usuarios() {
     setError(null);
     if (fromList) setDetail(fromList);
     try {
-      setDetail(await api.user(password, id));
+      setDetail(await api.user(ownerSecret, id));
     } catch (err) {
       if (!fromList) {
         setError(err instanceof Error ? err.message : "Falha ao abrir o usuário.");
@@ -134,7 +142,7 @@ export function Usuarios() {
     setError(null);
     setSaved(false);
     try {
-      const next = await api.updateUser(password, detail.id, {
+      const next = await api.updateUser(ownerSecret, detail.id, {
         email: detail.email.trim(),
         credits: Number(detail.credits) || 0,
         email_verified: Boolean(detail.email_verified),
@@ -164,7 +172,7 @@ export function Usuarios() {
     setDeleting(true);
     setError(null);
     try {
-      await api.deleteUser(password, detail.id);
+      await api.deleteUser(ownerSecret, detail.id);
       setUsers((list) => list?.filter((item) => item.id !== detail.id) ?? null);
       setTotal((n) => Math.max(0, n - 1));
       setSelectedId(null);
@@ -184,10 +192,12 @@ export function Usuarios() {
         <div className="usage-gate card auth">
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Usuários</h1>
-          <p className="muted">Página privada do dono. Use a mesma senha de Gastos e Pedidos.</p>
+          <p className="muted">
+            Página privada do dono. Use a senha do painel ou a conta OWNER_EMAILS já logada no estúdio.
+          </p>
           <form onSubmit={onSubmit}>
             <label>
-              Senha
+              Senha do painel
               <input
                 type="password"
                 autoComplete="current-password"
@@ -223,13 +233,14 @@ export function Usuarios() {
           className="link"
           type="button"
           onClick={() => {
-            sessionStorage.removeItem(STORAGE_KEY);
+            clearOwnerSecret();
             setPassword("");
             setUsers(null);
             setDetail(null);
             setSelectedId(null);
             setDraft("");
             setQuery("");
+            setSessionTried(true);
           }}
         >
           Sair

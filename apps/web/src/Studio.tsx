@@ -105,6 +105,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [accountKind, setAccountKind] = useState<"unknown" | "guest" | "account">("unknown");
   const [accountEmail, setAccountEmail] = useState("");
   const [accountName, setAccountName] = useState("");
+  const [isOwner, setIsOwner] = useState(false);
   const [clientDone, setClientDone] = useState(false);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -223,6 +224,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setAccountKind(registered ? "account" : me.is_guest ? "guest" : "unknown");
       setAccountEmail(me.email);
       setAccountName(me.full_name?.trim() || "");
+      setIsOwner(Boolean(me.is_owner));
       if (registered) {
         const addressLine = [
           me.street,
@@ -624,12 +626,16 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       {colorTheme === "dark" ? t.themeToLight : t.themeToDark}
                     </span>
                   </button>
-                  <a className="kutil" href="/pedidos">
-                    Pedidos
-                  </a>
-                  <a className="kutil" href="/usuarios">
-                    Usuários
-                  </a>
+                  {isOwner && (
+                    <>
+                      <a className="kutil" href="/pedidos">
+                        Pedidos
+                      </a>
+                      <a className="kutil" href="/usuarios">
+                        Usuários
+                      </a>
+                    </>
+                  )}
                   {onLogout && (
                     <button type="button" className="kutil link" onClick={onLogout} data-testid="studio-logout">
                       {t.logout}
