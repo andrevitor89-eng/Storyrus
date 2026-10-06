@@ -169,9 +169,29 @@ class OwnerUserOut(BaseModel):
     full_name: str | None = None
     phone: str | None = None
     email_verified: bool = False
+    postal_code: str | None = None
+    street: str | None = None
+    number: str | None = None
+    complement: str | None = None
+    district: str | None = None
     city: str | None = None
     state: str | None = None
     country: str | None = None
+    terms_accepted_at: datetime | None = None
+
+
+class OwnerUserUpdateIn(ProfileUpdateIn):
+    """Campos opcionais para o dono editar uma conta cadastrada."""
+
+    email: EmailStr | None = None
+    credits: int | None = Field(default=None, ge=0, le=100_000)
+    email_verified: bool | None = None
+
+    @model_validator(mode="after")
+    def _has_patch(self) -> "OwnerUserUpdateIn":
+        if not self.model_dump(exclude_unset=True):
+            raise PydanticCustomError("empty_patch", "Nada para atualizar")
+        return self
 
 
 class OwnerUsersOut(BaseModel):

@@ -226,6 +226,28 @@ export interface OwnerUser {
   full_name?: string | null;
   phone?: string | null;
   email_verified?: boolean;
+  postal_code?: string | null;
+  street?: string | null;
+  number?: string | null;
+  complement?: string | null;
+  district?: string | null;
+  city?: string | null;
+  state?: string | null;
+  country?: string | null;
+  terms_accepted_at?: string | null;
+}
+
+export interface OwnerUserUpdate {
+  email?: string;
+  credits?: number;
+  email_verified?: boolean;
+  full_name?: string | null;
+  phone?: string | null;
+  postal_code?: string | null;
+  street?: string | null;
+  number?: string | null;
+  complement?: string | null;
+  district?: string | null;
   city?: string | null;
   state?: string | null;
   country?: string | null;

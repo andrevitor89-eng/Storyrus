@@ -32,6 +32,26 @@ type Project = {
   created_at: string;
 };
 
+type OwnerUserMock = {
+  id: string;
+  email: string;
+  credits: number;
+  created_at: string;
+  project_count: number;
+  full_name: string;
+  phone: string;
+  email_verified: boolean;
+  postal_code: string;
+  street: string;
+  number: string;
+  complement: string;
+  district: string;
+  city: string;
+  state: string;
+  country: string;
+  terms_accepted_at: string;
+};
+
 const COST: Record<string, number> = {
   AVATAR: 1,
   REALISTIC: 1,
@@ -60,6 +80,7 @@ export const state = {
   pendingResetToken: null as string | null,
   projects: new Map<string, Project>(),
   jobs: new Map<string, Job[]>(),
+  ownerUsers: seedOwnerUsers(),
   reset() {
     this.credits = 0;
     this.isGuest = true;
@@ -79,8 +100,52 @@ export const state = {
     this.pendingResetToken = null;
     this.projects.clear();
     this.jobs.clear();
+    this.ownerUsers = seedOwnerUsers();
   },
 };
+
+function seedOwnerUsers(): OwnerUserMock[] {
+  return [
+    {
+      id: "u1",
+      email: "ana@example.com",
+      credits: 12,
+      created_at: "2026-03-01T15:30:00.000Z",
+      project_count: 3,
+      full_name: "Ana Souza",
+      phone: "11999999999",
+      email_verified: true,
+      postal_code: "01310-100",
+      street: "Avenida Paulista",
+      number: "1000",
+      complement: "Sala 1",
+      district: "Bela Vista",
+      city: "Sao Paulo",
+      state: "SP",
+      country: "BR",
+      terms_accepted_at: "2026-03-01T15:30:00.000Z",
+    },
+    {
+      id: "u2",
+      email: "bruno@example.com",
+      credits: 5,
+      created_at: "2026-02-10T12:00:00.000Z",
+      project_count: 1,
+      full_name: "Bruno Lima",
+      phone: "21988887777",
+      email_verified: false,
+      postal_code: "22041-080",
+      street: "Av Atlantica",
+      number: "500",
+      complement: "",
+      district: "Copacabana",
+      city: "Rio de Janeiro",
+      state: "RJ",
+      country: "BR",
+      terms_accepted_at: "2026-02-10T12:00:00.000Z",
+    },
+  ];
+}
 
 let seq = 0;
 const id = () => `id-${++seq}`;
@@ -394,39 +459,38 @@ export const handlers = [
       ],
     });
   }),
+  http.get("*/v1/users/:id", ({ params, request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    if (password !== "segredo") {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    const found = state.ownerUsers.find((item) => item.id === String(params.id));
+    if (!found) {
+      return HttpResponse.json({ detail: "Usuario nao encontrado" }, { status: 404 });
+    }
+    return HttpResponse.json(found);
+  }),
+  http.patch("*/v1/users/:id", async ({ params, request }) => {
+    const password = request.headers.get("X-Usage-Password");
+    if (password !== "segredo") {
+      return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
+    }
+    const found = state.ownerUsers.find((item) => item.id === String(params.id));
+    if (!found) {
+      return HttpResponse.json({ detail: "Usuario nao encontrado" }, { status: 404 });
+    }
+    const body = (await request.json()) as Record<string, unknown>;
+    Object.assign(found, body);
+    return HttpResponse.json(found);
+  }),
   http.get("*/v1/users", ({ request }) => {
     const password = request.headers.get("X-Usage-Password");
     if (password !== "segredo") {
       return HttpResponse.json({ detail: "Senha invalida" }, { status: 401 });
     }
     return HttpResponse.json({
-      total: 2,
-      users: [
-        {
-          id: "u1",
-          email: "ana@example.com",
-          credits: 12,
-          created_at: "2026-03-01T15:30:00.000Z",
-          project_count: 3,
-          full_name: "Ana Souza",
-          phone: "11999999999",
-          email_verified: true,
-          city: "Sao Paulo",
-          state: "SP",
-        },
-        {
-          id: "u2",
-          email: "bruno@example.com",
-          credits: 5,
-          created_at: "2026-02-10T12:00:00.000Z",
-          project_count: 1,
-          full_name: "Bruno Lima",
-          phone: "21988887777",
-          email_verified: false,
-          city: "Rio de Janeiro",
-          state: "RJ",
-        },
-      ],
+      total: state.ownerUsers.length,
+      users: state.ownerUsers,
     });
   }),
 

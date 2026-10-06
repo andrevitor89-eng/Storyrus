@@ -131,3 +131,78 @@ def test_users_excludes_guest_seeded_directly(client, monkeypatch):
     assert body["users"][0]["project_count"] == 1
     assert body["users"][0]["credits"] == 5
     assert body["users"][0]["email_verified"] is False
+
+
+def test_users_get_detail(auth_client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    listed = auth_client.get("/v1/users", headers=headers).json()
+    me = next(u for u in listed["users"] if u["email"] == "auth@example.com")
+    r = auth_client.get(f"/v1/users/{me['id']}", headers=headers)
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["email"] == "auth@example.com"
+    assert body["street"] == "Av Paulista"
+    assert body["postal_code"] == "01310100"
+    assert body["number"] == "1000"
+    assert body["district"] == "Bela Vista"
+    assert body["country"] == "BR"
+    assert body["terms_accepted_at"] is not None
+
+
+def test_users_get_guest_is_404(auth_client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    g = auth_client.post("/v1/auth/guest")
+    assert g.status_code == 201, g.text
+    db = _session(auth_client)
+    try:
+        guest = db.query(User).filter(User.password_hash == "!guest").one()
+        guest_id = str(guest.id)
+    finally:
+        db.close()
+    r = auth_client.get(f"/v1/users/{guest_id}", headers=headers)
+    assert r.status_code == 404
+
+
+def test_users_patch_profile_and_credits(auth_client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    listed = auth_client.get("/v1/users", headers=headers).json()
+    me = next(u for u in listed["users"] if u["email"] == "auth@example.com")
+    r = auth_client.patch(
+        f"/v1/users/{me['id']}",
+        headers=headers,
+        json={
+            "full_name": "Ana Silva",
+            "credits": 42,
+            "city": "Campinas",
+            "phone": "11911112222",
+        },
+    )
+    assert r.status_code == 200, r.text
+    body = r.json()
+    assert body["full_name"] == "Ana Silva"
+    assert body["credits"] == 42
+    assert body["city"] == "Campinas"
+    assert body["phone"] == "11911112222"
+    assert body["street"] == "Av Paulista"
+
+
+def test_users_patch_email_conflict(client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    signup_and_verify(client, "one@example.com")
+    signup_and_verify(client, "two@example.com")
+    listed = client.get("/v1/users", headers=headers).json()
+    one = next(u for u in listed["users"] if u["email"] == "one@example.com")
+    r = client.patch(
+        f"/v1/users/{one['id']}",
+        headers=headers,
+        json={"email": "two@example.com"},
+    )
+    assert r.status_code == 409
+
+
+def test_users_patch_requires_password(auth_client, monkeypatch):
+    _owner_headers(monkeypatch)
+    listed = auth_client.get("/v1/users", headers={"X-Usage-Password": "segredo"}).json()
+    me = listed["users"][0]
+    r = auth_client.patch(f"/v1/users/{me['id']}", json={"credits": 1})
+    assert r.status_code in {401, 503}

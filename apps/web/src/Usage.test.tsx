@@ -75,6 +75,29 @@ describe("Painel /usuarios", () => {
     expect(nav).toHaveTextContent("Pedidos");
     expect(nav.querySelector('a[aria-current="page"]')).toHaveAttribute("href", "/usuarios");
   });
+
+  it("abre os dados do usuario e permite editar", async () => {
+    const user = userEvent.setup();
+    render(<Usuarios />);
+    await user.type(screen.getByLabelText(/senha/i), "segredo");
+    await user.click(screen.getByRole("button", { name: /entrar/i }));
+    expect(await screen.findByText(/2 no total/i)).toBeInTheDocument();
+
+    await user.click(screen.getByTestId("owner-user-open-u1"));
+    expect(await screen.findByTestId("owner-user-street")).toHaveValue("Avenida Paulista");
+    expect(screen.getByTestId("owner-user-city")).toHaveValue("Sao Paulo");
+    expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
+
+    await user.clear(screen.getByTestId("owner-user-full-name"));
+    await user.type(screen.getByTestId("owner-user-full-name"), "Ana Silva");
+    await user.clear(screen.getByTestId("owner-user-credits"));
+    await user.type(screen.getByTestId("owner-user-credits"), "40");
+    await user.click(screen.getByTestId("owner-user-save"));
+
+    expect(await screen.findByTestId("owner-user-saved")).toHaveTextContent(/salvas/i);
+    expect(screen.getByText("Ana Silva")).toBeInTheDocument();
+    expect(screen.getByText("40")).toBeInTheDocument();
+  });
 });
 
 describe("Painel /gastos", () => {
