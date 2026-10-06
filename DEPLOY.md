@@ -45,9 +45,10 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `PUBLIC_WEB_ORIGIN` — Blueprint já define `https://storyrus.ai` (links nos e-mails).
    - `OPIK_API_KEY` / `OPIK_WORKSPACE` / `OPIK_PROJECT_NAME` — tracing Opik (opcional; sem chave o wrapper é no-op). Em prod a API e o worker chamam `opik.configure` no boot; traces de job carregam `request_id` + `job_id` para correlacionar com os logs JSON.
    - `LOG_FORMAT=json` — Blueprint já define; logs estruturados com `request_id` / `job_id` (STO-29). O header `X-Request-ID` é ecoado pela API e persistido no job.
-   - `USAGE_DASHBOARD_PASSWORD` — senha dos painéis do dono `/gastos`, `/pedidos` e `/usuarios` (opcional; sem ela e sem `OWNER_EMAILS` os painéis respondem 503)
-   - `USAGE_DASHBOARD_PASSWORD_PREVIOUS` — senha antiga durante rotação (opcional)
-   - `OWNER_EMAILS` — e-mails do dono (csv). Default de produção: `eng.andrevitor89@gmail.com`. Com essa conta logada no estúdio, os painéis abrem sem a senha do dashboard
+   - `USAGE_DASHBOARD_PASSWORD` — senha compartilhada dos painéis `/gastos`, `/pedidos` e `/usuarios`. Só é aceita enquanto `OWNER_PASSWORD_FALLBACK=true` (default). Sem senha, sem admin e sem `OWNER_EMAILS`, os painéis respondem 503
+   - `OWNER_PASSWORD_FALLBACK` — `true` (default) mantém a senha compartilhada como fallback. `false` exige conta com `users.is_admin` (ou e-mail em `OWNER_EMAILS`)
+   - `USAGE_DASHBOARD_PASSWORD_PREVIOUS` — senha antiga durante rotação (opcional; ignorada se o fallback estiver desligado)
+   - `OWNER_EMAILS` — e-mails (csv) que entram nos painéis com o JWT e são gravados como `is_admin` no primeiro acesso. Default de produção: `eng.andrevitor89@gmail.com`. A migration `0023_user_is_admin` também marca essa conta
    - `USAGE_LOCKOUT_MAX_ATTEMPTS` / `USAGE_LOCKOUT_WINDOW_S` — trava após falhas (default 5 / 900s); a senha correta sempre libera
    - `REDIS_URL` — opcional; sem Redis o worker faz polling do Postgres
    - `STORAGE_BUCKET` — ex.: `storyrus`
@@ -57,6 +58,14 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - (`JWT_SECRET` e `WEBHOOK_SIGNING_SECRET` o Render gera sozinho.)
    - `DATABASE_URL` é injetada automaticamente pelo banco do Blueprint.
 4. Aguarde o build. Quando a **storyrus-api** ficar *Live*, copie a URL (ex.: `https://storyrus-api.onrender.com`).
+
+### Painéis admin (passo manual)
+
+A migration `0023_user_is_admin` cria `users.is_admin` (default false) e marca `eng.andrevitor89@gmail.com`. O boot da API aplica o Alembic.
+
+1. Confirme que essa conta (e-mail verificado) abre `/gastos` logada, sem digitar a senha do painel.
+2. Para outra conta admin, rode no Postgres `UPDATE users SET is_admin = true WHERE lower(email) = 'pessoa@exemplo.com';` **ou** acrescente o e-mail em `OWNER_EMAILS` e abra o painel logado — o primeiro acesso grava `is_admin`.
+3. Só depois disso, se quiser aposentar a senha compartilhada, defina `OWNER_PASSWORD_FALLBACK=false` na API do Render. Enquanto estiver `true` (default), o header `X-Usage-Password` continua válido.
 
 > Free tier do Render hiberna após inatividade e o Postgres free expira em ~90 dias — ok para testes. Para produção/demos estáveis, veja **§ Beyond free (recomendado)**.
 

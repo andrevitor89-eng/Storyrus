@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { readAuthQueryToken, safeNextPath } from "./Auth";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import "./landing.css";
 
 /**
  * Define nova senha a partir do token do e-mail e abre sessão no estúdio.
  */
 export function ResetPassword() {
+  usePageMeta(staticPageMeta("/redefinir-senha"));
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();

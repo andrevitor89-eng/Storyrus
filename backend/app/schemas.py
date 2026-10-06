@@ -150,6 +150,7 @@ class UserOut(BaseModel):
     created_at: datetime
     is_guest: bool = False
     email_verified: bool = False
+    is_admin: bool = False
     is_owner: bool = False
     full_name: str | None = None
     phone: str | None = None

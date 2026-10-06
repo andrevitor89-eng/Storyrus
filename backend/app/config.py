@@ -100,14 +100,18 @@ class Settings(BaseSettings):
     cost_video_credits: int = 5
     cost_narrated_video_credits: int = 8
 
-    # Painel de gastos (USD real). Sem senha o endpoint /v1/usage recusa (503),
-    # a menos que OWNER_EMAILS esteja configurado (dono entra com a sessão).
+    # Painel admin (USD real). Sem senha, sem is_admin e sem OWNER_EMAILS,
+    # e com o fallback ligado, /v1/usage responde 503.
     usage_dashboard_password: str | None = None
     # Senha anterior aceita durante rotacao (grace). Vazio = so a atual.
     usage_dashboard_password_previous: str | None = None
-    # E-mails do dono (csv) que acessam /gastos /pedidos /usuarios com o JWT.
+    # E-mails do dono (csv) que acessam /gastos /pedidos /usuarios com o JWT
+    # e são gravados como users.is_admin no primeiro acesso.
     # Default: conta do André; override via OWNER_EMAILS no Render se precisar.
     owner_emails: str = "eng.andrevitor89@gmail.com"
+    # true = a senha compartilhada (X-Usage-Password) ainda abre os painéis.
+    # false = só conta com is_admin (ou e-mail em OWNER_EMAILS).
+    owner_password_fallback: bool = True
     # Lockout apos N senhas erradas por IP (0 = desliga). Janela em segundos.
     usage_lockout_max_attempts: int = 5
     usage_lockout_window_s: int = 900

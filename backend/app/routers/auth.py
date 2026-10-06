@@ -78,9 +78,10 @@ def _issue_verify_email(user: User, db: Session) -> str:
 
 
 def _user_out(user: User) -> UserOut:
-    from app.owner_auth import is_owner_email
+    from app.owner_auth import user_is_admin
 
     guest = is_guest_user(email=user.email, password_hash=user.password_hash)
+    admin = user_is_admin(user)
     return UserOut(
         id=user.id,
         email=user.email,
@@ -88,7 +89,8 @@ def _user_out(user: User) -> UserOut:
         created_at=user.created_at,
         is_guest=guest,
         email_verified=guest or user.email_verified_at is not None,
-        is_owner=(not guest) and is_owner_email(user.email),
+        is_admin=admin,
+        is_owner=admin,
         full_name=user.full_name,
         phone=user.phone,
         postal_code=user.postal_code,

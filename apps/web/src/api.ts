@@ -333,6 +333,7 @@ export type MeUser = {
   created_at: string;
   is_guest: boolean;
   email_verified: boolean;
+  is_admin?: boolean;
   is_owner?: boolean;
   full_name: string | null;
   phone: string | null;

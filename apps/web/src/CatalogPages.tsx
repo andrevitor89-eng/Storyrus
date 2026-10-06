@@ -3,6 +3,7 @@ import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
+import { bookPageMeta, categoryPageMeta, NOT_FOUND_PAGE, staticPageMeta, usePageMeta } from "./pageMeta";
 import {
   CatalogBookCard,
   catalogCategory,
@@ -66,6 +67,7 @@ function LangSwitch({ lang, setLang }: { lang: Lang; setLang: (lang: Lang) => vo
 }
 
 export function CatalogPage() {
+  usePageMeta(staticPageMeta("/catalogo"));
   const [lang, setLang] = useSiteLang();
   const copy = catalogPageCopy(lang);
   const sections = catalogSections(lang);
@@ -107,6 +109,7 @@ export function CategoryCatalogPage() {
   const [lang, setLang] = useSiteLang();
   const params = useParams();
   const section = catalogCategory(lang, params.categoria ?? "");
+  usePageMeta(section ? categoryPageMeta(section.id, section.name) : NOT_FOUND_PAGE);
   if (!section) return <NotFound />;
   const copy = catalogPageCopy(lang);
   return (
@@ -140,6 +143,11 @@ export function BookPage() {
   const params = useParams();
   const index = Number(params.indice);
   const book = Number.isInteger(index) ? catalogEntry(lang, index) : null;
+  usePageMeta(
+    book
+      ? bookPageMeta({ index, title: book.t, description: book.story || book.t })
+      : NOT_FOUND_PAGE,
+  );
   if (!book) return <NotFound />;
   const copy = catalogPageCopy(lang);
   return (

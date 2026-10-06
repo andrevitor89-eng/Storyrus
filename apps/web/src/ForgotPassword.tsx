@@ -3,12 +3,14 @@ import { Link, useSearchParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { safeNextPath } from "./Auth";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import "./landing.css";
 
 /**
  * Pedido de link para redefinir senha (a partir do login).
  */
 export function ForgotPassword() {
+  usePageMeta(staticPageMeta("/esqueci-senha"));
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
   const [email, setEmail] = useState("");

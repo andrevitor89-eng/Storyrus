@@ -80,6 +80,9 @@ services:
         sync: false
       - key: OWNER_EMAILS
         value: "eng.andrevitor89@gmail.com"
+      # true = senha compartilhada ainda abre os painéis. false = só conta admin.
+      - key: OWNER_PASSWORD_FALLBACK
+        value: "true"
       # STO-18: teto diario da plataforma (0 = desligado)
       - key: DAILY_SPEND_USD_CEILING
         value: "0"
