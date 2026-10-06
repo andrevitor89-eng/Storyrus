@@ -79,7 +79,7 @@ services:
       - key: USAGE_DASHBOARD_PASSWORD_PREVIOUS
         sync: false
       - key: OWNER_EMAILS
-        sync: false
+        value: "eng.andrevitor89@gmail.com"
       # STO-18: teto diario da plataforma (0 = desligado)
       - key: DAILY_SPEND_USD_CEILING
         value: "0"
@@ -140,10 +140,10 @@ services:
       - key: USAGE_DASHBOARD_PASSWORD_PREVIOUS
         sync: false
       - key: OWNER_EMAILS
-        sync: false
+        value: "eng.andrevitor89@gmail.com"
       - key: DAILY_SPEND_USD_CEILING
         value: "0"
       - key: DAILY_CREDITS_CEILING
         value: "0"
 
-# redeploy nudge 2026-10-05T18:10Z
+# redeploy nudge 2026-10-06T19:20Z

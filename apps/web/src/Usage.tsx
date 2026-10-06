@@ -112,7 +112,8 @@ export function Usage() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Gastos da plataforma</h1>
           <p className="muted">
-            Página privada do dono. Use a senha do painel ou a conta OWNER_EMAILS já logada no estúdio.
+            Página privada do dono. Com a conta do dono logada no estúdio o painel abre sozinho;
+            senão use a senha do painel.
           </p>
           <form onSubmit={onSubmit}>
             <label>

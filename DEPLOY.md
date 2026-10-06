@@ -47,7 +47,7 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
    - `LOG_FORMAT=json` — Blueprint já define; logs estruturados com `request_id` / `job_id` (STO-29). O header `X-Request-ID` é ecoado pela API e persistido no job.
    - `USAGE_DASHBOARD_PASSWORD` — senha dos painéis do dono `/gastos`, `/pedidos` e `/usuarios` (opcional; sem ela e sem `OWNER_EMAILS` os painéis respondem 503)
    - `USAGE_DASHBOARD_PASSWORD_PREVIOUS` — senha antiga durante rotação (opcional)
-   - `OWNER_EMAILS` — e-mails do dono (csv). Com a conta logada no estúdio, esses e-mails abrem os painéis sem digitar a senha do dashboard
+   - `OWNER_EMAILS` — e-mails do dono (csv). Default de produção: `eng.andrevitor89@gmail.com`. Com essa conta logada no estúdio, os painéis abrem sem a senha do dashboard
    - `USAGE_LOCKOUT_MAX_ATTEMPTS` / `USAGE_LOCKOUT_WINDOW_S` — trava após falhas (default 5 / 900s); a senha correta sempre libera
    - `REDIS_URL` — opcional; sem Redis o worker faz polling do Postgres
    - `STORAGE_BUCKET` — ex.: `storyrus`

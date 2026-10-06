@@ -131,8 +131,8 @@ export function Pedidos() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Pedidos</h1>
           <p className="muted">
-            Página privada do dono. Entre com a senha do painel (a mesma de Gastos) ou com a conta
-            listada em OWNER_EMAILS já logada no estúdio.
+            Página privada do dono. Se você já entrou no estúdio com a conta do dono, o painel
+            abre sozinho. Senão, use a senha do painel (a mesma de Gastos).
           </p>
           {getToken() && loading && <p className="muted">Abrindo com a sessão do estúdio…</p>}
           <form onSubmit={onSubmit}>

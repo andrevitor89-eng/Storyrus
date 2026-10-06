@@ -106,7 +106,8 @@ class Settings(BaseSettings):
     # Senha anterior aceita durante rotacao (grace). Vazio = so a atual.
     usage_dashboard_password_previous: str | None = None
     # E-mails do dono (csv) que acessam /gastos /pedidos /usuarios com o JWT.
-    owner_emails: str = ""
+    # Default: conta do André; override via OWNER_EMAILS no Render se precisar.
+    owner_emails: str = "eng.andrevitor89@gmail.com"
     # Lockout apos N senhas erradas por IP (0 = desliga). Janela em segundos.
     usage_lockout_max_attempts: int = 5
     usage_lockout_window_s: int = 900
