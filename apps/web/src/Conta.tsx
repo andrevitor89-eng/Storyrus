@@ -240,8 +240,12 @@ export function Conta() {
   );
 
   useEffect(() => {
+    const previous = document.title;
     document.title =
       lang === "en" ? "My profile — Story R Us" : lang === "es" ? "Mi perfil — Story R Us" : "Meu perfil — Story R Us";
+    return () => {
+      document.title = previous;
+    };
   }, [lang]);
 
   useEffect(() => {

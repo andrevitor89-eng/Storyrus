@@ -32,7 +32,7 @@ function asRegistered(email = "ana@email.com") {
   state.number = "1000";
   state.complement = "Sala 1";
   state.district = "Bela Vista";
-  state.city = "Sao Paulo";
+  state.city = "São Paulo";
   state.stateUf = "SP";
   state.country = "BR";
   state.credits = 10;
@@ -67,7 +67,9 @@ describe("Conta — perfil editável", () => {
     expect(screen.getByTestId("conta-email")).toHaveValue("ana@email.com");
     expect(screen.getByTestId("conta-full-name")).toHaveValue("Ana Souza");
     expect(screen.getByTestId("conta-phone")).toHaveValue("11999999999");
-    expect(screen.getByTestId("conta-city")).toHaveValue("Sao Paulo");
+    await waitFor(() => {
+      expect(screen.getByTestId("conta-city")).toHaveValue("São Paulo");
+    });
 
     await user.clear(screen.getByTestId("conta-full-name"));
     await user.type(screen.getByTestId("conta-full-name"), "Ana Silva");
@@ -81,7 +83,7 @@ describe("Conta — perfil editável", () => {
     expect(update.mock.calls[0][0]).toMatchObject({
       full_name: "Ana Silva",
       phone: "11988887777",
-      city: "Sao Paulo",
+      city: "São Paulo",
       country: "BR",
     });
     expect(await screen.findByTestId("conta-saved")).toHaveTextContent(/atualizados/i);
