@@ -227,7 +227,8 @@ async function loginViaEntrar(page: Page) {
   await page.getByTestId("auth-email").fill("e2e@storyrus.app");
   await page.getByTestId("auth-password").fill("password123");
   await page.getByTestId("auth-submit").click();
-  await expect(page).toHaveURL(/\/app/);
+  await expect(page).toHaveURL(/\/$/);
+  await page.goto("/app");
 }
 
 test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
@@ -245,8 +246,8 @@ test("landing leva ao cadastro, verificação e estúdio", async ({ page }) => {
   await page.getByTestId("auth-submit").click();
   await expect(page.getByTestId("auth-check-email")).toBeVisible();
   await page.goto("/verificar-email?token=e2e-verify-token-ok!!");
-  await expect(page).toHaveURL(/\/app/, { timeout: 15_000 });
-  await expect(page.getByLabel("Nome do protagonista")).toBeVisible();
+  await expect(page).toHaveURL(/\/$/, { timeout: 15_000 });
+  await expect(page.getByTestId("landing-hero-cta")).toBeVisible();
 });
 
 test("estúdio → projeto → foto gera personagem → história", async ({ page }) => {

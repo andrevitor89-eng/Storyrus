@@ -593,16 +593,11 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByText(/^carrossel de livros$/i)).not.toBeInTheDocument();
     const subs = panel.querySelector(".kcat-subs") as HTMLElement;
     const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
-    const princesasHref = studioTarget(princesas.getAttribute("href"));
-    expect(princesasHref).toContain("tema=princess");
-    expect(princesasHref).toContain("Emilia e os Primeiros Passos da Bailarina");
-    expect(princesasHref).toContain("heroi=Emilia");
+    expect(princesas).toHaveAttribute("href", "/livro/1");
     expect(studioTarget(within(panel).getByRole("link", { name: /^esportes$/i }).getAttribute("href"))).toContain("/app?tema=sport");
     const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
     expect(biblico.parentElement?.querySelector("a")).toBe(biblico);
-    const biblicoHref = studioTarget(biblico.getAttribute("href"));
-    expect(biblicoHref).toContain("tema=biblico");
-    expect(biblicoHref).toContain("Davi, o Menino Pastor");
+    expect(biblico).toHaveAttribute("href", "/livro/20");
     expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo/educativo");
     expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo/voce-e-eu");
     expect(within(panel).getByRole("link", { name: /^aventuras$/i })).toHaveAttribute("href", "/catalogo/aventuras");
@@ -638,7 +633,7 @@ describe("Landing — CTAs e links", () => {
     const recem = within(panel).getByRole("link", { name: /^recém-nascidos$/i });
     expect(studioTarget(recem.getAttribute("href"))).toContain("tema=recem_nascidos");
     const vovo = within(panel).getByRole("link", { name: /^vovó e eu$/i });
-    expect(studioTarget(vovo.getAttribute("href"))).toContain("Amor de Bisavó");
+    expect(vovo).toHaveAttribute("href", "/livro/8");
     fireEvent.mouseEnter(vovo);
     expect(within(feats).getByRole("link", { name: /amor de bisavó/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /amor de avô/i })).not.toBeInTheDocument();

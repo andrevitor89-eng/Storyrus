@@ -18,15 +18,17 @@ afterEach(() => {
   }
 });
 
-function renderAuth(mode: "login" | "signup", next = "/app?tema=space") {
+function renderAuth(mode: "login" | "signup", next?: string) {
   const path = mode === "login" ? "/entrar" : "/cadastro";
+  const entry = next == null ? path : `${path}?next=${encodeURIComponent(next)}`;
   return render(
-    <MemoryRouter initialEntries={[`${path}?next=${encodeURIComponent(next)}`]}>
+    <MemoryRouter initialEntries={[entry]}>
       <Routes>
         <Route path="/entrar" element={<Auth mode="login" />} />
         <Route path="/cadastro" element={<Auth mode="signup" />} />
         <Route path="/verificar-email" element={<VerifyEmail />} />
         <Route path="/app" element={<div data-testid="studio-dest">studio</div>} />
+        <Route path="/" element={<div data-testid="home-dest">home</div>} />
         <Route path="/termos" element={<div>termos</div>} />
         <Route path="/privacidade" element={<div>privacidade</div>} />
       </Routes>
@@ -58,8 +60,9 @@ async function fillSignup(
 
 describe("safeNextPath / accountGateHref", () => {
   it("bloqueia open redirects", () => {
-    expect(safeNextPath("https://evil.com")).toBe("/app");
-    expect(safeNextPath("//evil.com")).toBe("/app");
+    expect(safeNextPath("https://evil.com")).toBe("/");
+    expect(safeNextPath("//evil.com")).toBe("/");
+    expect(safeNextPath(null)).toBe("/");
     expect(safeNextPath("/app?tema=pets")).toBe("/app?tema=pets");
     expect(accountGateHref("/app?tema=pets")).toBe(
       `/cadastro?next=${encodeURIComponent("/app?tema=pets")}`,
@@ -235,6 +238,19 @@ describe("Auth", () => {
 
     expect(await screen.findByTestId("studio-dest")).toBeInTheDocument();
     await waitFor(() => expect(getToken()).toBe("test-token"));
+  });
+
+  it("faz login sem next e volta para a home", async () => {
+    const user = userEvent.setup();
+    state.emailVerified = true;
+    renderAuth("login");
+
+    await user.type(screen.getByTestId("auth-email"), "ja@example.com");
+    await user.type(screen.getByTestId("auth-password"), "password123");
+    await user.click(screen.getByTestId("auth-submit"));
+
+    expect(await screen.findByTestId("home-dest")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-dest")).not.toBeInTheDocument();
   });
 
   it("mostra link Esqueci a senha no login", () => {

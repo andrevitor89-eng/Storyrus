@@ -1849,12 +1849,20 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const when = "when" in meta ? meta.when : undefined;
       if (when && !occasionDue(when, new Date())) return [];
       const theme = themeFromHref(meta.href);
-      const rawOnly = theme && MENU_BOOKS[theme]?.length === 1 ? MENU_BOOKS[theme][0] : undefined;
+      const books = theme ? MENU_BOOKS[theme] ?? [] : [];
+      const rawOnly = books.length === 1 ? books[0] : undefined;
       const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
+      const href =
+        only !== undefined
+          ? `/livro/${only}`
+          : bookTheme
+            ? bookStudioHref(bookTheme)
+            : studioEntryHref(meta.href);
       return [{
         label,
-        href: bookTheme ? bookStudioHref(bookTheme, only) : studioEntryHref(meta.href),
+        href,
+        theme: bookTheme ?? theme,
         due: when ? nextOccasionDate(when, new Date()) : null,
       }];
     }).sort((a, b) => {
@@ -2044,7 +2052,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                       {(() => {
                         const hoverCat = subHover ? shownCats[subHover.cat] : featCat != null ? shownCats[featCat] : null;
                         const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
-                        const activeTheme = activeSub ? themeFromHref(activeSub.href) : null;
+                        const activeTheme = activeSub?.theme ?? (activeSub ? themeFromHref(activeSub.href) : null);
                         const shown = (activeTheme ? menuBooks(activeTheme) : hoverCat?.feats ?? []).slice(0, 4);
                         const allHref = hoverCat ? `/catalogo/${hoverCat.id}` : "/catalogo";
                         return (

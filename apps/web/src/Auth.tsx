@@ -217,9 +217,9 @@ function cepStatusText(status: CepStatus, t: (typeof COPY)[Lang]): string | null
   return null;
 }
 
-/** Evita open-redirect: só caminhos relativos internos. */
+/** Evita open-redirect: só caminhos relativos internos. Sem next, volta à home. */
 export function safeNextPath(raw: string | null | undefined): string {
-  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/app";
+  if (!raw || !raw.startsWith("/") || raw.startsWith("//")) return "/";
   return raw;
 }
 
