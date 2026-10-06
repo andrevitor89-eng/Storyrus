@@ -206,3 +206,45 @@ def test_users_patch_requires_password(auth_client, monkeypatch):
     me = listed["users"][0]
     r = auth_client.patch(f"/v1/users/{me['id']}", json={"credits": 1})
     assert r.status_code in {401, 503}
+
+
+def test_users_delete_registered(auth_client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    listed = auth_client.get("/v1/users", headers=headers).json()
+    me = next(u for u in listed["users"] if u["email"] == "auth@example.com")
+    created = auth_client.post("/v1/projects", json={"style": "cgi_3d"})
+    assert created.status_code == 201, created.text
+
+    r = auth_client.delete(f"/v1/users/{me['id']}", headers=headers)
+    assert r.status_code == 204, r.text
+    assert auth_client.get(f"/v1/users/{me['id']}", headers=headers).status_code == 404
+    leftover = auth_client.get("/v1/users", headers=headers).json()
+    assert all(u["email"] != "auth@example.com" for u in leftover["users"])
+    db = _session(auth_client)
+    try:
+        assert db.query(User).filter(User.email == "auth@example.com").first() is None
+        assert db.query(Project).count() == 0
+    finally:
+        db.close()
+
+
+def test_users_delete_guest_is_404(auth_client, monkeypatch):
+    headers = _owner_headers(monkeypatch)
+    g = auth_client.post("/v1/auth/guest")
+    assert g.status_code == 201, g.text
+    db = _session(auth_client)
+    try:
+        guest = db.query(User).filter(User.password_hash == "!guest").one()
+        guest_id = str(guest.id)
+    finally:
+        db.close()
+    r = auth_client.delete(f"/v1/users/{guest_id}", headers=headers)
+    assert r.status_code == 404
+
+
+def test_users_delete_requires_password(auth_client, monkeypatch):
+    _owner_headers(monkeypatch)
+    listed = auth_client.get("/v1/users", headers={"X-Usage-Password": "segredo"}).json()
+    me = listed["users"][0]
+    r = auth_client.delete(f"/v1/users/{me['id']}")
+    assert r.status_code in {401, 503}
