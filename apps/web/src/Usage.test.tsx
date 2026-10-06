@@ -76,7 +76,7 @@ describe("Painel /usuarios", () => {
     expect(screen.getByText("Ana Souza")).toBeInTheDocument();
     expect(screen.getByText("12 créditos")).toBeInTheDocument();
     expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
-    expect(screen.getByTestId("owner-user-placeholder")).toHaveTextContent(/clique numa conta/i);
+    expect(screen.getByTestId("owner-user-placeholder")).toHaveTextContent(/clique numa conta na lista/i);
     expect(screen.queryByTestId("owner-user-detail")).not.toBeInTheDocument();
     const nav = screen.getByTestId("owner-nav");
     expect(nav).toHaveTextContent("Gastos");

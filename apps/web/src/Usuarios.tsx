@@ -214,7 +214,7 @@ export function Usuarios() {
         <div>
           <h1>Usuários</h1>
           <p className="muted">
-            Contas cadastradas (sem convidados). {total} no total. Clique à esquerda para ver, editar
+            Contas cadastradas (sem convidados). {total} no total. Clique numa conta para ver, editar
             ou excluir.
           </p>
         </div>
@@ -474,7 +474,7 @@ export function Usuarios() {
               data-testid="owner-user-placeholder"
             >
               <h2>Dados da conta</h2>
-              <p className="muted">Clique numa conta à esquerda para ver e editar os dados.</p>
+              <p className="muted">Clique numa conta na lista para ver e editar os dados.</p>
             </section>
           )}
         </div>

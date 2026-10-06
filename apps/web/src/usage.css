@@ -288,10 +288,10 @@ button.usage-user-card.is-on {
   box-shadow: 0 0 0 1px #ef8f4b;
 }
 .usage-user-card-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.5rem 0.75rem;
+  align-items: start;
 }
 .usage-user-card strong {
   display: block;
@@ -301,9 +301,10 @@ button.usage-user-card.is-on {
 }
 .usage-user-email {
   margin: 0.2rem 0 0;
-  font-size: 0.98rem;
+  font-size: 0.9rem;
   color: #d7def4;
-  word-break: break-word;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 .usage-user-meta {
   display: flex;
