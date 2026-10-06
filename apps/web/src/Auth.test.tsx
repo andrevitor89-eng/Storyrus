@@ -9,7 +9,7 @@ import { state } from "./test/server";
 
 afterEach(() => {
   setToken(null);
-  setAuthFetchTimeoutMsForTests(15_000);
+  setAuthFetchTimeoutMsForTests(45_000);
   state.reset();
 });
 

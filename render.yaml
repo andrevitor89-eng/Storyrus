@@ -53,8 +53,9 @@ services:
         sync: false
       - key: PUBLIC_WEB_ORIGIN
         value: https://storyrus.ai
+      # From precisa bater com domínio verificado no Resend (não mexer no MX do M365).
       - key: TRANSACTIONAL_FROM_EMAIL
-        sync: false
+        value: "Story R Us <noreply@storyrus.ai>"
       - key: OPIK_API_KEY
         sync: false
       - key: OPIK_WORKSPACE

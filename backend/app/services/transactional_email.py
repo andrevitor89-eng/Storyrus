@@ -1,6 +1,7 @@
-"""E-mails transacionais opcionais (Resend).
+"""E-mails transacionais via Resend.
 
 Sem RESEND_API_KEY o envio é no-op e o link fica nos logs (dev devolve o token).
+Em prod, falta de chave gera warning no boot e em cada skip.
 """
 
 from __future__ import annotations
@@ -12,6 +13,32 @@ import httpx
 from app.config import settings
 
 logger = logging.getLogger(__name__)
+
+RESEND_API_URL = "https://api.resend.com/emails"
+
+
+def email_configured() -> bool:
+    """True quando há chave Resend para envio real."""
+    return bool((settings.resend_api_key or "").strip())
+
+
+def warn_if_email_unconfigured() -> None:
+    """Chamar no boot da API: em prod, e-mail sem chave = esqueci-senha/verify mudos."""
+    if email_configured():
+        logger.info(
+            "transactional_email_ready from=%s",
+            settings.transactional_from_email,
+        )
+        return
+    if settings.app_env == "prod":
+        logger.warning(
+            "RESEND_API_KEY ausente: verify/forgot-password não enviam e-mail "
+            "(só logs). Defina no Render + domínio verificado no Resend."
+        )
+    else:
+        logger.info(
+            "RESEND_API_KEY ausente: envio transacional desligado (dev ok)"
+        )
 
 
 def build_verify_email_url(token: str) -> str:
@@ -27,11 +54,17 @@ def build_password_reset_url(token: str) -> str:
 def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
     api_key = (settings.resend_api_key or "").strip()
     if not api_key:
-        logger.info("transactional_email_skipped to=%s subject=%s", to_email, subject)
+        level = logging.WARNING if settings.app_env == "prod" else logging.INFO
+        logger.log(
+            level,
+            "transactional_email_skipped to=%s subject=%s reason=no_resend_api_key",
+            to_email,
+            subject,
+        )
         return False
     try:
         resp = httpx.post(
-            "https://api.resend.com/emails",
+            RESEND_API_URL,
             headers={
                 "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
@@ -62,7 +95,7 @@ def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
 
 def send_verify_email(*, to_email: str, token: str) -> bool:
     url = build_verify_email_url(token)
-    if not (settings.resend_api_key or "").strip():
+    if not email_configured():
         logger.info("verify_email_link to=%s url=%s", to_email, url)
     subject = "Confirme seu e-mail — Story R Us"
     text = (
@@ -81,7 +114,7 @@ def send_verify_email(*, to_email: str, token: str) -> bool:
 
 def send_password_reset_email(*, to_email: str, token: str) -> bool:
     url = build_password_reset_url(token)
-    if not (settings.resend_api_key or "").strip():
+    if not email_configured():
         logger.info("password_reset_link to=%s url=%s", to_email, url)
     subject = "Redefinir senha — Story R Us"
     text = (

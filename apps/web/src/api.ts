@@ -181,8 +181,11 @@ export function resetStepIdempotencyState(): void {
   stepInFlight.clear();
 }
 
-/** Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout). */
-export let authFetchTimeoutMs = 15_000;
+/**
+ * Auth calls must not hang forever when the API/proxy is down (browser fetch has no default timeout).
+ * 45s cobre cold start do Render free (Docker + InsightFace) sem esperar indefinidamente.
+ */
+export let authFetchTimeoutMs = 45_000;
 
 /** Só para testes — restaura o valor padrão depois. */
 export function setAuthFetchTimeoutMsForTests(ms: number): void {
