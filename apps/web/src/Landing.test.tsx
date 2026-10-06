@@ -327,7 +327,8 @@ describe("Landing — catálogo", () => {
     expect(studioTarget(personalize[1].getAttribute("href"))).toContain("tema=superhero");
     expect(studioTarget(personalize[3].getAttribute("href"))).toContain("tema=pets");
     const pai = personalize.find((link) => studioTarget(link.getAttribute("href")).includes("Meu Pai, Meu Herói"));
-    expect(studioTarget(pai?.getAttribute("href"))).toContain("tema=fathers_day");
+    expect(pai).toBeTruthy();
+    expect(studioTarget(pai ? pai.getAttribute("href") : null)).toContain("tema=fathers_day");
   });
 });
 

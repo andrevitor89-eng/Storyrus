@@ -1740,7 +1740,7 @@ export function catalogSections(lang: Lang) {
         const lead = CATALOG_LEAD.indexOf(i);
         return lead === -1 ? CATALOG_LEAD.length + i : lead;
       };
-      return rank(a.catalogI) - rank(b.catalogI);
+      return rank(a.catalogI ?? Number.MAX_SAFE_INTEGER) - rank(b.catalogI ?? Number.MAX_SAFE_INTEGER);
     }),
   }));
 }
