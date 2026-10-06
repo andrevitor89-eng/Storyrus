@@ -193,8 +193,8 @@ export function Usuarios() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Usuários</h1>
           <p className="muted">
-            Página privada do dono. Com a conta do dono logada no estúdio o painel abre sozinho;
-            senão use a senha do painel.
+            Página restrita a contas administradoras. Com a conta admin logada o painel abre sozinho.
+            A senha compartilhada só vale se o servidor ainda estiver com o fallback ligado.
           </p>
           <form onSubmit={onSubmit}>
             <label>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { accountGateHref } from "./Auth";
 import { api, getToken } from "./api";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { Studio } from "./Studio";
 
 function demoIdFromSearch(search: string): string | null {
@@ -15,6 +16,7 @@ function demoIdFromSearch(search: string): string | null {
  * Sem token, guest ou e-mail não confirmado → cadastro (sessão inválida é limpa).
  */
 export function App() {
+  usePageMeta(staticPageMeta("/app"));
   const location = useLocation();
   const navigate = useNavigate();
   const isDemo = Boolean(demoIdFromSearch(location.search));

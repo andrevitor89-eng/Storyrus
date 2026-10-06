@@ -1,3 +1,5 @@
+import { applyPageMeta } from "./pageMeta";
+
 export type OwnerPage = {
   path: "/gastos" | "/pedidos" | "/usuarios";
   file: string;
@@ -27,18 +29,12 @@ export const OWNER_PAGES: readonly OwnerPage[] = [
 ];
 
 export function applyOwnerPageMeta(html: string, page: OwnerPage): string {
-  const url = `https://storyrus.ai${page.path}`;
-  let next = html;
-  next = next.replace(/<title>[\s\S]*?<\/title>/i, `<title>${page.title}</title>`);
-  next = next.replace(/(property="og:title"\s+content=")[^"]*(")/i, `$1${page.title}$2`);
-  next = next.replace(/(property="og:description"\s+content=")[^"]*(")/i, `$1${page.description}$2`);
-  next = next.replace(/(property="og:url"\s+content=")[^"]*(")/i, `$1${url}$2`);
-  next = next.replace(/(rel="canonical"\s+href=")[^"]*(")/i, `$1${url}$2`);
-  next = next.replace(/(name="description"\s+content=")[^"]*(")/i, `$1${page.description}$2`);
-  next = next.replace(/(name="twitter:title"\s+content=")[^"]*(")/i, `$1${page.title}$2`);
-  next = next.replace(/(name="twitter:description"\s+content=")[^"]*(")/i, `$1${page.description}$2`);
-  if (!/name="robots"/i.test(next)) {
-    next = next.replace(/<head>/i, `<head>\n    <meta name="robots" content="noindex, nofollow" />`);
-  }
-  return next;
+  return applyPageMeta(html, {
+    path: page.path,
+    title: page.title,
+    description: page.description,
+    robots: "noindex, nofollow",
+    sitemap: false,
+    prerender: false,
+  });
 }

@@ -3,12 +3,14 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { readAuthQueryEmail, readAuthQueryToken, safeNextPath } from "./Auth";
+import { staticPageMeta, usePageMeta } from "./pageMeta";
 import "./landing.css";
 
 /**
  * Confirma o e-mail via token da query e abre sessão no estúdio.
  */
 export function VerifyEmail() {
+  usePageMeta(staticPageMeta("/verificar-email"));
   const navigate = useNavigate();
   const location = useLocation();
   const [params] = useSearchParams();

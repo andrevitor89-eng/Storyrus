@@ -131,8 +131,8 @@ export function Pedidos() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Pedidos</h1>
           <p className="muted">
-            Página privada do dono. Se você já entrou no estúdio com a conta do dono, o painel
-            abre sozinho. Senão, use a senha do painel (a mesma de Gastos).
+            Página restrita a contas administradoras. Com a conta admin logada o painel abre sozinho.
+            A senha compartilhada só vale se o servidor ainda estiver com o fallback ligado.
           </p>
           {getToken() && loading && <p className="muted">Abrindo com a sessão do estúdio…</p>}
           <form onSubmit={onSubmit}>
