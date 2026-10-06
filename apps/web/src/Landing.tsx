@@ -683,9 +683,9 @@ const I18N = {
       { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
-      { t: "Preencha os Dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
-      { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
-      { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
+      { t: "Envie foto do protagonista (original)", p: "Envie fotos nítidas do personagem, protagonista da sua história." },
+      { t: "Envie fotos do personagem adicional", p: "Adicione fotos de um ou mais personagens relacionadas à história que deseja criar." },
+      { t: "Revise e aprove (livro capa)", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
     hiw_foot: [
       { t: "Envie a Foto e Defina os Detalhes", p: "Escolha o tema e o formato do livro." },
@@ -887,9 +887,9 @@ const I18N = {
       { t: "The book is ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Fill in the Details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
-      { t: "Follow the Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
-      { t: "Review and Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
+      { t: "Send the protagonist photo (original)", p: "Send clear photos of the character, the protagonist of your story." },
+      { t: "Send additional character photos", p: "Add photos of one or more characters related to the story you want to create." },
+      { t: "Review and approve (book cover)", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
     hiw_foot: [
       { t: "Send the Photo and Set the Details", p: "Choose the theme and the book format." },
@@ -1091,9 +1091,9 @@ const I18N = {
       { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Completa los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
-      { t: "Acompaña la Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
-      { t: "Revisa y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+      { t: "Envía la foto del protagonista (original)", p: "Envía fotos nítidas del personaje, protagonista de tu historia." },
+      { t: "Envía fotos del personaje adicional", p: "Añade fotos de uno o más personajes relacionadas con la historia que quieres crear." },
+      { t: "Revisa y aprueba (portada del libro)", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     hiw_foot: [
       { t: "Envía la Foto y Define los Detalles", p: "Elige el tema y el formato del libro." },
