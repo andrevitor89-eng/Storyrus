@@ -383,7 +383,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
         <div className={`auth-card${isSignup ? " auth-card-full" : ""}`}>
           {isSignup ? (
             <div className="auth-topbar">
-              <Link to="/" className="auth-logo auth-logo-inline">
+              <Link to="/" className="auth-logo-inline">
                 <img src={logo} alt="Story R Us" />
               </Link>
               {langSwitch}
