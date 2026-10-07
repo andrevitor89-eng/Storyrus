@@ -828,42 +828,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </ol>
           </div>
 
-          {onlyName ? (
-            <p className="studio-chosen" role="status">
-              <span>{t.chosenBook}</span>
-              <b>{bookTitle || themeText}</b>
-            </p>
-          ) : (
-            <>
-              <label className="studio-field">
-                {t.bookTitle}
-                <input
-                  disabled={fieldsLocked}
-                  value={bookTitle}
-                  onChange={(e) => {
-                    titleTouched.current = true;
-                    setBookTitle(e.target.value);
-                  }}
-                  placeholder={t.bookTitlePh}
-                  maxLength={120}
-                />
-              </label>
-
-              <label className="studio-field">
-                {t.themeFree}
-                <textarea
-                  disabled={fieldsLocked}
-                  value={themeText}
-                  onChange={(e) => setThemeText(e.target.value)}
-                  placeholder={t.themeFreePh}
-                  maxLength={500}
-                  rows={3}
-                />
-              </label>
-              <p className="muted field-hint">{t.themeHint}</p>
-            </>
-          )}
-
           <div className="studio-grid two">
             <label className="studio-field">
               {primary.name}
@@ -948,6 +912,42 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 maxLength={200}
               />
             </label>
+          )}
+
+          {onlyName ? (
+            <p className="studio-chosen" role="status">
+              <span>{t.chosenBook}</span>
+              <b>{bookTitle || themeText}</b>
+            </p>
+          ) : (
+            <>
+              <label className="studio-field">
+                {t.bookTitle}
+                <input
+                  disabled={fieldsLocked}
+                  value={bookTitle}
+                  onChange={(e) => {
+                    titleTouched.current = true;
+                    setBookTitle(e.target.value);
+                  }}
+                  placeholder={t.bookTitlePh}
+                  maxLength={120}
+                />
+              </label>
+
+              <label className="studio-field">
+                {t.themeFree}
+                <textarea
+                  disabled={fieldsLocked}
+                  value={themeText}
+                  onChange={(e) => setThemeText(e.target.value)}
+                  placeholder={t.themeFreePh}
+                  maxLength={500}
+                  rows={3}
+                />
+              </label>
+              <p className="muted field-hint">{t.themeHint}</p>
+            </>
           )}
 
           <div className="studio-choices">
