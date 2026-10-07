@@ -915,3 +915,73 @@ def scene_extras_for_body_plate(template_id: str | None) -> str:
     if extras:
         return f"{extras} {BODY_PLATE_EXTRAS}"
     return BODY_PLATE_EXTRAS
+
+
+def preview_cover_prompt(
+    *,
+    title: str,
+    child_name: str | None,
+    theme: str | None,
+    language: str = "pt-BR",
+) -> str:
+    """Prompt OpenAI para a capa da prévia (estilo landing)."""
+    name = (child_name or "").strip()
+    theme_bit = (theme or "").strip()
+    is_en = (language or "").lower().startswith("en")
+    is_es = (language or "").lower().startswith("es")
+    if is_en:
+        who = f" featuring {name}" if name else ""
+        theme_line = f" Theme mood: {theme_bit}." if theme_bit else ""
+        return (
+            f"Children's book COVER illustration{who}. Title concept: '{title}'.{theme_line} "
+            "Square book cover, hero character centered and large, warm cinematic light, "
+            "rich illustrated background, premium print look. No barcode, no photo frame, "
+            "no watermark. Leave a calm upper band for a title. Same face as the avatar reference."
+        )
+    if is_es:
+        who = f" con {name}" if name else ""
+        theme_line = f" Ambiente del tema: {theme_bit}." if theme_bit else ""
+        return (
+            f"Portada de libro infantil ilustrada{who}. Concepto del título: '{title}'.{theme_line} "
+            "Formato cuadrado, personaje héroe grande y centrado, luz cinematográfica cálida, "
+            "fondo ilustrado rico, aspecto de impresión premium. Sin código de barras ni marco "
+            "de foto. Deja una franja superior tranquila para el título. Misma cara que el avatar."
+        )
+    who = f" com {name}" if name else ""
+    theme_line = f" Clima do tema: {theme_bit}." if theme_bit else ""
+    return (
+        f"Capa de livro infantil ilustrada{who}. Conceito do título: '{title}'.{theme_line} "
+        "Formato quadrado, personagem herói grande e central, luz cinematográfica quente, "
+        "cenário ilustrado rico, visual de impressão premium. Sem código de barras, sem moldura "
+        "de foto, sem marca d'água. Deixe uma faixa superior calma para o título. "
+        "Mesmo rosto do avatar de referência."
+    )
+
+
+def preview_in_hand_prompt(*, language: str = "pt-BR") -> str:
+    """Prompt OpenAI para a foto lifestyle 'na mão' (como na landing)."""
+    is_en = (language or "").lower().startswith("en")
+    is_es = (language or "").lower().startswith("es")
+    if is_en:
+        return (
+            "Photoreal lifestyle photo: a child or parent holding an open hardcover children's "
+            "book in their hands, cozy home light, shallow depth of field. The FIRST reference "
+            "image is the BOOK COVER — print that exact cover art on the front of the physical "
+            "book being held. Natural skin, real hands, no illustration style on the person. "
+            "Square crop, marketing quality like a product hero shot."
+        )
+    if is_es:
+        return (
+            "Foto lifestyle fotorrealista: un niño o un adulto sostiene un libro infantil de "
+            "tapa dura abierto entre las manos, luz hogareña cálida, poca profundidad de campo. "
+            "La PRIMERA imagen de referencia es la PORTADA — imprime exactamente ese arte en la "
+            "tapa del libro físico. Piel y manos reales, sin estilo ilustrado en la persona. "
+            "Recorte cuadrado, calidad de foto publicitaria."
+        )
+    return (
+        "Foto lifestyle fotorrealista: uma criança ou um adulto segura um livro infantil de capa "
+        "dura aberto nas mãos, luz aconchegante de casa, pouca profundidade de campo. A PRIMEIRA "
+        "imagem de referência é a CAPA — imprima exatamente essa arte na capa do livro físico. "
+        "Pele e mãos reais, sem estilo ilustrado na pessoa. Enquadramento quadrado, qualidade de "
+        "foto de produto/marketing."
+    )

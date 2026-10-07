@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 import logging
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app import storage
@@ -17,6 +18,8 @@ from app.ai_clients.book_prompts import (
     costume_extras_for_theme,
     identity_shot,
     name_scene_extras_for_template,
+    preview_cover_prompt,
+    preview_in_hand_prompt,
     scene_extras_for_template,
 )
 from app.ai_clients.identity_lock import require_character_ref
@@ -24,6 +27,7 @@ from app.config import settings
 from app.models import Asset, AssetKind, Job, ProjectStatus
 from app.observability.opik_trace import job_metadata, update_trace
 from app.printkit.service import invalidate_print
+from app.services import preview_chain
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.story_templates import illustration_notes, page_layouts
@@ -60,6 +64,158 @@ def _pkg():
     return pkg
 
 
+def _clear_kind(db: Session, project, kind: str) -> None:
+    for asset in db.scalars(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == kind)
+    ).all():
+        db.delete(asset)
+    db.flush()
+
+
+def _persist_preview_asset(
+    db: Session,
+    project,
+    *,
+    kind: str,
+    result: ImageResult,
+    meta: dict | None = None,
+) -> str:
+    ext = "png" if "png" in (result.mime_type or "") else "jpg"
+    key = storage.new_key(project.id, kind, ext)
+    storage.put_bytes(key, result.image_bytes, result.mime_type or "image/png")
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=kind,
+            storage_key=key,
+            meta={"mime": result.mime_type, **(meta or {})},
+        )
+    )
+    return key
+
+
+async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
+    """Prévia estilo landing: capa + 1 página + foto na mão (OpenAI GPT Image)."""
+    char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))
+    photo_bytes = await _project_photo_bytes(db, project)
+    image_provider = _pkg().get_image_provider()
+    language = project.language or "pt-BR"
+    child_name = (project.child_name or "").strip()
+    art_style = book_art_direction(project.style)
+
+    pages_text = _parse_pages(project.story_text)
+    if not pages_text:
+        raise ProviderError("Historia vazia para a previa", transient=False)
+    page_text = pages_text[0]
+    is_en = language.lower().startswith("en")
+    title = _parse_title(project.story_text) or (
+        (f"The Adventure of {child_name}" if child_name else "My Great Adventure")
+        if is_en
+        else (f"A Grande Aventura de {child_name}" if child_name else "A Minha Grande Aventura")
+    )
+
+    _clear_page_images(db, project)
+    _clear_kind(db, project, AssetKind.COVER.value)
+    _clear_kind(db, project, AssetKind.IN_HAND.value)
+    _set_job_progress(job, stage="pages", done=0, total=3)
+    db.commit()
+
+    cover_prompt = preview_cover_prompt(
+        title=title,
+        child_name=child_name or None,
+        theme=project.theme,
+        language=language,
+    )
+    page_brief = _scene_to_brief({}, page_text, page_index=0, layout="story")
+    page_brief["shot"] = identity_shot(page_brief.get("shot"), layout="story")
+    in_hand_prompt = preview_in_hand_prompt(language=language)
+
+    if settings.offline_fallback:
+        cover = ImageResult(
+            image_bytes=_offline_png("Capa previa", palette=((255, 236, 210), (255, 255, 255))),
+            mime_type="image/png",
+            cost_usd=0.0,
+        )
+        page = ImageResult(
+            image_bytes=_offline_png(
+                f"Pagina 1: {page_text[:28]}",
+                palette=((233, 242, 255), (255, 255, 255)),
+            ),
+            mime_type="image/png",
+            cost_usd=0.0,
+        )
+        in_hand = ImageResult(
+            image_bytes=_offline_png("Na mao", palette=((240, 248, 255), (255, 250, 240))),
+            mime_type="image/png",
+            cost_usd=0.0,
+        )
+    else:
+        cover = await image_provider.generate_scene(
+            prompt=cover_prompt,
+            character_ref=char_bytes,
+            style=art_style,
+            photo=photo_bytes,
+        )
+        _set_job_progress(job, stage="pages", done=1, total=3)
+        db.commit()
+        page = await _illustrate_page(
+            image_provider,
+            idx=1,
+            caption=page_text[:260],
+            brief=page_brief,
+            extras=costume_extras_for_theme(project.theme),
+            child_name=child_name,
+            char_bytes=char_bytes,
+            photo_bytes=photo_bytes,
+            bible={},
+            style_lock=asyncio.Lock(),
+            good_style=[],
+            art_style=art_style,
+        )
+        _set_job_progress(job, stage="pages", done=2, total=3)
+        db.commit()
+        in_hand = await image_provider.generate_scene(
+            prompt=in_hand_prompt,
+            character_ref=cover.image_bytes,
+            style="photoreal lifestyle product photo",
+            extra_refs=[char_bytes],
+        )
+
+    _persist_preview_asset(db, project, kind=AssetKind.COVER.value, result=cover)
+    _persist_page_image(db, project, 1, page)
+    _persist_preview_asset(db, project, kind=AssetKind.IN_HAND.value, result=in_hand)
+    _set_job_progress(job, stage="pages", done=3, total=3)
+
+    # PDF leve (capa ilustrada + 1 página) para o link "Abrir e-book".
+    blob = ebook_builder.build_pdf(
+        title=title,
+        pages=[{"text": page_text[:400], "image": page.image_bytes, "mime": page.mime_type}],
+        dedication=(project.dedication or None),
+        cover=cover.image_bytes,
+        portrait=char_bytes,
+        child_name=(child_name or None),
+        language=language,
+        preview_pages=1,
+        cover_palette=ebook_builder.cover_palette_for(None, project.theme),
+        page_cm=20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
+    )
+    ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
+    storage.put_bytes(ebook_key, blob, "application/pdf")
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=AssetKind.EBOOK.value,
+            storage_key=ebook_key,
+            meta={"mime": "application/pdf", "preview_trio": True},
+        )
+    )
+    project.ebook_url = ebook_key
+    job.cost_usd = add_usd(cover.cost_usd, page.cost_usd, in_hand.cost_usd)
+    flush_usage(db, job, [*lines_of(cover), *lines_of(page), *lines_of(in_hand)])
+    _set_status(db, project, ProjectStatus.EBOOK_READY)
+    preview_chain.finalize_preview_ebook(db, project, job)
+
+
 async def handle_ebook(db: Session, job: Job) -> None:
     project = _project(db, job)
     update_trace(metadata=job_metadata(job), tags=["EBOOK"])
@@ -70,6 +226,10 @@ async def handle_ebook(db: Session, job: Job) -> None:
     project.book_approved_at = None
     invalidate_print(db, project)
     _set_status(db, project, ProjectStatus.EBOOK_RUNNING)
+
+    if preview_chain.is_preview_chain(job):
+        await _handle_preview_ebook(db, job, project)
+        return
 
     char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))
     photo_bytes = await _project_photo_bytes(db, project)

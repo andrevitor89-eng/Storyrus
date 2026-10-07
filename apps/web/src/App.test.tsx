@@ -41,7 +41,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(screen.getByTestId("auth-submit")).toHaveTextContent(/criar conta/i);
   });
 
-  it("criar livro só confirma que o pedido foi enviado", async () => {
+  it("criar livro mostra projeto e CTA de prévia", async () => {
     asRegistered();
     const user = userEvent.setup();
     const { container } = renderApp();
@@ -62,8 +62,8 @@ describe("Fluxo E2E (com conta)", () => {
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
-    expect(sent).toHaveTextContent(/pedido enviado/i);
-    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(sent).toHaveTextContent(/projeto criado/i);
+    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
   }, 15000);

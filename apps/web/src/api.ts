@@ -478,6 +478,8 @@ export const api = {
       realistic_url: string | null;
       extra_characters: { name: string; url: string }[];
       page_images: string[];
+      cover_url?: string | null;
+      in_hand_url?: string | null;
       ebook_url: string | null;
       video_url: string | null;
       narrated_video_url: string | null;
@@ -623,6 +625,37 @@ export const api = {
       } catch (err) {
         const message = err instanceof Error ? err.message : "";
         // Resposta HTTP definitiva: libera. Falha de rede: mantém a chave no retry.
+        if (isHttpErrorMessage(message)) {
+          releaseStepIdempotencyKey(id, step);
+        }
+        throw err;
+      } finally {
+        stepInFlight.delete(cacheKey);
+      }
+    })();
+
+    stepInFlight.set(cacheKey, promise);
+    return promise;
+  },
+  /** Cadeia automática: avatar → história → ebook → vídeo (prévia no Studio). */
+  startPreview(id: string, body: { brief?: string } = {}): Promise<JobAccepted> {
+    const step = "preview";
+    const cacheKey = stepCacheKey(id, step);
+    const inFlight = stepInFlight.get(cacheKey);
+    if (inFlight) return inFlight as Promise<JobAccepted>;
+
+    const idempotencyKey = getOrCreateStepIdempotencyKey(id, step);
+    const promise = (async () => {
+      try {
+        const accepted = await req<JobAccepted>(`/v1/projects/${id}/preview`, {
+          method: "POST",
+          headers: { "Idempotency-Key": idempotencyKey },
+          body: JSON.stringify(body),
+        });
+        releaseStepIdempotencyKey(id, step);
+        return accepted;
+      } catch (err) {
+        const message = err instanceof Error ? err.message : "";
         if (isHttpErrorMessage(message)) {
           releaseStepIdempotencyKey(id, step);
         }

@@ -111,6 +111,20 @@ def project_assets(
     pages = sorted(pages, key=lambda a: ((a.meta or {}).get("page") or 0, str(a.created_at)))
     page_images = [url_for(a.storage_key) for a in pages]
 
+    cover = db.scalar(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.COVER.value)
+        .order_by(Asset.created_at.desc())
+    )
+    cover_url = url_for(cover.storage_key) if cover else None
+
+    in_hand = db.scalar(
+        select(Asset)
+        .where(Asset.project_id == project.id, Asset.kind == AssetKind.IN_HAND.value)
+        .order_by(Asset.created_at.desc())
+    )
+    in_hand_url = url_for(in_hand.storage_key) if in_hand else None
+
     ebook_url = url_for(project.ebook_url) if project.ebook_url else None
 
     storyboard = db.scalar(
@@ -164,6 +178,8 @@ def project_assets(
         "realistic_url": realistic_url,
         "extra_characters": extra_characters_out,
         "page_images": page_images,
+        "cover_url": cover_url,
+        "in_hand_url": in_hand_url,
         "ebook_url": ebook_url,
         "storyboard_url": storyboard_url,
         "video_url": video_url,

@@ -160,8 +160,9 @@ describe("Studio — tema do banner", () => {
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
-    expect(sent).toHaveTextContent(/pedido enviado/i);
-    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(sent).toHaveTextContent(/projeto criado/i);
+    expect(sent).toHaveTextContent(/prévia/i);
+    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
     expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
     expect(screen.queryByLabelText(/nome do pai/i)).not.toBeInTheDocument();
     expect(upload).toHaveBeenCalledWith(
@@ -324,8 +325,8 @@ describe("Studio a11y", () => {
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
-    expect(sent).toHaveTextContent(/pedido enviado/i);
-    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(sent).toHaveTextContent(/projeto criado/i);
+    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
     expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
   });
 });
@@ -348,11 +349,84 @@ describe("Polling do estúdio", () => {
     await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     const sent = await screen.findByTestId("studio-order-sent");
-    expect(sent).toHaveTextContent(/pedido enviado/i);
-    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
+    expect(sent).toHaveTextContent(/projeto criado/i);
+    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
 
     const pollTimers = spy.mock.calls.filter((c) => c[1] === 2500);
     expect(pollTimers.length).toBeLessThanOrEqual(2);
   }, 20000);
+});
+
+describe("Prévia automática", () => {
+  it("dispara startPreview com brief ao clicar Gerar prévia", async () => {
+    state.credits = 20;
+    const preview = vi.spyOn(api, "startPreview");
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
+    await screen.findByTestId("studio-order-sent");
+
+    await user.click(screen.getByTestId("studio-generate-preview"));
+    expect(preview).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({ brief: expect.stringMatching(/Lila|estrelas|espaço/i) }),
+    );
+    expect(await screen.findByText("AVATAR")).toBeInTheDocument();
+  });
+
+  it("MSW encadeia avatar → story → ebook e monta o trio (sem vídeo)", async () => {
+    state.credits = 20;
+    const p = {
+      id: "proj-preview",
+      status: "CREATED",
+      style: "cartoon",
+      story_text: null as string | null,
+      ebook_url: null as string | null,
+      video_url: null as string | null,
+      narrated_video_url: null as string | null,
+      cover_url: null as string | null,
+      in_hand_url: null as string | null,
+      page_image_url: null as string | null,
+      character_approved_at: null as string | null,
+      book_approved_at: null as string | null,
+      print_requested_at: null as string | null,
+      print_status: null as string | null,
+      created_at: new Date().toISOString(),
+    };
+    state.projects.set(p.id, p);
+    state.jobs.set(p.id, []);
+
+    await api.startPreview(p.id, { brief: "aventura" });
+    for (let i = 0; i < 8; i += 1) {
+      await api.listJobs(p.id);
+    }
+    const jobs = await api.listJobs(p.id);
+    expect(jobs.some((j) => j.type === "AVATAR" && j.status === "DONE")).toBe(true);
+    expect(jobs.some((j) => j.type === "STORY" && j.status === "DONE")).toBe(true);
+    expect(jobs.some((j) => j.type === "EBOOK" && j.status === "DONE")).toBe(true);
+    expect(jobs.some((j) => j.type === "VIDEO")).toBe(false);
+    const project = await api.getProject(p.id);
+    expect(project.story_text).toMatch(/Pagina/i);
+    expect(project.ebook_url).toBeTruthy();
+    expect(project.character_approved_at).toBeTruthy();
+    expect(project.book_approved_at).toBeTruthy();
+    const assets = await api.getAssets(p.id);
+    expect(assets.cover_url).toMatch(/cover/);
+    expect(assets.page_images?.[0]).toMatch(/page1/);
+    expect(assets.in_hand_url).toMatch(/in-hand/);
+  });
 });
