@@ -177,6 +177,11 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     assert up.status_code == 201, up.text
     assert b"\xff\xd8" not in up.content
 
+    owner_once = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
+    assert owner_once.status_code == 200, owner_once.text
+    assert len(owner_once.json()["orders"]) == 1
+    assert owner_once.json()["orders"][0]["summary"] == CARTOON + "\n" + CLIENT
+
     again = _photo(auth_client, pid, extra_names="outra pessoa")
     assert again.status_code == 201, again.text
 
@@ -185,7 +190,10 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     orders = owner.json()["orders"]
     assert len(orders) == 1
     assert orders[0]["project_id"] == pid
-    assert orders[0]["summary"] == CARTOON + "\n" + CLIENT
+    # Segunda foto atualiza o resumo (contagem + extras do último envio).
+    assert "Fotos anexadas: 2" in orders[0]["summary"]
+    assert "outra pessoa" in orders[0]["summary"]
+    assert "Cliente: Ana Souza" in orders[0]["summary"]
     assert "foto.jpg" not in orders[0]["summary"]
     assert orders[0]["photo_urls"]
     assert orders[0]["photo_urls"][0].startswith("https://fotos.test/")
@@ -272,7 +280,9 @@ def test_several_photos_count_together_on_one_order(auth_client, monkeypatch):
     first = _photo(auth_client, pid, finalize="0")
     assert first.status_code == 201, first.text
     waiting = auth_client.get("/v1/usage", headers={"X-Usage-Password": "segredo"})
-    assert waiting.json()["orders"] == []
+    # Pedido abre na primeira foto; a segunda só atualiza a contagem.
+    assert len(waiting.json()["orders"]) == 1
+    assert "Fotos anexadas: 1" in waiting.json()["orders"][0]["summary"]
     second = auth_client.post(
         f"/v1/projects/{pid}/photo",
         files={"file": ("lado.jpg", b"\xff\xd8\xff\xd9", "image/jpeg")},

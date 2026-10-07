@@ -279,6 +279,9 @@ export interface UsageReport {
   reserved_usd?: number;
   anomalies?: UsageAnomaly[];
   orders?: OrderTicket[];
+  users_total?: number;
+  projects_total?: number;
+  projects_awaiting_photo?: number;
 }
 
 export interface UploadUrl {

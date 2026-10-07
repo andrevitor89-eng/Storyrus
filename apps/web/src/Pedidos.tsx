@@ -79,6 +79,11 @@ export function Pedidos() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sessionTried, setSessionTried] = useState(false);
+  const [stats, setStats] = useState<{
+    users: number;
+    projects: number;
+    awaitingPhoto: number;
+  } | null>(null);
 
   const load = useCallback(async (secret: string) => {
     setLoading(true);
@@ -87,6 +92,11 @@ export function Pedidos() {
       const report = await api.usage(apiOwnerPassword(secret));
       const list = report.orders ?? [];
       setOrders(list);
+      setStats({
+        users: report.users_total ?? 0,
+        projects: report.projects_total ?? 0,
+        awaitingPhoto: report.projects_awaiting_photo ?? 0,
+      });
       setSelected((cur) => (cur && list.some((order) => order.id === cur) ? cur : list[0]?.id ?? null));
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
       persistOwnerSecret(next);
@@ -98,7 +108,11 @@ export function Pedidos() {
         setPassword("");
         setOrders(null);
       }
-      setError(ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar pedidos."));
+      setError(
+        ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar pedidos.", {
+          usedSession: !apiOwnerPassword(secret) && Boolean(getToken()),
+        }),
+      );
     } finally {
       setLoading(false);
     }
@@ -131,8 +145,10 @@ export function Pedidos() {
           <img className="auth-logo" src={logo} alt="Story R Us" />
           <h1>Pedidos</h1>
           <p className="muted">
-            Página restrita a contas administradoras. Com a conta admin logada o painel abre sozinho.
-            A senha compartilhada só vale se o servidor ainda estiver com o fallback ligado.
+            Painel admin. O caminho mais simples:{" "}
+            <a href="/entrar?next=%2Fpedidos">entrar com a conta admin</a> — o painel abre sozinho.
+            Alternativa: senha do painel no Render (<code>USAGE_DASHBOARD_PASSWORD</code>), não a senha
+            da conta.
           </p>
           {getToken() && loading && <p className="muted">Abrindo com a sessão do estúdio…</p>}
           <form onSubmit={onSubmit}>
@@ -182,7 +198,20 @@ export function Pedidos() {
       {error && <p className="error">{error}</p>}
 
       {(orders ?? []).length === 0 ? (
-        <p className="muted">Nenhum pedido ainda. O pedido aparece depois que a família cria o livro e a foto chega.</p>
+        <div className="muted" data-testid="pedidos-empty">
+          <p>
+            Nenhum pedido com foto ainda. O pedido entra aqui quando a família cria o livro no
+            estúdio e envia a foto — cadastro em Usuários sozinho não gera pedido.
+          </p>
+          {stats && (stats.users > 0 || stats.projects > 0) && (
+            <p data-testid="pedidos-empty-stats">
+              Agora: {stats.users} conta(s), {stats.projects} projeto(s)
+              {stats.awaitingPhoto > 0
+                ? `, ${stats.awaitingPhoto} projeto(s) ainda sem foto/pedido.`
+                : "."}
+            </p>
+          )}
+        </div>
       ) : (
         <div className="usage-orders">
           <ul className="usage-order-list" aria-label="Lista de pedidos">

@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { AppRoutes } from "./Root";
@@ -68,7 +68,9 @@ describe("Painel /usuarios", () => {
     );
     expect(await screen.findByRole("heading", { name: /^usuários$/i })).toBeInTheDocument();
     expect(screen.queryByText(/escolha um livro/i)).not.toBeInTheDocument();
-    expect(document.title).toBe("Usuários — Story R Us");
+    await waitFor(() => {
+      expect(document.title).toBe("Usuários — Story R Us");
+    });
   });
 
   it("pede senha e mostra contas depois do ok", async () => {

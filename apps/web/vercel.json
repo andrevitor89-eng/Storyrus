@@ -37,7 +37,7 @@
       ]
     },
     {
-      "source": "/(entrar|cadastro|verificar-email|esqueci-senha|redefinir-senha|app|landing|privacy|terms)",
+      "source": "/(entrar|cadastro|verificar-email|esqueci-senha|redefinir-senha|app|conta|landing|privacy|terms)",
       "headers": [
         { "key": "X-Robots-Tag", "value": "noindex, nofollow" }
       ]
@@ -64,6 +64,7 @@
     { "source": "/exemplos", "destination": "/exemplos.html" },
     { "source": "/gastos", "destination": "/gastos.html" },
     { "source": "/pedidos", "destination": "/pedidos.html" },
-    { "source": "/usuarios", "destination": "/usuarios.html" }
+    { "source": "/usuarios", "destination": "/usuarios.html" },
+    { "source": "/conta", "destination": "/conta.html" }
   ]
 }
