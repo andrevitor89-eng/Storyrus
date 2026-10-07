@@ -28,6 +28,8 @@ describe("vercel e robots", () => {
       expect(csp?.value).toContain("default-src 'self'");
       expect(csp?.value).toContain("https://fonts.googleapis.com");
       expect(csp?.value).toContain("https://viacep.com.br");
+      expect(csp?.value).toContain("https://api.zippopotam.us");
+      expect(csp?.value).toContain("https://ipapi.co");
     }
   });
 
