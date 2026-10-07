@@ -147,11 +147,81 @@
   border: none; cursor: pointer; font-family: inherit;
 }
 .kutil .ni { width: 20px; height: 20px; color: var(--yellow); filter: drop-shadow(0 0 5px rgba(244,183,64,.7)); }
+.khead-account {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
 .khead-user {
-  display: inline-flex; align-items: center;
-  max-width: 9rem; overflow: hidden; text-overflow: ellipsis;
-  color: var(--ink); font-weight: 800; font-size: .9rem;
-  white-space: nowrap; opacity: .92;
+  display: inline-flex; align-items: center; gap: 4px;
+  max-width: 11rem;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: #e9eefb;
+  font: inherit;
+  font-weight: 800;
+  font-size: .9rem;
+  white-space: nowrap;
+  cursor: pointer;
+  opacity: .96;
+}
+.khead-user > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 8.5rem;
+}
+.khead-user-chev {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  opacity: .85;
+  transition: transform .15s ease;
+}
+.khead-user.is-open .khead-user-chev { transform: rotate(180deg); }
+.khead-user:hover,
+.khead-user:focus-visible,
+.khead-user.is-open {
+  background: #182343;
+  outline: none;
+}
+.khead-account-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 12.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px;
+  border-radius: 14px;
+  background: #121a33;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, .35);
+  border: 1px solid rgba(233, 238, 251, .08);
+  z-index: 120;
+}
+.khead-account-item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #e9eefb;
+  font: inherit;
+  font-weight: 700;
+  font-size: .92rem;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.khead-account-item:hover,
+.khead-account-item:focus-visible {
+  background: #1c2748;
+  outline: none;
 }
 .khead-cta { margin-left: 4px; padding: 9px 16px; font-size: .95rem; }
 .khead .kbrand {
@@ -1931,6 +2001,8 @@ img.ex-tab-cover {
   .featurebar { grid-template-columns: repeat(2, 1fr); }
   .feat:nth-child(2) { border-right: none; }
   .khamb { display: block; flex-shrink: 0; }
+  /* Conta no ☰ (kmobile-auth); só o CTA fica na barra. */
+  .khead-account { display: none; }
   .khead-links {
     display: flex;
     gap: 6px;
@@ -2170,6 +2242,17 @@ img.ex-tab-cover {
 }
 [data-theme="light"] .kid .kutil { background: #f4f6fb; color: #1f3568; }
 [data-theme="light"] .kid .khead-user { color: #1f3568; }
+[data-theme="light"] .kid .khead-user:hover,
+[data-theme="light"] .kid .khead-user:focus-visible,
+[data-theme="light"] .kid .khead-user.is-open { background: #e8eefc; }
+[data-theme="light"] .kid .khead-account-menu {
+  background: #fff;
+  border-color: #e4ebf8;
+  box-shadow: 0 14px 36px rgba(31, 53, 104, .16);
+}
+[data-theme="light"] .kid .khead-account-item { color: #1f3568; }
+[data-theme="light"] .kid .khead-account-item:hover,
+[data-theme="light"] .kid .khead-account-item:focus-visible { background: #eef4ff; }
 [data-theme="light"] .kid .khead .theme-toggle { background: #f4f6fb; }
 [data-theme="light"] .kid .khead .theme-toggle-label { color: var(--ink); }
 [data-theme="light"] .kid .khead .lang { background: #f4f6fb; }
