@@ -828,6 +828,42 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </ol>
           </div>
 
+          {onlyName ? (
+            <p className="studio-chosen" role="status">
+              <span>{t.chosenBook}</span>
+              <b>{bookTitle || themeText}</b>
+            </p>
+          ) : (
+            <>
+              <label className="studio-field">
+                {t.bookTitle}
+                <input
+                  disabled={fieldsLocked}
+                  value={bookTitle}
+                  onChange={(e) => {
+                    titleTouched.current = true;
+                    setBookTitle(e.target.value);
+                  }}
+                  placeholder={t.bookTitlePh}
+                  maxLength={120}
+                />
+              </label>
+
+              <label className="studio-field">
+                {t.themeFree}
+                <textarea
+                  disabled={fieldsLocked}
+                  value={themeText}
+                  onChange={(e) => setThemeText(e.target.value)}
+                  placeholder={t.themeFreePh}
+                  maxLength={500}
+                  rows={3}
+                />
+              </label>
+              <p className="muted field-hint">{t.themeHint}</p>
+            </>
+          )}
+
           <div className="studio-grid two">
             <label className="studio-field">
               {primary.name}
@@ -884,51 +920,34 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </>
           ) : null}
 
-          {onlyName ? (
-            <p className="studio-chosen" role="status">
-              <span>{t.chosenBook}</span>
-              <b>{bookTitle || themeText}</b>
-            </p>
-          ) : (
+          {!fieldsLocked && (
             <>
               <label className="studio-field">
-                {t.bookTitle}
+                {t.otherCharacters}
                 <input
-                  disabled={fieldsLocked}
-                  value={bookTitle}
-                  onChange={(e) => {
-                    titleTouched.current = true;
-                    setBookTitle(e.target.value);
-                  }}
-                  placeholder={t.bookTitlePh}
-                  maxLength={120}
+                  disabled={isDemo}
+                  value={extraNames}
+                  onChange={(e) => setExtraNames(e.target.value)}
+                  placeholder={t.otherCharactersPh}
+                  maxLength={300}
+                  data-testid="studio-extra-names"
                 />
               </label>
-
-              <label className="studio-field">
-                {t.themeFree}
-                <textarea
-                  disabled={fieldsLocked}
-                  value={themeText}
-                  onChange={(e) => setThemeText(e.target.value)}
-                  placeholder={t.themeFreePh}
-                  maxLength={500}
-                  rows={3}
-                />
-              </label>
-              <p className="muted field-hint">{t.themeHint}</p>
-
-              <label className="studio-field">
-                {t.dedication}
-                <input
-                  disabled={fieldsLocked}
-                  value={dedication}
-                  onChange={(e) => setDedication(e.target.value)}
-                  placeholder={t.dedicationPh}
-                  maxLength={200}
-                />
-              </label>
+              <p className="muted field-hint">{primary.extras}</p>
             </>
+          )}
+
+          {!onlyName && (
+            <label className="studio-field">
+              {t.dedication}
+              <input
+                disabled={fieldsLocked}
+                value={dedication}
+                onChange={(e) => setDedication(e.target.value)}
+                placeholder={t.dedicationPh}
+                maxLength={200}
+              />
+            </label>
           )}
 
           <div className="studio-choices">
@@ -989,18 +1008,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
           {!fieldsLocked && (
             <>
-              <label className="studio-field">
-                {t.otherCharacters}
-                <input
-                  disabled={isDemo}
-                  value={extraNames}
-                  onChange={(e) => setExtraNames(e.target.value)}
-                  placeholder={t.otherCharactersPh}
-                  maxLength={300}
-                  data-testid="studio-extra-names"
-                />
-              </label>
-              <p className="muted field-hint">{primary.extras}</p>
               <p className="studio-field">{t.photoCharacters}</p>
               <div
                 className={dragOver ? "studio-drop is-over" : "studio-drop"}

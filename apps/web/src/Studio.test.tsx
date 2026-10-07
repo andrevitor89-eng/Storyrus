@@ -75,6 +75,34 @@ describe("ProgressList", () => {
   });
 });
 
+describe("Studio — ordem dos campos", () => {
+  it("mostra título, tema, personagens, dedicatória, tipo, fotos e gerar nessa ordem", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    const title = screen.getByLabelText(/título do livro/i);
+    const theme = screen.getByLabelText(/insira o tema desejado/i);
+    const name = screen.getByLabelText(/nome do protagonista/i);
+    const extras = screen.getByTestId("studio-extra-names");
+    const dedication = screen.getByLabelText(/dedicatória/i);
+    const artStyle = screen.getByRole("group", { name: /estilo do livro/i });
+    const photos = screen.getByTestId("studio-photo-drop");
+    const next = screen.getByTestId("studio-next-page");
+
+    const earlier = (a: Node, b: Node) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+    expect(earlier(title, theme)).toBe(true);
+    expect(earlier(theme, name)).toBe(true);
+    expect(earlier(name, extras)).toBe(true);
+    expect(earlier(extras, dedication)).toBe(true);
+    expect(earlier(dedication, artStyle)).toBe(true);
+    expect(earlier(artStyle, photos)).toBe(true);
+    expect(earlier(photos, next)).toBe(true);
+  });
+});
+
 describe("Studio — tema do banner", () => {
   it("preenche título e história e troca o nome do exemplo pelo da criança", async () => {
     window.history.replaceState(
