@@ -847,6 +847,19 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByText(/livro 16 páginas/i)).toBeInTheDocument();
     expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=biblico");
     expect(screen.getByRole("link", { name: /ver todos os livros/i })).toHaveAttribute("href", "/catalogo/educativo");
+    const series = screen.getByTestId("book-series");
+    expect(series).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-cover")).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-page")).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-photo")).toBeInTheDocument();
+    const seriesImgs = within(series).getAllByRole("img");
+    expect(seriesImgs).toHaveLength(3);
+    expect(seriesImgs[0]).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
+    expect(seriesImgs[1]).toHaveAttribute("src", expect.stringContaining("pagina-davi-pastor"));
+    expect(seriesImgs[2]).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
+    expect(within(series).getByText(/^capa$/i)).toBeInTheDocument();
+    expect(within(series).getByText(/^página$/i)).toBeInTheDocument();
+    expect(within(series).getByText(/^foto$/i)).toBeInTheDocument();
   });
 
   it("abre o catálogo completo da categoria", async () => {

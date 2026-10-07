@@ -240,6 +240,77 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
   { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
 ];
+type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
+/** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
+const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
+  0: { cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", photo: "foto-martin-goleiro.jpg" },
+  1: { cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", photo: "foto-emilia-bailarina.jpg" },
+  2: { cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", photo: "foto-antonio-bicicleta.jpg" },
+  3: { cover: "capa-sofia-alfabeto.png", page: "pagina-sofia-alfabeto.jpg", photo: "foto-sofia.png" },
+  4: { cover: "capa-cristobal-esporte.png", page: "pagina-cristobal-esporte.jpg" },
+  5: { cover: "capa-nicolas-maefilho.png", page: "pagina-nicolas-maefilho.jpg", photo: "foto-nicolas-maefilho.jpg" },
+  6: {
+    cover: { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
+    page: { pt: "pagina-amordemae.jpg", en: "pagina-amordemae-en.jpg", es: "pagina-amordemae-es.jpg" },
+    photo: { pt: "foto-amordemae.jpg", en: "foto-amordemae-en.jpg", es: "foto-amordemae-es.jpg" },
+  },
+  7: {
+    cover: { pt: "capa-mamaepapaimatteo.png", en: "capa-mamaepapaimatteo-en.png", es: "capa-mamaepapaimatteo-es.png" },
+    page: { pt: "pagina-mamaepapaimatteo.jpg", en: "pagina-mamaepapaimatteo-en.jpg", es: "pagina-mamaepapaimatteo-es.jpg" },
+    photo: { pt: "foto-mamaepapaimatteo-en.jpg", en: "foto-mamaepapaimatteo-en.jpg", es: "foto-mamaepapaimatteo-es.jpg" },
+  },
+  8: {
+    cover: { pt: "capa-amordebisavo.png", en: "capa-amordebisavo-en.png", es: "capa-amordebisavo-es.png" },
+    page: { pt: "pagina-amordebisavo.jpg", en: "pagina-amordebisavo-en.jpg", es: "pagina-amordebisavo-es.jpg" },
+    photo: { pt: "foto-amordebisavo.jpg", en: "foto-amordebisavo-en.jpg", es: "foto-amordebisavo-es.jpg" },
+  },
+  9: {
+    cover: { pt: "capa-natalmemetata.jpg", en: "capa-natalmemetata-en.jpg", es: "capa-natalmemetata-es.jpg" },
+    page: { pt: "pagina-natalmemetata.jpg", en: "pagina-natalmemetata-en.jpg", es: "pagina-natalmemetata-es.jpg" },
+    photo: { pt: "foto-natalmemetata.jpg", en: "foto-natalmemetata-en.jpg", es: "foto-natalmemetata-es.jpg" },
+  },
+  10: {
+    cover: { pt: "capa-nanoaventuras.png", en: "capa-nanoaventuras-en.png", es: "capa-nanoaventuras-es.png" },
+    page: { pt: "pagina-nanoaventuras.jpg", en: "pagina-nanoaventuras-en.jpg", es: "pagina-nanoaventuras-es.jpg" },
+    photo: { pt: "foto-nanoaventuras.jpg", en: "foto-nanoaventuras-en.jpg", es: "foto-nanoaventuras-es.jpg" },
+  },
+  11: {
+    cover: { pt: "capa-maya-cachorra-pt.jpg", en: "capa-maya-cachorra-en.jpg", es: "capa-maya-cachorra-es.jpg" },
+    page: { pt: "pagina-maya-cachorra-pt.jpg", en: "pagina-maya-cachorra-en.jpg", es: "pagina-maya-cachorra-es.jpg" },
+    photo: { pt: "foto-maya-cachorra-pt.jpg", en: "foto-maya-cachorra-en.jpg", es: "foto-maya-cachorra-es.jpg" },
+  },
+  12: {
+    cover: { pt: "capa-mako-amigofiel.jpg", en: "capa-mako-amigofiel-en.jpg", es: "capa-mako-amigofiel-es.jpg" },
+    page: { pt: "pagina-mako-amigofiel.jpg", en: "pagina-mako-amigofiel-en.jpg", es: "pagina-mako-amigofiel-es.jpg" },
+    photo: { pt: "foto-mako-amigofiel.jpg", en: "foto-mako-amigofiel-en.jpg", es: "foto-mako-amigofiel-es.jpg" },
+  },
+  13: { cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" }, photo: "foto-ester.png" },
+  14: { cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" }, photo: "foto-raquel-papai.png" },
+  15: { cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" }, photo: "foto-rebeca.png" },
+  16: { cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" }, photo: "foto-abigail.png" },
+  17: { cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" }, photo: "foto-miriam.png" },
+  18: { cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" }, photo: "foto-noe.png" },
+  19: { cover: "capa-amordetia.png", page: "pagina-amordetia.png", photo: "foto-amordetia.png" },
+  20: { cover: "capa-davi-pastor.png", page: "pagina-davi-pastor.png", photo: "foto-davi-pastor.png" },
+  21: { cover: "capa-meupai-heroi.png", page: "pagina-meupai-heroi.png", photo: "foto-meupai-heroi.png" },
+  22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
+  23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
+  24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
+};
+type CatalogSeriesKind = "cover" | "page" | "photo";
+function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
+  const series = CATALOG_SERIES[i];
+  if (!series) {
+    const cover = catalogCoverFile(i, lang, "photo");
+    return cover ? [{ key: "cover", src: cover }] : [];
+  }
+  const shots: { key: CatalogSeriesKind; src: string }[] = [
+    { key: "cover", src: catalogImgSrc(series.cover, lang) },
+  ];
+  if (series.page) shots.push({ key: "page", src: catalogImgSrc(series.page, lang) });
+  if (series.photo) shots.push({ key: "photo", src: catalogImgSrc(series.photo, lang) });
+  return shots;
+}
 const CATALOG_THEMES = [
   "adventure",
   "princess",
@@ -1572,10 +1643,10 @@ export type CatalogCardBook = {
   story?: string;
   quote?: string;
 };
-const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string }> = {
-  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro" },
-  en: { summary: "Story Summary", details: "Book Details" },
-  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro" },
+const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: string; page: string; photo: string }> = {
+  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro", cover: "Capa", page: "Página", photo: "Foto" },
+  en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo" },
+  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
 };
 export function CatalogBookCard({
   book,
@@ -1664,10 +1735,23 @@ export function CatalogBookCard({
   );
   if (layout === "page") {
     const pageCopy = BOOK_PAGE_COPY[lang];
+    const series =
+      book.catalogI != null
+        ? catalogSeriesShots(book.catalogI, lang)
+        : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        <div className="cat-display">
-          <div className="cat-book">{image}</div>
+        <div className="cat-display book-series" data-testid="book-series">
+          {series.map((shot) => (
+            <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
+              <div className="book-series-frame">
+                <div className="cat-book">
+                  <img src={exUrl(shot.src)} alt={`${book.t} — ${pageCopy[shot.key]}`} loading="lazy" />
+                </div>
+              </div>
+              <figcaption>{pageCopy[shot.key]}</figcaption>
+            </figure>
+          ))}
         </div>
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}

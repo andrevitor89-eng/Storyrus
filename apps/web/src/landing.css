@@ -1713,6 +1713,43 @@ img.ex-tab-cover {
 }
 #catalogo.book-page .book-sheet:hover { transform: none; }
 #catalogo.book-page .book-sheet .cat-display { margin-bottom: 0; }
+#catalogo.book-page .book-sheet .cat-display.book-series {
+  aspect-ratio: auto;
+  height: auto;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-radius: 0;
+}
+#catalogo.book-page .book-series-shot {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#catalogo.book-page .book-series-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 10px;
+}
+#catalogo.book-page .book-series-shot .cat-book {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#catalogo.book-page .book-series-shot figcaption {
+  margin: 0;
+  font-family: "Baloo 2", cursive;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--yellow);
+}
+[data-theme="light"] .kid .book-page .book-series-shot figcaption { color: #1f3568; }
 .book-page .book-tag {
   display: inline-block;
   align-self: flex-start;
