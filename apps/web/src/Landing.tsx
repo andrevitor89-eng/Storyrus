@@ -238,6 +238,7 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
   { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
   { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
+  { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
 ];
 const CATALOG_THEMES = [
   "adventure",
@@ -271,15 +272,16 @@ const CATALOG_THEMES = [
   "pets",
   "family_love",
   "grandparents_love",
+  "animais_sons",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
 const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 30]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi e Enzo. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 31, 21, 20, 22];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -381,7 +383,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=consciencia_corporal" },
     ],
     feats: [
-      { href: "/app?tema=animais_sons", catalogI: 23 },
+      { href: "/app?tema=animais_sons", catalogI: 31 },
       { href: "/app?tema=higiene_desfralde", catalogI: 24 },
       { href: "/app?tema=biblico", catalogI: 20 },
     ],
@@ -406,7 +408,7 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   dia_da_familia: [7, 19, 21, 22],
   tio_tia: [19, 29],
   christmas: [9],
-  animais_sons: [23],
+  animais_sons: [31],
   higiene_desfralde: [24],
   biblico: [20],
 };
@@ -498,6 +500,7 @@ const HERO_BY_CATALOG: Record<number, string> = {
   17: "Miriam",
   18: "Noé",
   20: "Davi",
+  31: "Bruno",
 };
 function personalizeHref(opts: {
   theme: string;
@@ -801,6 +804,7 @@ const I18N = {
       { t: "Meu Herói Favorito, a Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Natureza e amizade", quote: "Até o menor amigo pode ser um herói." },
       { t: "Tia Especial, Não Existe Igual", p: "Passeio, colo e risada: a tia que transforma qualquer dia numa memória para guardar.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Com a tia, todo dia vira passeio." },
       { t: "Amor de Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
+      { t: "Bruno em uma aventura animal", p: "Conhecer animais e cuidar da natureza numa jornada gentil.", cover: "Soft", size: "M", tag: "Animais e natureza", quote: "Cada animal é especial — e juntos cuidamos do mundo." },
     ],
     promise_title: "Um Presente Personalizado para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1009,6 +1013,7 @@ const I18N = {
       { t: "My Favorite Hero, the Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Nature and friendship", quote: "Even the smallest friend can be a hero." },
       { t: "A Special Aunt, One of a Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
       { t: "Grandpa's Love, My Safe Harbor", p: "Grandpa's arms, the lake and a hug that never ends: a safe harbor just for the family.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "In grandpa's arms, I find my safe harbor." },
+      { t: "Bruno on an Animal Adventure", p: "Meet animals and care for nature on a gentle journey.", cover: "Soft", size: "M", tag: "Animals and nature", quote: "Every animal is special — and together we care for the world." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1217,6 +1222,7 @@ const I18N = {
       { t: "Mi Héroe Favorito, la Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Naturaleza y amistad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
       { t: "Una Tía Especial, No Hay Otra Igual", p: "Paseo, abrazo y risa: la tía que convierte cualquier día en un recuerdo para guardar.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "Con la tía, todo día se vuelve paseo." },
       { t: "El Amor del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
+      { t: "Bruno en una aventura animal", p: "Conocer animales y cuidar la naturaleza en una jornada gentil.", cover: "Soft", size: "M", tag: "Animales y naturaleza", quote: "Cada animal es especial — y juntos cuidamos el mundo." },
     ],
     promise_title: "Cada Detalle Pensado para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
