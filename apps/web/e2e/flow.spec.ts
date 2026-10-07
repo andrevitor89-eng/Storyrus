@@ -272,7 +272,7 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
 });
 
-test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
+test("após gerar o livro mostra Projeto criado sem botões de crédito", async ({ page }) => {
   const state = makeState();
   await mockApi(page, state);
   await loginViaEntrar(page);
@@ -291,6 +291,8 @@ test("ebook fica desabilitado até aprovar o personagem", async ({ page }) => {
   await page.getByTestId("studio-next-page").click();
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
+  await expect(page.getByTestId("studio-preview-building")).toBeVisible();
+  await expect(page.getByTestId("studio-generate-preview")).toHaveCount(0);
 });
 
 test("path inexistente mostra 404", async ({ page }) => {

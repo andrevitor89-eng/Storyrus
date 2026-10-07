@@ -41,7 +41,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(screen.getByTestId("auth-submit")).toHaveTextContent(/criar conta/i);
   });
 
-  it("criar livro mostra projeto e CTA de prévia", async () => {
+  it("criar livro mostra tela Projeto criado com prévia automática", async () => {
     asRegistered();
     const user = userEvent.setup();
     const { container } = renderApp();
@@ -63,9 +63,9 @@ describe("Fluxo E2E (com conta)", () => {
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);
-    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
   }, 15000);
 
   it("abre exemplo pronto sem criar projeto", async () => {
@@ -74,11 +74,11 @@ describe("Fluxo E2E (com conta)", () => {
     renderApp("/app?exemplo=dinosaurs");
 
     expect(await screen.findByText(/você está vendo um exemplo pronto/i)).toBeInTheDocument();
-    expect(await screen.findByDisplayValue("Matteo")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: /^personagem$/i })).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: /vídeo narrado/i })).toBeInTheDocument();
-    expect(screen.getByAltText(/página 1/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /montar ebook/i })).toBeDisabled();
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(await screen.findByTestId("studio-story-result")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/matteo e o vale dos dinossauros/i)).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
   });
 });

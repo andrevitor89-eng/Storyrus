@@ -14,16 +14,8 @@ import {
 } from "./studioSubject";
 import logo from "./assets/logo.png";
 import type { StudioAssets } from "./studio/assets";
-import { resolveThemeName } from "./studio/constants";
-import { ProgressList } from "./studio/ProgressList";
-import { VoiceNarrationPanel } from "./studio/VoiceNarrationPanel";
-import { EbookStepButtons, VideoStepButtons } from "./studio/StepButtons";
-import { BookApprovalBlock, CharacterApprovalBlock } from "./studio/ApprovalBlocks";
 import { PreviewTrio } from "./studio/PreviewTrio";
 import { useStudioPolling } from "./studio/useStudioPolling";
-import { useStudioVoices } from "./studio/useStudioVoices";
-import { useStudioSteps } from "./studio/useStudioSteps";
-import { useStudioApprovals } from "./studio/useStudioApprovals";
 import {
   StudioLangProvider,
   useStudioI18n,
@@ -35,6 +27,17 @@ import "./studio.css";
 export { ProgressList } from "./studio/ProgressList";
 
 const PHOTO_LIMIT = 8;
+
+/** Split story text into pages when markers like "Página 1:" / "Pagina 2:" exist. */
+function splitStoryPages(text: string): string[] {
+  const trimmed = text.trim();
+  if (!trimmed) return [];
+  const parts = trimmed
+    .split(/(?=P[aá]gina\s+\d+\s*:)/i)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  return parts.length > 0 ? parts : [trimmed];
+}
 
 function photoKey(file: File): string {
   return `${file.name}:${file.size}:${file.lastModified}`;
@@ -112,7 +115,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [photos, setPhotos] = useState<{ key: string; file: File; url: string }[]>([]);
   const [dragOver, setDragOver] = useState(false);
-  const [photoUploaded, setPhotoUploaded] = useState(false);
   const [childName, setChildName] = useState("");
   const [childAge, setChildAge] = useState<string>("");
   const [bookTitle, setBookTitle] = useState("");
@@ -139,10 +141,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [clientAddress, setClientAddress] = useState("");
   const [clientNotes, setClientNotes] = useState("");
   const [assets, setAssets] = useState<StudioAssets | null>(null);
+  const [storyDraft, setStoryDraft] = useState("");
+  const [photoNotes, setPhotoNotes] = useState("");
+  const [changesSent, setChangesSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isDemo, setIsDemo] = useState(() => Boolean(demoIdFromSearch()));
   const titlePreset = useRef<{ hero: string; title: string } | null>(null);
   const titleTouched = useRef(false);
+  const storyTouched = useRef(false);
   const presetApplied = useRef(false);
   const [mediaConsent, setMediaConsent] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -170,7 +176,8 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setDedication(demo.dedication);
     setProject(demo.project);
     setAssets(demo.assets);
-    setPhotoUploaded(true);
+    setStoryDraft(demo.project.story_text ?? "");
+    setOrderSent(true);
     setJobs([]);
   }, [isDemo]);
 
@@ -294,24 +301,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     );
   }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText]);
 
-  const {
-    voices,
-    customVoiceAvailable,
-    selectedVoiceId,
-    setSelectedVoiceId,
-    voiceName,
-    setVoiceName,
-    voiceUploading,
-    onVoiceFile,
-    removeSelectedVoice,
-  } = useStudioVoices({
-    isDemo,
-    mediaConsent,
-    setError,
-    consentError: t.errConsentVoice,
-    defaultVoiceName: t.defaultVoiceName,
-  });
-
   useStudioPolling({
     project,
     jobs,
@@ -322,31 +311,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     isDemo,
   });
 
-  const { runStep } = useStudioSteps({
-    project,
-    isDemo,
-    selectedVoiceId,
-    getStoryBrief,
-    setBusy,
-    setError,
-    setJobs,
-    refreshCredits,
-  });
-
-  const {
-    approveCharacter,
-    approveBook,
-    requestPrint,
-    characterApproved,
-    bookApproved,
-    printRequested,
-  } = useStudioApprovals({
-    project,
-    isDemo,
-    setBusy,
-    setError,
-    setProject,
-  });
+  useEffect(() => {
+    if (!project?.story_text || storyTouched.current) return;
+    setStoryDraft(project.story_text);
+  }, [project?.story_text]);
 
   function formReady(agreed = mediaConsent) {
     if (isDemo) return false;
@@ -438,36 +406,13 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           finalize: i === photos.length - 1,
         });
       }
-      setPhotoUploaded(true);
       setOrderSent(true);
-    } catch (e) {
-      setError((e as Error).message);
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  const canMountEbook = photoUploaded && !!project?.story_text && characterApproved;
-  const canMakeVideo = bookApproved;
-  const previewChainActive = jobs.some(
-    (j) =>
-      (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK" || j.type === "VIDEO") &&
-      (j.status === "PENDING" || j.status === "RUNNING") &&
-      Boolean(j.result?.payload?.preview_chain),
-  );
-  const locked = busy || isDemo || previewChainActive;
-  const ebookRunning = jobs.some(
-    (j) => j.type === "EBOOK" && (j.status === "PENDING" || j.status === "RUNNING"),
-  );
-
-  async function requestPreview() {
-    if (!project || isDemo || previewChainActive) return;
-    setBusy(true);
-    setError(null);
-    try {
+      setChangesSent(false);
+      storyTouched.current = false;
+      setPhotoNotes("");
       const brief = getStoryBrief().trim();
-      await api.startPreview(project.id, brief ? { brief: brief.slice(0, 2000) } : {});
-      const js = await api.listJobs(project.id);
+      await api.startPreview(p.id, brief ? { brief: brief.slice(0, 2000) } : {});
+      const js = await api.listJobs(p.id);
       setJobs(js);
       refreshCredits();
     } catch (e) {
@@ -477,20 +422,46 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  function exitDemo() {
-    const url = new URL(window.location.href);
-    url.searchParams.delete("exemplo");
-    const next = `${url.pathname}${url.search}${url.hash}`;
-    window.history.replaceState({}, "", next);
-    setIsDemo(false);
+  const previewChainActive = jobs.some(
+    (j) =>
+      (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK" || j.type === "VIDEO") &&
+      (j.status === "PENDING" || j.status === "RUNNING") &&
+      Boolean(j.result?.payload?.preview_chain),
+  );
+  const previewReady = Boolean(
+    project?.story_text?.trim() &&
+      (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
+  );
+  const showPreviewLoading = orderSent && !isDemo && (previewChainActive || !previewReady);
+
+  async function submitChanges() {
+    if (!project || isDemo) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const nextStory = storyDraft.trim();
+      if (nextStory) {
+        const updated = await api.setStoryText(project.id, nextStory);
+        setProject(updated);
+        setStoryDraft(updated.story_text ?? nextStory);
+      }
+      setChangesSent(true);
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function resetProject() {
     setProject(null);
     setAssets(null);
-    setPhotoUploaded(false);
     setPhotos((cur) => {
       cur.forEach((item) => releasePreview(item.url));
       return [];
     });
     setOrderSent(false);
+    setGenerateStep(false);
     setExtraNames("");
     setMediaConsent(false);
     setChildName("");
@@ -498,13 +469,28 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setBookTitle("");
     setThemeText("");
     setDedication("");
+    setStoryDraft("");
+    setPhotoNotes("");
+    setChangesSent(false);
+    storyTouched.current = false;
+    titleTouched.current = false;
+    setJobs([]);
+    setError(null);
+  }
+
+  function exitDemo() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("exemplo");
+    const next = `${url.pathname}${url.search}${url.hash}`;
+    window.history.replaceState({}, "", next);
+    setIsDemo(false);
+    resetProject();
     setClientName("");
     setClientDone(false);
     setClientEmail("");
     setClientPhone("");
     setClientAddress("");
     setClientNotes("");
-    setJobs([]);
   }
 
   function toggleColorTheme() {
@@ -679,32 +665,155 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
         {orderSent ? (
-          <section className="studio-card studio-order" role="status" data-testid="studio-order-sent">
+          <section
+            className="studio-card studio-order studio-review"
+            role="status"
+            data-testid="studio-order-sent"
+            aria-busy={showPreviewLoading || undefined}
+          >
             <h2>{t.orderSent}</h2>
-            <p>{t.orderFollowup}</p>
-            <p className="muted">{t.previewHint}</p>
-            <button
-              type="button"
-              className="kbtn kbtn-primary"
-              disabled={locked || !photoUploaded || !project}
-              data-testid="studio-generate-preview"
-              onClick={() => void requestPreview()}
-            >
-              {previewChainActive ? t.previewRunning : t.previewCta}{" "}
-              <span className="muted">{t.previewCost}</span>
-            </button>
+            {isDemo && (
+              <div className="demo-banner" role="status" aria-live="polite">
+                <p>{t.demoBanner}</p>
+                <button type="button" className="kbtn kbtn-soft" onClick={exitDemo}>
+                  {t.demoCta}
+                </button>
+              </div>
+            )}
+            {error && (
+              <p className="studio-error" role="alert">
+                {error}
+              </p>
+            )}
+            {showPreviewLoading ? (
+              <p className="studio-slogan" data-testid="studio-preview-building">
+                {t.previewBuilding}
+              </p>
+            ) : (
+              <>
+                <p className="studio-slogan">{t.orderFollowup}</p>
+
+                <div
+                  className="result-block studio-review-story"
+                  data-testid="studio-story-result"
+                  role="region"
+                  aria-labelledby="studio-story-result-heading"
+                >
+                  <h3 className="field-label" id="studio-story-result-heading">
+                    {t.storyPagesTitle}
+                  </h3>
+                  {splitStoryPages(project?.story_text || storyDraft).map((page, index) => (
+                    <pre
+                      key={`story-page-${index}`}
+                      className="story"
+                      style={{ whiteSpace: "pre-wrap" }}
+                      data-testid={index === 0 ? "studio-story-text" : undefined}
+                    >
+                      {page}
+                    </pre>
+                  ))}
+                </div>
+
+                <PreviewTrio
+                  coverUrl={assets?.cover_url ?? assets?.page_images?.[0] ?? null}
+                  pageUrl={
+                    assets?.page_images?.[assets.cover_url ? 0 : 1] ??
+                    assets?.page_images?.[0] ??
+                    null
+                  }
+                  inHandUrl={assets?.in_hand_url ?? null}
+                />
+
+                <div
+                  className="studio-review-changes"
+                  data-testid="studio-review-changes"
+                  role="region"
+                  aria-labelledby="studio-changes-heading"
+                >
+                  <h3 className="field-label" id="studio-changes-heading">
+                    {t.changesTitle}
+                  </h3>
+                  <label className="studio-field">
+                    {t.bookTitle}
+                    <input
+                      value={bookTitle}
+                      onChange={(e) => {
+                        titleTouched.current = true;
+                        setBookTitle(e.target.value);
+                      }}
+                      placeholder={t.bookTitlePh}
+                      maxLength={120}
+                      disabled={isDemo || busy}
+                      data-testid="studio-review-title"
+                    />
+                  </label>
+                  <label className="studio-field">
+                    {t.themeFree}
+                    <textarea
+                      value={themeText}
+                      onChange={(e) => setThemeText(e.target.value)}
+                      placeholder={t.themeFreePh}
+                      maxLength={500}
+                      rows={3}
+                      disabled={isDemo || busy}
+                      data-testid="studio-review-theme"
+                    />
+                  </label>
+                  <label className="studio-field">
+                    {t.storyPagesTitle}
+                    <textarea
+                      value={storyDraft}
+                      onChange={(e) => {
+                        storyTouched.current = true;
+                        setStoryDraft(e.target.value);
+                      }}
+                      placeholder={t.storyPlaceholder}
+                      rows={8}
+                      disabled={isDemo || busy}
+                      data-testid="studio-review-story"
+                    />
+                  </label>
+                  <label className="studio-field">
+                    {t.photoChanges}
+                    <textarea
+                      value={photoNotes}
+                      onChange={(e) => setPhotoNotes(e.target.value)}
+                      placeholder={t.photoChangesPh}
+                      maxLength={500}
+                      rows={3}
+                      disabled={isDemo || busy}
+                      data-testid="studio-review-photo-notes"
+                    />
+                  </label>
+                  {changesSent ? (
+                    <p className="muted" role="status" data-testid="studio-changes-received">
+                      {t.changesReceived}
+                    </p>
+                  ) : (
+                    <button
+                      type="button"
+                      className="kbtn kbtn-primary studio-create"
+                      disabled={isDemo || busy || !project}
+                      data-testid="studio-submit-changes"
+                      onClick={() => void submitChanges()}
+                    >
+                      {t.submitChanges}
+                    </button>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  className="link"
+                  onClick={() => (isDemo ? exitDemo() : resetProject())}
+                >
+                  {isDemo ? t.createMyStory : t.newProject}
+                </button>
+              </>
+            )}
           </section>
         ) : (
           <>
-        {isDemo && (
-          <div className="demo-banner" role="status" aria-live="polite">
-            <p>{t.demoBanner}</p>
-            <button type="button" className="kbtn kbtn-soft" onClick={exitDemo}>
-              {t.demoCta}
-            </button>
-          </div>
-        )}
-
         {error && (
           <p className="studio-error" role="alert">
             {error}
@@ -713,11 +822,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
         <section className="studio-card" aria-labelledby="studio-create-heading">
           <h2 id="studio-create-heading">{t.createTitle}</h2>
-          {project ? (
-            <p className="studio-meta">{t.projectLocked}</p>
-          ) : (
-            <p className="studio-slogan">{t.slogan}</p>
-          )}
+          <p className="studio-slogan">{t.slogan}</p>
 
           {showClient && (
             <div className="studio-client" data-testid="studio-client">
@@ -1079,183 +1184,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           )}
         </section>
           </>
-        )}
-
-        {project && (
-          <section
-            className="studio-card"
-            data-testid="studio-project"
-            aria-labelledby="studio-project-heading"
-            aria-busy={busy || undefined}
-          >
-            <h2 id="studio-project-heading">{t.projectTitle}</h2>
-            <p className="studio-meta" role="status" aria-live="polite">
-              {t.metaBookTitle}: <b>{bookTitle || "—"}</b> · {t.metaTheme}:{" "}
-              <b>{resolveThemeName(project.theme ?? themeText, t.themes)}</b> · {t.statusLabel}:{" "}
-              <b>{project.status}</b>
-            </p>
-
-            {photoUploaded && (
-              <p className="muted" role="status">
-                {t.photoSent}
-              </p>
-            )}
-            <div className="studio-actions">
-              <button
-                type="button"
-                className={orderSent ? "kbtn kbtn-soft" : "kbtn kbtn-primary"}
-                disabled={locked || !photoUploaded}
-                onClick={() => runStep("story")}
-                data-testid="studio-generate-story"
-              >
-                {t.generateStory} <span className="muted">{t.oneCredit}</span>
-              </button>
-            </div>
-
-            <VoiceNarrationPanel
-              customVoiceAvailable={customVoiceAvailable}
-              voiceName={voiceName}
-              setVoiceName={setVoiceName}
-              voiceUploading={voiceUploading}
-              locked={locked}
-              mediaConsent={mediaConsent}
-              onVoiceFile={onVoiceFile}
-              voices={voices}
-              selectedVoiceId={selectedVoiceId}
-              setSelectedVoiceId={setSelectedVoiceId}
-              removeSelectedVoice={removeSelectedVoice}
-            />
-
-            <EbookStepButtons locked={locked} canMountEbook={canMountEbook} runStep={runStep} />
-            {!characterApproved && photoUploaded && (
-              <p className="muted">{t.approveCharacterFirst}</p>
-            )}
-
-            <ProgressList jobs={jobs} />
-
-            <div className="results" role="region" aria-label={t.ariaResults}>
-              <PreviewTrio
-                coverUrl={assets?.cover_url ?? null}
-                pageUrl={assets?.page_images?.[0] ?? null}
-                inHandUrl={assets?.in_hand_url ?? null}
-              />
-
-              {assets?.character_url && (
-                <CharacterApprovalBlock
-                  characterUrl={assets.character_url}
-                  characterApproved={characterApproved}
-                  locked={locked}
-                  onApprove={approveCharacter}
-                  onRegenerate={() => runStep("avatar")}
-                />
-              )}
-
-              {project.story_text && (
-                <div
-                  className="result-block"
-                  data-testid="studio-story-result"
-                  role="region"
-                  aria-labelledby="studio-story-result-heading"
-                >
-                  <h3 className="field-label" id="studio-story-result-heading">
-                    {t.storyTitle}
-                  </h3>
-                  <pre
-                    className="story"
-                    style={{ whiteSpace: "pre-wrap" }}
-                    data-testid="studio-story-text"
-                  >
-                    {project.story_text}
-                  </pre>
-                </div>
-              )}
-
-              {(assets?.ebook_url || (assets?.page_images?.length ?? 0) > 0 || ebookRunning) && (
-                <BookApprovalBlock
-                  pageImages={assets?.page_images ?? []}
-                  ebookUrl={assets?.ebook_url ?? null}
-                  bookApproved={bookApproved}
-                  locked={locked}
-                  canMountEbook={canMountEbook}
-                  printRequested={printRequested}
-                  projectId={project.id}
-                  onApprove={approveBook}
-                  onRegenerate={() => runStep("ebook")}
-                  onRequestPrint={requestPrint}
-                />
-              )}
-
-              {bookApproved && (
-                <div className="result-block" role="region" aria-labelledby="studio-video-heading">
-                  <h3 className="field-label" id="studio-video-heading">
-                    {t.videoTitle}
-                  </h3>
-                  <p className="muted">{t.videoHint}</p>
-                  <VideoStepButtons locked={locked} canMakeVideo={canMakeVideo} runStep={runStep} />
-                </div>
-              )}
-
-              {assets?.video_url && (
-                <div
-                  className="result-block"
-                  role="region"
-                  aria-labelledby="studio-animation-heading"
-                >
-                  <h3 className="field-label" id="studio-animation-heading">
-                    {t.animationTitle}
-                  </h3>
-                  {assets.video_url.toLowerCase().includes(".gif") ? (
-                    <img
-                      src={assets.video_url}
-                      alt={t.animationTitle}
-                      style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
-                    />
-                  ) : (
-                    <video
-                      src={assets.video_url}
-                      controls
-                      aria-label={t.ariaAnimationGenerated}
-                      style={{ maxWidth: 360, width: "100%" }}
-                    />
-                  )}
-                </div>
-              )}
-
-              {assets?.narrated_video_url && (
-                <div
-                  className="result-block"
-                  role="region"
-                  aria-labelledby="studio-narrated-heading"
-                >
-                  <h3 className="field-label" id="studio-narrated-heading">
-                    {t.narratedTitle}
-                  </h3>
-                  {assets.narrated_video_url.toLowerCase().includes(".gif") ? (
-                    <img
-                      src={assets.narrated_video_url}
-                      alt={t.narratedTitle}
-                      style={{ maxWidth: 360, width: "100%", borderRadius: 12 }}
-                    />
-                  ) : (
-                    <video
-                      src={assets.narrated_video_url}
-                      controls
-                      aria-label={t.ariaNarratedGenerated}
-                      style={{ maxWidth: 360, width: "100%" }}
-                    />
-                  )}
-                </div>
-              )}
-            </div>
-
-            <button
-              type="button"
-              className="link"
-              onClick={() => (isDemo ? exitDemo() : setProject(null))}
-            >
-              {isDemo ? t.createMyStory : t.newProject}
-            </button>
-          </section>
         )}
       </main>
     </div>

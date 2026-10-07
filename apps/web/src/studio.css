@@ -416,6 +416,40 @@
   color: var(--studio-muted);
 }
 
+.studio-app .studio-card.studio-review {
+  text-align: left;
+}
+
+.studio-app .studio-card.studio-review > h2 {
+  text-align: center;
+}
+
+.studio-app .studio-card.studio-review > .studio-slogan {
+  text-align: center;
+}
+
+.studio-app .studio-review-story,
+.studio-app .studio-review-changes {
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-review-story .story {
+  margin: 0.75rem 0 0;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--studio-surface-border);
+  text-align: left;
+}
+
+.studio-app .studio-review-changes .studio-field {
+  margin-top: 0.85rem;
+}
+
+.studio-app .studio-review-changes .studio-create {
+  margin-top: 1.25rem;
+}
+
 .studio-app .how ol {
   display: grid;
   gap: 0.45rem;
