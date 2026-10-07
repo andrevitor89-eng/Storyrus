@@ -503,3 +503,7 @@ class UsageOut(BaseModel):
     reserved_usd: float = 0.0
     anomalies: list[UsageAnomalyOut] = []
     orders: list[OrderTicketOut] = []
+    # Diagnóstico do painel Pedidos: cadastros/projetos sem pedido com foto.
+    users_total: int = 0
+    projects_total: int = 0
+    projects_awaiting_photo: int = 0

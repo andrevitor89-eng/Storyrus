@@ -8,13 +8,14 @@ from typing import Annotated
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import storage
 from app.config import settings
 from app.database import get_db
-from app.models import Asset, AssetKind, Job, OrderTicket, PrintOrder, Project, UsageEvent
+from app.models import Asset, AssetKind, Job, OrderTicket, PrintOrder, Project, UsageEvent, User
+from app.order_tickets import backfill_order_tickets
 from app.owner_auth import require_owner_password
 from app.schemas import (
     OrderTicketOut,
@@ -212,6 +213,16 @@ def get_usage(
     )
 
     event_rows = _event_rows(db, range_start, range_end, rows)
+    backfill_order_tickets(db)
+    projects_total = int(db.scalar(select(func.count()).select_from(Project)) or 0)
+    users_total = int(db.scalar(select(func.count()).select_from(User)) or 0)
+    ticketed_ids = select(OrderTicket.project_id)
+    projects_awaiting_photo = int(
+        db.scalar(
+            select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids))
+        )
+        or 0
+    )
     order_rows = db.scalars(
         select(OrderTicket).order_by(OrderTicket.created_at.desc()).limit(200)
     ).all()
@@ -316,4 +327,7 @@ def get_usage(
             UsageAnomalyOut(kind=a.kind, severity=a.severity, message=a.message) for a in flags
         ],
         orders=orders,
+        users_total=users_total,
+        projects_total=projects_total,
+        projects_awaiting_photo=projects_awaiting_photo,
     )
