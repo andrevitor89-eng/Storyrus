@@ -10,7 +10,7 @@ const INDEX = `<!doctype html>
     <meta property="og:url" content="https://storyrus.ai/" />
     <meta property="og:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
     <meta property="og:description" content="Uma foto vira personagem." />
-    <meta name="twitter:title" content="Story R Us" />
+    <meta name="twitter:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
     <meta name="twitter:description" content="Transforme uma foto." />
   </head>
 </html>`;
