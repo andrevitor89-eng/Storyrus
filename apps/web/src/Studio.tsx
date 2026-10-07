@@ -30,10 +30,11 @@ const PHOTO_LIMIT = 8;
 
 type StoryPageBlock = { kind: "title" | "page" | "body"; label: string; lines: string[] };
 
+/** Collapse soft line-breaks into paragraphs so justified page text stays full-width. */
 function verseLines(text: string): string[] {
   return text
-    .split(/\n+/)
-    .map((line) => line.replace(/\s+/g, " ").trim())
+    .split(/\n\s*\n/)
+    .map((para) => para.replace(/\s*\n\s*/g, " ").replace(/\s+/g, " ").trim())
     .filter(Boolean);
 }
 
@@ -724,7 +725,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   <h3 className="field-label" id="studio-story-result-heading">
                     {t.storyPagesTitle}
                   </h3>
-                  <div className="studio-story-book">
+                  <div className="studio-story-book" lang={lang}>
                     {parseStoryPages(project?.story_text || storyDraft).map((page, index) => (
                       <article
                         key={`story-page-${index}`}
