@@ -17,7 +17,7 @@ export function Exemplos() {
         </nav>
       </header>
       <main className="ksection" style={{ maxWidth: 720, margin: "0 auto", textAlign: "left" }}>
-        <h1 className="ktitle" data-testid="exemplos-title">Exemplos da plataforma</h1>
+        <h1 className="ktitle" data-testid="exemplos-title">Exemplos Da Plataforma</h1>
         <p className="ksub" style={{ textAlign: "left" }}>
           As fotos, capas e vídeos que aparecem no site são demonstrações feitas pela Story R Us.
           Eles não são livros de clientes e ficam separados do que você envia no estúdio.
@@ -28,7 +28,7 @@ export function Exemplos() {
         </p>
         <p style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link to="/#catalogo" className="kbtn kbtn-primary">Ver os livros</Link>
-          <Link to="/cartoon" className="kbtn kbtn-soft">Livros cartoon</Link>
+          <Link to="/cartoon" className="kbtn kbtn-soft">Livros Cartoon</Link>
           <Link to="/privacidade" className="kbtn kbtn-soft">Privacidade</Link>
         </p>
       </main>

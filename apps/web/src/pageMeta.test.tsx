@@ -19,11 +19,11 @@ import {
 const INDEX = `<!doctype html>
 <html lang="pt-BR">
   <head>
-    <title>Story R Us — histórias ilustradas com a foto do seu filho</title>
+    <title>Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho</title>
     <meta name="description" content="Envie uma foto." />
     <link rel="canonical" href="https://storyrus.ai/" />
     <meta property="og:url" content="https://storyrus.ai/" />
-    <meta property="og:title" content="Story R Us — histórias ilustradas com a foto do seu filho" />
+    <meta property="og:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
     <meta property="og:description" content="Uma foto vira personagem." />
     <meta name="twitter:title" content="Story R Us" />
     <meta name="twitter:description" content="Transforme uma foto." />
@@ -43,7 +43,7 @@ describe("catálogo no sitemap", () => {
     for (const book of books) {
       expect(catalogEntry("pt", book.index)?.t).toBe(book.title);
     }
-    expect(books.some((book) => book.title === "Davi, o Menino Pastor")).toBe(true);
+    expect(books.some((book) => book.title === "Davi, O Menino Pastor")).toBe(true);
   });
 
   it("inclui categorias que o app conhece", () => {
@@ -79,13 +79,13 @@ describe("HTML por rota", () => {
     expect(html).toContain(`property="og:title" content="${page!.title}"`);
     expect(html).toContain(`property="og:url" content="https://storyrus.ai/cartoon"`);
     expect(html).toContain(`<h1>${page!.title}</h1>`);
-    expect(html).not.toContain("histórias ilustradas com a foto do seu filho");
+    expect(html).not.toContain("Histórias Ilustradas Com A Foto Do Seu Filho");
   });
 
   it("marca a página 404 com noindex", () => {
     const html = applyPageMeta(INDEX, NOT_FOUND_PAGE);
     expect(html).toContain('name="robots" content="noindex, nofollow"');
-    expect(html).toContain("Página não encontrada");
+    expect(html).toContain("Página Não Encontrada");
   });
 });
 
