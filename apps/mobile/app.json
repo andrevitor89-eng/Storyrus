@@ -16,10 +16,15 @@
     },
     "android": {
       "package": "ai.storyrus.app",
-      "permissions": ["READ_EXTERNAL_STORAGE"]
+      "permissions": [
+        "READ_EXTERNAL_STORAGE"
+      ]
     },
     "extra": {
       "apiBase": "https://storyrus.ai"
-    }
+    },
+    "plugins": [
+      "expo-font"
+    ]
   }
 }

@@ -10,11 +10,13 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
 import { api } from "./api";
 import { THEMES, THEME_GROUP_LABEL, themeLabel } from "./themes";
 import { VoicePanel } from "./VoicePanel";
 import type { Job, Project, ProjectAssets, StudioStep, Theme, ThemeGroup, UserVoice } from "./types";
+import { colors, fonts, logo, radii, space } from "./theme";
 
 const STEPS: { key: StudioStep; label: string; cost: number }[] = [
   { key: "avatar", label: "Gerar personagem", cost: 1 },
@@ -25,10 +27,10 @@ const STEPS: { key: StudioStep; label: string; cost: number }[] = [
 ];
 
 const DOT: Record<string, string> = {
-  PENDING: "#facc15",
-  RUNNING: "#5b8cff",
-  DONE: "#34d399",
-  FAILED: "#f87171",
+  PENDING: colors.hint,
+  RUNNING: colors.running,
+  DONE: colors.ok,
+  FAILED: colors.error,
 };
 
 const GROUPS: ThemeGroup[] = ["aventura", "datas", "educativo"];
@@ -40,6 +42,7 @@ export function StudioScreen({
   onLogout: () => void | Promise<void>;
   bootError?: string | null;
 }) {
+  const insets = useSafeAreaInsets();
   const [credits, setCredits] = useState<number | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -270,14 +273,24 @@ export function StudioScreen({
   }
 
   return (
-    <ScrollView style={s.screen} contentContainerStyle={{ padding: 20, gap: 12 }}>
+    <ScrollView
+      style={s.screen}
+      contentContainerStyle={[
+        s.content,
+        { paddingBottom: Math.max(insets.bottom, space.lg) + 16 },
+      ]}
+      keyboardShouldPersistTaps="handled"
+    >
       <View style={s.header}>
-        <Text style={s.brand}>Story R Us</Text>
-        <View style={{ flex: 1 }} />
-        <Text style={s.muted}>Créditos: {credits ?? "…"}</Text>
-        <Pressable onPress={() => void onLogout()}>
-          <Text style={s.link}>  Sair</Text>
-        </Pressable>
+        <Image source={logo} style={s.hdrLogo} resizeMode="contain" />
+        <View style={s.headerMeta}>
+          <View style={s.creditsPill}>
+            <Text style={s.creditsText}>Créditos: {credits ?? "…"}</Text>
+          </View>
+          <Pressable onPress={() => void onLogout()} style={s.logoutBtn} hitSlop={8}>
+            <Text style={s.link}>Sair</Text>
+          </Pressable>
+        </View>
       </View>
 
       {bootError && <Text style={s.error}>{bootError}</Text>}
@@ -291,7 +304,7 @@ export function StudioScreen({
           </Text>
 
           {GROUPS.map((group) => (
-            <View key={group} style={{ gap: 8 }}>
+            <View key={group} style={s.groupBlock}>
               <Text style={s.group}>{THEME_GROUP_LABEL[group]}</Text>
               <View style={s.chips}>
                 {THEMES.filter((t) => t.group === group).map((t) => {
@@ -303,7 +316,7 @@ export function StudioScreen({
                       style={[s.chip, on && s.chipOn]}
                       onPress={() => toggleTheme(t.id)}
                     >
-                      <Text style={s.chipText}>
+                      <Text style={[s.chipText, on && s.chipTextOn]}>
                         {t.emoji} {t.label}
                         {ord === 0 ? " ·1" : ord === 1 ? " ·2" : ""}
                       </Text>
@@ -315,114 +328,132 @@ export function StudioScreen({
           ))}
 
           <Text style={s.h3}>Nome, idade e dedicatória</Text>
+          <Text style={s.label}>Nome da criança</Text>
           <TextInput
             style={s.input}
             value={childName}
             onChangeText={setChildName}
-            placeholder="Nome da criança"
-            placeholderTextColor="#6b7a9a"
+            placeholder="Nome"
+            placeholderTextColor={colors.placeholder}
           />
+          <Text style={s.label}>Idade</Text>
           <TextInput
             style={s.input}
             value={childAge}
             onChangeText={setChildAge}
-            placeholder="Idade (ex.: 5)"
-            placeholderTextColor="#6b7a9a"
+            placeholder="Ex.: 5"
+            placeholderTextColor={colors.placeholder}
             keyboardType="number-pad"
           />
+          <Text style={s.label}>Dedicatória</Text>
           <TextInput
-            style={[s.input, { minHeight: 64 }]}
+            style={[s.input, s.inputMulti]}
             value={dedication}
             onChangeText={setDedication}
-            placeholder="Dedicatória (página 2)"
-            placeholderTextColor="#6b7a9a"
+            placeholder="Página 2 do livro"
+            placeholderTextColor={colors.placeholder}
             multiline
           />
 
-          <Pressable style={s.btn} onPress={start} disabled={busy}>
+          <Pressable style={[s.btn, busy && s.disabled]} onPress={start} disabled={busy}>
             <Text style={s.btnText}>Criar projeto</Text>
           </Pressable>
         </View>
       ) : (
-        <View style={s.card}>
-          <Text style={s.h2}>Projeto</Text>
-          <Text style={s.muted}>
-            Tema: {themeLabel(project.theme)}
-            {project.extra_theme ? ` + ${themeLabel(project.extra_theme)}` : ""}
-            {project.child_name ? ` · ${project.child_name}` : ""}
-            {" · "}Status: {project.status}
-          </Text>
-
-          <Pressable
-            style={[s.consent, mediaConsent && s.consentOn]}
-            onPress={() => setMediaConsent((v) => !v)}
-          >
-            <Text style={s.consentMark}>{mediaConsent ? "✓" : "○"}</Text>
+        <>
+          <View style={s.card}>
+            <Text style={s.h2}>Projeto ativo</Text>
             <Text style={s.muted}>
-              Sou o responsável legal e autorizo o uso desta foto (e voz, se clonada) só para criar
-              este livro.
+              Tema: {themeLabel(project.theme)}
+              {project.extra_theme ? ` + ${themeLabel(project.extra_theme)}` : ""}
+              {project.child_name ? ` · ${project.child_name}` : ""}
+              {" · "}Status: {project.status}
             </Text>
-          </Pressable>
 
-          <Pressable
-            style={[s.btnAlt, (!mediaConsent || busy) && s.disabled]}
-            onPress={pickAndUpload}
-            disabled={busy || !mediaConsent}
-          >
-            <Text style={s.btnText}>{photoUploaded ? "Foto enviada ✓" : "Enviar foto"}</Text>
-          </Pressable>
+            <Pressable
+              style={[s.consent, mediaConsent && s.consentOn]}
+              onPress={() => setMediaConsent((v) => !v)}
+            >
+              <View style={[s.checkbox, mediaConsent && s.checkboxOn]}>
+                {mediaConsent ? <Text style={s.checkMark}>✓</Text> : null}
+              </View>
+              <Text style={s.muted}>
+                Sou o responsável legal e autorizo o uso desta foto (e voz, se clonada) só para criar
+                este livro.
+              </Text>
+            </Pressable>
 
-          {STEPS.map((st) => {
-            const needPhoto = st.key === "avatar" && !photoUploaded;
-            const needChar =
-              (st.key === "ebook" || st.key === "video" || st.key === "narrated-video") &&
-              !characterApproved;
-            const disabled = busy || needPhoto || needChar;
-            return (
-              <Pressable
-                key={st.key}
-                style={[s.btn, disabled && s.disabled]}
-                onPress={() => runStep(st.key)}
-                disabled={disabled}
-              >
-                <Text style={s.btnText}>
-                  {st.label} ({st.cost} créd.)
-                </Text>
-              </Pressable>
-            );
-          })}
-          {!characterApproved && photoUploaded ? (
-            <Text style={s.hint}>Aprove o personagem antes do ebook / vídeos.</Text>
-          ) : null}
+            <Pressable
+              style={[s.btnAlt, (!mediaConsent || busy) && s.disabled]}
+              onPress={pickAndUpload}
+              disabled={busy || !mediaConsent}
+            >
+              <Text style={s.btnText}>{photoUploaded ? "Foto enviada ✓" : "Enviar foto"}</Text>
+            </Pressable>
+          </View>
 
-          <VoicePanel
-            busy={busy}
-            mediaConsent={mediaConsent}
-            voices={voices}
-            customVoiceAvailable={customVoiceAvailable}
-            selectedVoiceId={selectedVoiceId}
-            voiceName={voiceName}
-            onSelectVoice={setSelectedVoiceId}
-            onVoiceName={setVoiceName}
-            onUploaded={onVoiceUploaded}
-            onRemove={() => void removeSelectedVoice()}
-            onError={setError}
-          />
-
-          {jobs.map((j) => (
-            <View key={j.id} style={s.job}>
-              <View style={[s.dot, { backgroundColor: DOT[j.status] }]} />
-              <Text style={s.jtype}>{j.type}</Text>
-              <Text style={s.muted}>{j.status}</Text>
-              {j.error ? <Text style={s.error}>{j.error}</Text> : null}
+          <View style={s.card}>
+            <Text style={s.h2}>Etapas</Text>
+            <View style={s.steps}>
+              {STEPS.map((st) => {
+                const needPhoto = st.key === "avatar" && !photoUploaded;
+                const needChar =
+                  (st.key === "ebook" || st.key === "video" || st.key === "narrated-video") &&
+                  !characterApproved;
+                const disabled = busy || needPhoto || needChar;
+                return (
+                  <Pressable
+                    key={st.key}
+                    style={[s.btn, disabled && s.disabled]}
+                    onPress={() => runStep(st.key)}
+                    disabled={disabled}
+                  >
+                    <Text style={s.btnText}>
+                      {st.label} ({st.cost} créd.)
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
-          ))}
+            {!characterApproved && photoUploaded ? (
+              <Text style={s.hint}>Aprove o personagem antes do ebook / vídeos.</Text>
+            ) : null}
+          </View>
 
-          {busy && <ActivityIndicator color="#5b8cff" />}
+          <View style={s.card}>
+            <VoicePanel
+              busy={busy}
+              mediaConsent={mediaConsent}
+              voices={voices}
+              customVoiceAvailable={customVoiceAvailable}
+              selectedVoiceId={selectedVoiceId}
+              voiceName={voiceName}
+              onSelectVoice={setSelectedVoiceId}
+              onVoiceName={setVoiceName}
+              onUploaded={onVoiceUploaded}
+              onRemove={() => void removeSelectedVoice()}
+              onError={setError}
+            />
+          </View>
+
+          {jobs.length > 0 && (
+            <View style={s.card}>
+              <Text style={s.h2}>Jobs</Text>
+              {jobs.map((j) => (
+                <View key={j.id} style={s.job}>
+                  <View style={[s.dot, { backgroundColor: DOT[j.status] }]} />
+                  <Text style={s.jtype}>{j.type}</Text>
+                  <Text style={s.muted}>{j.status}</Text>
+                  {j.error ? <Text style={s.error}>{j.error}</Text> : null}
+                </View>
+              ))}
+              {busy && <ActivityIndicator color={colors.primary} />}
+            </View>
+          )}
 
           {(assets?.character_url || assets?.realistic_url) && (
-            <View style={s.block}>
-              <Text style={s.h3}>Personagem</Text>
+            <View style={s.card}>
+              <Text style={s.h2}>Personagem</Text>
               <Image
                 source={{ uri: (assets.character_url || assets.realistic_url)! }}
                 style={s.preview}
@@ -431,7 +462,11 @@ export function StudioScreen({
               {characterApproved ? (
                 <Text style={s.ok}>Personagem aprovado ✓</Text>
               ) : (
-                <Pressable style={s.btnAlt} onPress={() => void approveCharacter()} disabled={busy}>
+                <Pressable
+                  style={[s.btnAlt, busy && s.disabled]}
+                  onPress={() => void approveCharacter()}
+                  disabled={busy}
+                >
                   <Text style={s.btnText}>Aprovar personagem</Text>
                 </Pressable>
               )}
@@ -439,13 +474,18 @@ export function StudioScreen({
           )}
 
           {(assets?.ebook_url || project.ebook_url || (assets?.page_images?.length ?? 0) > 0) && (
-            <View style={s.block}>
-              <Text style={s.h3}>Livro</Text>
-              {assets?.page_images?.slice(0, 4).map((u, i) => (
-                <Image key={i} source={{ uri: u }} style={s.pageThumb} resizeMode="cover" />
-              ))}
+            <View style={s.card}>
+              <Text style={s.h2}>Livro</Text>
+              <View style={s.thumbs}>
+                {assets?.page_images?.slice(0, 4).map((u, i) => (
+                  <Image key={i} source={{ uri: u }} style={s.pageThumb} resizeMode="cover" />
+                ))}
+              </View>
               {(assets?.ebook_url || project.ebook_url) && (
-                <Pressable onPress={() => openUrl(assets?.ebook_url || project.ebook_url)}>
+                <Pressable
+                  onPress={() => openUrl(assets?.ebook_url || project.ebook_url)}
+                  style={s.linkBtn}
+                >
                   <Text style={s.link}>Abrir ebook PDF</Text>
                 </Pressable>
               )}
@@ -453,7 +493,7 @@ export function StudioScreen({
                 <Text style={s.ok}>Livro aprovado ✓</Text>
               ) : (
                 <Pressable
-                  style={[s.btnAlt, !(assets?.ebook_url || project.ebook_url) && s.disabled]}
+                  style={[s.btnAlt, (!(assets?.ebook_url || project.ebook_url) || busy) && s.disabled]}
                   onPress={() => void approveBook()}
                   disabled={busy || !(assets?.ebook_url || project.ebook_url)}
                 >
@@ -464,97 +504,198 @@ export function StudioScreen({
                 (printRequested ? (
                   <Text style={s.ok}>Impressão solicitada ✓</Text>
                 ) : (
-                  <Pressable style={s.btnAlt} onPress={() => void requestPrint()} disabled={busy}>
+                  <Pressable
+                    style={[s.btnAlt, busy && s.disabled]}
+                    onPress={() => void requestPrint()}
+                    disabled={busy}
+                  >
                     <Text style={s.btnText}>Pedir impressão</Text>
                   </Pressable>
                 ))}
             </View>
           )}
 
-          {project.story_text ? <Text style={s.story}>{project.story_text}</Text> : null}
-          {(assets?.video_url || project.video_url) && (
-            <Pressable onPress={() => openUrl(assets?.video_url || project.video_url)}>
-              <Text style={s.ok}>Abrir vídeo</Text>
-            </Pressable>
-          )}
-          {(assets?.narrated_video_url || project.narrated_video_url) && (
-            <Pressable
-              onPress={() => openUrl(assets?.narrated_video_url || project.narrated_video_url)}
-            >
-              <Text style={s.ok}>Abrir vídeo narrado</Text>
-            </Pressable>
+          {project.story_text ? (
+            <View style={s.card}>
+              <Text style={s.h2}>História</Text>
+              <Text style={s.story}>{project.story_text}</Text>
+            </View>
+          ) : null}
+
+          {((assets?.video_url || project.video_url) ||
+            (assets?.narrated_video_url || project.narrated_video_url)) && (
+            <View style={s.card}>
+              <Text style={s.h2}>Vídeos</Text>
+              {(assets?.video_url || project.video_url) && (
+                <Pressable
+                  onPress={() => openUrl(assets?.video_url || project.video_url)}
+                  style={s.linkBtn}
+                >
+                  <Text style={s.ok}>Abrir vídeo</Text>
+                </Pressable>
+              )}
+              {(assets?.narrated_video_url || project.narrated_video_url) && (
+                <Pressable
+                  onPress={() =>
+                    openUrl(assets?.narrated_video_url || project.narrated_video_url)
+                  }
+                  style={s.linkBtn}
+                >
+                  <Text style={s.ok}>Abrir vídeo narrado</Text>
+                </Pressable>
+              )}
+            </View>
           )}
 
-          <Pressable onPress={resetProject}>
+          <Pressable onPress={resetProject} style={s.linkBtn}>
             <Text style={s.link}>← Novo projeto</Text>
           </Pressable>
-        </View>
+        </>
       )}
     </ScrollView>
   );
 }
 
 const s = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#0f1320" },
-  header: { flexDirection: "row", alignItems: "center", paddingVertical: 8 },
-  brand: { color: "#e8ecf5", fontWeight: "700", fontSize: 18 },
-  card: {
-    backgroundColor: "#182032",
-    borderColor: "#2a3550",
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 18,
-    gap: 10,
+  screen: { flex: 1, backgroundColor: colors.bg },
+  content: { padding: space.lg, gap: space.md },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 4,
+    gap: 12,
   },
-  h2: { color: "#e8ecf5", fontSize: 18, fontWeight: "700" },
-  h3: { color: "#e8ecf5", fontSize: 15, fontWeight: "700", marginTop: 4 },
-  group: { color: "#c5d0ea", fontSize: 13, fontWeight: "600" },
-  muted: { color: "#93a0bd", flexShrink: 1 },
-  hint: { color: "#facc15", fontSize: 13 },
+  hdrLogo: { width: 52, height: 52 },
+  headerMeta: { flexDirection: "row", alignItems: "center", gap: 10, flexShrink: 1 },
+  creditsPill: {
+    backgroundColor: colors.input,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radii.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    minHeight: 36,
+    justifyContent: "center",
+  },
+  creditsText: { color: colors.muted, fontFamily: fonts.bodySemi, fontSize: 13 },
+  logoutBtn: { paddingVertical: 8, paddingHorizontal: 4, minHeight: 44, justifyContent: "center" },
+  card: {
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radii.xl,
+    padding: space.lg,
+    gap: space.sm,
+  },
+  h2: { color: colors.text, fontSize: 20, fontFamily: fonts.display },
+  h3: { color: colors.text, fontSize: 16, fontFamily: fonts.displaySemi, marginTop: 6 },
+  label: { color: colors.group, fontFamily: fonts.bodySemi, fontSize: 13, marginTop: 2 },
+  group: { color: colors.group, fontSize: 13, fontFamily: fonts.bodySemi },
+  groupBlock: { gap: 8 },
+  muted: { color: colors.muted, flexShrink: 1, fontFamily: fonts.body, lineHeight: 20 },
+  hint: { color: colors.hint, fontSize: 13, fontFamily: fonts.bodySemi },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    backgroundColor: "#0d1322",
-    borderColor: "#2a3550",
+    backgroundColor: colors.input,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-  },
-  chipOn: { backgroundColor: "#5b8cff", borderColor: "#5b8cff" },
-  chipText: { color: "#e8ecf5", fontSize: 13 },
-  input: {
-    backgroundColor: "#0d1322",
-    borderColor: "#2a3550",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: radii.pill,
     paddingVertical: 10,
-    color: "#e8ecf5",
+    paddingHorizontal: 14,
+    minHeight: 40,
+    justifyContent: "center",
   },
+  chipOn: { backgroundColor: colors.teal, borderColor: colors.teal },
+  chipText: { color: colors.text, fontSize: 13, fontFamily: fonts.bodySemi },
+  chipTextOn: { color: colors.white },
+  input: {
+    backgroundColor: colors.input,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radii.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 48,
+    color: colors.text,
+    fontFamily: fonts.body,
+    fontSize: 16,
+  },
+  inputMulti: { minHeight: 72, textAlignVertical: "top" },
   consent: {
     flexDirection: "row",
-    gap: 10,
+    gap: 12,
     alignItems: "flex-start",
-    backgroundColor: "#0d1322",
-    borderColor: "#2a3550",
+    backgroundColor: colors.input,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: radii.md,
+    padding: 12,
   },
-  consentOn: { borderColor: "#5b8cff" },
-  consentMark: { color: "#5b8cff", fontWeight: "700", width: 18 },
-  btn: { backgroundColor: "#5b8cff", borderRadius: 8, padding: 12, alignItems: "center" },
-  btnAlt: { backgroundColor: "#334066", borderRadius: 8, padding: 12, alignItems: "center" },
+  consentOn: { borderColor: colors.teal },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 1,
+  },
+  checkboxOn: { backgroundColor: colors.teal, borderColor: colors.teal },
+  checkMark: { color: colors.white, fontWeight: "700", fontSize: 14, lineHeight: 16 },
+  steps: { gap: 10 },
+  btn: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.pill,
+    minHeight: 50,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnAlt: {
+    backgroundColor: colors.secondary,
+    borderRadius: radii.pill,
+    minHeight: 50,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   disabled: { opacity: 0.5 },
-  btnText: { color: "#fff", fontWeight: "700" },
-  link: { color: "#5b8cff" },
-  job: { flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, flexWrap: "wrap" },
+  btnText: { color: colors.white, fontFamily: fonts.displaySemi, fontSize: 15 },
+  linkBtn: { paddingVertical: 10 },
+  link: { color: colors.primary, fontFamily: fonts.bodySemi, fontSize: 15 },
+  job: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    paddingVertical: 6,
+    flexWrap: "wrap",
+  },
   dot: { width: 10, height: 10, borderRadius: 5 },
-  jtype: { color: "#e8ecf5", fontWeight: "600", minWidth: 90 },
-  story: { color: "#e8ecf5", backgroundColor: "#0d1322", padding: 12, borderRadius: 8 },
-  ok: { color: "#34d399" },
-  error: { color: "#f87171" },
-  block: { gap: 8, marginTop: 4 },
-  preview: { width: "100%", height: 220, borderRadius: 12, backgroundColor: "#0d1322" },
-  pageThumb: { width: 96, height: 96, borderRadius: 8, backgroundColor: "#0d1322" },
+  jtype: { color: colors.text, fontFamily: fonts.bodySemi, minWidth: 90 },
+  story: {
+    color: colors.text,
+    backgroundColor: colors.input,
+    padding: 14,
+    borderRadius: radii.md,
+    fontFamily: fonts.body,
+    lineHeight: 22,
+  },
+  ok: { color: colors.ok, fontFamily: fonts.bodySemi },
+  error: { color: colors.error, fontFamily: fonts.bodySemi, lineHeight: 20 },
+  thumbs: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  preview: {
+    width: "100%",
+    height: 220,
+    borderRadius: radii.lg,
+    backgroundColor: colors.input,
+  },
+  pageThumb: {
+    width: 96,
+    height: 96,
+    borderRadius: radii.sm,
+    backgroundColor: colors.input,
+  },
 });

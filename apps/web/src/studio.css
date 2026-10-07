@@ -227,7 +227,10 @@
   color: var(--ink);
   font-weight: 800;
   cursor: pointer;
-  padding: 0;
+  padding: 10px 12px;
+  min-height: 44px;
+  min-width: 44px;
+  border-radius: 12px;
 }
 
 .studio-app .studio-upload-row input[type="file"] {
@@ -604,4 +607,78 @@
 .studio-order dd { margin: 0; }
 @media (max-width: 720px) {
   .studio-order div { grid-template-columns: 1fr; }
+
+  .studio-app .studio-page {
+    padding: 20px max(14px, var(--page-gutter)) 48px;
+  }
+
+  .studio-app .studio-card {
+    padding: 1.35rem 1.15rem;
+    border-radius: 18px;
+    margin-bottom: 1.25rem;
+  }
+
+  .studio-app .studio-card h2 {
+    font-size: 1.4rem;
+  }
+
+  .studio-app .studio-slogan {
+    font-size: 0.98rem;
+    margin-bottom: 1.1rem;
+  }
+
+  .studio-app .studio-choices {
+    gap: 0.75rem;
+    margin-top: 1.15rem;
+  }
+
+  .studio-app .studio-choice {
+    padding: 0.95rem;
+  }
+
+  .studio-app .studio-choice .studio-actions,
+  .studio-app .print-quantity .studio-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .studio-app .studio-pick {
+    min-height: 52px;
+    font-size: 1rem;
+  }
+
+  .studio-app .studio-create,
+  .studio-app .studio-actions button,
+  .studio-app .studio-actions .kbtn,
+  .studio-app .studio-upload-row button {
+    width: 100%;
+    min-height: 48px;
+    justify-content: center;
+  }
+
+  .studio-app .studio-create {
+    min-height: 56px;
+    font-size: 1.2rem;
+    padding: 14px 20px;
+  }
+
+  .studio-app .studio-upload-row input[type="file"] {
+    min-height: 56px;
+  }
+
+  .studio-app .studio-card.studio-order {
+    padding: 2.25rem 1.15rem;
+  }
+
+  .studio-app .studio-card.studio-order h2 {
+    font-size: 1.55rem;
+  }
+
+  .studio-app .studio-card.studio-order p {
+    font-size: 1.05rem;
+  }
+
+  .studio-app button.link {
+    min-height: 44px;
+    padding: 10px 4px;
+  }
 }

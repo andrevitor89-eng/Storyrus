@@ -1,6 +1,9 @@
-import { useState } from "react";
+import { useState, type ComponentProps } from "react";
 import {
   ActivityIndicator,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -8,7 +11,25 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { api, type SignupPayload } from "./api";
+import { colors, fonts, logo, radii, space } from "./theme";
+
+function Field({
+  label,
+  ...props
+}: { label: string } & ComponentProps<typeof TextInput>) {
+  return (
+    <View style={s.field}>
+      <Text style={s.label}>{label}</Text>
+      <TextInput
+        style={s.input}
+        placeholderTextColor={colors.placeholder}
+        {...props}
+      />
+    </View>
+  );
+}
 
 /** Login/signup obrigatório antes do estúdio. */
 export function AuthScreen({
@@ -18,6 +39,7 @@ export function AuthScreen({
   onAuthed: () => void;
   initialMode?: "login" | "signup";
 }) {
+  const insets = useSafeAreaInsets();
   const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -79,12 +101,15 @@ export function AuthScreen({
 
   if (checkEmail) {
     return (
-      <View style={s.wrap}>
+      <View style={[s.wrap, { paddingBottom: Math.max(insets.bottom, space.xl) }]}>
+        <Image source={logo} style={s.logo} resizeMode="contain" />
+        <Text style={s.brand}>Story R Us</Text>
         <Text style={s.title}>Verifique seu e-mail</Text>
         <Text style={s.muted}>
           Enviamos um link de confirmação. Ative a conta e depois entre com e-mail e senha.
         </Text>
         <Pressable
+          style={s.linkBtn}
           onPress={() => {
             setCheckEmail(false);
             setMode("login");
@@ -97,169 +122,243 @@ export function AuthScreen({
   }
 
   return (
-    <ScrollView contentContainerStyle={s.wrap} keyboardShouldPersistTaps="handled">
-      <Text style={s.title}>{mode === "signup" ? "Criar conta" : "Entrar"}</Text>
-      <Text style={s.muted}>
-        É preciso ter uma conta para criar livros personalizados.
-      </Text>
-
-      {mode === "signup" && (
-        <TextInput
-          style={s.input}
-          placeholder="Nome completo"
-          placeholderTextColor="#93a0bd"
-          value={fullName}
-          onChangeText={setFullName}
-        />
-      )}
-
-      <TextInput
-        style={s.input}
-        placeholder="E-mail"
-        placeholderTextColor="#93a0bd"
-        autoCapitalize="none"
-        keyboardType="email-address"
-        value={email}
-        onChangeText={setEmail}
-      />
-
-      {mode === "signup" && (
-        <TextInput
-          style={s.input}
-          placeholder="Telefone / WhatsApp"
-          placeholderTextColor="#93a0bd"
-          keyboardType="phone-pad"
-          value={phone}
-          onChangeText={setPhone}
-        />
-      )}
-
-      <TextInput
-        style={s.input}
-        placeholder="Senha (mín. 8)"
-        placeholderTextColor="#93a0bd"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-
-      {mode === "signup" && (
-        <>
-          <TextInput
-            style={s.input}
-            placeholder="Confirmar senha"
-            placeholderTextColor="#93a0bd"
-            secureTextEntry
-            value={passwordConfirm}
-            onChangeText={setPasswordConfirm}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="CEP"
-            placeholderTextColor="#93a0bd"
-            keyboardType="number-pad"
-            value={postalCode}
-            onChangeText={setPostalCode}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="Rua"
-            placeholderTextColor="#93a0bd"
-            value={street}
-            onChangeText={setStreet}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="Número"
-            placeholderTextColor="#93a0bd"
-            value={number}
-            onChangeText={setNumber}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="Complemento (opcional)"
-            placeholderTextColor="#93a0bd"
-            value={complement}
-            onChangeText={setComplement}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="Bairro"
-            placeholderTextColor="#93a0bd"
-            value={district}
-            onChangeText={setDistrict}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="Cidade"
-            placeholderTextColor="#93a0bd"
-            value={city}
-            onChangeText={setCity}
-          />
-          <TextInput
-            style={s.input}
-            placeholder="UF"
-            placeholderTextColor="#93a0bd"
-            autoCapitalize="characters"
-            maxLength={2}
-            value={stateUf}
-            onChangeText={(v) => setStateUf(v.toUpperCase())}
-          />
-          <Pressable style={s.termsRow} onPress={() => setAcceptTerms(!acceptTerms)}>
-            <View style={[s.checkbox, acceptTerms && s.checkboxOn]} />
-            <Text style={s.termsText}>Aceito os termos de uso e a política de privacidade</Text>
-          </Pressable>
-        </>
-      )}
-
-      {error && <Text style={s.error}>{error}</Text>}
-
-      <Pressable style={s.btn} onPress={submit} disabled={busy}>
-        {busy ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text style={s.btnText}>{mode === "signup" ? "Criar conta" : "Entrar"}</Text>
-        )}
-      </Pressable>
-
-      <Pressable
-        onPress={() => {
-          setMode(mode === "signup" ? "login" : "signup");
-          setCheckEmail(false);
-          setError(null);
-        }}
+    <KeyboardAvoidingView
+      style={s.flex}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={[
+          s.wrap,
+          { paddingBottom: Math.max(insets.bottom, space.xl) + 12 },
+        ]}
+        keyboardShouldPersistTaps="handled"
       >
-        <Text style={s.link}>{mode === "signup" ? "Já tenho conta" : "Criar uma conta"}</Text>
-      </Pressable>
-    </ScrollView>
+        <Image source={logo} style={s.logo} resizeMode="contain" />
+        <Text style={s.brand}>Story R Us</Text>
+        <Text style={s.title}>{mode === "signup" ? "Criar conta" : "Entrar"}</Text>
+        <Text style={s.muted}>
+          É preciso ter uma conta para criar livros personalizados.
+        </Text>
+
+        <View style={s.card}>
+          {mode === "signup" && (
+            <Field
+              label="Nome completo"
+              placeholder="Seu nome"
+              value={fullName}
+              onChangeText={setFullName}
+            />
+          )}
+
+          <Field
+            label="E-mail"
+            placeholder="voce@email.com"
+            autoCapitalize="none"
+            keyboardType="email-address"
+            value={email}
+            onChangeText={setEmail}
+          />
+
+          {mode === "signup" && (
+            <Field
+              label="Telefone / WhatsApp"
+              placeholder="+55 …"
+              keyboardType="phone-pad"
+              value={phone}
+              onChangeText={setPhone}
+            />
+          )}
+
+          <Field
+            label="Senha"
+            placeholder="Mínimo 8 caracteres"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+
+          {mode === "signup" && (
+            <>
+              <Field
+                label="Confirmar senha"
+                placeholder="Repita a senha"
+                secureTextEntry
+                value={passwordConfirm}
+                onChangeText={setPasswordConfirm}
+              />
+              <Field
+                label="CEP"
+                placeholder="00000-000"
+                keyboardType="number-pad"
+                value={postalCode}
+                onChangeText={setPostalCode}
+              />
+              <Field label="Rua" placeholder="Rua" value={street} onChangeText={setStreet} />
+              <Field
+                label="Número"
+                placeholder="Nº"
+                value={number}
+                onChangeText={setNumber}
+              />
+              <Field
+                label="Complemento"
+                placeholder="Opcional"
+                value={complement}
+                onChangeText={setComplement}
+              />
+              <Field
+                label="Bairro"
+                placeholder="Bairro"
+                value={district}
+                onChangeText={setDistrict}
+              />
+              <Field label="Cidade" placeholder="Cidade" value={city} onChangeText={setCity} />
+              <Field
+                label="UF"
+                placeholder="SP"
+                autoCapitalize="characters"
+                maxLength={2}
+                value={stateUf}
+                onChangeText={(v) => setStateUf(v.toUpperCase())}
+              />
+              <Pressable style={s.termsRow} onPress={() => setAcceptTerms(!acceptTerms)}>
+                <View style={[s.checkbox, acceptTerms && s.checkboxOn]}>
+                  {acceptTerms ? <Text style={s.checkMark}>✓</Text> : null}
+                </View>
+                <Text style={s.termsText}>
+                  Aceito os termos de uso e a política de privacidade
+                </Text>
+              </Pressable>
+            </>
+          )}
+
+          {error && <Text style={s.error}>{error}</Text>}
+
+          <Pressable
+            style={[s.btn, busy && s.disabled]}
+            onPress={submit}
+            disabled={busy}
+          >
+            {busy ? (
+              <ActivityIndicator color={colors.white} />
+            ) : (
+              <Text style={s.btnText}>{mode === "signup" ? "Criar conta" : "Entrar"}</Text>
+            )}
+          </Pressable>
+        </View>
+
+        <Pressable
+          style={s.linkBtn}
+          onPress={() => {
+            setMode(mode === "signup" ? "login" : "signup");
+            setCheckEmail(false);
+            setError(null);
+          }}
+        >
+          <Text style={s.link}>{mode === "signup" ? "Já tenho conta" : "Criar uma conta"}</Text>
+        </Pressable>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const s = StyleSheet.create({
-  wrap: { flexGrow: 1, justifyContent: "center", padding: 24, gap: 10, backgroundColor: "#0f1320" },
-  title: { color: "#e8ecf5", fontSize: 24, fontWeight: "700" },
-  muted: { color: "#93a0bd", marginBottom: 12 },
+  flex: { flex: 1, backgroundColor: colors.bg },
+  wrap: {
+    flexGrow: 1,
+    justifyContent: "center",
+    paddingHorizontal: space.lg,
+    paddingTop: space.xl,
+    gap: space.sm,
+    backgroundColor: colors.bg,
+  },
+  logo: { width: 96, height: 96, alignSelf: "center", marginBottom: 4 },
+  brand: {
+    color: colors.text,
+    fontSize: 28,
+    fontFamily: fonts.display,
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  title: {
+    color: colors.text,
+    fontSize: 20,
+    fontFamily: fonts.displaySemi,
+    textAlign: "center",
+  },
+  muted: {
+    color: colors.muted,
+    fontFamily: fonts.body,
+    textAlign: "center",
+    marginBottom: space.sm,
+    lineHeight: 22,
+  },
+  card: {
+    backgroundColor: colors.panel,
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: radii.xl,
+    padding: space.lg,
+    gap: space.md,
+  },
+  field: { gap: 6 },
+  label: {
+    color: colors.group,
+    fontFamily: fonts.bodySemi,
+    fontSize: 13,
+  },
   input: {
-    backgroundColor: "#0d1322",
-    borderColor: "#2a3550",
+    backgroundColor: colors.input,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    padding: 12,
-    color: "#e8ecf5",
+    borderRadius: radii.md,
+    paddingHorizontal: 14,
+    paddingVertical: 13,
+    minHeight: 48,
+    color: colors.text,
+    fontFamily: fonts.body,
+    fontSize: 16,
   },
-  termsRow: { flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: 4 },
+  termsRow: { flexDirection: "row", alignItems: "flex-start", gap: 12, marginTop: 4 },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#5b8cff",
-    marginTop: 2,
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    borderWidth: 1.5,
+    borderColor: colors.teal,
+    marginTop: 1,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  checkboxOn: { backgroundColor: "#5b8cff" },
-  termsText: { color: "#93a0bd", flex: 1, lineHeight: 20 },
-  btn: { backgroundColor: "#5b8cff", borderRadius: 8, padding: 14, alignItems: "center", marginTop: 6 },
-  btnText: { color: "#fff", fontWeight: "700" },
-  link: { color: "#5b8cff", textAlign: "center", marginTop: 12 },
-  error: { color: "#f87171" },
+  checkboxOn: { backgroundColor: colors.teal, borderColor: colors.teal },
+  checkMark: { color: colors.white, fontWeight: "700", fontSize: 14, lineHeight: 16 },
+  termsText: {
+    color: colors.muted,
+    flex: 1,
+    lineHeight: 20,
+    fontFamily: fonts.body,
+  },
+  btn: {
+    backgroundColor: colors.primary,
+    borderRadius: radii.pill,
+    minHeight: 52,
+    paddingHorizontal: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 4,
+  },
+  disabled: { opacity: 0.55 },
+  btnText: {
+    color: colors.white,
+    fontFamily: fonts.display,
+    fontSize: 17,
+  },
+  linkBtn: { paddingVertical: 12, alignItems: "center" },
+  link: {
+    color: colors.primary,
+    textAlign: "center",
+    fontFamily: fonts.bodySemi,
+    fontSize: 15,
+  },
+  error: { color: colors.error, fontFamily: fonts.bodySemi, lineHeight: 20 },
 });
