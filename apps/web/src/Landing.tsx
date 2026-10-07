@@ -1671,7 +1671,7 @@ export function CatalogBookCard({
         </div>
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
-          <h1>{book.t}</h1>
+          <h1 title={book.t}>{book.t}</h1>
           <section className="book-block">
             <h2>{pageCopy.summary}</h2>
             {book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
@@ -1694,7 +1694,7 @@ export function CatalogBookCard({
         </div>
       </div>
       <div className="cat-body">
-        <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
+        <h3 title={book.t}>{linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : book.t}</h3>
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
         {notes}
