@@ -16,6 +16,7 @@ import {
   submitStreetNumber,
 } from "./signupRegions";
 import { PasswordField } from "./PasswordField";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 export type AuthMode = "login" | "signup";
@@ -466,6 +467,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 <img src={logo} alt="Story R Us" />
               </Link>
             </div>
+            <SiteBackNav />
             <h1>{t.checkTitle}</h1>
             <p className="auth-lead">{t.checkLead}</p>
             <p className="auth-lead auth-check-hint">{t.checkHint}</p>
@@ -526,6 +528,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
               </div>
             </>
           )}
+          <SiteBackNav />
           <header className={isSignup ? "auth-hero" : undefined}>
             <h1>{isSignup ? t.signupTitle : t.loginTitle}</h1>
             <p className="auth-lead">{isSignup ? t.signupLead : t.loginLead}</p>

@@ -4,6 +4,7 @@ import logo from "./assets/logo.png";
 import { api } from "./api";
 import { safeNextPath } from "./Auth";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 /**
@@ -54,6 +55,7 @@ export function ForgotPassword() {
               <img src={logo} alt="Story R Us" />
             </Link>
           </div>
+          <SiteBackNav />
           {sent ? (
             <>
               <h1>Verifique Seu E-mail</h1>

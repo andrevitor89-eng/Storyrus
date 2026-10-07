@@ -5,6 +5,7 @@ import { api } from "./api";
 import { readAuthQueryToken, safeNextPath } from "./Auth";
 import { PasswordField } from "./PasswordField";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 /**
@@ -63,6 +64,7 @@ export function ResetPassword() {
               <img src={logo} alt="Story R Us" />
             </Link>
           </div>
+          <SiteBackNav />
           <h1>Nova Senha</h1>
           <p className="auth-lead">Escolha uma senha nova para a sua conta.</p>
           {!token ? (
@@ -110,6 +112,11 @@ export function ResetPassword() {
           <p className="auth-foot">
             <Link to="/entrar" data-testid="reset-password-login">
               Voltar Ao Login
+            </Link>
+          </p>
+          <p className="auth-foot">
+            <Link to="/" data-testid="reset-password-home">
+              Voltar Ao Início
             </Link>
           </p>
         </div>

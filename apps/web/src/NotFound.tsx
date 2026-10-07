@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { NOT_FOUND_PAGE, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 export function NotFound() {
@@ -11,6 +12,7 @@ export function NotFound() {
         <Link to="/" className="kbrand"><img src={logo} alt="Story R Us" /></Link>
       </header>
       <main className="ksection" style={{ textAlign: "center" }}>
+        <SiteBackNav className="site-back-nav-center" />
         <h1 className="ktitle" data-testid="not-found-title">Página Não Encontrada</h1>
         <p className="ksub">Esse endereço não existe. Volte à página inicial ou abra o estúdio.</p>
         <p style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>

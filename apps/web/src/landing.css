@@ -1797,6 +1797,37 @@ img.ex-tab-cover {
 }
 .book-back { margin: 0 0 18px; }
 .book-back a { color: var(--yellow); font-weight: 800; text-decoration: none; }
+.site-back-wrap {
+  padding-top: 12px;
+  padding-bottom: 0;
+  max-width: 1120px;
+}
+.site-back-nav {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 18px;
+  flex-wrap: wrap;
+}
+.site-back-nav-center { justify-content: center; }
+.site-back-nav a,
+.site-back-nav .site-back-prev {
+  color: var(--yellow);
+  font-weight: 800;
+  text-decoration: none;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.2;
+}
+.site-back-nav a:hover,
+.site-back-nav .site-back-prev:hover { text-decoration: underline; }
+.site-back-sep { color: #8a96b8; font-weight: 600; }
+[data-theme="light"] .kid .site-back-nav a,
+[data-theme="light"] .kid .site-back-nav .site-back-prev { color: #1f3568; }
+[data-theme="light"] .kid .site-back-sep { color: #8a90a8; }
 [data-theme="light"] .kid .catalog-section-title { color: var(--ink); }
 .cat-cover-type, .cat-size {
   font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px;

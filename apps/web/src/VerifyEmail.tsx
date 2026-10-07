@@ -4,6 +4,7 @@ import logo from "./assets/logo.png";
 import { api } from "./api";
 import { readAuthQueryEmail, readAuthQueryToken, safeNextPath } from "./Auth";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 /**
@@ -82,6 +83,7 @@ export function VerifyEmail() {
               <img src={logo} alt="Story R Us" />
             </Link>
           </div>
+          <SiteBackNav />
           <h1>Confirmando E-mail</h1>
           {email ? (
             <p className="auth-lead" data-testid="verify-email-address">

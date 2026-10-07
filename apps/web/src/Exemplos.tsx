@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 const PAGE = staticPageMeta("/exemplos");
@@ -17,6 +18,7 @@ export function Exemplos() {
         </nav>
       </header>
       <main className="ksection" style={{ maxWidth: 720, margin: "0 auto", textAlign: "left" }}>
+        <SiteBackNav />
         <h1 className="ktitle" data-testid="exemplos-title">Exemplos Da Plataforma</h1>
         <p className="ksub" style={{ textAlign: "left" }}>
           As fotos, capas e vídeos que aparecem no site são demonstrações feitas pela Story R Us.
