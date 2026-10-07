@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { studioEntryHref } from "./Auth";
 import { api, getToken } from "./api";
+import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -19,7 +20,7 @@ function sessionDisplayName(fullName: string | null | undefined, email: string):
   return local || email;
 }
 
-export type Lang = "pt" | "en" | "es";
+export type Lang = SiteLang;
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -239,6 +240,77 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
   { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
 ];
+type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
+/** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
+const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
+  0: { cover: "capa-martin-goleiro.jpg", page: "pagina-martin-goleiro.jpg", photo: "foto-martin-goleiro.jpg" },
+  1: { cover: "capa-emilia-bailarina.jpg", page: "pagina-emilia-bailarina.jpg", photo: "foto-emilia-bailarina.jpg" },
+  2: { cover: "capa-antonio-bicicleta.jpg", page: "pagina-antonio-bicicleta.jpg", photo: "foto-antonio-bicicleta.jpg" },
+  3: { cover: "capa-sofia-alfabeto.png", page: "pagina-sofia-alfabeto.jpg", photo: "foto-sofia.png" },
+  4: { cover: "capa-cristobal-esporte.png", page: "pagina-cristobal-esporte.jpg" },
+  5: { cover: "capa-nicolas-maefilho.png", page: "pagina-nicolas-maefilho.jpg", photo: "foto-nicolas-maefilho.jpg" },
+  6: {
+    cover: { pt: "capa-amordemae.png", en: "capa-amordemae-en.png", es: "capa-amordemae-es.png" },
+    page: { pt: "pagina-amordemae.jpg", en: "pagina-amordemae-en.jpg", es: "pagina-amordemae-es.jpg" },
+    photo: { pt: "foto-amordemae.jpg", en: "foto-amordemae-en.jpg", es: "foto-amordemae-es.jpg" },
+  },
+  7: {
+    cover: { pt: "capa-mamaepapaimatteo.png", en: "capa-mamaepapaimatteo-en.png", es: "capa-mamaepapaimatteo-es.png" },
+    page: { pt: "pagina-mamaepapaimatteo.jpg", en: "pagina-mamaepapaimatteo-en.jpg", es: "pagina-mamaepapaimatteo-es.jpg" },
+    photo: { pt: "foto-mamaepapaimatteo-en.jpg", en: "foto-mamaepapaimatteo-en.jpg", es: "foto-mamaepapaimatteo-es.jpg" },
+  },
+  8: {
+    cover: { pt: "capa-amordebisavo.png", en: "capa-amordebisavo-en.png", es: "capa-amordebisavo-es.png" },
+    page: { pt: "pagina-amordebisavo.jpg", en: "pagina-amordebisavo-en.jpg", es: "pagina-amordebisavo-es.jpg" },
+    photo: { pt: "foto-amordebisavo.jpg", en: "foto-amordebisavo-en.jpg", es: "foto-amordebisavo-es.jpg" },
+  },
+  9: {
+    cover: { pt: "capa-natalmemetata.jpg", en: "capa-natalmemetata-en.jpg", es: "capa-natalmemetata-es.jpg" },
+    page: { pt: "pagina-natalmemetata.jpg", en: "pagina-natalmemetata-en.jpg", es: "pagina-natalmemetata-es.jpg" },
+    photo: { pt: "foto-natalmemetata.jpg", en: "foto-natalmemetata-en.jpg", es: "foto-natalmemetata-es.jpg" },
+  },
+  10: {
+    cover: { pt: "capa-nanoaventuras.png", en: "capa-nanoaventuras-en.png", es: "capa-nanoaventuras-es.png" },
+    page: { pt: "pagina-nanoaventuras.jpg", en: "pagina-nanoaventuras-en.jpg", es: "pagina-nanoaventuras-es.jpg" },
+    photo: { pt: "foto-nanoaventuras.jpg", en: "foto-nanoaventuras-en.jpg", es: "foto-nanoaventuras-es.jpg" },
+  },
+  11: {
+    cover: { pt: "capa-maya-cachorra-pt.jpg", en: "capa-maya-cachorra-en.jpg", es: "capa-maya-cachorra-es.jpg" },
+    page: { pt: "pagina-maya-cachorra-pt.jpg", en: "pagina-maya-cachorra-en.jpg", es: "pagina-maya-cachorra-es.jpg" },
+    photo: { pt: "foto-maya-cachorra-pt.jpg", en: "foto-maya-cachorra-en.jpg", es: "foto-maya-cachorra-es.jpg" },
+  },
+  12: {
+    cover: { pt: "capa-mako-amigofiel.jpg", en: "capa-mako-amigofiel-en.jpg", es: "capa-mako-amigofiel-es.jpg" },
+    page: { pt: "pagina-mako-amigofiel.jpg", en: "pagina-mako-amigofiel-en.jpg", es: "pagina-mako-amigofiel-es.jpg" },
+    photo: { pt: "foto-mako-amigofiel.jpg", en: "foto-mako-amigofiel-en.jpg", es: "foto-mako-amigofiel-es.jpg" },
+  },
+  13: { cover: { pt: "capa-ester.png", en: "capa-ester-en.png", es: "capa-ester-es.png" }, photo: "foto-ester.png" },
+  14: { cover: { pt: "capa-raquel-papai.png", en: "capa-raquel-papai-en.png", es: "capa-raquel-papai-es.png" }, photo: "foto-raquel-papai.png" },
+  15: { cover: { pt: "capa-rebeca.png", en: "capa-rebeca-en.png", es: "capa-rebeca-es.png" }, photo: "foto-rebeca.png" },
+  16: { cover: { pt: "capa-abigail.png", en: "capa-abigail-en.png", es: "capa-abigail-es.png" }, photo: "foto-abigail.png" },
+  17: { cover: { pt: "capa-miriam.png", en: "capa-miriam-en.png", es: "capa-miriam-es.png" }, photo: "foto-miriam.png" },
+  18: { cover: { pt: "capa-noe.png", en: "capa-noe-en.png", es: "capa-noe-es.png" }, photo: "foto-noe.png" },
+  19: { cover: "capa-amordetia.png", page: "pagina-amordetia.png", photo: "foto-amordetia.png" },
+  20: { cover: "capa-davi-pastor.png", page: "pagina-davi-pastor.png", photo: "foto-davi-pastor.png" },
+  21: { cover: "capa-meupai-heroi.png", page: "pagina-meupai-heroi.png", photo: "foto-meupai-heroi.png" },
+  22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
+  23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
+  24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
+};
+type CatalogSeriesKind = "cover" | "page" | "photo";
+function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
+  const series = CATALOG_SERIES[i];
+  if (!series) {
+    const cover = catalogCoverFile(i, lang, "photo");
+    return cover ? [{ key: "cover", src: cover }] : [];
+  }
+  const shots: { key: CatalogSeriesKind; src: string }[] = [
+    { key: "cover", src: catalogImgSrc(series.cover, lang) },
+  ];
+  if (series.page) shots.push({ key: "page", src: catalogImgSrc(series.page, lang) });
+  if (series.photo) shots.push({ key: "photo", src: catalogImgSrc(series.photo, lang) });
+  return shots;
+}
 const CATALOG_THEMES = [
   "adventure",
   "princess",
@@ -630,16 +702,16 @@ const I18N = {
     reviews_link: "Avaliações",
     videos_link: "Vídeos",
     my_books: "Meus Livros",
-    see_all_books: "Ver todos os livros",
-    view_all: "Ver todos",
+    see_all_books: "Ver Todos Os Livros",
+    view_all: "Ver Todos",
     cat_empty: "Ainda não temos um exemplo neste tema.",
     cats_label: "Livros",
     realistic_link: "Realista",
     cartoon_link: "Livros Cartoon",
     quick_links: "Acessos Rápidos",
-    font_label: "Fonte do título",
-    explore: "Explorar agora",
-    eyebrow: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
+    font_label: "Fonte Do Título",
+    explore: "Explorar Agora",
+    eyebrow: "Eternize Momentos. Presenteie Familiares Com Uma História Inesquecível.",
     h_pre: "Transforme uma foto em uma ", w1: "história inesquecível", c1: ", onde seu filho é o ", w2: "protagonista", h_suf: " !",
     lead: "Você envia a foto e nós transformamos seu filho em um personagem ilustrado, criando uma aventura personalizada especialmente para ele — um livro para presentear a família e guardar para sempre.",
     cta_login: "Entrar",
@@ -651,12 +723,12 @@ const I18N = {
     hero_cta: "Criar Meu Livro",
     cta_story: "Criar Minha História",
     hero_sign: "Uma foto. Uma história. Uma memória eterna.",
-    book_carousel: "Carrossel de livros",
+    book_carousel: "Carrossel De Livros",
     cats: [
       {
         name: "Aventuras",
         subs: ["Aventura", "Dinossauros", "Fundo do Mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
-        feats: ["Princesas", "Aventura", "Cristobal e seu Esporte Favorito", "Nano e suas Aventuras"],
+        feats: ["Princesas", "Aventura", "Cristobal E Seu Esporte Favorito", "Nano E Suas Aventuras"],
       },
       {
         name: "Você e Eu",
@@ -690,22 +762,22 @@ const I18N = {
       {
         name: "Educativo",
         subs: ["Bíblico", "Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
-        feats: ["Animais", "Higiene", "Davi, o Menino Pastor"],
+        feats: ["Animais", "Higiene", "Davi, O Menino Pastor"],
       },
     ],
-    cat_below: "Eternize momentos. Presenteie familiares com uma história inesquecível.",
+    cat_below: "Eternize Momentos. Presenteie Familiares Com Uma História Inesquecível.",
     cat_below_lead: "Transforme uma foto em um livro personalizado, onde seu filho é o protagonista.",
-    trust: "Encantando famílias do início ao fim",
+    trust: "Encantando Famílias Do Início Ao Fim",
     ba_before: "ANTES", ba_after: "DEPOIS", ba_caption: "Você envia a foto. A gente cria o encanto.",
     ba_preview: "PRÉ-VISUALIZAÇÃO",
-    ba_title: "Antes e depois de verdade",
+    ba_title: "Antes E Depois De Verdade",
     ba_sub: "Fotos reais transformadas em personagens ilustrados.",
     ba_pairs: ["Do berço para a aventura", "Uma menina cheia de imaginação", "Sorriso que vira personagem", "Da foto ao herói da história", "Todo mundo pode ser protagonista"],
     hiw_title: "Como Funciona", hiw_sub: "Você manda as fotos. A gente faz o livro, com seu filho como personagem.",
     hiw: [
-      { t: "Envie as fotos", p: "Da criança e de quem entra na história." },
-      { t: "A gente cria o livro", p: "Um personagem parecido com a foto e uma história só de vocês." },
-      { t: "O livro fica pronto", p: "Páginas ilustradas para ler e guardar." },
+      { t: "Envie As Fotos", p: "Da criança e de quem entra na história." },
+      { t: "A Gente Cria O Livro", p: "Um personagem parecido com a foto e uma história só de vocês." },
+      { t: "O Livro Fica Pronto", p: "Páginas ilustradas para ler e guardar." },
     ],
     hiw_main: [
       { t: "Preencha os Dados", p: "Envie as informações, escolha o tema da história e envie fotos nítidas relacionadas à história que deseja criar." },
@@ -719,96 +791,96 @@ const I18N = {
     ],
     shot_sub: "Envie a foto e defina os detalhes.",
     shots: [
-      { t: "A criança", p: "3 a 5 fotos de frente, bem iluminadas, com o rosto inteiro. Sem filtro, chapéu ou óculos." },
-      { t: "Família e pets", p: "2 ou 3 fotos de cada pessoa, sozinha. Do pet, uma de frente e outra de corpo inteiro." },
-      { t: "Dados do livro", p: "Nome, idade, tema e idioma: português, espanhol ou inglês." },
+      { t: "A Criança", p: "3 a 5 fotos de frente, bem iluminadas, com o rosto inteiro. Sem filtro, chapéu ou óculos." },
+      { t: "Família E Pets", p: "2 ou 3 fotos de cada pessoa, sozinha. Do pet, uma de frente e outra de corpo inteiro." },
+      { t: "Dados Do Livro", p: "Nome, idade, tema e idioma: português, espanhol ou inglês." },
     ],
-    shot_title: "Dicas para a foto perfeita",
+    shot_title: "Dicas Para A Foto Perfeita",
     cartoon_shot_sub: "Envie uma foto nítida da criança, com o rosto centralizado.",
     cartoon_shots: ["Nítida, bem iluminada e centralizada", "Mais de uma pessoa na foto", "Rosto de lado"],
-    cartoon_hiw_title: "Você envia a foto",
+    cartoon_hiw_title: "Você Envia A Foto",
     cartoon_hiw_photo: "Uma foto da criança já basta para começar.",
     hero_books: [
-      "Martin, o Grande Goleiro do Chile",
-      "Emilia e os Primeiros Passos da Bailarina",
-      "Antonio e sua Bicicleta",
-      "Maria Jesus e a Disciplina no Hockey",
-      "Facundo e o Motocross com Cuidado",
+      "Martin, O Grande Goleiro Do Chile",
+      "Emilia E Os Primeiros Passos Da Bailarina",
+      "Antonio E Sua Bicicleta",
+      "Maria Jesus E A Disciplina No Hockey",
+      "Facundo E O Motocross Com Cuidado",
     ],
     vid_title: "Vídeos Narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
-    vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
+    vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
       { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
     ],
-    vid_soon: "Em breve",
-    book_badge: "Exemplo real",
-    story_title: "Folheie nossos livros",
+    vid_soon: "Em Breve",
+    book_badge: "Exemplo Real",
+    story_title: "Folheie Nossos Livros",
     story_sub: "Livros criados pela plataforma a partir de uma única foto — escolha um exemplo.",
     story_hint: "Clique nas laterais do livro (ou use as setas) para virar as páginas.",
     chloe_title: "A História de Chloe",
-    fmt_title: "Escolha o formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
+    fmt_title: "Escolha O Formato", fmt_sub: "Do mesmo personagem, três formas de guardar a história.",
     formats: [
-      { t: "Livro em PDF", p: "Capa e páginas ilustradas, prontas na plataforma. O impresso é sob consulta.", feats: ["Capa + páginas ilustradas", "PDF na hora", "Personagem fiel à foto"], cta: "Criar meu livro", badge: "Mais amado" },
-      { t: "Vídeo narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar meu vídeo", badge: "" },
-      { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar animação", badge: "" },
+      { t: "Livro Em PDF", p: "Capa e páginas ilustradas, prontas na plataforma. O impresso é sob consulta.", feats: ["Capa + páginas ilustradas", "PDF na hora", "Personagem fiel à foto"], cta: "Criar Meu Livro", badge: "Mais Amado" },
+      { t: "Vídeo Narrado", p: "A história ganha voz e trilha, perfeita para assistir em família.", feats: ["Narração encantadora", "Cenas ilustradas", "Fácil de compartilhar"], cta: "Criar Meu Vídeo", badge: "" },
+      { t: "Animação", p: "O personagem ganha vida numa animação curta.", feats: ["Movimento e magia", "Baseada na sua história", "Um presente diferente"], cta: "Criar Animação", badge: "" },
     ],
     cat_title: "Nossos Livros", cat_sub: "Cada tema se transforma em uma história ilustrada, com seu filho como protagonista da própria história.",
     personalize: "Personalizar",
     a11y_theme: "Alternar tema claro/escuro",
     a11y_menu: "Menu",
     a11y_slide: "Slide",
-    photo_real_alt: "Foto de exemplo da criança",
-    fb_prev: "Página anterior",
-    fb_next: "Próxima página",
-    fb_turn: "Virar página",
+    photo_real_alt: "Foto De Exemplo Da Criança",
+    fb_prev: "Página Anterior",
+    fb_next: "Próxima Página",
+    fb_turn: "Virar Página",
     fb_cover: "Capa",
-    fb_photo: "Na mão",
+    fb_photo: "Na Mão",
     theme_to_light: "Claro",
     theme_to_dark: "Escuro",
     privacy_link: "Privacidade",
     terms_link: "Termos",
     catalog: [
-      { t: "Martin, o Grande Goleiro do Chile", p: "Goleiro que cai, levanta e defende: coragem e perseverança no campo.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Cair, levantar e continuar!" },
-      { t: "Emilia e os Primeiros Passos da Bailarina", p: "Primeiros passos no ballet com disciplina, equilíbrio e confiança.", cover: "Soft", size: "M", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
-      { t: "Antonio e sua Bicicleta", p: "Pedalar, aprender e explorar o mundo em pequenas aventuras.", cover: "Soft", size: "M", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
-      { t: "Aprendendo o Alfabeto com a Sofia", p: "Letras e descobertas na floresta, alfabetizar brincando.", cover: "Soft", size: "M", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
-      { t: "Cristobal e seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
+      { t: "Martin, O Grande Goleiro Do Chile", p: "Goleiro que cai, levanta e defende: coragem e perseverança no campo.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Cair, levantar e continuar!" },
+      { t: "Emilia E Os Primeiros Passos Da Bailarina", p: "Primeiros passos no ballet com disciplina, equilíbrio e confiança.", cover: "Soft", size: "M", tag: "Ballet e sonhos", quote: "Pequenos passos, grandes conquistas." },
+      { t: "Antonio E Sua Bicicleta", p: "Pedalar, aprender e explorar o mundo em pequenas aventuras.", cover: "Soft", size: "M", tag: "Aventura e movimento", quote: "Pedalar, aprender e sorrir!" },
+      { t: "Aprendendo O Alfabeto Com A Sofia", p: "Letras e descobertas na floresta, alfabetizar brincando.", cover: "Soft", size: "M", tag: "Alfabetizar brincando", quote: "Cada letra abre um mundo novo." },
+      { t: "Cristobal E Seu Esporte Favorito", p: "No caiaque, equilíbrio, coragem e respeito pelo rio.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Pequenas remadas, grandes conquistas." },
       { t: "Nicolas, Meu Primeiro Amor", p: "Um momento de carinho eterno entre mamãe e filho, cheio de ternura para guardar para sempre.", cover: "Soft", size: "M", tag: "Amor de mãe", quote: "Primeiro filho, eterno amor!" },
-      { t: "O Amor de Mãe", p: "Pequenas histórias de um grande amor: a ternura da mamãe em cada página, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de mãe", quote: "No colo da mamãe, encontro meu lugar." },
-      { t: "Mamãe, Papai e Matteo", p: "Uma celebração da família: o carinho de mamãe e papai unidos em uma história só deles.", cover: "Hard", size: "M", tag: "Amor de família", quote: "Juntos, fazemos do amor o nosso lar." },
-      { t: "Amor de Bisavó", p: "Uma homenagem à bisavó: colo, carinho e histórias que atravessam gerações, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor entre gerações", quote: "Bisavó tem abraço que acolhe e guarda todo o meu carinho." },
-      { t: "Natal com a Meme e o Tata", p: "Um Natal em família: o carinho da Meme e do Tata, luzes na árvore e um abraço apertado para guardar para sempre.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Natal é mais gostoso ao lado de quem a gente ama." },
-      { t: "Nano e suas Aventuras", p: "Uma aventura marítima só dele: vento nas orelhas, mar azul e a alegria de explorar ao lado de quem ama, para guardar para sempre.", cover: "Hard", size: "M", tag: "Aventura e mar", quote: "Vento nas orelhas, mar pela frente — a aventura começou!" },
+      { t: "O Amor De Mãe", p: "Pequenas histórias de um grande amor: a ternura da mamãe em cada página, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de mãe", quote: "No colo da mamãe, encontro meu lugar." },
+      { t: "Mamãe, Papai E Matteo", p: "Uma celebração da família: o carinho de mamãe e papai unidos em uma história só deles.", cover: "Hard", size: "M", tag: "Amor de família", quote: "Juntos, fazemos do amor o nosso lar." },
+      { t: "Amor De Bisavó", p: "Uma homenagem à bisavó: colo, carinho e histórias que atravessam gerações, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor entre gerações", quote: "Bisavó tem abraço que acolhe e guarda todo o meu carinho." },
+      { t: "Natal Com A Meme E O Tata", p: "Um Natal em família: o carinho da Meme e do Tata, luzes na árvore e um abraço apertado para guardar para sempre.", cover: "Hard", size: "M", tag: "Natal em família", quote: "Natal é mais gostoso ao lado de quem a gente ama." },
+      { t: "Nano E Suas Aventuras", p: "Uma aventura marítima só dele: vento nas orelhas, mar azul e a alegria de explorar ao lado de quem ama, para guardar para sempre.", cover: "Hard", size: "M", tag: "Aventura e mar", quote: "Vento nas orelhas, mar pela frente — a aventura começou!" },
       { t: "Maya, Minha Cachorra Carinhosa", p: "Uma amizade cheia de carinho entre uma menina e sua cadela: cuidado, afeto e companhia em cada página.", cover: "Soft", size: "M", tag: "Amizade e cuidado", quote: "Amor e cuidado, todos os dias." },
       { t: "Mako, Meu Amigo Fiel", p: "Um bebê e seu cão fiel: lealdade, proteção e carinho em uma amizade só deles.", cover: "Soft", size: "M", tag: "Amizade e lealdade", quote: "Amor fiel, todos os dias." },
-      { t: "O Aniversário Especial de Ester", p: "Velas, abraços e um pedido no coração: o aniversário do seu filho vira uma história só dele.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Mais um ano de felicidade!" },
-      { t: "Raquel e Papai: Aventuras para Sempre", p: "Mão na mão com o papai, cada caminho vira memória — uma aventura para guardar para sempre.", cover: "Hard", size: "M", tag: "Papai e eu", quote: "Juntos, a aventura nunca acaba." },
-      { t: "Rebeca, a Pequena Grande Heroína", p: "Capa ao vento e coragem no peito: o seu filho salva o dia com o coração.", cover: "Hard", size: "M", tag: "Super-heróis", quote: "Ser herói começa com um sorriso." },
-      { t: "Abigail em uma Aventura pelo Espaço", p: "Foguetes, planetas e curiosidade: uma viagem estelar com o seu filho no comando.", cover: "Hard", size: "M", tag: "Espaço", quote: "Coragem, curiosidade e descobertas!" },
-      { t: "Miriam e os Segredos do Fundo do Mar", p: "Tartarugas, corais e amizade: o seu filho explora o oceano com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do Mar", quote: "Cuidar do mar é cuidar dos amigos." },
-      { t: "Noé na Terra dos Dinossauros", p: "Fósseis, amigos gigantes e coragem: uma expedição pré-histórica com o seu filho.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Descobrir juntos é a melhor aventura." },
-      { t: "Amor de Tia", p: "O carinho da tia em cada página: colo, riso e um amor que a família guarda para sempre.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Tia é abraço que não acaba." },
-      { t: "Davi, o Menino Pastor", p: "Um menino, sua harpa e as ovelhas: coragem e fé numa história para guardar para sempre.", cover: "Hard", size: "M", tag: "Fé e coragem", quote: "Pequeno no campo, grande no coração." },
+      { t: "O Aniversário Especial De Ester", p: "Velas, abraços e um pedido no coração: o aniversário do seu filho vira uma história só dele.", cover: "Hard", size: "M", tag: "Aniversário", quote: "Mais um ano de felicidade!" },
+      { t: "Raquel E Papai: Aventuras Para Sempre", p: "Mão na mão com o papai, cada caminho vira memória — uma aventura para guardar para sempre.", cover: "Hard", size: "M", tag: "Papai e eu", quote: "Juntos, a aventura nunca acaba." },
+      { t: "Rebeca, A Pequena Grande Heroína", p: "Capa ao vento e coragem no peito: o seu filho salva o dia com o coração.", cover: "Hard", size: "M", tag: "Super-heróis", quote: "Ser herói começa com um sorriso." },
+      { t: "Abigail Em Uma Aventura Pelo Espaço", p: "Foguetes, planetas e curiosidade: uma viagem estelar com o seu filho no comando.", cover: "Hard", size: "M", tag: "Espaço", quote: "Coragem, curiosidade e descobertas!" },
+      { t: "Miriam E Os Segredos Do Fundo Do Mar", p: "Tartarugas, corais e amizade: o seu filho explora o oceano com cuidado e encanto.", cover: "Hard", size: "M", tag: "Fundo do Mar", quote: "Cuidar do mar é cuidar dos amigos." },
+      { t: "Noé Na Terra Dos Dinossauros", p: "Fósseis, amigos gigantes e coragem: uma expedição pré-histórica com o seu filho.", cover: "Hard", size: "M", tag: "Dinossauros", quote: "Descobrir juntos é a melhor aventura." },
+      { t: "Amor De Tia", p: "O carinho da tia em cada página: colo, riso e um amor que a família guarda para sempre.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Tia é abraço que não acaba." },
+      { t: "Davi, O Menino Pastor", p: "Um menino, sua harpa e as ovelhas: coragem e fé numa história para guardar para sempre.", cover: "Hard", size: "M", tag: "Fé e coragem", quote: "Pequeno no campo, grande no coração." },
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê, lado a lado: proteção, carinho e um herói só da família.", cover: "Hard", size: "M", tag: "Papai herói", quote: "Meu herói tem o colo do papai." },
       { t: "Enzo, Meu Primo Predileto", p: "Dois primos, um abraço e o mar: amizade que a família nos dá, para guardar para sempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "Primo é amigo que a família nos dá." },
-      { t: "Lucas e seu amigo Max", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max é o amigo de todas as horas." },
-      { t: "Esther e os Superpoderes da Higiene", p: "Mãos limpas, dentes escovados e um sorriso: hábitos de higiene que viram superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidar de si é um superpoder." },
+      { t: "Lucas E Seu Amigo Max", p: "Um menino e seu cachorro: cuidado, passeio e uma amizade para guardar para sempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max é o amigo de todas as horas." },
+      { t: "Esther E Os Superpoderes Da Higiene", p: "Mãos limpas, dentes escovados e um sorriso: hábitos de higiene que viram superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidar de si é um superpoder." },
       { t: "Pequeno Construtor, Grande Empreendedor", p: "Capacete, blocos e um plano no papel: construir, tentar de novo e ver a ideia ficar de pé.", cover: "Hard", size: "M", tag: "Construir e criar", quote: "Pequenas mãos, grandes ideias." },
-      { t: "Meu Herói Favorito, o Bombeiro", p: "Sirene, coragem e um herói de verdade: o bombeiro que cuida da cidade e da família.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói protege todo mundo." },
-      { t: "Meu Herói Favorito, o Policial", p: "Farda, cuidado e um herói da cidade: o policial que protege quem a gente ama.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói cuida da gente todos os dias." },
-      { t: "Meu Herói Favorito, a Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Natureza e amizade", quote: "Até o menor amigo pode ser um herói." },
+      { t: "Meu Herói Favorito, O Bombeiro", p: "Sirene, coragem e um herói de verdade: o bombeiro que cuida da cidade e da família.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói protege todo mundo." },
+      { t: "Meu Herói Favorito, O Policial", p: "Farda, cuidado e um herói da cidade: o policial que protege quem a gente ama.", cover: "Hard", size: "M", tag: "Heróis de verdade", quote: "Meu herói cuida da gente todos os dias." },
+      { t: "Meu Herói Favorito, A Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Natureza e amizade", quote: "Até o menor amigo pode ser um herói." },
       { t: "Tia Especial, Não Existe Igual", p: "Passeio, colo e risada: a tia que transforma qualquer dia numa memória para guardar.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Com a tia, todo dia vira passeio." },
-      { t: "Amor de Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
+      { t: "Amor De Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
     ],
-    promise_title: "Um Presente Personalizado para Eternizar Momentos Inesquecíveis.",
+    promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
     promise: [
-      { t: "Privacidade da Foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
+      { t: "Privacidade Da Foto", p: "A foto que você envia é usada só para criar o livro — nunca para divulgação. Os exemplos desta página são demonstrações da plataforma." },
       { t: "Impressão Pensada como Presente", p: "Preparado para ficar lindo em mãos, na leitura em família e na hora de entregar." },
-      { t: "Prévia antes de Avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
-      { t: "Entrega sem Complicação", p: "O PDF fica pronto na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
+      { t: "Prévia Antes De Avançar", p: "Você vê a capa e as páginas e entende o que está criando antes de finalizar." },
+      { t: "Entrega Sem Complicação", p: "O PDF fica pronto na plataforma. O livro impresso é sob consulta — em até 24h enviamos a cotação e o prazo." },
     ],
     faq_title: "Perguntas Frequentes", faq_sub: "Tudo o que você precisa saber.",
     faq: [
@@ -819,17 +891,17 @@ const I18N = {
       { q: "Posso pedir alterações?", a: "Pode! Ajuste o nome, a dedicatória e regenere as ilustrações na prévia até ficar do seu jeito." },
       { q: "Como funciona o vídeo narrado?", a: "Depois do ebook pronto, na tela de resultado você pode gerar o vídeo narrado (voz + cenas ilustradas) ou uma animação curta do personagem." },
     ],
-    rev_title: "O que as Famílias Dizem", rev_sub: "Histórias que viraram memórias para sempre.",
+    rev_title: "O Que As Famílias Dizem", rev_sub: "Histórias que viraram memórias para sempre.",
     reviews: [
       { q: "Meu filho pede para ler o livro dele toda noite. Emocionante vê-lo como herói!", name: "Ana C." },
       { q: "Enviei uma foto e recebi um livro lindo. Virou o presente de aniversário da vovó.", name: "Rafael M." },
       { q: "A ilustração ficou idêntica ao meu bebê. Vamos guardar para sempre.", name: "Juliana P." },
       { q: "O vídeo narrado fez a família toda se emocionar. Vale cada segundo.", name: "Marcos e Bia" },
     ],
-    features: ["Histórias personalizadas", "Conexão em família", "Memórias que ficam para sempre", "Um presente inesquecível"],
+    features: ["Histórias Personalizadas", "Conexão Em Família", "Memórias Que Ficam Para Sempre", "Um Presente Inesquecível"],
     band_title: "Pronto para Virar Protagonista?",
     band_sub: "Envie sua foto e receba uma história única, criada só para você.",
-    band_cta: "Criar minha conta",
+    band_cta: "Criar Minha Conta",
     tagline: "Feito com amor. Criado para encantar.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
@@ -838,19 +910,19 @@ const I18N = {
     reviews_link: "Reviews",
     videos_link: "Videos",
     my_books: "My Books",
-    see_all_books: "See all books",
-    view_all: "View all",
+    see_all_books: "See All Books",
+    view_all: "View All",
     cat_empty: "We don't have an example for this theme yet.",
     cats_label: "Books",
     realistic_link: "Realistic",
     cartoon_link: "Cartoon Books",
     quick_links: "Quick Links",
-    font_label: "Cover font",
-    explore: "Explore now",
-    eyebrow: "Preserve moments. Gift your family an unforgettable story.",
+    font_label: "Cover Font",
+    explore: "Explore Now",
+    eyebrow: "Preserve Moments. Gift Your Family An Unforgettable Story.",
     h_pre: "Turn a photo into an ", w1: "unforgettable story", c1: ", where your child is the ", w2: "hero", h_suf: " !",
     lead: "You send the photo and we turn your child into an illustrated character, creating an adventure made just for them — a book to gift the family and keep forever.",
-    cta_login: "Log in",
+    cta_login: "Log In",
     cta_play: "Sign Up",
     account: "My Account",
     logout: "Log Out",
@@ -859,7 +931,7 @@ const I18N = {
     hero_cta: "Create My Book",
     cta_story: "Create My Story",
     hero_sign: "One photo. One story. One lasting memory.",
-    book_carousel: "Book carousel",
+    book_carousel: "Book Carousel",
     cats: [
       {
         name: "Adventures",
@@ -901,113 +973,113 @@ const I18N = {
         feats: ["Animals", "Hygiene", "David, the Shepherd Boy"],
       },
     ],
-    cat_below: "Preserve moments. Gift your family an unforgettable story.",
+    cat_below: "Preserve Moments. Gift Your Family An Unforgettable Story.",
     cat_below_lead: "Turn a photo into a personalized book, where your child is the hero.",
-    trust: "Delighting families from start to finish",
+    trust: "Delighting Families From Start To Finish",
     ba_before: "BEFORE", ba_after: "AFTER", ba_caption: "You send the photo. We create the magic.",
     ba_preview: "PREVIEW",
-    ba_title: "Real before and after",
+    ba_title: "Real Before And After",
     ba_sub: "Real photos turned into illustrated characters.",
     ba_pairs: ["From crib to adventure", "A girl full of imagination", "A smile that becomes a character", "From photo to story hero", "Anyone can be the hero"],
     hiw_title: "How It Works", hiw_sub: "You send the photos. We make the book, with your child as the character.",
     hiw: [
-      { t: "Send the photos", p: "Of your child and anyone else in the story." },
-      { t: "We make the book", p: "A character that looks like the photo, and a story just for you." },
-      { t: "The book is ready", p: "Illustrated pages to read and keep." },
+      { t: "Send The Photos", p: "Of your child and anyone else in the story." },
+      { t: "We Make The Book", p: "A character that looks like the photo, and a story just for you." },
+      { t: "The Book Is Ready", p: "Illustrated pages to read and keep." },
     ],
     hiw_main: [
-      { t: "Fill in the Details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
-      { t: "Follow the Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
-      { t: "Review and Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
+      { t: "Fill In The Details", p: "Send the information, choose the story theme, and send clear photos related to the story you want to create." },
+      { t: "Follow The Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
+      { t: "Review And Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
     hiw_foot: [
-      { t: "Send the Photo and Set the Details", p: "Choose the theme and the book format." },
-      { t: "We Create the Character and the Story", p: "Story, cover, and pages with the same face as the child." },
-      { t: "You Receive and Approve the Book", p: "See the preview, approve it, and receive the printed book." },
+      { t: "Send The Photo And Set The Details", p: "Choose the theme and the book format." },
+      { t: "We Create The Character And The Story", p: "Story, cover, and pages with the same face as the child." },
+      { t: "You Receive And Approve The Book", p: "See the preview, approve it, and receive the printed book." },
     ],
     shot_sub: "Send the photo and set the details.",
     shots: [
-      { t: "The child", p: "3 to 5 front-facing, well-lit photos, with the full face. No filter, hat, or sunglasses." },
-      { t: "Family and pets", p: "2 or 3 photos of each person, alone. For a pet, one facing forward and one full body." },
-      { t: "Book details", p: "Name, age, theme, and language: Portuguese, Spanish, or English." },
+      { t: "The Child", p: "3 to 5 front-facing, well-lit photos, with the full face. No filter, hat, or sunglasses." },
+      { t: "Family And Pets", p: "2 or 3 photos of each person, alone. For a pet, one facing forward and one full body." },
+      { t: "Book Details", p: "Name, age, theme, and language: Portuguese, Spanish, or English." },
     ],
-    shot_title: "Tips for the perfect photo",
+    shot_title: "Tips For The Perfect Photo",
     cartoon_shot_sub: "Upload a clear photo of your child with the face centered.",
     cartoon_shots: ["Clear, well-lit and centered", "More than one person in the photo", "Face at an angle"],
-    cartoon_hiw_title: "You send the photo",
+    cartoon_hiw_title: "You Send The Photo",
     cartoon_hiw_photo: "One photo of your child is all it takes to begin.",
     hero_books: [
-      "Martin, the Great Goalkeeper of Chile",
-      "Emilia and the Ballerina's First Steps",
-      "Antonio and His Bicycle",
-      "Maria Jesus and Hockey Discipline",
-      "Facundo and Careful Motocross",
+      "Martin, The Great Goalkeeper Of Chile",
+      "Emilia And The Ballerina's First Steps",
+      "Antonio And His Bicycle",
+      "Maria Jesus And Hockey Discipline",
+      "Facundo And Careful Motocross",
     ],
     vid_title: "Narrated Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
-    vid_dur: "~2 min", vid_cta: "Create my video",
+    vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
       { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
     ],
-    vid_soon: "Coming soon",
-    book_badge: "Real example",
-    story_title: "Flip through our books",
+    vid_soon: "Coming Soon",
+    book_badge: "Real Example",
+    story_title: "Flip Through Our Books",
     story_sub: "Books created by the platform from a single photo — pick an example.",
     story_hint: "Click the sides of the book (or use the arrows) to turn the pages.",
     chloe_title: "Chloe's Story",
-    fmt_title: "Choose the format", fmt_sub: "From the same character, three ways to keep the story.",
+    fmt_title: "Choose The Format", fmt_sub: "From the same character, three ways to keep the story.",
     formats: [
-      { t: "PDF book", p: "Cover and illustrated pages, ready on the platform. Print is quoted on request.", feats: ["Cover + illustrated pages", "PDF right away", "Character true to the photo"], cta: "Create my book", badge: "Most loved" },
-      { t: "Narrated video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create my video", badge: "" },
-      { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create animation", badge: "" },
+      { t: "PDF Book", p: "Cover and illustrated pages, ready on the platform. Print is quoted on request.", feats: ["Cover + illustrated pages", "PDF right away", "Character true to the photo"], cta: "Create My Book", badge: "Most Loved" },
+      { t: "Narrated Video", p: "The story gets a voice and music, perfect to watch together.", feats: ["Enchanting narration", "Illustrated scenes", "Easy to share"], cta: "Create My Video", badge: "" },
+      { t: "Animation", p: "The character comes alive in a short animation.", feats: ["Movement and magic", "Based on your story", "A different gift"], cta: "Create Animation", badge: "" },
     ],
     cat_title: "Our Books", cat_sub: "Each theme becomes an illustrated story, with your child as the hero of their own story.",
     personalize: "Personalize",
     a11y_theme: "Toggle light/dark theme",
     a11y_menu: "Menu",
     a11y_slide: "Slide",
-    photo_real_alt: "Example photo of the child",
-    fb_prev: "Previous page",
-    fb_next: "Next page",
-    fb_turn: "Turn page",
+    photo_real_alt: "Example Photo Of The Child",
+    fb_prev: "Previous Page",
+    fb_next: "Next Page",
+    fb_turn: "Turn Page",
     fb_cover: "Cover",
-    fb_photo: "In hand",
+    fb_photo: "In Hand",
     theme_to_light: "Light",
     theme_to_dark: "Dark",
     privacy_link: "Privacy",
     terms_link: "Terms",
     catalog: [
-      { t: "Martin, the Great Goalkeeper of Chile", p: "A goalkeeper who falls, rises and defends: courage and grit on the field.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Fall, rise, and keep going!" },
-      { t: "Emilia and the Ballerina's First Steps", p: "Ballet's first steps with discipline, balance and confidence.", cover: "Soft", size: "M", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
-      { t: "Antonio and His Bicycle", p: "Pedal, learn and explore the world in small adventures.", cover: "Soft", size: "M", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
-      { t: "Learning the Alphabet with Sofia", p: "Letters and forest discoveries — literacy through play.", cover: "Soft", size: "M", tag: "Literacy through play", quote: "Every letter opens a new world." },
-      { t: "Cristobal and His Favorite Sport", p: "On the kayak: balance, courage and respect for the river.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Small paddles, big victories." },
+      { t: "Martin, The Great Goalkeeper Of Chile", p: "A goalkeeper who falls, rises and defends: courage and grit on the field.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Fall, rise, and keep going!" },
+      { t: "Emilia And The Ballerina's First Steps", p: "Ballet's first steps with discipline, balance and confidence.", cover: "Soft", size: "M", tag: "Ballet and dreams", quote: "Small steps, big achievements." },
+      { t: "Antonio And His Bicycle", p: "Pedal, learn and explore the world in small adventures.", cover: "Soft", size: "M", tag: "Adventure and movement", quote: "Pedal, learn and smile!" },
+      { t: "Learning The Alphabet With Sofia", p: "Letters and forest discoveries — literacy through play.", cover: "Soft", size: "M", tag: "Literacy through play", quote: "Every letter opens a new world." },
+      { t: "Cristobal And His Favorite Sport", p: "On the kayak: balance, courage and respect for the river.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Small paddles, big victories." },
       { t: "Nicolas, My First Love", p: "A tender, eternal moment between mom and son, full of warmth to treasure forever.", cover: "Soft", size: "M", tag: "A mother's love", quote: "First child, eternal love!" },
       { t: "A Mother's Love", p: "Small stories of a big love: mom's tenderness on every page, to treasure forever.", cover: "Hard", size: "M", tag: "A mother's love", quote: "In mom's arms, I find my place." },
-      { t: "Mommy, Daddy and Matteo", p: "A celebration of family: mom and dad's love coming together in a story all their own.", cover: "Hard", size: "M", tag: "Family love", quote: "Together, we make love our home." },
+      { t: "Mommy, Daddy And Matteo", p: "A celebration of family: mom and dad's love coming together in a story all their own.", cover: "Hard", size: "M", tag: "Family love", quote: "Together, we make love our home." },
       { t: "A Great-Grandmother's Love", p: "A tribute to great-grandma: hugs, warmth and stories that cross generations, to treasure forever.", cover: "Hard", size: "M", tag: "Love across generations", quote: "Great-grandma's hug holds all my love." },
-      { t: "Christmas with Tata and Meme", p: "A family Christmas: the warmth of grandma and grandpa, twinkling lights and a big hug to treasure forever.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Christmas feels warmer with the ones we love." },
-      { t: "Nano and His Adventures", p: "A sea adventure all his own: the wind in his ears, the blue ocean and the joy of exploring beside the ones he loves, to treasure forever.", cover: "Hard", size: "M", tag: "Adventure and sea", quote: "Wind in his ears, sea ahead — the adventure has begun!" },
+      { t: "Christmas With Tata And Meme", p: "A family Christmas: the warmth of grandma and grandpa, twinkling lights and a big hug to treasure forever.", cover: "Hard", size: "M", tag: "Family Christmas", quote: "Christmas feels warmer with the ones we love." },
+      { t: "Nano And His Adventures", p: "A sea adventure all his own: the wind in his ears, the blue ocean and the joy of exploring beside the ones he loves, to treasure forever.", cover: "Hard", size: "M", tag: "Adventure and sea", quote: "Wind in his ears, sea ahead — the adventure has begun!" },
       { t: "Maya, My Loving Dog", p: "A heartwarming friendship between a girl and her dog: care, affection and companionship on every page.", cover: "Soft", size: "M", tag: "Friendship and care", quote: "Love and care, every day." },
       { t: "Mako, My Loyal Friend", p: "A baby and his loyal dog: loyalty, protection and affection in a friendship all their own.", cover: "Soft", size: "M", tag: "Friendship and loyalty", quote: "Loyal love, every day." },
       { t: "Ester's Special Birthday", p: "Candles, hugs and a wish from the heart: your child's birthday becomes a story all their own.", cover: "Hard", size: "M", tag: "Birthday", quote: "One more year of happiness!" },
-      { t: "Raquel and Dad: Adventures Forever", p: "Hand in hand with dad, every path becomes a memory — an adventure to keep forever.", cover: "Hard", size: "M", tag: "Dad and me", quote: "Together, the adventure never ends." },
-      { t: "Rebeca, the Little Great Heroine", p: "Cape in the wind and courage in her heart: your child saves the day with kindness.", cover: "Hard", size: "M", tag: "Superheroes", quote: "Being a hero starts with a smile." },
-      { t: "Abigail on a Space Adventure", p: "Rockets, planets and curiosity: a starry journey with your child at the helm.", cover: "Hard", size: "M", tag: "Space", quote: "Courage, curiosity and discovery!" },
-      { t: "Miriam and the Secrets of the Deep Sea", p: "Turtles, coral and friendship: your child explores the ocean with care and wonder.", cover: "Hard", size: "M", tag: "Under the Sea", quote: "Caring for the sea is caring for friends." },
-      { t: "Noé in the Land of Dinosaurs", p: "Fossils, giant friends and courage: a prehistoric expedition with your child.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "Discovering together is the best adventure." },
+      { t: "Raquel And Dad: Adventures Forever", p: "Hand in hand with dad, every path becomes a memory — an adventure to keep forever.", cover: "Hard", size: "M", tag: "Dad and me", quote: "Together, the adventure never ends." },
+      { t: "Rebeca, The Little Great Heroine", p: "Cape in the wind and courage in her heart: your child saves the day with kindness.", cover: "Hard", size: "M", tag: "Superheroes", quote: "Being a hero starts with a smile." },
+      { t: "Abigail On A Space Adventure", p: "Rockets, planets and curiosity: a starry journey with your child at the helm.", cover: "Hard", size: "M", tag: "Space", quote: "Courage, curiosity and discovery!" },
+      { t: "Miriam And The Secrets Of The Deep Sea", p: "Turtles, coral and friendship: your child explores the ocean with care and wonder.", cover: "Hard", size: "M", tag: "Under the Sea", quote: "Caring for the sea is caring for friends." },
+      { t: "Noé In The Land Of Dinosaurs", p: "Fossils, giant friends and courage: a prehistoric expedition with your child.", cover: "Hard", size: "M", tag: "Dinosaurs", quote: "Discovering together is the best adventure." },
       { t: "An Aunt's Love", p: "An aunt's tenderness on every page: a hug, a laugh, and a love the family keeps forever.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "An aunt's hug never ends." },
-      { t: "David, the Shepherd Boy", p: "A boy, his harp and the sheep: courage and faith in a story to keep forever.", cover: "Hard", size: "M", tag: "Faith and courage", quote: "Small in the field, great in heart." },
+      { t: "David, The Shepherd Boy", p: "A boy, his harp and the sheep: courage and faith in a story to keep forever.", cover: "Hard", size: "M", tag: "Faith and courage", quote: "Small in the field, great in heart." },
       { t: "My Dad, My Hero", p: "Dad and baby, side by side: protection, care, and a hero who belongs to the family.", cover: "Hard", size: "M", tag: "Dad the hero", quote: "My hero has Dad's arms." },
       { t: "Enzo, My Favorite Cousin", p: "Two cousins, one hug and the sea: a friendship the family gives, to keep forever.", cover: "Hard", size: "M", tag: "Cousin love", quote: "A cousin is the friend family gives us." },
-      { t: "Lucas and his friend Max", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Max is a friend for every hour." },
-      { t: "Esther and the Superpowers of Hygiene", p: "Clean hands, brushed teeth and a smile: hygiene habits that become superpowers.", cover: "Hard", size: "M", tag: "Hygiene", quote: "Taking care of yourself is a superpower." },
+      { t: "Lucas And His Friend Max", p: "A boy and his dog: care, walks and a friendship to keep forever.", cover: "Hard", size: "M", tag: "Loyal friend", quote: "Max is a friend for every hour." },
+      { t: "Esther And The Superpowers Of Hygiene", p: "Clean hands, brushed teeth and a smile: hygiene habits that become superpowers.", cover: "Hard", size: "M", tag: "Hygiene", quote: "Taking care of yourself is a superpower." },
       { t: "Little Builder, Big Entrepreneur", p: "A hard hat, blocks and a plan on paper: build, try again and watch the idea stand up.", cover: "Hard", size: "M", tag: "Build and create", quote: "Small hands, big ideas." },
-      { t: "My Favorite Hero, the Firefighter", p: "A siren, courage and a real hero: the firefighter who looks after the city and the family.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero protects everyone." },
-      { t: "My Favorite Hero, the Police Officer", p: "A uniform, care and a hero of the city: the officer who protects the people we love.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero looks after us every day." },
-      { t: "My Favorite Hero, the Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Nature and friendship", quote: "Even the smallest friend can be a hero." },
-      { t: "A Special Aunt, One of a Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
+      { t: "My Favorite Hero, The Firefighter", p: "A siren, courage and a real hero: the firefighter who looks after the city and the family.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero protects everyone." },
+      { t: "My Favorite Hero, The Police Officer", p: "A uniform, care and a hero of the city: the officer who protects the people we love.", cover: "Hard", size: "M", tag: "Real heroes", quote: "My hero looks after us every day." },
+      { t: "My Favorite Hero, The Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Nature and friendship", quote: "Even the smallest friend can be a hero." },
+      { t: "A Special Aunt, One Of A Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
       { t: "Grandpa's Love, My Safe Harbor", p: "Grandpa's arms, the lake and a hug that never ends: a safe harbor just for the family.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "In grandpa's arms, I find my safe harbor." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
@@ -1034,10 +1106,10 @@ const I18N = {
       { q: "The illustration looks just like my baby. We'll keep it forever.", name: "Juliana P." },
       { q: "The narrated video moved the whole family. Worth every second.", name: "Marcos & Bia" },
     ],
-    features: ["Personalized stories", "Family connection", "Memories that last forever", "An unforgettable gift"],
+    features: ["Personalized Stories", "Family Connection", "Memories That Last Forever", "An Unforgettable Gift"],
     band_title: "Ready to Become the Hero?",
     band_sub: "Send your photo and get a unique story, made just for you.",
-    band_cta: "Create my account",
+    band_cta: "Create My Account",
     tagline: "Made with love. Created to enchant.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
@@ -1046,16 +1118,16 @@ const I18N = {
     reviews_link: "Reseñas",
     videos_link: "Videos",
     my_books: "Mis Libros",
-    see_all_books: "Ver todos los libros",
-    view_all: "Ver todos",
+    see_all_books: "Ver Todos Los Libros",
+    view_all: "Ver Todos",
     cat_empty: "Todavía no tenemos un ejemplo de este tema.",
     cats_label: "Libros",
     realistic_link: "Realista",
     cartoon_link: "Libros Cartoon",
     quick_links: "Accesos Rápidos",
-    font_label: "Fuente del título",
-    explore: "Explorar ahora",
-    eyebrow: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
+    font_label: "Fuente Del Título",
+    explore: "Explorar Ahora",
+    eyebrow: "Eterniza Momentos. Regala A Tu Familia Una Historia Inolvidable.",
     h_pre: "Convierte una foto en una ", w1: "historia inolvidable", c1: ", donde tu hijo es el ", w2: "protagonista", h_suf: " !",
     lead: "Envías la foto y transformamos a tu hijo en un personaje ilustrado, creando una aventura personalizada especialmente para él — un libro para regalar a la familia y guardar para siempre.",
     cta_login: "Entrar",
@@ -1067,7 +1139,7 @@ const I18N = {
     hero_cta: "Crear Mi Libro",
     cta_story: "Crear Mi Historia",
     hero_sign: "Una foto. Una historia. Una memoria eterna.",
-    book_carousel: "Carrusel de libros",
+    book_carousel: "Carrusel De Libros",
     cats: [
       {
         name: "Aventuras",
@@ -1109,116 +1181,116 @@ const I18N = {
         feats: ["Animales", "Higiene", "David, el Niño Pastor"],
       },
     ],
-    cat_below: "Eterniza momentos. Regala a tu familia una historia inolvidable.",
+    cat_below: "Eterniza Momentos. Regala A Tu Familia Una Historia Inolvidable.",
     cat_below_lead: "Convierte una foto en un libro personalizado, donde tu hijo es el protagonista.",
     trust: "Encantando a las familias de principio a fin",
     ba_before: "ANTES", ba_after: "DESPUÉS", ba_caption: "Tú envías la foto. Nosotros creamos la magia.",
     ba_preview: "VISTA PREVIA",
-    ba_title: "Antes y después de verdad",
+    ba_title: "Antes Y Después De Verdad",
     ba_sub: "Fotos reales convertidas en personajes ilustrados.",
     ba_pairs: ["De la cuna a la aventura", "Una niña llena de imaginación", "Una sonrisa que se vuelve personaje", "De la foto al héroe de la historia", "Cualquiera puede ser protagonista"],
     hiw_title: "Cómo Funciona", hiw_sub: "Tú envías las fotos. Nosotros hacemos el libro, con tu hijo como personaje.",
     hiw: [
-      { t: "Envía las fotos", p: "Del niño y de quien más entra en la historia." },
-      { t: "Creamos el libro", p: "Un personaje parecido a la foto y una historia solo de ustedes." },
-      { t: "El libro queda listo", p: "Páginas ilustradas para leer y guardar." },
+      { t: "Envía Las Fotos", p: "Del niño y de quien más entra en la historia." },
+      { t: "Creamos El Libro", p: "Un personaje parecido a la foto y una historia solo de ustedes." },
+      { t: "El Libro Queda Listo", p: "Páginas ilustradas para leer y guardar." },
     ],
     hiw_main: [
-      { t: "Completa los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
-      { t: "Acompaña la Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
-      { t: "Revisa y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+      { t: "Completa Los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
+      { t: "Acompaña La Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
+      { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     hiw_foot: [
-      { t: "Envía la Foto y Define los Detalles", p: "Elige el tema y el formato del libro." },
-      { t: "Creamos el Personaje y la Historia", p: "Historia, portada y páginas con el mismo rostro del niño." },
-      { t: "Recibes y Apruebas el Libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
+      { t: "Envía La Foto Y Define Los Detalles", p: "Elige el tema y el formato del libro." },
+      { t: "Creamos El Personaje Y La Historia", p: "Historia, portada y páginas con el mismo rostro del niño." },
+      { t: "Recibes Y Apruebas El Libro", p: "Mira la vista previa, aprueba y recibe el libro impreso." },
     ],
     shot_sub: "Envía la foto y define los detalles.",
     shots: [
-      { t: "El niño", p: "De 3 a 5 fotos de frente, bien iluminadas, con el rostro completo. Sin filtro, sombrero ni gafas." },
-      { t: "Familia y mascotas", p: "2 o 3 fotos de cada persona, sola. De la mascota, una de frente y otra de cuerpo entero." },
-      { t: "Datos del libro", p: "Nombre, edad, tema e idioma: portugués, español o inglés." },
+      { t: "El Niño", p: "De 3 a 5 fotos de frente, bien iluminadas, con el rostro completo. Sin filtro, sombrero ni gafas." },
+      { t: "Familia Y Mascotas", p: "2 o 3 fotos de cada persona, sola. De la mascota, una de frente y otra de cuerpo entero." },
+      { t: "Datos Del Libro", p: "Nombre, edad, tema e idioma: portugués, español o inglés." },
     ],
-    shot_title: "Consejos para la foto perfecta",
+    shot_title: "Consejos Para La Foto Perfecta",
     cartoon_shot_sub: "Envía una foto nítida del niño, con el rostro centrado.",
     cartoon_shots: ["Nítida, bien iluminada y centrada", "Más de una persona en la foto", "Rostro de lado"],
-    cartoon_hiw_title: "Tú envías la foto",
+    cartoon_hiw_title: "Tú Envías La Foto",
     cartoon_hiw_photo: "Una foto del niño ya basta para empezar.",
     hero_books: [
-      "Martin, el gran arquero de Chile",
-      "Emilia y los primeros pasos de la bailarina",
-      "Antonio y su bicicleta",
-      "Maria Jesus y la disciplina en el hockey",
-      "Facundo y el motocross con cuidado",
+      "Martin, El Gran Arquero De Chile",
+      "Emilia Y Los Primeros Pasos De La Bailarina",
+      "Antonio Y Su Bicicleta",
+      "Maria Jesus Y La Disciplina En El Hockey",
+      "Facundo Y El Motocross Con Cuidado",
     ],
     vid_title: "Videos Narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
-    vid_dur: "~2 min", vid_cta: "Crear mi video",
+    vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
-      { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
-      { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
-      { t: "Matteo y el Mundo de los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
+      { t: "Lia Y El Fondo Del Mar", p: "Una aventura en el océano con narración encantadora." },
+      { t: "Sofia Y El Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
+      { t: "Matteo Y El Mundo De Los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
     ],
     vid_soon: "Pronto",
-    book_badge: "Ejemplo real",
-    story_title: "Hojea nuestros libros",
+    book_badge: "Ejemplo Real",
+    story_title: "Hojea Nuestros Libros",
     story_sub: "Libros creados por la plataforma a partir de una sola foto — elige un ejemplo.",
     story_hint: "Haz clic en los laterales del libro (o usa las flechas) para pasar las páginas.",
-    chloe_title: "La Historia de Chloe",
-    fmt_title: "Elige el formato", fmt_sub: "Del mismo personaje, tres formas de guardar la historia.",
+    chloe_title: "La Historia De Chloe",
+    fmt_title: "Elige El Formato", fmt_sub: "Del mismo personaje, tres formas de guardar la historia.",
     formats: [
-      { t: "Libro en PDF", p: "Portada y páginas ilustradas, listas en la plataforma. El impreso es bajo consulta.", feats: ["Portada + páginas ilustradas", "PDF al instante", "Personaje fiel a la foto"], cta: "Crear mi libro", badge: "Más querido" },
-      { t: "Video narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear mi video", badge: "" },
-      { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear animación", badge: "" },
+      { t: "Libro En PDF", p: "Portada y páginas ilustradas, listas en la plataforma. El impreso es bajo consulta.", feats: ["Portada + páginas ilustradas", "PDF al instante", "Personaje fiel a la foto"], cta: "Crear Mi Libro", badge: "Más Querido" },
+      { t: "Video Narrado", p: "La historia gana voz y música, perfecta para ver en familia.", feats: ["Narración encantadora", "Escenas ilustradas", "Fácil de compartir"], cta: "Crear Mi Video", badge: "" },
+      { t: "Animación", p: "El personaje cobra vida en una animación corta.", feats: ["Movimiento y magia", "Basada en tu historia", "Un regalo diferente"], cta: "Crear Animación", badge: "" },
     ],
     cat_title: "Nuestros Libros", cat_sub: "Cada tema se transforma en una historia ilustrada, con tu hijo como protagonista de su propia historia.",
     personalize: "Personalizar",
-    a11y_theme: "Cambiar tema claro/oscuro",
+    a11y_theme: "Cambiar Tema Claro/Oscuro",
     a11y_menu: "Menú",
     a11y_slide: "Diapositiva",
-    photo_real_alt: "Foto de ejemplo del niño",
-    fb_prev: "Página anterior",
-    fb_next: "Página siguiente",
-    fb_turn: "Pasar página",
+    photo_real_alt: "Foto De Ejemplo Del Niño",
+    fb_prev: "Página Anterior",
+    fb_next: "Página Siguiente",
+    fb_turn: "Pasar Página",
     fb_cover: "Portada",
-    fb_photo: "En manos",
+    fb_photo: "En Manos",
     theme_to_light: "Claro",
     theme_to_dark: "Oscuro",
     privacy_link: "Privacidad",
     terms_link: "Términos",
     catalog: [
-      { t: "Martin, el gran arquero de Chile", p: "Arquero que cae, se levanta y defiende: coraje y perseverancia en el campo.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "¡Caer, levantarse y seguir!" },
-      { t: "Emilia y los primeros pasos de la bailarina", p: "Primeros pasos en el ballet con disciplina, equilibrio y confianza.", cover: "Soft", size: "M", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
-      { t: "Antonio y su bicicleta", p: "Pedalear, aprender y explorar el mundo en pequeñas aventuras.", cover: "Soft", size: "M", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
-      { t: "Aprendiendo el alfabeto con Sofia", p: "Letras y descubrimientos en el bosque, alfabetizar jugando.", cover: "Soft", size: "M", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
-      { t: "Cristobal y su deporte favorito", p: "En el kayak: equilibrio, coraje y respeto por el río.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
+      { t: "Martin, El Gran Arquero De Chile", p: "Arquero que cae, se levanta y defiende: coraje y perseverancia en el campo.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "¡Caer, levantarse y seguir!" },
+      { t: "Emilia Y Los Primeros Pasos De La Bailarina", p: "Primeros pasos en el ballet con disciplina, equilibrio y confianza.", cover: "Soft", size: "M", tag: "Ballet y sueños", quote: "Pequeños pasos, grandes logros." },
+      { t: "Antonio Y Su Bicicleta", p: "Pedalear, aprender y explorar el mundo en pequeñas aventuras.", cover: "Soft", size: "M", tag: "Aventura y movimiento", quote: "¡Pedalear, aprender y sonreír!" },
+      { t: "Aprendiendo El Alfabeto Con Sofia", p: "Letras y descubrimientos en el bosque, alfabetizar jugando.", cover: "Soft", size: "M", tag: "Alfabetizar jugando", quote: "Cada letra abre un mundo nuevo." },
+      { t: "Cristobal Y Su Deporte Favorito", p: "En el kayak: equilibrio, coraje y respeto por el río.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Pequeñas paladas, grandes conquistas." },
       { t: "Nicolas, Mi Primer Amor", p: "Un momento de cariño eterno entre mamá e hijo, lleno de ternura para guardar para siempre.", cover: "Soft", size: "M", tag: "Amor de madre", quote: "¡Primer hijo, amor eterno!" },
-      { t: "El Amor de Mamá", p: "Pequeñas historias de un gran amor: la ternura de mamá en cada página, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de madre", quote: "En los brazos de mamá, encuentro mi lugar." },
-      { t: "Mamá, Papá y Matteo", p: "Una celebración de la familia: el cariño de mamá y papá unidos en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Amor de familia", quote: "Juntos, hacemos del amor nuestro hogar." },
-      { t: "Amor de Bisabuela", p: "Un homenaje a la bisabuela: abrazos, cariño e historias que atraviesan generaciones, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor entre generaciones", quote: "El abrazo de la bisabuela guarda todo mi cariño." },
-      { t: "Navidad con Tata y Meme", p: "Una Navidad en familia: el cariño de la Meme y el Tata, luces en el árbol y un abrazo apretado para guardar para siempre.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "La Navidad es más linda junto a quienes amamos." },
-      { t: "Nano y sus Aventuras", p: "Una aventura marítima solo para él: viento en las orejas, mar azul y la alegría de explorar junto a quienes ama, para guardar para siempre.", cover: "Hard", size: "M", tag: "Aventura y mar", quote: "Viento en las orejas, mar por delante — ¡la aventura comenzó!" },
+      { t: "El Amor De Mamá", p: "Pequeñas historias de un gran amor: la ternura de mamá en cada página, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de madre", quote: "En los brazos de mamá, encuentro mi lugar." },
+      { t: "Mamá, Papá Y Matteo", p: "Una celebración de la familia: el cariño de mamá y papá unidos en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Amor de familia", quote: "Juntos, hacemos del amor nuestro hogar." },
+      { t: "Amor De Bisabuela", p: "Un homenaje a la bisabuela: abrazos, cariño e historias que atraviesan generaciones, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor entre generaciones", quote: "El abrazo de la bisabuela guarda todo mi cariño." },
+      { t: "Navidad Con Tata Y Meme", p: "Una Navidad en familia: el cariño de la Meme y el Tata, luces en el árbol y un abrazo apretado para guardar para siempre.", cover: "Hard", size: "M", tag: "Navidad en familia", quote: "La Navidad es más linda junto a quienes amamos." },
+      { t: "Nano Y Sus Aventuras", p: "Una aventura marítima solo para él: viento en las orejas, mar azul y la alegría de explorar junto a quienes ama, para guardar para siempre.", cover: "Hard", size: "M", tag: "Aventura y mar", quote: "Viento en las orejas, mar por delante — ¡la aventura comenzó!" },
       { t: "Maya, Mi Perrita Cariñosa", p: "Una amistad llena de cariño entre una niña y su perrita: cuidado, afecto y compañía en cada página.", cover: "Soft", size: "M", tag: "Amistad y cuidado", quote: "Amor y cuidado, todos los días." },
       { t: "Mako, Mi Amigo Fiel", p: "Un bebé y su perro fiel: lealtad, protección y cariño en una amistad solo de ellos.", cover: "Soft", size: "M", tag: "Amistad y lealtad", quote: "Amor fiel, todos los días." },
-      { t: "El Cumpleaños Especial de Ester", p: "Velas, abrazos y un deseo en el corazón: el cumpleaños de tu hijo se vuelve una historia solo de él.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Un año más de felicidad!" },
-      { t: "Raquel y Papá: Aventuras para Siempre", p: "De la mano con papá, cada camino se vuelve recuerdo — una aventura para guardar para siempre.", cover: "Hard", size: "M", tag: "Papá y yo", quote: "Juntos, la aventura nunca termina." },
-      { t: "Rebeca, la Pequeña Gran Heroína", p: "Capa al viento y coraje en el pecho: tu hijo salva el día con el corazón.", cover: "Hard", size: "M", tag: "Superhéroes", quote: "Ser héroe empieza con una sonrisa." },
-      { t: "Abigail en una Aventura por el Espacio", p: "Cohetes, planetas y curiosidad: un viaje estelar con tu hijo al mando.", cover: "Hard", size: "M", tag: "Espacio", quote: "¡Coraje, curiosidad y descubrimientos!" },
-      { t: "Miriam y los Secretos del Fondo del Mar", p: "Tortugas, corales y amistad: tu hijo explora el océano con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del Mar", quote: "Cuidar el mar es cuidar a los amigos." },
-      { t: "Noé en la Tierra de los Dinosaurios", p: "Fósiles, amigos gigantes y coraje: una expedición prehistórica con tu hijo.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Descubrir juntos es la mejor aventura." },
-      { t: "El Amor de la Tía", p: "El cariño de la tía en cada página: abrazo, risa y un amor que la familia guarda para siempre.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "El abrazo de la tía no se acaba." },
-      { t: "David, el Niño Pastor", p: "Un niño, su arpa y las ovejas: coraje y fe en una historia para guardar para siempre.", cover: "Hard", size: "M", tag: "Fe y coraje", quote: "Pequeño en el campo, grande de corazón." },
+      { t: "El Cumpleaños Especial De Ester", p: "Velas, abrazos y un deseo en el corazón: el cumpleaños de tu hijo se vuelve una historia solo de él.", cover: "Hard", size: "M", tag: "Cumpleaños", quote: "¡Un año más de felicidad!" },
+      { t: "Raquel Y Papá: Aventuras Para Siempre", p: "De la mano con papá, cada camino se vuelve recuerdo — una aventura para guardar para siempre.", cover: "Hard", size: "M", tag: "Papá y yo", quote: "Juntos, la aventura nunca termina." },
+      { t: "Rebeca, La Pequeña Gran Heroína", p: "Capa al viento y coraje en el pecho: tu hijo salva el día con el corazón.", cover: "Hard", size: "M", tag: "Superhéroes", quote: "Ser héroe empieza con una sonrisa." },
+      { t: "Abigail En Una Aventura Por El Espacio", p: "Cohetes, planetas y curiosidad: un viaje estelar con tu hijo al mando.", cover: "Hard", size: "M", tag: "Espacio", quote: "¡Coraje, curiosidad y descubrimientos!" },
+      { t: "Miriam Y Los Secretos Del Fondo Del Mar", p: "Tortugas, corales y amistad: tu hijo explora el océano con cuidado y encanto.", cover: "Hard", size: "M", tag: "Fondo del Mar", quote: "Cuidar el mar es cuidar a los amigos." },
+      { t: "Noé En La Tierra De Los Dinosaurios", p: "Fósiles, amigos gigantes y coraje: una expedición prehistórica con tu hijo.", cover: "Hard", size: "M", tag: "Dinosaurios", quote: "Descubrir juntos es la mejor aventura." },
+      { t: "El Amor De La Tía", p: "El cariño de la tía en cada página: abrazo, risa y un amor que la familia guarda para siempre.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "El abrazo de la tía no se acaba." },
+      { t: "David, El Niño Pastor", p: "Un niño, su arpa y las ovejas: coraje y fe en una historia para guardar para siempre.", cover: "Hard", size: "M", tag: "Fe y coraje", quote: "Pequeño en el campo, grande de corazón." },
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé, lado a lado: protección, cariño y un héroe solo de la familia.", cover: "Hard", size: "M", tag: "Papá héroe", quote: "Mi héroe tiene los brazos de papá." },
       { t: "Enzo, Mi Primo Favorito", p: "Dos primos, un abrazo y el mar: amistad que da la familia, para guardar para siempre.", cover: "Hard", size: "M", tag: "Amor de primo", quote: "El primo es el amigo que da la familia." },
-      { t: "Lucas y su amigo Max", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max es el amigo de todas las horas." },
-      { t: "Esther y los Superpoderes de la Higiene", p: "Manos limpias, dientes cepillados y una sonrisa: hábitos de higiene que se vuelven superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidarse es un superpoder." },
+      { t: "Lucas Y Su Amigo Max", p: "Un niño y su perro: cuidado, paseos y una amistad para guardar para siempre.", cover: "Hard", size: "M", tag: "Amigo fiel", quote: "Max es el amigo de todas las horas." },
+      { t: "Esther Y Los Superpoderes De La Higiene", p: "Manos limpias, dientes cepillados y una sonrisa: hábitos de higiene que se vuelven superpoderes.", cover: "Hard", size: "M", tag: "Higiene", quote: "Cuidarse es un superpoder." },
       { t: "Pequeño Constructor, Gran Emprendedor", p: "Casco, bloques y un plano en el papel: construir, intentar de nuevo y ver la idea de pie.", cover: "Hard", size: "M", tag: "Construir y crear", quote: "Manos pequeñas, grandes ideas." },
-      { t: "Mi Héroe Favorito, el Bombero", p: "Sirena, coraje y un héroe de verdad: el bombero que cuida la ciudad y la familia.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe protege a todo el mundo." },
-      { t: "Mi Héroe Favorito, el Policía", p: "Uniforme, cuidado y un héroe de la ciudad: el policía que protege a quienes amamos.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe cuida de nosotros todos los días." },
-      { t: "Mi Héroe Favorito, la Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Naturaleza y amistad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
+      { t: "Mi Héroe Favorito, El Bombero", p: "Sirena, coraje y un héroe de verdad: el bombero que cuida la ciudad y la familia.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe protege a todo el mundo." },
+      { t: "Mi Héroe Favorito, El Policía", p: "Uniforme, cuidado y un héroe de la ciudad: el policía que protege a quienes amamos.", cover: "Hard", size: "M", tag: "Héroes de verdad", quote: "Mi héroe cuida de nosotros todos los días." },
+      { t: "Mi Héroe Favorito, La Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Naturaleza y amistad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
       { t: "Una Tía Especial, No Hay Otra Igual", p: "Paseo, abrazo y risa: la tía que convierte cualquier día en un recuerdo para guardar.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "Con la tía, todo día se vuelve paseo." },
-      { t: "El Amor del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
+      { t: "El Amor Del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
     ],
-    promise_title: "Cada Detalle Pensado para Ser Especial",
+    promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
     promise: [
       { t: "Privacidad de la Foto", p: "La foto que envías se usa solo para crear el libro — nunca para promoción. Los ejemplos de esta página son demostraciones de la plataforma." },
@@ -1235,17 +1307,17 @@ const I18N = {
       { q: "¿Puedo pedir cambios?", a: "¡Puedes! Ajusta el nombre, la dedicatoria y regenera las ilustraciones en la vista previa hasta que quede a tu gusto." },
       { q: "¿Cómo funciona el video narrado?", a: "Después del ebook listo, en la pantalla de resultado puedes generar el video narrado (voz + escenas ilustradas) o una animación corta del personaje." },
     ],
-    rev_title: "Lo que Dicen las Familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
+    rev_title: "Lo Que Dicen Las Familias", rev_sub: "Historias que se volvieron recuerdos para siempre.",
     reviews: [
       { q: "Mi hijo pide leer su libro todas las noches. ¡Emocionante verlo como héroe!", name: "Ana C." },
       { q: "Envié una foto y recibí un libro hermoso. Se volvió el regalo de cumpleaños de la abuela.", name: "Rafael M." },
       { q: "La ilustración quedó idéntica a mi bebé. Lo vamos a guardar para siempre.", name: "Juliana P." },
       { q: "El video narrado emocionó a toda la familia. Vale cada segundo.", name: "Marcos y Bia" },
     ],
-    features: ["Historias personalizadas", "Conexión en familia", "Recuerdos que quedan para siempre", "Un regalo inolvidable"],
-    band_title: "¿Listo para Ser el Protagonista?",
+    features: ["Historias Personalizadas", "Conexión En Familia", "Recuerdos Que Quedan Para Siempre", "Un Regalo Inolvidable"],
+    band_title: "¿Listo Para Ser El Protagonista?",
     band_sub: "Envía tu foto y recibe una historia única, creada solo para ti.",
-    band_cta: "Crear mi cuenta",
+    band_cta: "Crear Mi Cuenta",
     tagline: "Hecho con amor. Creado para encantar.",
     foot_copy: "© 2026 Story R Us — Where Memories Become Magic.",
   },
@@ -1418,15 +1490,19 @@ function FlipBook({
     ? (anim === "next" ? index : (anim === "prev" ? target : index))
     : index;
   const pageKind = (idx: number) => {
-    if (idx === 0) return "fb-page--cover";
-    if (idx === pages.length - 1) return "fb-page--photo";
+    const slot = ((idx % 3) + 3) % 3;
+    if (slot === 0) return "fb-page--cover";
+    if (slot === 2) return "fb-page--photo";
     return "fb-page--spread";
   };
   const pageLabel = (idx: number) => {
-    if (idx === 0) return labels.cover;
-    if (idx === pages.length - 1) return labels.photo;
+    const slot = ((idx % 3) + 3) % 3;
+    if (slot === 0) return labels.cover;
+    if (slot === 2) return labels.photo;
     return labels.turn;
   };
+  const bookBase = Math.floor(index / 3) * 3;
+  const bookDots = [bookBase, bookBase + 1, bookBase + 2].filter((i) => i < pages.length);
   const single = pages.length < 2;
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -1491,15 +1567,15 @@ function FlipBook({
       </div>
       {single ? null : (
         <div className="fb-dots" role="tablist" aria-label={labels.turn}>
-          {pages.map((_, i) => (
+          {bookDots.map((i, slot) => (
             <button
-              key={pages[i]}
+              key={`${pages[i]}-${i}`}
               type="button"
               className={`fb-dot${i === index ? " on" : ""}`}
               role="tab"
               aria-selected={i === index}
               aria-label={pageLabel(i)}
-              data-testid={`landing-hero-flip-dot-${i}`}
+              data-testid={`landing-hero-flip-dot-${slot}`}
               onClick={() => goTo(i)}
             />
           ))}
@@ -1522,7 +1598,7 @@ const FORMAT_COPY: Record<Lang, {
   softText: string;
 }> = {
   pt: {
-    pages: "Livro 16 páginas",
+    pages: "Livro 16 Páginas",
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
@@ -1533,7 +1609,7 @@ const FORMAT_COPY: Record<Lang, {
     softText: "Leve e flexível. Comum em livros e edições econômicas.",
   },
   en: {
-    pages: "Book. 16 pages.",
+    pages: "Book. 16 Pages.",
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
@@ -1544,7 +1620,7 @@ const FORMAT_COPY: Record<Lang, {
     softText: "Light and flexible. Common in books and economical editions.",
   },
   es: {
-    pages: "Libro. 16 páginas.",
+    pages: "Libro. 16 Páginas.",
     hard: "HARD",
     soft: "SOFT",
     sizeM: "20 × 20 cm",
@@ -1567,10 +1643,10 @@ export type CatalogCardBook = {
   story?: string;
   quote?: string;
 };
-const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string }> = {
-  pt: { summary: "Resumo da história", details: "Detalhes do livro" },
-  en: { summary: "Story summary", details: "Book details" },
-  es: { summary: "Resumen de la historia", details: "Detalles del libro" },
+const BOOK_PAGE_COPY: Record<Lang, { summary: string; details: string; cover: string; page: string; photo: string }> = {
+  pt: { summary: "Resumo Da História", details: "Detalhes Do Livro", cover: "Capa", page: "Página", photo: "Foto" },
+  en: { summary: "Story Summary", details: "Book Details", cover: "Cover", page: "Page", photo: "Photo" },
+  es: { summary: "Resumen De La Historia", details: "Detalles Del Libro", cover: "Portada", page: "Página", photo: "Foto" },
 };
 export function CatalogBookCard({
   book,
@@ -1659,14 +1735,27 @@ export function CatalogBookCard({
   );
   if (layout === "page") {
     const pageCopy = BOOK_PAGE_COPY[lang];
+    const series =
+      book.catalogI != null
+        ? catalogSeriesShots(book.catalogI, lang)
+        : [{ key: "cover" as const, src: book.img }];
     return (
       <article className="cat-card book-sheet reveal" data-testid="landing-catalog-card" data-format="catalog">
-        <div className="cat-display">
-          <div className="cat-book">{image}</div>
+        <div className="cat-display book-series" data-testid="book-series">
+          {series.map((shot) => (
+            <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
+              <div className="book-series-frame">
+                <div className="cat-book">
+                  <img src={exUrl(shot.src)} alt={`${book.t} — ${pageCopy[shot.key]}`} loading="lazy" />
+                </div>
+              </div>
+              <figcaption>{pageCopy[shot.key]}</figcaption>
+            </figure>
+          ))}
         </div>
         <div className="cat-body">
           {book.tag ? <p className="book-tag">{book.tag}</p> : null}
-          <h1>{book.t}</h1>
+          <h1 title={book.t}>{book.t}</h1>
           <section className="book-block">
             <h2>{pageCopy.summary}</h2>
             {book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
@@ -1689,7 +1778,7 @@ export function CatalogBookCard({
         </div>
       </div>
       <div className="cat-body">
-        <h3>{linked ? <Link to={bookHref}>{book.t}</Link> : book.t}</h3>
+        <h3 title={book.t}>{linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : book.t}</h3>
         {showStory && book.story ? <p className="cat-story" data-testid="book-story">{book.story}</p> : null}
         {showStory && book.quote ? <p className="cat-quote">{book.quote}</p> : null}
         {notes}
@@ -1717,11 +1806,7 @@ function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
   };
 }
 export function readSiteLang(): Lang {
-  try {
-    const s = localStorage.getItem("lang");
-    if (s === "pt" || s === "en" || s === "es") return s;
-  } catch { /* ignore */ }
-  return "pt";
+  return readStoredLang("pt");
 }
 export function catalogPageCopy(lang: Lang) {
   const t = I18N[lang];
@@ -1798,13 +1883,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
   const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
-  const [lang, setLang] = useState<Lang>(() => {
-    try {
-      const s = localStorage.getItem("lang");
-      if (s === "pt" || s === "en" || s === "es") return s;
-    } catch { /* ignore */ }
-    return "pt";
-  });
+  const [lang, setLang] = useResolvedLang();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
@@ -1863,10 +1942,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           catalogI: i,
         }));
   const reviewPhotos = variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS;
-  const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
-  const heroPage = heroPick % 3;
-  const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
-  const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
+  const heroPages = heroStrip.flatMap((book) => [book.cover[lang], book.page[lang], book.photo[lang]]);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const bookStudioHref = (theme: string, catalogI?: number) => {
     if (catalogI === undefined) return studioEntryHref(`/app?tema=${theme}`);
@@ -2000,11 +2076,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     observer.observe(header);
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
-    try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
-  }, [lang]);
 
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll(".reveal") ?? [];
@@ -2403,10 +2474,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-flipbook">
           <FlipBook
-            key={`${heroBook.name}-${lang}`}
+            key={lang}
             pages={heroPages}
-            index={heroPage}
-            onIndex={(next) => setHeroPick(heroSeries * 3 + next)}
+            index={Math.min(heroPick, Math.max(heroPages.length - 1, 0))}
+            onIndex={setHeroPick}
             labels={flipLabels}
           />
         </div>

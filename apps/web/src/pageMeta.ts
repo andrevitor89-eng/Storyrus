@@ -26,7 +26,7 @@ const HOME_DESCRIPTION =
 
 export const NOT_FOUND_PAGE: HtmlPage = {
   path: "/404",
-  title: "Página não encontrada — Story R Us",
+  title: "Página Não Encontrada — Story R Us",
   description: "Esse endereço não existe. Volte à página inicial ou abra o estúdio.",
   robots: "noindex, nofollow",
   canonicalPath: "/404",
@@ -49,48 +49,48 @@ function categoryDescription(name: string): string {
 export const STATIC_PAGES: readonly HtmlPage[] = [
   {
     path: "/",
-    title: "Story R Us — histórias ilustradas com a foto do seu filho",
+    title: "Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho",
     description: HOME_DESCRIPTION,
     sitemap: true,
   },
   {
     path: "/cartoon",
-    title: "Livros cartoon — Story R Us",
+    title: "Livros Cartoon — Story R Us",
     description:
       "Livros ilustrados em desenho, com a foto do seu filho como herói. Veja os exemplos cartoon e crie o seu.",
     sitemap: true,
   },
   {
     path: "/catalogo",
-    title: "Nossos livros — Story R Us",
+    title: "Nossos Livros — Story R Us",
     description:
       "Catálogo de livros ilustrados personalizados. Escolha um tema e crie com a foto da criança.",
     sitemap: true,
   },
   {
     path: "/exemplos",
-    title: "Exemplos da plataforma — Story R Us",
+    title: "Exemplos Da Plataforma — Story R Us",
     description:
       "As fotos e vídeos de demonstração do site são materiais da Story R Us, separados do que você envia no estúdio.",
     sitemap: true,
   },
   {
     path: "/privacidade",
-    title: "Política de privacidade — Story R Us",
+    title: "Política De Privacidade — Story R Us",
     description:
       "Quais dados a Story R Us trata, para quê, com quem compartilha e como pedir acesso ou exclusão.",
     sitemap: true,
   },
   {
     path: "/termos",
-    title: "Termos de uso — Story R Us",
+    title: "Termos De Uso — Story R Us",
     description:
       "Regras de uso da Story R Us para criar livros ilustrados personalizados, créditos e impressão.",
     sitemap: true,
   },
   {
     path: "/privacy",
-    title: "Política de privacidade — Story R Us",
+    title: "Política De Privacidade — Story R Us",
     description:
       "Quais dados a Story R Us trata, para quê, com quem compartilha e como pedir acesso ou exclusão.",
     canonicalPath: "/privacidade",
@@ -99,7 +99,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/terms",
-    title: "Termos de uso — Story R Us",
+    title: "Termos De Uso — Story R Us",
     description:
       "Regras de uso da Story R Us para criar livros ilustrados personalizados, créditos e impressão.",
     canonicalPath: "/termos",
@@ -108,7 +108,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
   },
   {
     path: "/landing",
-    title: "Story R Us — histórias ilustradas com a foto do seu filho",
+    title: "Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho",
     description: HOME_DESCRIPTION,
     canonicalPath: "/",
     robots: "noindex, nofollow",

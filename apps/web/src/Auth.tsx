@@ -1,15 +1,13 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import logo from "./assets/logo.png";
 import { api, getToken, type SignupPayload } from "./api";
-import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
+import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
-  applyDocumentLang,
   LANGS,
   type Lang,
-  readStoredLang,
-  writeStoredLang,
+  useResolvedLang,
 } from "./i18n/lang";
 import {
   COUNTRY_GROUPS,
@@ -79,7 +77,7 @@ const COPY: Record<
     accountSection: "Sua Conta",
     addressSection: "Endereço De Entrega",
     email: "E-mail",
-    password: "Senha (mín. 8)",
+    password: "Senha (Mín. 8)",
     passwordConfirm: "Confirmar Senha",
     fullName: "Nome Completo",
     phone: "Telefone / WhatsApp",
@@ -125,7 +123,7 @@ const COPY: Record<
     accountSection: "Your Account",
     addressSection: "Shipping Address",
     email: "Email",
-    password: "Password (min. 8)",
+    password: "Password (Min. 8)",
     passwordConfirm: "Confirm Password",
     fullName: "Full Name",
     phone: "Phone / WhatsApp",
@@ -171,7 +169,7 @@ const COPY: Record<
     accountSection: "Tu Cuenta",
     addressSection: "Dirección De Envío",
     email: "Correo",
-    password: "Contraseña (mín. 8)",
+    password: "Contraseña (Mín. 8)",
     passwordConfirm: "Confirmar Contraseña",
     fullName: "Nombre Completo",
     phone: "Teléfono / WhatsApp",
@@ -310,11 +308,11 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
-  const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
+  const [lang, setLangBase] = useResolvedLang();
   const t = COPY[lang];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [signup, setSignup] = useState(() => emptySignup(readStoredLang("pt")));
+  const [signup, setSignup] = useState(() => emptySignup(lang));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
@@ -322,9 +320,11 @@ export function Auth({ mode }: { mode: AuthMode }) {
 
   const region = regionProfile(signup.country);
   const isUsLayout = region.layout === "us";
+  const postalLookupOn =
+    mode === "signup" && supportsPostalLookup(signup.country);
   const cepStatus = useCepLookup(
     signup.postal_code,
-    mode === "signup" && signup.country === "BR",
+    postalLookupOn,
     (addr) => {
       setSignup((prev) => ({
         ...prev,
@@ -335,12 +335,13 @@ export function Auth({ mode }: { mode: AuthMode }) {
         state: addr.state || prev.state,
       }));
     },
+    signup.country,
   );
 
   function onPostalCodeChange(value: string) {
     setSignup((prev) => ({
       ...prev,
-      postal_code: prev.country === "BR" ? formatCep(value) : value,
+      postal_code: formatPostal(value, prev.country),
     }));
   }
 
@@ -348,18 +349,18 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
   const altHref = `${altPath}?next=${encodeURIComponent(next)}`;
 
-  function setLang(nextLang: Lang) {
-    setLangState(nextLang);
-    writeStoredLang(nextLang);
-    applyDocumentLang(nextLang);
+  useEffect(() => {
     setSignup((prev) => {
-      const stillDefault =
-        prev.country === defaultCountry(lang) &&
-        !prev.street &&
-        !prev.city &&
-        !prev.postal_code;
-      return stillDefault ? { ...prev, country: defaultCountry(nextLang), state: "" } : prev;
+      const stillDefault = !prev.street && !prev.city && !prev.postal_code && !prev.state;
+      if (!stillDefault) return prev;
+      const nextCountry = defaultCountry(lang);
+      if (prev.country === nextCountry) return prev;
+      return { ...prev, country: nextCountry, state: "" };
     });
+  }, [lang]);
+
+  function setLang(nextLang: Lang) {
+    setLangBase(nextLang);
   }
 
   function onCountryChange(country: string) {
@@ -690,14 +691,24 @@ export function Auth({ mode }: { mode: AuthMode }) {
                         <input
                           type="text"
                           required
-                          minLength={2}
-                          maxLength={16}
+                          minLength={signup.country === "US" ? 5 : 2}
+                          maxLength={signup.country === "US" ? 5 : 16}
+                          inputMode={signup.country === "US" ? "numeric" : undefined}
                           autoComplete="postal-code"
                           placeholder={region.postalPlaceholder}
                           value={signup.postal_code}
                           onChange={(e) => onPostalCodeChange(e.target.value)}
                           data-testid="auth-postal-code"
                         />
+                        {postalLookupOn && cepStatusText(cepStatus, t) && (
+                          <span
+                            className={`auth-cep-status is-${cepStatus}`}
+                            data-testid="auth-cep-status"
+                            role="status"
+                          >
+                            {cepStatusText(cepStatus, t)}
+                          </span>
+                        )}
                       </label>
                     </>
                   ) : (
@@ -716,7 +727,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           onChange={(e) => onPostalCodeChange(e.target.value)}
                           data-testid="auth-postal-code"
                         />
-                        {signup.country === "BR" && cepStatusText(cepStatus, t) && (
+                        {postalLookupOn && cepStatusText(cepStatus, t) && (
                           <span
                             className={`auth-cep-status is-${cepStatus}`}
                             data-testid="auth-cep-status"

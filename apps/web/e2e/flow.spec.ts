@@ -39,6 +39,18 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     route.fulfill({ status, contentType: "application/json", body: JSON.stringify(body) });
   const id = () => `id-${++state.seq}`;
 
+  // E2E assume PT/BR (labels e ViaCEP); sem isso o IP do runner cai em EN/US.
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("lang", "pt");
+    } catch {
+      /* ignore */
+    }
+  });
+  await page.route(/https?:\/\/ipapi\.co\/country\/?/, (r) =>
+    r.fulfill({ status: 200, contentType: "text/plain", body: "BR" }),
+  );
+
   await page.route(/https?:\/\/viacep\.com\.br\/ws\//, (r) =>
     json(r, {
       cep: "01310-100",

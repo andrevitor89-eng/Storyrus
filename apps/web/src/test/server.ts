@@ -269,6 +269,46 @@ export const handlers = [
       uf: "SP",
     });
   }),
+  http.get(/https?:\/\/ipapi\.co\/country\/?/, () => {
+    return new HttpResponse("BR", {
+      status: 200,
+      headers: { "Content-Type": "text/plain" },
+    });
+  }),
+  http.get(/https?:\/\/api\.zippopotam\.us\/us\/(\d{5})\/?/, ({ request }) => {
+    const zip = request.url.match(/\/us\/(\d{5})/)?.[1] ?? "";
+    if (zip === "00000" || zip === "99999") {
+      return new HttpResponse(null, { status: 404 });
+    }
+    if (zip === "90210") {
+      return HttpResponse.json({
+        "post code": "90210",
+        country: "United States",
+        "country abbreviation": "US",
+        places: [
+          {
+            "place name": "Beverly Hills",
+            longitude: "-118.4065",
+            state: "California",
+            "state abbreviation": "CA",
+            latitude: "34.0901",
+          },
+        ],
+      });
+    }
+    return HttpResponse.json({
+      "post code": zip,
+      country: "United States",
+      "country abbreviation": "US",
+      places: [
+        {
+          "place name": "Testville",
+          state: "California",
+          "state abbreviation": "CA",
+        },
+      ],
+    });
+  }),
   http.post("*/v1/auth/guest", async () => {
     if (state.credits === 0) state.credits = 10;
     state.isGuest = true;

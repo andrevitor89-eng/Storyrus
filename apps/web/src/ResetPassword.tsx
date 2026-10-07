@@ -79,7 +79,7 @@ export function ResetPassword() {
           ) : (
             <form className="auth-form" onSubmit={onSubmit} data-testid="reset-password-form">
               <PasswordField
-                label="Nova Senha (mín. 8)"
+                label="Nova Senha (Mín. 8)"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 autoComplete="new-password"

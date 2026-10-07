@@ -319,7 +319,7 @@ const pt: StudioCopy = {
   upgradeHint:
     "Transforme o convidado em conta real. Seus projetos e créditos ficam no mesmo lugar.",
   upgradeEmail: "E-mail",
-  upgradePassword: "Senha (mín. 8)",
+  upgradePassword: "Senha (Mín. 8)",
   upgradeSubmit: "Criar Conta",
   upgradeSaving: "Salvando…",
   upgradeLater: "Agora não",
@@ -534,7 +534,7 @@ const en: StudioCopy = {
   upgradeHint:
     "Turn the guest into a real account. Your projects and credits stay in the same place.",
   upgradeEmail: "Email",
-  upgradePassword: "Password (min. 8)",
+  upgradePassword: "Password (Min. 8)",
   upgradeSubmit: "Create Account",
   upgradeSaving: "Saving…",
   upgradeLater: "Not now",
@@ -749,7 +749,7 @@ const es: StudioCopy = {
   upgradeHint:
     "Convierte el invitado en una cuenta real. Tus proyectos y créditos se quedan en el mismo lugar.",
   upgradeEmail: "Correo",
-  upgradePassword: "Contraseña (mín. 8)",
+  upgradePassword: "Contraseña (Mín. 8)",
   upgradeSubmit: "Crear Cuenta",
   upgradeSaving: "Guardando…",
   upgradeLater: "Ahora no",

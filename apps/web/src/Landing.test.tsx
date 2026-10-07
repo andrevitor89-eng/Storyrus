@@ -204,8 +204,8 @@ describe("Landing — catálogo", () => {
     const catalog = (await screen.findByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
     expect(within(cards[0]).queryByText(/capa mole ou capa dura/i)).not.toBeInTheDocument();
-    expect(within(cards[0]).getByText("Livro 16 páginas")).toBeInTheDocument();
-    expect(cards[0].querySelector(".cat-notes-sizes")).toContainElement(within(cards[0]).getByText("Livro 16 páginas"));
+    expect(within(cards[0]).getByText("Livro 16 Páginas")).toBeInTheDocument();
+    expect(cards[0].querySelector(".cat-notes-sizes")).toContainElement(within(cards[0]).getByText("Livro 16 Páginas"));
     expect(cards[0].querySelector(".cat-badges")).not.toBeInTheDocument();
     const noteLabels = [...cards[0].querySelectorAll(".cat-notes button")].map((button) => button.textContent);
     expect(noteLabels).toEqual(["P", "M", "HARD", "SOFT"]);
@@ -225,22 +225,22 @@ describe("Landing — catálogo", () => {
       expect(within(card).queryByText(/amizade e cuidado/i)).not.toBeInTheDocument();
     });
     expect(within(cards[0]).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
-    expect(within(cards[1]).getByText("Meu Herói Favorito, o Bombeiro")).toBeInTheDocument();
-    expect(within(cards[2]).getByText("Meu Herói Favorito, o Policial")).toBeInTheDocument();
+    expect(within(cards[1]).getByText("Meu Herói Favorito, O Bombeiro")).toBeInTheDocument();
+    expect(within(cards[2]).getByText("Meu Herói Favorito, O Policial")).toBeInTheDocument();
     expect(within(catalog).getByText("Meu Pai, Meu Herói")).toBeInTheDocument();
-    expect(within(catalog).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
+    expect(within(catalog).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
     expect(within(catalog).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
-    expect(within(catalog).queryByText(/Martin, o Grande Goleiro/i)).not.toBeInTheDocument();
-    expect(within(catalog).queryByText(/Aniversário Especial de Ester/i)).not.toBeInTheDocument();
-    expect(within(catalog).getByText("Amor de Tia")).toBeInTheDocument();
-    expect(within(catalog).getByText("Lucas e seu amigo Max")).toBeInTheDocument();
+    expect(within(catalog).queryByText(/Martin, O Grande Goleiro/i)).not.toBeInTheDocument();
+    expect(within(catalog).queryByText(/Aniversário Especial De Ester/i)).not.toBeInTheDocument();
+    expect(within(catalog).getByText("Amor De Tia")).toBeInTheDocument();
+    expect(within(catalog).getByText("Lucas E Seu Amigo Max")).toBeInTheDocument();
     expect(within(catalog).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
-    expect(within(catalog).getByText("Meu Herói Favorito, o Bombeiro")).toBeInTheDocument();
-    expect(within(catalog).getByText("Meu Herói Favorito, o Policial")).toBeInTheDocument();
-    expect(within(catalog).getByText("Meu Herói Favorito, a Aranha")).toBeInTheDocument();
+    expect(within(catalog).getByText("Meu Herói Favorito, O Bombeiro")).toBeInTheDocument();
+    expect(within(catalog).getByText("Meu Herói Favorito, O Policial")).toBeInTheDocument();
+    expect(within(catalog).getByText("Meu Herói Favorito, A Aranha")).toBeInTheDocument();
     expect(within(catalog).getByText("Tia Especial, Não Existe Igual")).toBeInTheDocument();
-    expect(within(catalog).queryByText("Amor de Avô, Meu Porto Seguro")).not.toBeInTheDocument();
-    expect(within(catalog).getByText("Esther e os Superpoderes da Higiene")).toBeInTheDocument();
+    expect(within(catalog).queryByText("Amor De Avô, Meu Porto Seguro")).not.toBeInTheDocument();
+    expect(within(catalog).getByText("Esther E Os Superpoderes Da Higiene")).toBeInTheDocument();
     expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-construtor.png"));
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-heroi-bombeiro.png"));
     expect(cards[2].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("capa-heroi-policia.png"));
@@ -456,6 +456,12 @@ describe("Landing — menu mobile e abas do hero", () => {
     await waitFor(() => {
       expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
     }, { timeout: 2200 });
+
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await waitFor(() => {
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
+    }, { timeout: 2200 });
+    expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
 
     await user.click(screen.getByTestId("landing-hero-pick-1"));
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
@@ -770,15 +776,15 @@ describe("Landing — CTAs e links", () => {
     expect(cards).toHaveLength(11);
     expect(within(catalog).queryByText("Meu Pai, Meu Herói")).not.toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
-    expect(within(catalog).getByText("Amor de Tia")).toBeInTheDocument();
-    expect(within(catalog).getByText("Lucas e seu amigo Max")).toBeInTheDocument();
-    expect(within(catalog).getByText("Amor de Avô, Meu Porto Seguro")).toBeInTheDocument();
+    expect(within(catalog).getByText("Amor De Tia")).toBeInTheDocument();
+    expect(within(catalog).getByText("Lucas E Seu Amigo Max")).toBeInTheDocument();
+    expect(within(catalog).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
     expect(within(catalog).queryByText(/esther/i)).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/nano/i)).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/meme e o tata/i)).not.toBeInTheDocument();
-    expect(within(cards[0]).getByText("Amor de Avô, Meu Porto Seguro")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
     expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-avo.png"));
-    expect(within(catalog).getByText("Davi, o Menino Pastor")).toBeInTheDocument();
+    expect(within(catalog).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
     expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-davi.png"));
     expect(within(catalog).getByText("Nicolas, Meu Primeiro Amor")).toBeInTheDocument();
     expect(within(catalog).getByRole("img", { name: /nicolas, meu primeiro amor/i })).toHaveAttribute("src", expect.stringContaining("cartoon-capa-nicolas.jpg"));
@@ -841,6 +847,19 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByText(/livro 16 páginas/i)).toBeInTheDocument();
     expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=biblico");
     expect(screen.getByRole("link", { name: /ver todos os livros/i })).toHaveAttribute("href", "/catalogo/educativo");
+    const series = screen.getByTestId("book-series");
+    expect(series).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-cover")).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-page")).toBeInTheDocument();
+    expect(screen.getByTestId("book-series-photo")).toBeInTheDocument();
+    const seriesImgs = within(series).getAllByRole("img");
+    expect(seriesImgs).toHaveLength(3);
+    expect(seriesImgs[0]).toHaveAttribute("src", expect.stringContaining("capa-davi-pastor"));
+    expect(seriesImgs[1]).toHaveAttribute("src", expect.stringContaining("pagina-davi-pastor"));
+    expect(seriesImgs[2]).toHaveAttribute("src", expect.stringContaining("foto-davi-pastor"));
+    expect(within(series).getByText(/^capa$/i)).toBeInTheDocument();
+    expect(within(series).getByText(/^página$/i)).toBeInTheDocument();
+    expect(within(series).getByText(/^foto$/i)).toBeInTheDocument();
   });
 
   it("abre o catálogo completo da categoria", async () => {

@@ -13,15 +13,15 @@ type Props = {
 };
 
 const SHOW: Record<NonNullable<Props["lang"]>, string> = {
-  pt: "Mostrar senha",
-  en: "Show password",
-  es: "Mostrar contraseña",
+  pt: "Mostrar Senha",
+  en: "Show Password",
+  es: "Mostrar Contraseña",
 };
 
 const HIDE: Record<NonNullable<Props["lang"]>, string> = {
-  pt: "Ocultar senha",
-  en: "Hide password",
-  es: "Ocultar contraseña",
+  pt: "Ocultar Senha",
+  en: "Hide Password",
+  es: "Ocultar Contraseña",
 };
 
 function IcEyeOpen() {

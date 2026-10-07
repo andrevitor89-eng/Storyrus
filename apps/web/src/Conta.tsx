@@ -3,13 +3,12 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { accountGateHref } from "./Auth";
 import { api, getToken, type MeUser, type ProfileUpdatePayload } from "./api";
-import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
+import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
-  applyDocumentLang,
   LANGS,
   type Lang,
   readStoredLang,
-  writeStoredLang,
+  useResolvedLang,
 } from "./i18n/lang";
 import {
   COUNTRY_GROUPS,
@@ -201,7 +200,7 @@ function LangSwitch({
 export function Conta() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
+  const [lang, setLang] = useResolvedLang();
   const t = COPY[lang];
 
   const [gate, setGate] = useState<"loading" | "ok" | "need-account">("loading");
@@ -224,9 +223,10 @@ export function Conta() {
 
   const region = regionProfile(form.country);
   const isUsLayout = region.layout === "us";
+  const postalLookupOn = gate === "ok" && supportsPostalLookup(form.country);
   const cepStatus = useCepLookup(
     form.postal_code,
-    gate === "ok" && form.country === "BR",
+    postalLookupOn,
     (addr) => {
       setForm((prev) => ({
         ...prev,
@@ -237,6 +237,7 @@ export function Conta() {
         state: addr.state || prev.state,
       }));
     },
+    form.country,
   );
 
   useEffect(() => {
@@ -278,12 +279,6 @@ export function Conta() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function setLang(nextLang: Lang) {
-    setLangState(nextLang);
-    writeStoredLang(nextLang);
-    applyDocumentLang(nextLang);
-  }
-
   function onCountryChange(country: string) {
     setForm((prev) => ({ ...prev, country, state: "" }));
   }
@@ -291,7 +286,7 @@ export function Conta() {
   function onPostalCodeChange(value: string) {
     setForm((prev) => ({
       ...prev,
-      postal_code: prev.country === "BR" ? formatCep(value) : value,
+      postal_code: formatPostal(value, prev.country),
     }));
   }
 
@@ -500,14 +495,24 @@ export function Conta() {
                     <input
                       type="text"
                       required
-                      minLength={2}
-                      maxLength={16}
+                      minLength={form.country === "US" ? 5 : 2}
+                      maxLength={form.country === "US" ? 5 : 16}
+                      inputMode={form.country === "US" ? "numeric" : undefined}
                       autoComplete="postal-code"
                       placeholder={region.postalPlaceholder}
                       value={form.postal_code}
                       onChange={(e) => onPostalCodeChange(e.target.value)}
                       data-testid="conta-postal-code"
                     />
+                    {postalLookupOn && cepStatusText(cepStatus, t) && (
+                      <span
+                        className={`auth-cep-status is-${cepStatus}`}
+                        data-testid="conta-cep-status"
+                        role="status"
+                      >
+                        {cepStatusText(cepStatus, t)}
+                      </span>
+                    )}
                   </label>
                 </>
               ) : (
@@ -526,7 +531,7 @@ export function Conta() {
                       onChange={(e) => onPostalCodeChange(e.target.value)}
                       data-testid="conta-postal-code"
                     />
-                    {form.country === "BR" && cepStatusText(cepStatus, t) && (
+                    {postalLookupOn && cepStatusText(cepStatus, t) && (
                       <span
                         className={`auth-cep-status is-${cepStatus}`}
                         data-testid="conta-cep-status"

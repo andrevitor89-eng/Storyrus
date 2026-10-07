@@ -8,6 +8,7 @@ from app.services.transactional_email import (
     resolved_from_email,
     send_email,
     send_password_reset_email,
+    send_verify_email,
 )
 
 
@@ -67,3 +68,53 @@ def test_send_password_reset_skips_without_key(monkeypatch, caplog):
     with caplog.at_level("WARNING"):
         assert send_password_reset_email(to_email="u@x.com", token="tok123") is False
     assert any("no_resend_api_key" in r.message for r in caplog.records)
+
+
+def test_verify_email_html_is_branded_title_case(monkeypatch):
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+    monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai")
+    calls: list[dict] = []
+
+    class _Resp:
+        status_code = 200
+        text = '{"id":"ok"}'
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(json)
+        return _Resp()
+
+    monkeypatch.setattr("app.services.transactional_email.httpx.post", fake_post)
+    assert send_verify_email(to_email="u@x.com", token="tok-verify") is True
+    payload = calls[0]
+    assert payload["subject"] == "Confirme Seu E-mail — Story R Us"
+    assert "Confirme Seu E-mail" in payload["html"]
+    assert "Confirmar Meu E-mail →" in payload["html"]
+    assert "confirm-hero.jpg" in payload["html"]
+    assert "email-footer.jpg" in payload["html"]
+    assert "token=tok-verify" in payload["html"]
+    assert "Falta só um passo" in payload["html"]
+    assert "Confirme Seu E-mail" in payload["text"]
+
+
+def test_password_reset_html_is_branded_title_case(monkeypatch):
+    monkeypatch.setattr(settings, "resend_api_key", "re_test")
+    monkeypatch.setattr(settings, "public_web_origin", "https://storyrus.ai")
+    calls: list[dict] = []
+
+    class _Resp:
+        status_code = 200
+        text = '{"id":"ok"}'
+
+    def fake_post(url, headers=None, json=None, timeout=None):
+        calls.append(json)
+        return _Resp()
+
+    monkeypatch.setattr("app.services.transactional_email.httpx.post", fake_post)
+    assert send_password_reset_email(to_email="u@x.com", token="tok-reset") is True
+    payload = calls[0]
+    assert payload["subject"] == "Esqueceu Sua Senha? — Story R Us"
+    assert "Esqueceu Sua Senha?" in payload["html"]
+    assert "Redefinir Minha Senha →" in payload["html"]
+    assert "reset-hero.jpg" in payload["html"]
+    assert "token=tok-reset" in payload["html"]
+    assert "Sem problemas!" in payload["html"]

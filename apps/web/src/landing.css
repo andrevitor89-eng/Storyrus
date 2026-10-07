@@ -1415,8 +1415,8 @@ img.ex-tab-cover {
   object-fit: contain;
   object-position: center center;
 }
-.ex-tab > span:last-child { font-family: 'Baloo 2', cursive; font-weight: 700; font-size: .9rem; color: #9fabce; max-width: 148px;
-  text-align: center; line-height: 1.15; min-height: 2.3em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; white-space: normal; }
+.ex-tab > span:last-child { font-family: 'Baloo 2', cursive; font-weight: 700; font-size: .85rem; color: #9fabce; max-width: 148px;
+  text-align: center; line-height: 1.2; min-height: 1.2em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ex-tab:hover { opacity: .85; }
 .ex-tab.on { opacity: 1; transform: none; box-shadow: none; }
 .ex-tab.on .ex-tab-cover {
@@ -1587,8 +1587,8 @@ img.ex-tab-cover {
 .cat-ia svg { width: 18px; height: 18px; }
 .cat-body { display: flex; flex-direction: column; flex: 1; padding: 14px 4px 8px; text-align: left; }
 .cat-body h3 {
-  margin: 0 0 20px; color: #e9eefb; font-size: 1.25rem; line-height: 1.15;
-  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  margin: 0 0 20px; color: #e9eefb; font-size: clamp(.95rem, 1.7vw, 1.15rem); line-height: 1.2;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .cat-body h3 a { color: inherit; text-decoration: none; }
 .cat-body p {
@@ -1713,6 +1713,43 @@ img.ex-tab-cover {
 }
 #catalogo.book-page .book-sheet:hover { transform: none; }
 #catalogo.book-page .book-sheet .cat-display { margin-bottom: 0; }
+#catalogo.book-page .book-sheet .cat-display.book-series {
+  aspect-ratio: auto;
+  height: auto;
+  overflow: visible;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border-radius: 0;
+}
+#catalogo.book-page .book-series-shot {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+#catalogo.book-page .book-series-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 10px;
+}
+#catalogo.book-page .book-series-shot .cat-book {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+#catalogo.book-page .book-series-shot figcaption {
+  margin: 0;
+  font-family: "Baloo 2", cursive;
+  font-size: 0.92rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--yellow);
+}
+[data-theme="light"] .kid .book-page .book-series-shot figcaption { color: #1f3568; }
 .book-page .book-tag {
   display: inline-block;
   align-self: flex-start;
@@ -1728,8 +1765,11 @@ img.ex-tab-cover {
 .book-page .book-sheet h1 {
   margin: 0 0 22px;
   color: #e9eefb;
-  font-size: clamp(2rem, 4vw, 3rem);
-  line-height: 1.1;
+  font-size: clamp(1.35rem, 3.2vw, 2.4rem);
+  line-height: 1.15;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .book-page .book-block { margin: 0 0 22px; }
 .book-page .book-block h2 {
