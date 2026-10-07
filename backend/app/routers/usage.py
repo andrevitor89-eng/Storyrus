@@ -218,9 +218,7 @@ def get_usage(
     users_total = int(db.scalar(select(func.count()).select_from(User)) or 0)
     ticketed_ids = select(OrderTicket.project_id)
     projects_awaiting_photo = int(
-        db.scalar(
-            select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids))
-        )
+        db.scalar(select(func.count()).select_from(Project).where(~Project.id.in_(ticketed_ids)))
         or 0
     )
     order_rows = db.scalars(
