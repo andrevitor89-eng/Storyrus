@@ -3,6 +3,7 @@ import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
 import { api } from "./api";
 import type { UserVoice } from "./types";
+import { colors, fonts, radii, space } from "./theme";
 
 type Props = {
   busy: boolean;
@@ -76,7 +77,7 @@ export function VoicePanel({
             value={voiceName}
             onChangeText={onVoiceName}
             placeholder="Nome da voz"
-            placeholderTextColor="#6b7a9a"
+            placeholderTextColor={colors.placeholder}
             editable={!busy && !uploading}
           />
           <Pressable
@@ -93,25 +94,28 @@ export function VoicePanel({
                 onPress={() => onSelectVoice("")}
                 disabled={busy}
               >
-                <Text style={s.chipText}>Automática</Text>
+                <Text style={[s.chipText, !selectedVoiceId && s.chipTextOn]}>Automática</Text>
               </Pressable>
-              {voices.map((v) => (
-                <Pressable
-                  key={v.id}
-                  style={[s.chip, selectedVoiceId === v.id && s.chipOn]}
-                  onPress={() => onSelectVoice(v.id)}
-                  disabled={busy}
-                >
-                  <Text style={s.chipText}>
-                    {v.name}
-                    {v.is_default ? " ★" : ""}
-                  </Text>
-                </Pressable>
-              ))}
+              {voices.map((v) => {
+                const on = selectedVoiceId === v.id;
+                return (
+                  <Pressable
+                    key={v.id}
+                    style={[s.chip, on && s.chipOn]}
+                    onPress={() => onSelectVoice(v.id)}
+                    disabled={busy}
+                  >
+                    <Text style={[s.chipText, on && s.chipTextOn]}>
+                      {v.name}
+                      {v.is_default ? " ★" : ""}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           )}
           {selectedVoiceId ? (
-            <Pressable onPress={onRemove} disabled={busy}>
+            <Pressable onPress={onRemove} disabled={busy} style={s.linkBtn}>
               <Text style={s.link}>Remover voz selecionada</Text>
             </Pressable>
           ) : null}
@@ -122,31 +126,49 @@ export function VoicePanel({
 }
 
 const s = StyleSheet.create({
-  block: { gap: 8, marginTop: 4 },
-  h3: { color: "#e8ecf5", fontSize: 15, fontWeight: "700" },
-  muted: { color: "#93a0bd", fontSize: 13 },
+  block: { gap: space.sm },
+  h3: {
+    color: colors.text,
+    fontSize: 16,
+    fontFamily: fonts.displaySemi,
+  },
+  muted: { color: colors.muted, fontSize: 13, fontFamily: fonts.body, lineHeight: 20 },
   input: {
-    backgroundColor: "#0d1322",
-    borderColor: "#2a3550",
+    backgroundColor: colors.input,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    color: "#e8ecf5",
+    borderRadius: radii.md,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    minHeight: 48,
+    color: colors.text,
+    fontFamily: fonts.body,
+    fontSize: 16,
   },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    backgroundColor: "#0d1322",
-    borderColor: "#2a3550",
+    backgroundColor: colors.input,
+    borderColor: colors.border,
     borderWidth: 1,
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    borderRadius: radii.pill,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    minHeight: 40,
+    justifyContent: "center",
   },
-  chipOn: { backgroundColor: "#5b8cff", borderColor: "#5b8cff" },
-  chipText: { color: "#e8ecf5", fontSize: 13 },
-  btnAlt: { backgroundColor: "#334066", borderRadius: 8, padding: 12, alignItems: "center" },
+  chipOn: { backgroundColor: colors.teal, borderColor: colors.teal },
+  chipText: { color: colors.text, fontSize: 13, fontFamily: fonts.bodySemi },
+  chipTextOn: { color: colors.white },
+  btnAlt: {
+    backgroundColor: colors.secondary,
+    borderRadius: radii.pill,
+    minHeight: 48,
+    paddingHorizontal: 16,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   disabled: { opacity: 0.5 },
-  btnText: { color: "#fff", fontWeight: "700" },
-  link: { color: "#5b8cff" },
+  btnText: { color: colors.white, fontFamily: fonts.displaySemi, fontSize: 15 },
+  linkBtn: { paddingVertical: 8 },
+  link: { color: colors.primary, fontFamily: fonts.bodySemi },
 });
