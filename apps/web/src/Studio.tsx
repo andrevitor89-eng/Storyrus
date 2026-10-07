@@ -19,6 +19,7 @@ import { ProgressList } from "./studio/ProgressList";
 import { VoiceNarrationPanel } from "./studio/VoiceNarrationPanel";
 import { EbookStepButtons, VideoStepButtons } from "./studio/StepButtons";
 import { BookApprovalBlock, CharacterApprovalBlock } from "./studio/ApprovalBlocks";
+import { PreviewTrio } from "./studio/PreviewTrio";
 import { useStudioPolling } from "./studio/useStudioPolling";
 import { useStudioVoices } from "./studio/useStudioVoices";
 import { useStudioSteps } from "./studio/useStudioSteps";
@@ -1126,6 +1127,12 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <ProgressList jobs={jobs} />
 
             <div className="results" role="region" aria-label={t.ariaResults}>
+              <PreviewTrio
+                coverUrl={assets?.cover_url ?? null}
+                pageUrl={assets?.page_images?.[0] ?? null}
+                inHandUrl={assets?.in_hand_url ?? null}
+              />
+
               {assets?.character_url && (
                 <CharacterApprovalBlock
                   characterUrl={assets.character_url}

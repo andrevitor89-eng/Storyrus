@@ -111,6 +111,8 @@ class AssetKind(str, enum.Enum):
     EXPRESSION_SHEET = "expression_sheet"
     COSTUME_LOCK = "costume_lock"
     PAGE_IMAGE = "page_image"
+    COVER = "cover"
+    IN_HAND = "in_hand"
     EBOOK = "ebook"
     STORYBOARD = "storyboard"
     VIDEO = "video"

@@ -28,6 +28,9 @@ type Project = {
   ebook_url: string | null;
   video_url: string | null;
   narrated_video_url?: string | null;
+  cover_url?: string | null;
+  in_hand_url?: string | null;
+  page_image_url?: string | null;
   character_approved_at?: string | null;
   book_approved_at?: string | null;
   print_requested_at?: string | null;
@@ -158,11 +161,16 @@ const id = () => `id-${++seq}`;
 function enqueuePreviewNext(project: Project, fromType: string, payload: Job["result"]) {
   const chain = Boolean(payload?.payload?.preview_chain);
   if (!chain) return;
-  const nextType =
-    fromType === "AVATAR" ? "STORY" : fromType === "STORY" ? "EBOOK" : fromType === "EBOOK" ? "VIDEO" : null;
+  if (fromType === "EBOOK") {
+    project.book_approved_at = new Date().toISOString();
+    project.cover_url = `https://cdn.test/${project.id}/cover.png`;
+    project.page_image_url = `https://cdn.test/${project.id}/page1.png`;
+    project.in_hand_url = `https://cdn.test/${project.id}/in-hand.png`;
+    return;
+  }
+  const nextType = fromType === "AVATAR" ? "STORY" : fromType === "STORY" ? "EBOOK" : null;
   if (!nextType) return;
   if (fromType === "AVATAR") project.character_approved_at = new Date().toISOString();
-  if (fromType === "EBOOK") project.book_approved_at = new Date().toISOString();
   const cost = COST[nextType] ?? 1;
   if (state.credits < cost) {
     const failed: Job = {
@@ -186,7 +194,6 @@ function enqueuePreviewNext(project: Project, fromType: string, payload: Job["re
     payload: {
       preview_chain: true,
       ...(payload?.payload?.brief && nextType === "STORY" ? { brief: payload.payload.brief } : {}),
-      ...(nextType === "VIDEO" ? { duration_s: 5 } : {}),
     },
   };
   const job: Job = {
@@ -642,7 +649,13 @@ export const handlers = [
       character_url: avatarDone ? "https://cdn.test/character.png" : null,
       realistic_url: null,
       extra_characters: [],
-      page_images: p?.ebook_url ? ["https://cdn.test/page1.png"] : [],
+      page_images: p?.page_image_url
+        ? [p.page_image_url]
+        : p?.ebook_url
+          ? ["https://cdn.test/page1.png"]
+          : [],
+      cover_url: p?.cover_url ?? null,
+      in_hand_url: p?.in_hand_url ?? null,
       ebook_url: p?.ebook_url ?? null,
       video_url: p?.video_url ?? null,
       narrated_video_url: p?.narrated_video_url ?? null,

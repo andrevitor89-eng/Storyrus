@@ -388,7 +388,7 @@ describe("Prévia automática", () => {
     expect(await screen.findByText("AVATAR")).toBeInTheDocument();
   });
 
-  it("MSW encadeia avatar → story → ebook → video na prévia", async () => {
+  it("MSW encadeia avatar → story → ebook e monta o trio (sem vídeo)", async () => {
     state.credits = 20;
     const p = {
       id: "proj-preview",
@@ -398,6 +398,9 @@ describe("Prévia automática", () => {
       ebook_url: null as string | null,
       video_url: null as string | null,
       narrated_video_url: null as string | null,
+      cover_url: null as string | null,
+      in_hand_url: null as string | null,
+      page_image_url: null as string | null,
       character_approved_at: null as string | null,
       book_approved_at: null as string | null,
       print_requested_at: null as string | null,
@@ -408,7 +411,6 @@ describe("Prévia automática", () => {
     state.jobs.set(p.id, []);
 
     await api.startPreview(p.id, { brief: "aventura" });
-    // Avança a cadeia via listJobs (cada call faz advance nos jobs ativos).
     for (let i = 0; i < 8; i += 1) {
       await api.listJobs(p.id);
     }
@@ -416,12 +418,15 @@ describe("Prévia automática", () => {
     expect(jobs.some((j) => j.type === "AVATAR" && j.status === "DONE")).toBe(true);
     expect(jobs.some((j) => j.type === "STORY" && j.status === "DONE")).toBe(true);
     expect(jobs.some((j) => j.type === "EBOOK" && j.status === "DONE")).toBe(true);
-    expect(jobs.some((j) => j.type === "VIDEO" && j.status === "DONE")).toBe(true);
+    expect(jobs.some((j) => j.type === "VIDEO")).toBe(false);
     const project = await api.getProject(p.id);
     expect(project.story_text).toMatch(/Pagina/i);
     expect(project.ebook_url).toBeTruthy();
-    expect(project.video_url).toBeTruthy();
     expect(project.character_approved_at).toBeTruthy();
     expect(project.book_approved_at).toBeTruthy();
+    const assets = await api.getAssets(p.id);
+    expect(assets.cover_url).toMatch(/cover/);
+    expect(assets.page_images?.[0]).toMatch(/page1/);
+    expect(assets.in_hand_url).toMatch(/in-hand/);
   });
 });

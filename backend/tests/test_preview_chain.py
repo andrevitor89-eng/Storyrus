@@ -1,4 +1,4 @@
-"""API + worker: cadeia automática de prévia (avatar → story → ebook → video)."""
+"""API + worker: cadeia automática de prévia (avatar → story → ebook trio OpenAI)."""
 
 from __future__ import annotations
 
@@ -218,25 +218,25 @@ async def test_story_preview_chains_to_ebook(db, mem_storage, monkeypatch):
     ).all()
     assert len(ebook) == 1
     assert preview_chain.is_preview_chain(ebook[0])
-    # storyboard auto também
+    # Prévia não agenda storyboard (só serve ao vídeo).
     sb = db.scalars(
         select(Job).where(Job.project_id == p.id, Job.type == JobType.STORYBOARD.value)
     ).all()
-    assert len(sb) == 1
+    assert sb == []
     db.refresh(u)
     assert u.credits == 19
 
 
 @pytest.mark.asyncio
-async def test_ebook_preview_chains_to_video(db, mem_storage, monkeypatch):
+async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_text_provider", lambda *a, **k: FakeText())
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    monkeypatch.setattr("app.config.settings.offline_fallback", True)
     u, p = _seed(db, credits=20)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
     p.story_text = "Título: Teste\n\nPágina 1: Uma aventura.\n\nPágina 2: Continua.\n\nPágina 3: Fim."
     p.character_approved_at = None
     db.commit()
-    # character bytes no storage
     mem_storage["char1"] = b"CHAR"
 
     j = _job(db, p, "EBOOK", payload={"preview_chain": True})
@@ -247,14 +247,25 @@ async def test_ebook_preview_chains_to_video(db, mem_storage, monkeypatch):
     assert p.status == ProjectStatus.EBOOK_READY.value
     assert p.book_approved_at is not None
 
+    covers = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.COVER.value)
+    ).all()
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    hands = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.IN_HAND.value)
+    ).all()
+    assert len(covers) == 1
+    assert len(pages) == 1
+    assert len(hands) == 1
+
     videos = db.scalars(
         select(Job).where(Job.project_id == p.id, Job.type == JobType.VIDEO.value)
     ).all()
-    assert len(videos) == 1
-    assert preview_chain.is_preview_chain(videos[0])
-    assert videos[0].result["payload"]["duration_s"] == 5
+    assert videos == []
     db.refresh(u)
-    assert u.credits == 15  # VIDEO custa 5
+    assert u.credits == 20  # EBOOK job já existia; não debitou VIDEO
 
 
 @pytest.mark.asyncio

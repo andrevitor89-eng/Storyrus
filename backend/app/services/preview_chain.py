@@ -1,8 +1,8 @@
-"""Cadeia automática de prévia no Studio: avatar → história → ebook → vídeo.
+"""Cadeia automática de prévia no Studio: avatar → história → ebook (trio OpenAI).
 
 O job inicial (POST /preview) carrega `payload.preview_chain=true`. Ao concluir
-cada etapa, o worker auto-aprova o necessário e enfileira a próxima — mesmo
-padrão de STORY → STORYBOARD, com débito de créditos por etapa.
+cada etapa, o worker auto-aprova o necessário e enfileira a próxima — até o
+EBOOK, que gera capa + 1 página + foto na mão via GPT Image. Sem VIDEO.
 """
 
 from __future__ import annotations
@@ -14,7 +14,6 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.models import Job, JobStatus, JobType, Project, User, _now
 from app.services import jobs as jobs_svc
 
@@ -25,7 +24,6 @@ _CHAIN_TYPES = (
     JobType.AVATAR.value,
     JobType.STORY.value,
     JobType.EBOOK.value,
-    JobType.VIDEO.value,
 )
 
 
@@ -55,10 +53,16 @@ def _next_payload(source_job: Job, next_type: JobType) -> dict:
     brief = (src.get("brief") or "").strip()
     if brief and next_type == JobType.STORY:
         out["brief"] = brief[:2000]
-    if next_type == JobType.VIDEO:
-        out["duration_s"] = 5
-        out["provider"] = settings.video_provider
     return out
+
+
+def finalize_preview_ebook(db: Session, project: Project, source_job: Job) -> None:
+    """Marca o livro aprovado ao fim da prévia (sem enfileirar vídeo)."""
+    if not is_preview_chain(source_job):
+        return
+    project.book_approved_at = _now()
+    db.commit()
+    logger.info("preview_chain finalized at EBOOK project=%s", project.id)
 
 
 def continue_preview_chain(
@@ -77,9 +81,9 @@ def continue_preview_chain(
 
     if next_type == JobType.STORY:
         project.character_approved_at = _now()
-    elif next_type == JobType.VIDEO:
-        project.book_approved_at = _now()
-    elif next_type != JobType.EBOOK:
+    elif next_type == JobType.EBOOK:
+        pass
+    else:
         return None
 
     db.flush()

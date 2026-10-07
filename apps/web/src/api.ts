@@ -478,6 +478,8 @@ export const api = {
       realistic_url: string | null;
       extra_characters: { name: string; url: string }[];
       page_images: string[];
+      cover_url?: string | null;
+      in_hand_url?: string | null;
       ebook_url: string | null;
       video_url: string | null;
       narrated_video_url: string | null;
