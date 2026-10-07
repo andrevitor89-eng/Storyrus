@@ -408,7 +408,8 @@
   margin-bottom: 0.6rem;
 }
 
-.studio-app .studio-card.studio-order p {
+.studio-app .studio-card.studio-order > p,
+.studio-app .studio-card.studio-order > .studio-slogan {
   margin: 0 auto;
   max-width: 28rem;
   font-size: 1.2rem;
@@ -489,14 +490,22 @@
 
 .studio-app .studio-story-verse {
   margin: 0;
+  width: 100%;
   font-family: "Playfair Display", Georgia, serif;
   font-size: 1.08rem;
   line-height: 1.7;
   color: #f4efe6;
 }
 
-.studio-app .studio-story-verse p {
+.studio-app .studio-card.studio-review .studio-story-verse p {
+  display: block;
+  width: 100%;
+  max-width: none;
   margin: 0 0 0.45em;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
   text-align: justify;
   text-justify: inter-word;
   text-align-last: left;
@@ -515,7 +524,7 @@
   font-weight: 600;
 }
 
-.studio-app .studio-story-page.is-title .studio-story-verse p {
+.studio-app .studio-card.studio-review .studio-story-page.is-title .studio-story-verse p {
   text-align: center;
   text-align-last: center;
 }
