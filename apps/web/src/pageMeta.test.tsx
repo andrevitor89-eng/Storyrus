@@ -25,7 +25,7 @@ const INDEX = `<!doctype html>
     <meta property="og:url" content="https://storyrus.ai/" />
     <meta property="og:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
     <meta property="og:description" content="Uma foto vira personagem." />
-    <meta name="twitter:title" content="Story R Us" />
+    <meta name="twitter:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho" />
     <meta name="twitter:description" content="Transforme uma foto." />
   </head>
   <body>
@@ -71,6 +71,17 @@ describe("catálogo no sitemap", () => {
 });
 
 describe("HTML por rota", () => {
+  it("home usa Title Case no title e no Open Graph (preview WhatsApp)", () => {
+    const page = staticPageMeta("/");
+    expect(page).not.toBeNull();
+    expect(page!.title).toBe("Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho");
+    expect(page!.title).not.toMatch(/histórias ilustradas com a foto/);
+    const html = applyPageMeta(INDEX, page!);
+    expect(html).toContain('property="og:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho"');
+    expect(html).toContain('name="twitter:title" content="Story R Us — Histórias Ilustradas Com A Foto Do Seu Filho"');
+    expect(html).not.toContain("histórias ilustradas com a foto do seu filho");
+  });
+
   it("troca title, open graph e coloca texto no #root", () => {
     const page = staticPageMeta("/cartoon");
     expect(page).not.toBeNull();
