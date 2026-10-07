@@ -1,10 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useMemo } from "react";
 import {
-  applyDocumentLang,
   LANGS,
   type Lang,
   readStoredLang,
-  writeStoredLang,
+  useResolvedLang,
 } from "../i18n/lang";
 import { studioCopy, type StudioCopy } from "./i18n";
 
@@ -18,18 +17,7 @@ type StudioLangValue = {
 const StudioLangContext = createContext<StudioLangValue | null>(null);
 
 export function useStudioLangState(): StudioLangValue {
-  const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
-  const setLang = useCallback((next: Lang) => {
-    setLangState(next);
-    writeStoredLang(next);
-    applyDocumentLang(next);
-  }, []);
-
-  useEffect(() => {
-    applyDocumentLang(lang);
-    writeStoredLang(lang);
-  }, [lang]);
-
+  const [lang, setLang] = useResolvedLang();
   const t = useMemo(() => studioCopy(lang), [lang]);
   return { lang, setLang, t, langs: LANGS };
 }

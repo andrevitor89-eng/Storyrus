@@ -1,25 +1,20 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
 import { bookPageMeta, categoryPageMeta, NOT_FOUND_PAGE, staticPageMeta, usePageMeta } from "./pageMeta";
+import { useResolvedLang, type Lang } from "./i18n/lang";
 import {
   CatalogBookCard,
   catalogCategory,
   catalogEntry,
   catalogPageCopy,
   catalogSections,
-  readSiteLang,
-  type Lang,
 } from "./Landing";
 
 function useSiteLang() {
-  const [lang, setLang] = useState<Lang>(readSiteLang);
-  useEffect(() => {
-    document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
-    try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
-  }, [lang]);
+  const [lang, setLang] = useResolvedLang();
   useEffect(() => {
     try {
       const theme = localStorage.getItem("theme");
