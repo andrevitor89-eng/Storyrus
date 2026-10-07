@@ -530,11 +530,11 @@
   text-align: justify;
   text-justify: inter-word;
   text-align-last: left;
-  hyphens: auto;
-  -webkit-hyphens: auto;
-  -ms-hyphens: auto;
-  hyphenate-limit-chars: 6 3 3;
-  overflow-wrap: break-word;
+  /* Auto-hyphenation looks harsh on short kids-book lines; keep whole words */
+  hyphens: none;
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  overflow-wrap: normal;
   word-break: normal;
   white-space: normal;
   grid-column: auto;
@@ -554,7 +554,6 @@
 .studio-app .studio-card.studio-review .studio-story-page.is-title .studio-story-verse p {
   text-align: center;
   text-align-last: center;
-  hyphens: manual;
 }
 
 [data-theme="light"] .studio-app .studio-story-page {
