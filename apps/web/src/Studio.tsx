@@ -28,15 +28,30 @@ export { ProgressList } from "./studio/ProgressList";
 
 const PHOTO_LIMIT = 8;
 
-/** Split story text into pages when markers like "Página 1:" / "Pagina 2:" exist. */
-function splitStoryPages(text: string): string[] {
+type StoryPageBlock = { kind: "title" | "page" | "body"; label: string; text: string };
+
+/** Split story text into titled pages when markers like "Página 1:" / "Título:" exist. */
+function parseStoryPages(text: string): StoryPageBlock[] {
   const trimmed = text.trim();
   if (!trimmed) return [];
   const parts = trimmed
-    .split(/(?=P[aá]gina\s+\d+\s*:)/i)
+    .split(/(?=(?:T[íi]tulo\s*:|P[aá]gina\s+\d+\s*:))/i)
     .map((part) => part.trim())
     .filter(Boolean);
-  return parts.length > 0 ? parts : [trimmed];
+  if (parts.length <= 1 && !/^(?:T[íi]tulo\s*:|P[aá]gina\s+\d+\s*:)/i.test(trimmed)) {
+    return [{ kind: "body", label: "", text: trimmed }];
+  }
+  return parts.map((part) => {
+    const titleMatch = part.match(/^T[íi]tulo\s*:\s*([\s\S]*)$/i);
+    if (titleMatch) {
+      return { kind: "title" as const, label: "Título", text: titleMatch[1].trim() };
+    }
+    const pageMatch = part.match(/^(P[aá]gina\s+\d+)\s*:\s*([\s\S]*)$/i);
+    if (pageMatch) {
+      return { kind: "page" as const, label: pageMatch[1], text: pageMatch[2].trim() };
+    }
+    return { kind: "body" as const, label: "", text: part };
+  });
 }
 
 function photoKey(file: File): string {
@@ -702,16 +717,26 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                   <h3 className="field-label" id="studio-story-result-heading">
                     {t.storyPagesTitle}
                   </h3>
-                  {splitStoryPages(project?.story_text || storyDraft).map((page, index) => (
-                    <pre
-                      key={`story-page-${index}`}
-                      className="story"
-                      style={{ whiteSpace: "pre-wrap" }}
-                      data-testid={index === 0 ? "studio-story-text" : undefined}
-                    >
-                      {page}
-                    </pre>
-                  ))}
+                  <div className="studio-story-book">
+                    {parseStoryPages(project?.story_text || storyDraft).map((page, index) => (
+                      <article
+                        key={`story-page-${index}`}
+                        className={
+                          page.kind === "title"
+                            ? "studio-story-page is-title"
+                            : "studio-story-page"
+                        }
+                        data-testid={index === 0 ? "studio-story-text" : undefined}
+                      >
+                        {page.label ? (
+                          <header className="studio-story-page-head">
+                            <span className="studio-story-page-num">{page.label}</span>
+                          </header>
+                        ) : null}
+                        <p className="studio-story-verse">{page.text}</p>
+                      </article>
+                    ))}
+                  </div>
                 </div>
 
                 <PreviewTrio
