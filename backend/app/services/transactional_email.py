@@ -227,9 +227,7 @@ def send_verify_email(*, to_email: str, token: str) -> bool:
         ),
         cta_label="Confirmar Meu E-mail →",
         cta_url=url,
-        disclaimer=(
-            "Se você não criou esta conta, pode ignorar esta mensagem com segurança."
-        ),
+        disclaimer=("Se você não criou esta conta, pode ignorar esta mensagem com segurança."),
     )
     return send_email(to_email=to_email, subject=subject, text=text, html=html)
 
@@ -261,8 +259,7 @@ def send_password_reset_email(*, to_email: str, token: str) -> bool:
         cta_label="Redefinir Minha Senha →",
         cta_url=url,
         disclaimer=(
-            "Se você não solicitou esta redefinição, pode ignorar esta "
-            "mensagem com segurança."
+            "Se você não solicitou esta redefinição, pode ignorar esta mensagem com segurança."
         ),
     )
     return send_email(to_email=to_email, subject=subject, text=text, html=html)
