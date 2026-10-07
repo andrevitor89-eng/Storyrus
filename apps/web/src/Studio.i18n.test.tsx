@@ -40,7 +40,9 @@ describe("Studio i18n", () => {
     render(<Studio />);
 
     expect(await screen.findByRole("heading", { name: /create your story/i })).toBeInTheDocument();
+    // Conta obrigatória: usuário logado vai direto ao formulário do livro (sem gate de cliente).
     expect(screen.getByLabelText(/protagonist's name/i)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /continue to the book/i })).not.toBeInTheDocument();
     expect(screen.queryByText(/credits:/i)).not.toBeInTheDocument();
     expect(document.documentElement.lang).toBe("en");
   });

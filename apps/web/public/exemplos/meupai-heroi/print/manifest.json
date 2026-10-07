@@ -1,0 +1,33 @@
+{
+  "profile": "FOGRA32L / ISOcofuncoated",
+  "dpi": 300,
+  "trim_mm": [
+    200,
+    200
+  ],
+  "miolo_bleed_mm": [
+    210,
+    210
+  ],
+  "capa_mole_sangra_mm": [
+    410,
+    210
+  ],
+  "capa_dura_sangra_mm": [
+    443,
+    235
+  ],
+  "capa_dura_lombada_mm": 5,
+  "bases": [
+    "bases/BASE_CAPA_DURA.ai",
+    "bases/BASE_INDICACOES_CAPA_CONVENCIONAL.pdf",
+    "bases/BASE_INDICACOES_CAPA_DURA.pdf",
+    "bases/BASE_INDICACOES_MIOLO.pdf"
+  ],
+  "pdfs": {
+    "miolo": "../ebook-meupai-heroi-miolo-fogra32-300dpi.pdf",
+    "capa_mole": "../ebook-meupai-heroi-capa-mole-fogra32-300dpi.pdf",
+    "capa_dura": "../ebook-meupai-heroi-capa-dura-fogra32-300dpi.pdf"
+  },
+  "note": "Bases da gráfica declaram OutputIntent FOGRA39; arte gerada em FOGRA32L conforme pedido. Confirmar com a gráfica."
+}
