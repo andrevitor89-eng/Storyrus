@@ -28,7 +28,14 @@ export { ProgressList } from "./studio/ProgressList";
 
 const PHOTO_LIMIT = 8;
 
-type StoryPageBlock = { kind: "title" | "page" | "body"; label: string; text: string };
+type StoryPageBlock = { kind: "title" | "page" | "body"; label: string; lines: string[] };
+
+function verseLines(text: string): string[] {
+  return text
+    .split(/\n+/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+}
 
 /** Split story text into titled pages when markers like "Página 1:" / "Título:" exist. */
 function parseStoryPages(text: string): StoryPageBlock[] {
@@ -39,18 +46,18 @@ function parseStoryPages(text: string): StoryPageBlock[] {
     .map((part) => part.trim())
     .filter(Boolean);
   if (parts.length <= 1 && !/^(?:T[íi]tulo\s*:|P[aá]gina\s+\d+\s*:)/i.test(trimmed)) {
-    return [{ kind: "body", label: "", text: trimmed }];
+    return [{ kind: "body", label: "", lines: verseLines(trimmed) }];
   }
   return parts.map((part) => {
     const titleMatch = part.match(/^T[íi]tulo\s*:\s*([\s\S]*)$/i);
     if (titleMatch) {
-      return { kind: "title" as const, label: "Título", text: titleMatch[1].trim() };
+      return { kind: "title" as const, label: "Título", lines: verseLines(titleMatch[1]) };
     }
     const pageMatch = part.match(/^(P[aá]gina\s+\d+)\s*:\s*([\s\S]*)$/i);
     if (pageMatch) {
-      return { kind: "page" as const, label: pageMatch[1], text: pageMatch[2].trim() };
+      return { kind: "page" as const, label: pageMatch[1], lines: verseLines(pageMatch[2]) };
     }
-    return { kind: "body" as const, label: "", text: part };
+    return { kind: "body" as const, label: "", lines: verseLines(part) };
   });
 }
 
@@ -733,7 +740,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                             <span className="studio-story-page-num">{page.label}</span>
                           </header>
                         ) : null}
-                        <p className="studio-story-verse">{page.text}</p>
+                        <div className="studio-story-verse">
+                          {page.lines.map((line, lineIndex) => (
+                            <p key={`verse-${index}-${lineIndex}`}>{line}</p>
+                          ))}
+                        </div>
                       </article>
                     ))}
                   </div>
