@@ -234,7 +234,9 @@ async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, mo
     monkeypatch.setattr("app.config.settings.offline_fallback", True)
     u, p = _seed(db, credits=20)
     p.character_ref = {"storage_key": "char1", "mime": "image/png"}
-    p.story_text = "Título: Teste\n\nPágina 1: Uma aventura.\n\nPágina 2: Continua.\n\nPágina 3: Fim."
+    p.story_text = (
+        "Título: Teste\n\nPágina 1: Uma aventura.\n\nPágina 2: Continua.\n\nPágina 3: Fim."
+    )
     p.character_approved_at = None
     db.commit()
     mem_storage["char1"] = b"CHAR"
