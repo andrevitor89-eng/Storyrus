@@ -290,6 +290,18 @@ class StoryTextIn(BaseModel):
     story_text: str = Field(min_length=1, max_length=20000)
 
 
+class StoryRequestIn(BaseModel):
+    """Pedido de história com IA (brief opcional do formulário do Studio)."""
+
+    brief: str | None = Field(default=None, max_length=2000)
+
+
+class PreviewRequestIn(BaseModel):
+    """Dispara a cadeia automática de prévia (avatar → história → ebook → vídeo)."""
+
+    brief: str | None = Field(default=None, max_length=2000)
+
+
 class StoryExtractOut(BaseModel):
     """Texto extraído de um arquivo enviado (PDF/DOCX/TXT)."""
 

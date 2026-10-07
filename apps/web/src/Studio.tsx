@@ -448,10 +448,33 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   const canMountEbook = photoUploaded && !!project?.story_text && characterApproved;
   const canMakeVideo = bookApproved;
-  const locked = busy || isDemo;
+  const previewChainActive = jobs.some(
+    (j) =>
+      (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK" || j.type === "VIDEO") &&
+      (j.status === "PENDING" || j.status === "RUNNING") &&
+      Boolean(j.result?.payload?.preview_chain),
+  );
+  const locked = busy || isDemo || previewChainActive;
   const ebookRunning = jobs.some(
     (j) => j.type === "EBOOK" && (j.status === "PENDING" || j.status === "RUNNING"),
   );
+
+  async function requestPreview() {
+    if (!project || isDemo || previewChainActive) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const brief = getStoryBrief().trim();
+      await api.startPreview(project.id, brief ? { brief: brief.slice(0, 2000) } : {});
+      const js = await api.listJobs(project.id);
+      setJobs(js);
+      refreshCredits();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   function exitDemo() {
     const url = new URL(window.location.href);
@@ -658,6 +681,17 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           <section className="studio-card studio-order" role="status" data-testid="studio-order-sent">
             <h2>{t.orderSent}</h2>
             <p>{t.orderFollowup}</p>
+            <p className="muted">{t.previewHint}</p>
+            <button
+              type="button"
+              className="kbtn kbtn-primary"
+              disabled={locked || !photoUploaded || !project}
+              data-testid="studio-generate-preview"
+              onClick={() => void requestPreview()}
+            >
+              {previewChainActive ? t.previewRunning : t.previewCta}{" "}
+              <span className="muted">{t.previewCost}</span>
+            </button>
           </section>
         ) : (
           <>
@@ -1061,7 +1095,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             <div className="studio-actions">
               <button
                 type="button"
-                className="kbtn kbtn-primary"
+                className={orderSent ? "kbtn kbtn-soft" : "kbtn kbtn-primary"}
                 disabled={locked || !photoUploaded}
                 onClick={() => runStep("story")}
                 data-testid="studio-generate-story"

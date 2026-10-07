@@ -21,9 +21,10 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.identity_lock import require_character_ref
 from app.config import settings
-from app.models import Asset, AssetKind, Job, ProjectStatus
+from app.models import Asset, AssetKind, Job, JobType, ProjectStatus
 from app.observability.opik_trace import job_metadata, update_trace
 from app.printkit.service import invalidate_print
+from app.services import preview_chain
 from app.services.pricing import add_usd
 from app.services.usage_ledger import flush_usage, lines_of
 from app.story_templates import illustration_notes, page_layouts
@@ -285,3 +286,5 @@ async def handle_ebook(db: Session, job: Job) -> None:
         ebook_lines.extend(lines_of(scene))
     flush_usage(db, job, ebook_lines)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
+    # Prévia automática: aprova o livro e enfileira o vídeo.
+    preview_chain.continue_preview_chain(db, project, job, JobType.VIDEO)

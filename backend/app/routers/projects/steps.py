@@ -28,13 +28,16 @@ from app.printkit.service import invalidate_print
 from app.schemas import (
     JobAcceptedOut,
     NarratedVideoRequestIn,
+    PreviewRequestIn,
     ProjectOut,
     StoryExtractOut,
+    StoryRequestIn,
     StoryTemplateApplyIn,
     StoryTextIn,
     VideoRequestIn,
 )
 from app.services import jobs as jobs_svc
+from app.services import preview_chain
 
 from .common import accept_job, get_owned_project
 
@@ -86,14 +89,85 @@ def start_realistic(
 @router.post("/{project_id}/story", response_model=JobAcceptedOut, status_code=202)
 def start_story(
     project_id: uuid.UUID,
+    body: StoryRequestIn | None = None,
     user: User = Depends(require_registered_user),
     db: Session = Depends(get_db),
     idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
 ) -> JobAcceptedOut:
     """Inventar uma história com IA (Claude)."""
     project = get_owned_project(db, user, project_id)
+    payload: dict | None = None
+    brief = (body.brief if body else None) or None
+    if brief and brief.strip():
+        payload = {"brief": brief.strip()[:2000]}
     job = jobs_svc.enqueue_job(
-        db, user=user, project=project, job_type=JobType.STORY, idempotency_key=idempotency_key
+        db,
+        user=user,
+        project=project,
+        job_type=JobType.STORY,
+        idempotency_key=idempotency_key,
+        payload=payload,
+    )
+    return accept_job(job)
+
+
+@router.post("/{project_id}/preview", response_model=JobAcceptedOut, status_code=202)
+def start_preview(
+    project_id: uuid.UUID,
+    body: PreviewRequestIn | None = None,
+    user: User = Depends(require_registered_user),
+    db: Session = Depends(get_db),
+    idempotency_key: str | None = Header(default=None, alias="Idempotency-Key"),
+) -> JobAcceptedOut:
+    """Gera a prévia no Studio: avatar → história → ebook (3 págs) → vídeo.
+
+    Auto-aprova personagem e livro ao longo da cadeia. Requer foto. Bloqueia se
+    já houver uma prévia PENDING/RUNNING no projeto.
+    """
+    project = get_owned_project(db, user, project_id)
+    has_photo = db.scalar(
+        select(Asset).where(Asset.project_id == project.id, Asset.kind == AssetKind.PHOTO.value)
+    )
+    if not has_photo:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Envie ao menos uma foto antes")
+
+    # Idempotência antes do conflito: retry com a mesma chave devolve o job ativo.
+    if idempotency_key:
+        existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
+        if existing is not None:
+            return accept_job(existing)
+
+    if preview_chain.has_active_preview(db, project.id):
+        raise HTTPException(
+            status.HTTP_409_CONFLICT,
+            "Já existe uma prévia em andamento para este projeto",
+        )
+
+    payload: dict = {preview_chain.PREVIEW_FLAG: True}
+    brief = (body.brief if body else None) or None
+    if brief and brief.strip():
+        payload["brief"] = brief.strip()[:2000]
+
+    project.character_approved_at = None
+    project.book_approved_at = None
+    invalidate_print(db, project)
+
+    if project.character_ref:
+        job_type = JobType.STORY
+        step = "story"
+    else:
+        job_type = JobType.AVATAR
+        step = "avatar"
+
+    # Sem Idempotency-Key do cliente: UUID novo para permitir re-gerar após DONE.
+    key = idempotency_key or f"preview-{project.id}-{step}-{uuid.uuid4()}"
+    job = jobs_svc.enqueue_job(
+        db,
+        user=user,
+        project=project,
+        job_type=job_type,
+        idempotency_key=key,
+        payload=payload,
     )
     return accept_job(job)
 

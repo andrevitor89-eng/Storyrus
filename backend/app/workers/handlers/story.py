@@ -46,6 +46,7 @@ from app.observability.opik_trace import (
     update_trace,
 )
 from app.observability.story_judge import score_and_log_story
+from app.services import preview_chain
 from app.services.pricing import add_usd
 from app.services.usage_ledger import (
     lines_of,
@@ -821,6 +822,8 @@ async def handle_story(db: Session, job: Job) -> None:
 
     # Em background: agenda o roteiro completo (storyboard) para o vídeo futuro.
     _enqueue_auto_storyboard(db, project, job)
+    # Prévia automática: enfileira o ebook (storyboard segue em paralelo).
+    preview_chain.continue_preview_chain(db, project, job, JobType.EBOOK)
 
 
 def _enqueue_auto_storyboard(db: Session, project: Project, source_job: Job) -> None:

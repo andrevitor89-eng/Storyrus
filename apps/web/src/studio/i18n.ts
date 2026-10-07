@@ -95,6 +95,10 @@ export type StudioCopy = {
   photoSent: string;
   orderSent: string;
   orderFollowup: string;
+  previewCta: string;
+  previewHint: string;
+  previewCost: string;
+  previewRunning: string;
   otherCharacters: string;
   otherCharactersPh: string;
   otherCharactersHint: string;
@@ -395,8 +399,12 @@ const pt: StudioCopy = {
   consent:
     "Declaro ser o responsável legal e autorizo o uso da imagem enviada e, quando aplicável, da voz fornecida exclusivamente para a criação deste livro personalizado. Esses materiais não serão utilizados para divulgação ou publicidade.",
   photoSent: "Foto enviada ✓",
-  orderSent: "Pedido enviado.",
-  orderFollowup: "Nossa equipe entrará em contato.",
+  orderSent: "Projeto criado.",
+  orderFollowup: "Peça a prévia no Studio para ver história, ebook e vídeo. Nossa equipe também pode entrar em contato.",
+  previewCta: "Gerar prévia",
+  previewHint: "Gera automaticamente personagem, história, ebook (3 páginas) e vídeo.",
+  previewCost: "(~8 créditos)",
+  previewRunning: "Gerando prévia…",
   otherCharacters: "Outros personagens (opcional)",
   otherCharactersPh: "Ex.: mamãe, irmão, Totó",
   otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
@@ -601,8 +609,12 @@ const en: StudioCopy = {
   consent:
     "I declare that I am the legal guardian and authorize the use of the submitted image and, when applicable, the provided voice exclusively to create this personalized book. These materials will not be used for promotion or advertising.",
   photoSent: "Photo uploaded ✓",
-  orderSent: "Request sent.",
-  orderFollowup: "Our team will be in touch.",
+  orderSent: "Project created.",
+  orderFollowup: "Request a preview in Studio to see the story, ebook, and video. Our team may also get in touch.",
+  previewCta: "Generate preview",
+  previewHint: "Automatically builds character, story, ebook (3 pages), and video.",
+  previewCost: "(~8 credits)",
+  previewRunning: "Generating preview…",
   otherCharacters: "Other characters (optional)",
   otherCharactersPh: "e.g. mom, brother, Toto",
   otherCharactersHint: "Separate names with commas. The child is already the main character.",
@@ -807,8 +819,12 @@ const es: StudioCopy = {
   consent:
     "Declaro ser el responsable legal y autorizo el uso de la imagen enviada y, cuando corresponda, de la voz proporcionada exclusivamente para la creación de este libro personalizado. Estos materiales no se utilizarán para difusión ni publicidad.",
   photoSent: "Foto enviada ✓",
-  orderSent: "Pedido enviado.",
-  orderFollowup: "Nuestro equipo se pondrá en contacto.",
+  orderSent: "Proyecto creado.",
+  orderFollowup: "Pide la vista previa en el Studio para ver historia, ebook y video. Nuestro equipo también puede contactarte.",
+  previewCta: "Generar vista previa",
+  previewHint: "Genera automáticamente personaje, historia, ebook (3 páginas) y video.",
+  previewCost: "(~8 créditos)",
+  previewRunning: "Generando vista previa…",
   otherCharacters: "Otros personajes (opcional)",
   otherCharactersPh: "Ej.: mamá, hermano, Totó",
   otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",

@@ -14,7 +14,10 @@ type Job = {
   attempts: number;
   error: string | null;
   created_at: string;
-  result?: { progress?: { stage?: string; done?: number; total?: number } } | null;
+  result?: {
+    progress?: { stage?: string; done?: number; total?: number };
+    payload?: { preview_chain?: boolean; brief?: string; duration_s?: number };
+  } | null;
   _polls: number;
 };
 type Project = {
@@ -152,6 +155,56 @@ function seedOwnerUsers(): OwnerUserMock[] {
 let seq = 0;
 const id = () => `id-${++seq}`;
 
+function enqueuePreviewNext(project: Project, fromType: string, payload: Job["result"]) {
+  const chain = Boolean(payload?.payload?.preview_chain);
+  if (!chain) return;
+  const nextType =
+    fromType === "AVATAR" ? "STORY" : fromType === "STORY" ? "EBOOK" : fromType === "EBOOK" ? "VIDEO" : null;
+  if (!nextType) return;
+  if (fromType === "AVATAR") project.character_approved_at = new Date().toISOString();
+  if (fromType === "EBOOK") project.book_approved_at = new Date().toISOString();
+  const cost = COST[nextType] ?? 1;
+  if (state.credits < cost) {
+    const failed: Job = {
+      id: id(),
+      project_id: project.id,
+      type: nextType,
+      status: "FAILED",
+      provider: null,
+      cost_credits: 0,
+      attempts: 1,
+      error: `Creditos insuficientes: requer ${cost}, disponivel ${state.credits}`,
+      created_at: new Date().toISOString(),
+      result: { payload: { preview_chain: true, ...(payload?.payload?.brief ? { brief: payload.payload.brief } : {}) } },
+      _polls: 0,
+    };
+    state.jobs.get(project.id)?.push(failed);
+    return;
+  }
+  state.credits -= cost;
+  const nextPayload: Job["result"] = {
+    payload: {
+      preview_chain: true,
+      ...(payload?.payload?.brief && nextType === "STORY" ? { brief: payload.payload.brief } : {}),
+      ...(nextType === "VIDEO" ? { duration_s: 5 } : {}),
+    },
+  };
+  const job: Job = {
+    id: id(),
+    project_id: project.id,
+    type: nextType,
+    status: "PENDING",
+    provider: null,
+    cost_credits: cost,
+    attempts: 1,
+    error: null,
+    created_at: new Date().toISOString(),
+    result: nextPayload,
+    _polls: 0,
+  };
+  state.jobs.get(project.id)?.push(job);
+}
+
 function advance(job: Job, project: Project) {
   job._polls += 1;
   if (job._polls === 1) job.status = "RUNNING";
@@ -181,6 +234,7 @@ function advance(job: Job, project: Project) {
       project.narrated_video_url = `projects/${project.id}/narrated/x.mp4`;
       project.status = "VIDEO_READY";
     }
+    enqueuePreviewNext(project, job.type, job.result);
   }
 }
 
@@ -625,12 +679,21 @@ export const handlers = [
   }),
 
   ...["avatar", "realistic", "story", "ebook", "video", "narrated-video"].map((step) =>
-    http.post(`*/v1/projects/:pid/${step}`, ({ params }) => {
+    http.post(`*/v1/projects/:pid/${step}`, async ({ params, request }) => {
       const pid = params.pid as string;
       const type = step === "narrated-video" ? "NARRATED_VIDEO" : step.toUpperCase();
       const cost = COST[type];
       if (state.credits < cost) {
         return HttpResponse.json({ detail: "Creditos insuficientes" }, { status: 402 });
+      }
+      let payload: Job["result"] = null;
+      try {
+        const body = (await request.json()) as { brief?: string; duration_s?: number };
+        if (body?.brief || body?.duration_s) {
+          payload = { payload: { ...(body.brief ? { brief: body.brief } : {}), ...(body.duration_s ? { duration_s: body.duration_s } : {}) } };
+        }
+      } catch {
+        /* body vazio */
       }
       state.credits -= cost;
       const job: Job = {
@@ -643,6 +706,7 @@ export const handlers = [
         attempts: 1,
         error: null,
         created_at: new Date().toISOString(),
+        result: payload,
         _polls: 0,
       };
       state.jobs.get(pid)?.push(job);
@@ -652,6 +716,55 @@ export const handlers = [
       );
     }),
   ),
+  http.post("*/v1/projects/:pid/preview", async ({ params, request }) => {
+    const pid = params.pid as string;
+    const project = state.projects.get(pid);
+    if (!project) return new HttpResponse(null, { status: 404 });
+    const active = (state.jobs.get(pid) ?? []).some(
+      (j) =>
+        (j.status === "PENDING" || j.status === "RUNNING") &&
+        Boolean(j.result?.payload?.preview_chain),
+    );
+    if (active) {
+      return HttpResponse.json(
+        { detail: "Já existe uma prévia em andamento para este projeto" },
+        { status: 409 },
+      );
+    }
+    let brief: string | undefined;
+    try {
+      const body = (await request.json()) as { brief?: string };
+      brief = body?.brief?.trim() || undefined;
+    } catch {
+      /* body vazio */
+    }
+    const type = "AVATAR";
+    const cost = COST[type];
+    if (state.credits < cost) {
+      return HttpResponse.json({ detail: "Creditos insuficientes" }, { status: 402 });
+    }
+    state.credits -= cost;
+    project.character_approved_at = null;
+    project.book_approved_at = null;
+    const job: Job = {
+      id: id(),
+      project_id: pid,
+      type,
+      status: "PENDING",
+      provider: null,
+      cost_credits: cost,
+      attempts: 1,
+      error: null,
+      created_at: new Date().toISOString(),
+      result: { payload: { preview_chain: true, ...(brief ? { brief } : {}) } },
+      _polls: 0,
+    };
+    state.jobs.get(pid)?.push(job);
+    return HttpResponse.json(
+      { job_id: job.id, status: "PENDING", type, estimated_cost_credits: cost },
+      { status: 202 },
+    );
+  }),
   http.post("*/v1/projects/:pid/avatar/approve", ({ params }) => {
     const p = state.projects.get(params.pid as string);
     if (!p) return new HttpResponse(null, { status: 404 });
