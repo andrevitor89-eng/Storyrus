@@ -217,8 +217,8 @@ describe("Landing — catálogo", () => {
     expect(within(cards[0]).getByText(/resistente e durável/i)).toBeInTheDocument();
     expect(within(cards[0]).getAllByRole("button", { name: "SOFT" })).toHaveLength(1);
     expect(within(cards[0]).getByText(/leve e flexível/i)).toBeInTheDocument();
-    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(19);
-    expect(cards).toHaveLength(19);
+    expect(within(catalog).getAllByRole("button", { name: "HARD" })).toHaveLength(20);
+    expect(cards).toHaveLength(20);
     cards.forEach((card) => {
       expect(card).toHaveAttribute("data-format", "catalog");
       expect(within(card).queryByText(/esporte e coragem/i)).not.toBeInTheDocument();
@@ -234,6 +234,7 @@ describe("Landing — catálogo", () => {
     expect(within(catalog).queryByText(/Aniversário Especial de Ester/i)).not.toBeInTheDocument();
     expect(within(catalog).getByText("Amor de Tia")).toBeInTheDocument();
     expect(within(catalog).getByText("Lucas e seu amigo Max")).toBeInTheDocument();
+    expect(within(catalog).getByText("Bruno em uma aventura animal")).toBeInTheDocument();
     expect(within(catalog).getByText("Pequeno Construtor, Grande Empreendedor")).toBeInTheDocument();
     expect(within(catalog).getByText("Meu Herói Favorito, o Bombeiro")).toBeInTheDocument();
     expect(within(catalog).getByText("Meu Herói Favorito, o Policial")).toBeInTheDocument();
@@ -703,7 +704,13 @@ describe("Landing — CTAs e links", () => {
     fireEvent.mouseEnter(educativo);
     const eduFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
     expect(eduFeats).toHaveLength(3);
+    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /bruno/i })).toHaveAttribute("href", "/livro/31");
+    expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /lucas/i })).not.toBeInTheDocument();
     expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /alfabeto/i })).not.toBeInTheDocument();
+    const animais = within(panel).getByRole("link", { name: /^animais$/i });
+    fireEvent.mouseEnter(animais);
+    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /bruno/i })).toHaveAttribute("href", "/livro/31");
+    expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /lucas/i })).not.toBeInTheDocument();
     const childrensDay = within(panel).queryByRole("link", { name: /dia das crianças/i });
     if (childrensDay) {
       fireEvent.mouseEnter(childrensDay);
@@ -815,6 +822,7 @@ describe("Catálogo e página do livro", () => {
     const daviLinks = screen.getAllByRole("link", { name: /davi, o menino pastor/i });
     expect(daviLinks.length).toBeGreaterThan(0);
     expect(daviLinks[0]).toHaveAttribute("href", "/livro/20");
+    expect(screen.getByRole("heading", { name: /bruno em uma aventura animal/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /o aniversário especial de ester/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /amor de avô/i })).not.toBeInTheDocument();
   });
@@ -845,6 +853,30 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("heading", { name: /emilia e os primeiros passos da bailarina/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /meu pai, meu herói/i })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /ver todos os livros/i })).toHaveAttribute("href", "/catalogo");
+  });
+
+  it("coloca Bruno no Educativo", async () => {
+    render(
+      <MemoryRouter initialEntries={["/catalogo/educativo"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /^educativo$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /bruno em uma aventura animal/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /davi, o menino pastor/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /esther e os superpoderes da higiene/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /lucas e seu amigo max/i })).not.toBeInTheDocument();
+  });
+
+  it("mantém Lucas no Você e Eu", async () => {
+    render(
+      <MemoryRouter initialEntries={["/catalogo/voce-e-eu"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /^você e eu$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /lucas e seu amigo max/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /bruno em uma aventura animal/i })).not.toBeInTheDocument();
   });
 
   it("responde 404 para um livro inexistente", async () => {

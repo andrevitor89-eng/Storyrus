@@ -73,6 +73,7 @@ export const CAST_BY_CATALOG: Record<number, { quem: string; genero: StudioGende
   23: { quem: "primo", genero: "m" },
   24: { quem: "crianca", genero: "m", quem2: "pet", genero2: "m", heroi2: "Max" },
   25: { quem: "crianca", genero: "f" },
+  31: { quem: "crianca", genero: "m" },
 };
 
 type Copy = {
