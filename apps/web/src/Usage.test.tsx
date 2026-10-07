@@ -53,6 +53,55 @@ describe("Pedidos", () => {
     expect(await screen.findByRole("heading", { name: /novo livro story r us realista/i })).toBeInTheDocument();
     setToken(null);
   });
+
+  it("com sessão, mostra abrindo e não pede senha enquanto carrega", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server, state } = await import("./test/server");
+    const { setToken } = await import("./api");
+    state.isOwner = true;
+    setToken("owner-token");
+    server.use(
+      http.get("*/v1/usage", async () => {
+        await new Promise((r) => setTimeout(r, 80));
+        return HttpResponse.json({
+          timezone: "America/Sao_Paulo",
+          from_at: new Date().toISOString(),
+          to_at: new Date().toISOString(),
+          today_usd: 0,
+          month_usd: 0,
+          range_usd: 0,
+          books_count: 0,
+          avg_book_usd: null,
+          by_type: [],
+          by_provider: [],
+          books: [],
+          recent_jobs: [],
+          events: [],
+          events_count: 0,
+          orders: [],
+        });
+      }),
+    );
+    render(<Pedidos />);
+    expect(await screen.findByTestId("owner-access-opening")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument();
+    expect(await screen.findByTestId("pedidos-empty")).toBeInTheDocument();
+    setToken(null);
+  });
+
+  it("em falha de rede com sessão, oferece tentar de novo sem travar na senha", async () => {
+    const { http, HttpResponse } = await import("msw");
+    const { server, state } = await import("./test/server");
+    const { setToken } = await import("./api");
+    state.isOwner = true;
+    setToken("owner-token");
+    server.use(http.get("*/v1/usage", () => HttpResponse.error()));
+    render(<Pedidos />);
+    expect(await screen.findByTestId("owner-access-opening")).toBeInTheDocument();
+    expect(await screen.findByTestId("owner-access-retry")).toBeInTheDocument();
+    expect(screen.queryByLabelText(/senha/i)).not.toBeInTheDocument();
+    setToken(null);
+  });
 });
 
 describe("Painel /usuarios", () => {

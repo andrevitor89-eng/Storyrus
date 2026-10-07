@@ -149,4 +149,4 @@ services:
       - key: DAILY_CREDITS_CEILING
         value: "0"
 
-# redeploy nudge 2026-10-06T19:20Z
+# redeploy nudge 2026-10-07T12:25Z — pedidos gate + order tickets
