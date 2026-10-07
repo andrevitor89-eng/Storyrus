@@ -120,3 +120,18 @@ Handlers (`app/workers/handlers.py`):
 - `STORYBOARD` gera keyframes; `VIDEO` dispara o Kling (único provedor de vídeo)
   e faz polling até concluir (ou conclui via webhook), republicando o arquivo no
   storage próprio. Não há integração Veo — `VIDEO_PROVIDER` deve ser `kling`.
+
+## Demo: vídeo Kling do livro Meu Pai, Meu Herói
+
+Com `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` preenchidos:
+
+```bash
+# na raiz
+make kling-meupai
+# smoke test (1 página):
+make kling-meupai ARGS='--limit 1'
+# ou direto:
+cd backend && .venv/bin/python scripts/gen_meupai_kling.py
+```
+
+Saída: `apps/web/public/exemplos/video-meupai-heroi-kling.mp4` (17 clips de 5s concatenados).

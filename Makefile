@@ -10,7 +10,7 @@ COMPOSE := docker compose $(COMPOSE_FILES)
 BACKEND_ENV := backend/.env
 API_URL ?= http://localhost:8000
 
-.PHONY: help init up down logs ps seed demo web restart
+.PHONY: help init up down logs ps seed demo web restart kling-meupai
 
 help: ## List targets
 	@awk 'BEGIN {FS = ":.*##"; printf "Story R Us local DX\n\n"} /^[a-zA-Z_-]+:.*?##/ { printf "  make %-10s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
@@ -48,3 +48,6 @@ demo: ## Exercise API flow against running stack (needs make up)
 
 web: ## Run Vite web on host (API must already be up)
 	cd apps/web && npm install && npm run dev
+
+kling-meupai: ## Animate Meu Pai pages with Kling (needs KLING_* in backend/.env)
+	cd backend && .venv/bin/python scripts/gen_meupai_kling.py $(ARGS)
