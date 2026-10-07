@@ -5,6 +5,7 @@ import "./landing.css";
 import { NotFound } from "./NotFound";
 import { bookPageMeta, categoryPageMeta, NOT_FOUND_PAGE, staticPageMeta, usePageMeta } from "./pageMeta";
 import { useResolvedLang, type Lang } from "./i18n/lang";
+import { SiteBackNav } from "./SiteBackNav";
 import {
   CatalogBookCard,
   catalogCategory,
@@ -84,6 +85,7 @@ export function CatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
+        <SiteBackNav />
         <h1 className="ktitle">{copy.title}</h1>
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
@@ -115,7 +117,7 @@ export function CategoryCatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
-        <p className="book-back"><Link to="/catalogo">{copy.back}</Link></p>
+        <SiteBackNav />
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <h1 className="catalog-section-title">{section.name}</h1>
           {section.books.length > 0 ? (
@@ -153,7 +155,7 @@ export function BookPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection book-page" id="catalogo">
-        <p className="book-back"><Link to={`/catalogo/${book.sectionId}`}>{copy.back}</Link></p>
+        <SiteBackNav />
         <div className="book-page-card">
           <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" />
         </div>

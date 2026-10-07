@@ -4,6 +4,7 @@ import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { studioEntryHref } from "./Auth";
 import { api, getToken } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
+import { SiteBackNav } from "./SiteBackNav";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -590,27 +591,6 @@ function personalizeHref(opts: {
   q.set("tamanho", opts.size);
   q.set("capa", opts.cover);
   q.set("modo", opts.modo);
-  return studioEntryHref(`/app?${q.toString()}`);
-}
-function studioHref(opts: {
-  tema: string;
-  titulo?: string;
-  historia?: string;
-  heroi?: string;
-  size?: "M" | "P";
-  cover?: "soft" | "hard";
-  modo?: "realista" | "cartoon";
-  catalogI?: number;
-}) {
-  const q = new URLSearchParams();
-  q.set("tema", opts.tema);
-  q.set("campos", "nome");
-  if (opts.titulo) q.set("titulo", opts.titulo);
-  if (opts.historia) q.set("historia", opts.historia);
-  if (opts.heroi) q.set("heroi", opts.heroi);
-  q.set("tamanho", opts.size ?? "M");
-  q.set("capa", opts.cover ?? "hard");
-  q.set("modo", opts.modo ?? "realista");
   return studioEntryHref(`/app?${q.toString()}`);
 }
 const exUrl = (f: string) => (f.startsWith("http://") || f.startsWith("https://") ? f : `${import.meta.env.BASE_URL}exemplos/${f}`);
@@ -1944,20 +1924,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const reviewPhotos = variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS;
   const heroPages = heroStrip.flatMap((book) => [book.cover[lang], book.page[lang], book.photo[lang]]);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
-  const bookStudioHref = (theme: string, catalogI?: number) => {
-    if (catalogI === undefined) return studioEntryHref(`/app?tema=${theme}`);
-    const book = t.catalog[catalogI];
-    if (!book) return studioEntryHref(`/app?tema=${theme}`);
-    return studioHref({
-      tema: theme,
-      titulo: book.t,
-      historia: `${book.tag}. ${book.p}`,
-      heroi: HERO_BY_CATALOG[catalogI],
-      cover: catalogCoverChoice(book.cover),
-      modo: variant === "cartoon" ? "cartoon" : "realista",
-      catalogI,
-    });
-  };
   const navCats = t.cats.map((cat, i) => ({
     ...cat,
     id: NAV_CAT_META[i].id,
@@ -1971,12 +1937,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const rawOnly = books.length === 1 ? books[0] : undefined;
       const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
-      const href =
-        only !== undefined
-          ? `/livro/${only}`
-          : bookTheme
-            ? bookStudioHref(bookTheme)
-            : studioEntryHref(meta.href);
+      // Um livro → ficha; vários/nenhum → catálogo completo na categoria do tema.
+      const href = only !== undefined ? `/livro/${only}` : `/catalogo#${NAV_CAT_META[i].id}`;
       return [{
         label,
         href,
@@ -2183,7 +2145,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                             setSubHover((cur) => (cur?.cat === i ? cur : null));
                           }}
                         >
-                          <Link to={`/catalogo/${cat.id}`} className="kcat-group-name is-chip" onClick={closeNav}>
+                          <Link to={`/catalogo#${cat.id}`} className="kcat-group-name is-chip" onClick={closeNav}>
                             <span className="kcat-dot" style={{ background: cat.color, boxShadow: `0 0 8px ${cat.color}` }} />
                             {cat.name}
                           </Link>
@@ -2208,7 +2170,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                         const activeSub = subHover && hoverCat ? hoverCat.subs[subHover.sub] : null;
                         const activeTheme = activeSub?.theme ?? (activeSub ? themeFromHref(activeSub.href) : null);
                         const shown = (activeTheme ? menuBooks(activeTheme) : hoverCat?.feats ?? []).slice(0, 4);
-                        const allHref = hoverCat ? `/catalogo/${hoverCat.id}` : "/catalogo";
+                        const allHref = hoverCat ? `/catalogo#${hoverCat.id}` : "/catalogo";
                         return (
                           <>
                             {shown.map((feat) => (
@@ -2349,7 +2311,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             {shownCats.map((cat, i) => (
               <div key={cat.id} className={`kmobile-cat${mobileCat === i ? " open" : ""}`} style={{ "--group": cat.color } as CSSProperties}>
                 <div className="kmobile-cat-btn">
-                  <Link to={`/catalogo/${cat.id}`} onClick={closeNav}>
+                  <Link to={`/catalogo#${cat.id}`} onClick={closeNav}>
                     <span className="kcat-dot" style={{ background: cat.color }} />
                     {cat.name}
                   </Link>
@@ -2426,6 +2388,12 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </nav>
         </div>
       </header>
+
+      {variant === "cartoon" ? (
+        <div className="ksection site-back-wrap">
+          <SiteBackNav />
+        </div>
+      ) : null}
 
       {/* HERO — proposta de valor + faixa de livros */}
       <section className="kbanner-hero" aria-label={t.hero_sign}>

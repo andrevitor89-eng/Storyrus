@@ -13,6 +13,7 @@ import {
   type StudioWho,
 } from "./studioSubject";
 import logo from "./assets/logo.png";
+import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
 import { resolveThemeName } from "./studio/constants";
 import { ProgressList } from "./studio/ProgressList";
@@ -676,6 +677,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
           </div>
         </div>
       </header>
+
+      <div className="ksection site-back-wrap">
+        <SiteBackNav />
+      </div>
 
       <main id="studio-main" className="studio-page" aria-busy={busy || undefined}>
         {orderSent ? (

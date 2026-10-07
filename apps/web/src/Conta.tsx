@@ -16,6 +16,7 @@ import {
   regionProfile,
   submitStreetNumber,
 } from "./signupRegions";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 type ProfileForm = {
@@ -356,6 +357,7 @@ export function Conta() {
             </Link>
             {langSwitch}
           </div>
+          <SiteBackNav />
           <header className="auth-hero">
             <h1>{t.title}</h1>
             <p className="auth-lead">{t.lead}</p>

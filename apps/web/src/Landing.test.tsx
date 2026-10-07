@@ -653,13 +653,13 @@ describe("Landing — CTAs e links", () => {
     const subs = panel.querySelector(".kcat-subs") as HTMLElement;
     const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
     expect(princesas).toHaveAttribute("href", "/livro/1");
-    expect(studioTarget(within(panel).getByRole("link", { name: /^esportes$/i }).getAttribute("href"))).toContain("/app?tema=sport");
+    expect(within(panel).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/catalogo#aventuras");
     const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
     expect(biblico.parentElement?.querySelector("a")).toBe(biblico);
     expect(biblico).toHaveAttribute("href", "/livro/20");
-    expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo/educativo");
-    expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo/voce-e-eu");
-    expect(within(panel).getByRole("link", { name: /^aventuras$/i })).toHaveAttribute("href", "/catalogo/aventuras");
+    expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
+    expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    expect(within(panel).getByRole("link", { name: /^aventuras$/i })).toHaveAttribute("href", "/catalogo#aventuras");
     expect(within(panel).queryByRole("link", { name: /^transporte$/i })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("link", { name: /^transportes$/i })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("link", { name: /^ano novo$/i })).not.toBeInTheDocument();
@@ -690,16 +690,16 @@ describe("Landing — CTAs e links", () => {
     expect(youLinks).not.toContain("Vovó e Vovô");
     expect(youLinks[youLinks.indexOf("Pets") - 1]).toBe("Casamento");
     const recem = within(panel).getByRole("link", { name: /^recém-nascidos$/i });
-    expect(studioTarget(recem.getAttribute("href"))).toContain("tema=recem_nascidos");
+    expect(recem).toHaveAttribute("href", "/catalogo#voce-e-eu");
     const vovo = within(panel).getByRole("link", { name: /^vovó e eu$/i });
     expect(vovo).toHaveAttribute("href", "/livro/8");
     fireEvent.mouseEnter(vovo);
     expect(within(feats).getByRole("link", { name: /amor de bisavó/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /amor de avô/i })).not.toBeInTheDocument();
     const casamento = within(panel).getByRole("link", { name: /^casamento$/i });
-    expect(studioTarget(casamento.getAttribute("href"))).toContain("tema=casamento");
+    expect(casamento).toHaveAttribute("href", "/catalogo#voce-e-eu");
     const pets = within(panel).getByRole("link", { name: /^pets$/i });
-    expect(studioTarget(pets.getAttribute("href"))).toContain("/app?tema=pets");
+    expect(pets).toHaveAttribute("href", "/catalogo#voce-e-eu");
     fireEvent.mouseEnter(pets);
     expect(within(feats).getByRole("link", { name: /maya/i })).toBeInTheDocument();
     expect(within(feats).getByRole("link", { name: /mako/i })).toBeInTheDocument();
@@ -846,7 +846,9 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByTestId("book-story")).toHaveTextContent(/harpa e as ovelhas/i);
     expect(screen.getByText(/livro 16 páginas/i)).toBeInTheDocument();
     expect(studioTarget(screen.getByTestId("landing-personalize").getAttribute("href"))).toContain("tema=biblico");
-    expect(screen.getByRole("link", { name: /ver todos os livros/i })).toHaveAttribute("href", "/catalogo/educativo");
+    expect(screen.getByTestId("site-back-nav")).toBeInTheDocument();
+    expect(screen.getByTestId("site-back-home")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("site-back-prev")).toBeInTheDocument();
     const series = screen.getByTestId("book-series");
     expect(series).toBeInTheDocument();
     expect(screen.getByTestId("book-series-cover")).toBeInTheDocument();
@@ -872,7 +874,21 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("heading", { name: /nano e suas aventuras/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /emilia e os primeiros passos da bailarina/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /meu pai, meu herói/i })).not.toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /ver todos os livros/i })).toHaveAttribute("href", "/catalogo");
+    expect(screen.getByTestId("site-back-home")).toHaveAttribute("href", "/");
+    expect(screen.getByTestId("site-back-prev")).toBeInTheDocument();
+  });
+
+  it("abre o catálogo completo com hash da categoria", async () => {
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    render(
+      <MemoryRouter initialEntries={["/catalogo#educativo"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
+    expect(document.getElementById("educativo")).toBeTruthy();
+    expect(screen.getByTestId("site-back-nav")).toBeInTheDocument();
+    scrollTo.mockRestore();
   });
 
   it("responde 404 para um livro inexistente", async () => {
