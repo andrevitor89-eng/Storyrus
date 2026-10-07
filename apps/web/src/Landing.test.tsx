@@ -182,7 +182,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-amordemae.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-mamaepapaimatteo.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-sofia-alfabeto.png"))).toBe(false);
-    expect(srcs.some((src) => src.includes("capa-bruno-animais.png"))).toBe(false);
+    expect(srcs.some((src) => src.includes("capa-bruno-animais.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-gael-es.png"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-matteo-rancho-es.png"))).toBe(false);
     expect(srcs.some((src) => src.includes("capa-ester.png"))).toBe(false);
@@ -195,7 +195,7 @@ describe("Landing — catálogo", () => {
     expect(srcs.some((src) => src.includes("capa-lucas-max.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-esther-higiene.png"))).toBe(true);
     expect(srcs.some((src) => src.includes("capa-nicolas-maefilho.jpg"))).toBe(false);
-    expect(imgs).toHaveLength(19);
+    expect(imgs).toHaveLength(20);
   });
 
   it("mostra os livros realistas com a mesma capa, o valor e sem o resumo", async () => {
@@ -318,7 +318,7 @@ describe("Landing — catálogo", () => {
     await screen.findByTestId("landing-hero-cta");
 
     const personalize = screen.getAllByTestId("landing-personalize");
-    expect(personalize).toHaveLength(19);
+    expect(personalize).toHaveLength(20);
     const first = studioTarget(personalize[0].getAttribute("href"));
     expect(first).toContain("tema=adventure");
     expect(first).toContain("campos=nome");
@@ -704,12 +704,12 @@ describe("Landing — CTAs e links", () => {
     fireEvent.mouseEnter(educativo);
     const eduFeats = within(screen.getByTestId("landing-cat-feats")).getAllByRole("link").filter((link) => link.classList.contains("kcat-feat"));
     expect(eduFeats).toHaveLength(3);
-    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /bruno/i })).toHaveAttribute("href", "/livro/31");
+    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /^animais$/i })).toHaveAttribute("href", "/livro/31");
     expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /lucas/i })).not.toBeInTheDocument();
     expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /alfabeto/i })).not.toBeInTheDocument();
-    const animais = within(panel).getByRole("link", { name: /^animais$/i });
+    const animais = within(educativo.querySelector(".kcat-subs") as HTMLElement).getByRole("link", { name: /^animais$/i });
     fireEvent.mouseEnter(animais);
-    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /bruno/i })).toHaveAttribute("href", "/livro/31");
+    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /bruno em uma aventura animal/i })).toHaveAttribute("href", "/livro/31");
     expect(within(screen.getByTestId("landing-cat-feats")).queryByRole("link", { name: /lucas/i })).not.toBeInTheDocument();
     const childrensDay = within(panel).queryByRole("link", { name: /dia das crianças/i });
     if (childrensDay) {
