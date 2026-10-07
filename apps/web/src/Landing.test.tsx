@@ -457,6 +457,12 @@ describe("Landing — menu mobile e abas do hero", () => {
       expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("foto-meupai-heroi.png"));
     }, { timeout: 2200 });
 
+    await user.click(screen.getByRole("button", { name: /próxima página/i }));
+    await waitFor(() => {
+      expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("capa-nanoaventuras.jpg"));
+    }, { timeout: 2200 });
+    expect(screen.getByTestId("landing-hero-flip-dot-0")).toHaveAttribute("aria-selected", "true");
+
     await user.click(screen.getByTestId("landing-hero-pick-1"));
     expect(screen.getByTestId("landing-hero-flip")).toHaveAttribute("src", expect.stringContaining("pagina-meupai-heroi.png"));
 

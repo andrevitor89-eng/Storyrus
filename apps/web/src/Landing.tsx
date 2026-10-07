@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import { studioEntryHref } from "./Auth";
 import { api, getToken } from "./api";
+import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import "./landing-flip-fold.css";
@@ -19,7 +20,7 @@ function sessionDisplayName(fullName: string | null | undefined, email: string):
   return local || email;
 }
 
-export type Lang = "pt" | "en" | "es";
+export type Lang = SiteLang;
 
 /* ---------------- ícones (SVG, sem emojis) ---------------- */
 type IconProps = { className?: string };
@@ -1418,15 +1419,19 @@ function FlipBook({
     ? (anim === "next" ? index : (anim === "prev" ? target : index))
     : index;
   const pageKind = (idx: number) => {
-    if (idx === 0) return "fb-page--cover";
-    if (idx === pages.length - 1) return "fb-page--photo";
+    const slot = ((idx % 3) + 3) % 3;
+    if (slot === 0) return "fb-page--cover";
+    if (slot === 2) return "fb-page--photo";
     return "fb-page--spread";
   };
   const pageLabel = (idx: number) => {
-    if (idx === 0) return labels.cover;
-    if (idx === pages.length - 1) return labels.photo;
+    const slot = ((idx % 3) + 3) % 3;
+    if (slot === 0) return labels.cover;
+    if (slot === 2) return labels.photo;
     return labels.turn;
   };
+  const bookBase = Math.floor(index / 3) * 3;
+  const bookDots = [bookBase, bookBase + 1, bookBase + 2].filter((i) => i < pages.length);
   const single = pages.length < 2;
   const onStage = (e: RMouseEvent<HTMLDivElement>) => {
     const r = e.currentTarget.getBoundingClientRect();
@@ -1491,15 +1496,15 @@ function FlipBook({
       </div>
       {single ? null : (
         <div className="fb-dots" role="tablist" aria-label={labels.turn}>
-          {pages.map((_, i) => (
+          {bookDots.map((i, slot) => (
             <button
-              key={pages[i]}
+              key={`${pages[i]}-${i}`}
               type="button"
               className={`fb-dot${i === index ? " on" : ""}`}
               role="tab"
               aria-selected={i === index}
               aria-label={pageLabel(i)}
-              data-testid={`landing-hero-flip-dot-${i}`}
+              data-testid={`landing-hero-flip-dot-${slot}`}
               onClick={() => goTo(i)}
             />
           ))}
@@ -1717,11 +1722,7 @@ function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
   };
 }
 export function readSiteLang(): Lang {
-  try {
-    const s = localStorage.getItem("lang");
-    if (s === "pt" || s === "en" || s === "es") return s;
-  } catch { /* ignore */ }
-  return "pt";
+  return readStoredLang("pt");
 }
 export function catalogPageCopy(lang: Lang) {
   const t = I18N[lang];
@@ -1798,13 +1799,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
   const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
-  const [lang, setLang] = useState<Lang>(() => {
-    try {
-      const s = localStorage.getItem("lang");
-      if (s === "pt" || s === "en" || s === "es") return s;
-    } catch { /* ignore */ }
-    return "pt";
-  });
+  const [lang, setLang] = useResolvedLang();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
     return "dark";
@@ -1863,10 +1858,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
           catalogI: i,
         }));
   const reviewPhotos = variant === "cartoon" ? CARTOON_REVIEW_PHOTOS : REVIEW_PHOTOS;
-  const heroSeries = Math.min(Math.floor(heroPick / 3), Math.max(heroStrip.length - 1, 0));
-  const heroPage = heroPick % 3;
-  const heroBook = heroStrip[heroSeries] ?? heroStrip[0];
-  const heroPages = [heroBook.cover[lang], heroBook.page[lang], heroBook.photo[lang]];
+  const heroPages = heroStrip.flatMap((book) => [book.cover[lang], book.page[lang], book.photo[lang]]);
   const flipLabels = { prev: t.fb_prev, next: t.fb_next, turn: t.fb_turn, cover: t.fb_cover, photo: t.fb_photo };
   const bookStudioHref = (theme: string, catalogI?: number) => {
     if (catalogI === undefined) return studioEntryHref(`/app?tema=${theme}`);
@@ -2000,11 +1992,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     observer.observe(header);
     return () => observer.disconnect();
   }, []);
-
-  useEffect(() => {
-    document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
-    try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
-  }, [lang]);
 
   useEffect(() => {
     const els = rootRef.current?.querySelectorAll(".reveal") ?? [];
@@ -2403,10 +2390,10 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         </div>
         <div className="khero-flipbook">
           <FlipBook
-            key={`${heroBook.name}-${lang}`}
+            key={lang}
             pages={heroPages}
-            index={heroPage}
-            onIndex={(next) => setHeroPick(heroSeries * 3 + next)}
+            index={Math.min(heroPick, Math.max(heroPages.length - 1, 0))}
+            onIndex={setHeroPick}
             labels={flipLabels}
           />
         </div>
