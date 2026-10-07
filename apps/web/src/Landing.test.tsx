@@ -539,36 +539,44 @@ describe("Landing — CTAs e links", () => {
     state.email = "ana@email.com";
     state.fullName = "Ana Souza";
     setToken("test-token");
+    const user = userEvent.setup();
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
     expect(screen.getByTestId("landing-hero-cta")).toHaveAttribute("href", "/app");
-    expect(await screen.findByTestId("landing-header-account")).toHaveAttribute("href", "/conta");
     expect(screen.getByTestId("landing-header-user")).toHaveTextContent("Ana");
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
     expect(screen.getByTestId("landing-header-cta")).toHaveTextContent(/criar meu livro/i);
     expect(screen.queryByTestId("landing-header-login")).not.toBeInTheDocument();
-    expect(screen.getByTestId("landing-header-logout")).toBeInTheDocument();
-    expect(await screen.findByTestId("landing-header-orders")).toHaveAttribute("href", "/pedidos");
+    expect(screen.queryByTestId("landing-header-account-menu")).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("landing-header-user"));
+    expect(await screen.findByTestId("landing-header-account-menu")).toBeInTheDocument();
+    expect(screen.getByTestId("landing-header-account")).toHaveAttribute("href", "/conta");
+    expect(screen.getByTestId("landing-header-orders")).toHaveAttribute("href", "/pedidos");
     expect(screen.getByTestId("landing-header-orders")).toHaveTextContent(/meus pedidos/i);
+    expect(screen.getByTestId("landing-header-logout")).toBeInTheDocument();
     expect(screen.queryByTestId("landing-header-users")).not.toBeInTheDocument();
     const personalize = screen.getAllByTestId("landing-personalize");
     expect(personalize[0].getAttribute("href") ?? "").toMatch(/^\/app\?/);
   });
 
-  it("com sessão admin, mostra Meus pedidos e Usuários na home", async () => {
+  it("com sessão admin, menu do usuário mostra Meus pedidos e Usuários", async () => {
     state.isGuest = false;
     state.emailVerified = true;
     state.isOwner = true;
     state.email = "dono@storyrus.ai";
     state.fullName = "André Admin";
     setToken("test-token");
+    const user = userEvent.setup();
     renderLanding();
 
+    expect(await screen.findByTestId("landing-header-user")).toHaveTextContent("André");
+    expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/app");
+    await user.click(screen.getByTestId("landing-header-user"));
     expect(await screen.findByTestId("landing-header-orders")).toHaveAttribute("href", "/pedidos");
     expect(screen.getByTestId("landing-header-orders")).toHaveTextContent(/meus pedidos/i);
     expect(screen.getByTestId("landing-header-users")).toHaveAttribute("href", "/usuarios");
-    expect(screen.getByTestId("landing-header-user")).toHaveTextContent("André");
   });
 
   it("com sessão, Sair limpa o header e volta a mostrar Entrar", async () => {
@@ -581,7 +589,8 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
 
     expect(await screen.findByTestId("landing-header-user")).toHaveTextContent("Ana");
-    await user.click(screen.getByTestId("landing-header-logout"));
+    await user.click(screen.getByTestId("landing-header-user"));
+    await user.click(await screen.findByTestId("landing-header-logout"));
     expect(await screen.findByTestId("landing-header-login")).toHaveAttribute("href", "/entrar");
     expect(screen.queryByTestId("landing-header-account")).not.toBeInTheDocument();
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");

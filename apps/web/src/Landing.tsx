@@ -1792,6 +1792,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const rootRef = useRef<HTMLDivElement>(null);
   const headerRef = useRef<HTMLElement>(null);
   const [navOpen, setNavOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const accountRef = useRef<HTMLDivElement | null>(null);
   const [openCat, setOpenCat] = useState<number | null>(null);
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
   const [featCat, setFeatCat] = useState<number | null>(null);
@@ -2018,7 +2020,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   }, [coverFont]);
 
   useEffect(() => {
-    if (!navOpen && openCat === null) return;
+    if (!navOpen && openCat === null && !accountOpen) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setNavOpen(false);
@@ -2026,16 +2028,20 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
         setOpenCat(null);
         setSubHover(null);
         setFeatCat(null);
+        setAccountOpen(false);
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [navOpen, openCat]);
+  }, [navOpen, openCat, accountOpen]);
 
   useEffect(() => {
-    if (openCat === null && !navOpen) return;
+    if (openCat === null && !navOpen && !accountOpen) return;
     const onPointerDown = (e: PointerEvent) => {
       const target = e.target as Node | null;
+      if (accountOpen && (!target || !accountRef.current?.contains(target))) {
+        setAccountOpen(false);
+      }
       if (target && headerRef.current?.contains(target)) return;
       setOpenCat(null);
       setSubHover(null);
@@ -2045,7 +2051,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     };
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
-  }, [navOpen, openCat]);
+  }, [navOpen, openCat, accountOpen]);
 
   const closeNav = () => {
     setNavOpen(false);
@@ -2053,6 +2059,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     setOpenCat(null);
     setSubHover(null);
     setFeatCat(null);
+    setAccountOpen(false);
   };
 
   function onLogout() {
@@ -2183,28 +2190,67 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
             <div className="khead-links" data-testid="landing-header-auth">
               {signedIn ? (
                 <>
-                  <span className="khead-user" data-testid="landing-header-user">
-                    {session.name}
-                  </span>
-                  <a className="kutil" href="/pedidos" data-testid="landing-header-orders">
-                    {t.orders}
-                  </a>
-                  {isOwner && (
-                    <a className="kutil" href="/usuarios" data-testid="landing-header-users">
-                      {t.users}
-                    </a>
-                  )}
-                  <Link to="/conta" className="kutil" data-testid="landing-header-account">
-                    {t.account}
-                  </Link>
-                  <button
-                    type="button"
-                    className="kutil"
-                    data-testid="landing-header-logout"
-                    onClick={onLogout}
-                  >
-                    {t.logout}
-                  </button>
+                  <div className="khead-account" ref={accountRef}>
+                    <button
+                      type="button"
+                      className={`khead-user${accountOpen ? " is-open" : ""}`}
+                      data-testid="landing-header-user"
+                      aria-expanded={accountOpen}
+                      aria-haspopup="menu"
+                      aria-controls="landing-account-menu"
+                      onClick={() => setAccountOpen((open) => !open)}
+                    >
+                      <span>{session.name}</span>
+                      <IcChevron className="khead-user-chev" />
+                    </button>
+                    {accountOpen && (
+                      <div
+                        id="landing-account-menu"
+                        className="khead-account-menu"
+                        role="menu"
+                        data-testid="landing-header-account-menu"
+                      >
+                        <a
+                          className="khead-account-item"
+                          role="menuitem"
+                          href="/pedidos"
+                          data-testid="landing-header-orders"
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          {t.orders}
+                        </a>
+                        {isOwner && (
+                          <a
+                            className="khead-account-item"
+                            role="menuitem"
+                            href="/usuarios"
+                            data-testid="landing-header-users"
+                            onClick={() => setAccountOpen(false)}
+                          >
+                            {t.users}
+                          </a>
+                        )}
+                        <Link
+                          className="khead-account-item"
+                          role="menuitem"
+                          to="/conta"
+                          data-testid="landing-header-account"
+                          onClick={() => setAccountOpen(false)}
+                        >
+                          {t.account}
+                        </Link>
+                        <button
+                          type="button"
+                          className="khead-account-item"
+                          role="menuitem"
+                          data-testid="landing-header-logout"
+                          onClick={onLogout}
+                        >
+                          {t.logout}
+                        </button>
+                      </div>
+                    )}
+                  </div>
                   <Link to="/app" className="kbtn kbtn-primary" data-testid="landing-header-cta">
                     {headerCtaLabel}
                   </Link>
