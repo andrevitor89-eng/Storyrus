@@ -264,6 +264,19 @@ describe("Auth", () => {
     expect(link).toHaveAttribute("href", expect.stringContaining("next="));
   });
 
+  it("mostra e oculta a senha pelo olho", async () => {
+    const user = userEvent.setup();
+    renderAuth("login");
+    const input = screen.getByTestId("auth-password");
+    expect(input).toHaveAttribute("type", "password");
+    await user.type(input, "segredo12");
+    await user.click(screen.getByTestId("auth-password-toggle"));
+    expect(input).toHaveAttribute("type", "text");
+    expect(input).toHaveValue("segredo12");
+    await user.click(screen.getByTestId("auth-password-toggle"));
+    expect(input).toHaveAttribute("type", "password");
+  });
+
   it("não mostra Esqueci a senha no cadastro", () => {
     renderAuth("signup", "/app");
     expect(screen.queryByTestId("auth-forgot")).not.toBeInTheDocument();

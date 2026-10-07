@@ -56,7 +56,7 @@ export function ForgotPassword() {
           </div>
           {sent ? (
             <>
-              <h1>Verifique seu e-mail</h1>
+              <h1>Verifique Seu E-mail</h1>
               <p className="auth-lead" data-testid="forgot-password-sent">
                 Se este e-mail estiver cadastrado, enviamos um link para redefinir a senha.
               </p>
@@ -66,7 +66,7 @@ export function ForgotPassword() {
             </>
           ) : (
             <>
-              <h1>Esqueci a senha</h1>
+              <h1>Esqueci A Senha</h1>
               <p className="auth-lead">
                 Informe o e-mail da conta. Enviaremos um link para escolher uma nova senha.
               </p>
@@ -93,7 +93,7 @@ export function ForgotPassword() {
                   disabled={busy}
                   data-testid="forgot-password-submit"
                 >
-                  {busy ? "Aguarde…" : "Enviar link"}
+                  {busy ? "Aguarde…" : "Enviar Link"}
                 </button>
               </form>
             </>
@@ -103,12 +103,12 @@ export function ForgotPassword() {
               to={`/entrar?next=${encodeURIComponent(next)}`}
               data-testid="forgot-password-login"
             >
-              Voltar ao login
+              Voltar Ao Login
             </Link>
           </p>
           <p className="auth-foot">
             <Link to="/" data-testid="forgot-password-back">
-              Voltar ao início
+              Voltar Ao Início
             </Link>
           </p>
         </div>

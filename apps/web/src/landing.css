@@ -2577,6 +2577,36 @@ img.ex-tab-cover {
   font-weight: 600;
   color: var(--auth-ink);
 }
+.auth-password-wrap {
+  position: relative;
+  display: block;
+}
+.auth-password-wrap input {
+  padding-right: 2.85rem;
+}
+.auth-password-toggle {
+  position: absolute;
+  right: 0.4rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.35rem;
+  height: 2.35rem;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: #5a6b94;
+  cursor: pointer;
+  padding: 0;
+}
+.auth-password-toggle:hover,
+.auth-password-toggle:focus-visible {
+  color: var(--auth-ink);
+  background: #e8eefc;
+  outline: none;
+}
 .auth-form select {
   width: 100%;
   border-radius: 14px;
