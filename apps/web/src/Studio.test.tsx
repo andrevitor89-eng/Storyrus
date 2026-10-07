@@ -75,6 +75,16 @@ describe("ProgressList", () => {
   });
 });
 
+describe("Studio — gênero padrão", () => {
+  it("abre com Feminino já acionado", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    expect(screen.getByRole("button", { name: /^feminino$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^masculino$/i, pressed: false })).toBeInTheDocument();
+  });
+});
+
 describe("Studio — ordem dos campos", () => {
   it("mostra personagens, dedicatória, título, tema, tipo, fotos e gerar nessa ordem", async () => {
     const user = userEvent.setup();

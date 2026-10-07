@@ -140,7 +140,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [coverType, setCoverType] = useState<"soft" | "hard">("hard");
   const [extraNames, setExtraNames] = useState("");
   const [castWho, setCastWho] = useState<StudioWho>("child");
-  const [gender, setGender] = useState<StudioGender | null>(null);
+  const [gender, setGender] = useState<StudioGender | null>("f");
   const [alsoWho, setAlsoWho] = useState<StudioWho | null>(null);
   const [alsoGender, setAlsoGender] = useState<StudioGender | null>(null);
   const [alsoName, setAlsoName] = useState("");
@@ -214,7 +214,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (q.get("campos") === "nome") setOnlyName(true);
     const cast = tema || titulo || historia ? castFromQuery(q) : emptyCast();
     setCastWho(cast.who);
-    setGender(cast.gender);
+    setGender(cast.gender ?? "f");
     setAlsoWho(cast.also?.who ?? null);
     setAlsoGender(cast.also?.gender ?? null);
     setAskGender(cast.askGender);
