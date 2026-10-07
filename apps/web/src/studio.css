@@ -444,7 +444,7 @@
 .studio-app .studio-review-story > .field-label {
   display: block;
   width: 100%;
-  max-width: 48rem;
+  max-width: 36rem;
   margin-left: auto;
   margin-right: auto;
   text-align: left;
@@ -455,7 +455,7 @@
   flex-direction: column;
   gap: 0.9rem;
   width: 100%;
-  max-width: 48rem;
+  max-width: 36rem;
   margin: 0.85rem auto 0;
   min-width: 0;
   box-sizing: border-box;
@@ -468,7 +468,7 @@
   width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  padding: 1.35rem 1.6rem 1.5rem;
+  padding: 1.4rem 1.55rem 1.55rem;
   border-radius: 16px;
   background:
     linear-gradient(160deg, rgba(255, 248, 235, 0.08), rgba(255, 255, 255, 0.02)),
