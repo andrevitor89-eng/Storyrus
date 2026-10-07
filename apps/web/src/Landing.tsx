@@ -646,7 +646,7 @@ const I18N = {
     cta_play: "Criar conta",
     account: "Minha conta",
     logout: "Sair",
-    orders: "Pedidos",
+    orders: "Meus pedidos",
     users: "Usuários",
     hero_cta: "Criar meu livro",
     cta_story: "Criar minha história",
@@ -854,7 +854,7 @@ const I18N = {
     cta_play: "Sign up",
     account: "My account",
     logout: "Log out",
-    orders: "Orders",
+    orders: "My orders",
     users: "Users",
     hero_cta: "Create my book",
     cta_story: "Create my story",
@@ -1062,7 +1062,7 @@ const I18N = {
     cta_play: "Crear cuenta",
     account: "Mi cuenta",
     logout: "Salir",
-    orders: "Pedidos",
+    orders: "Mis pedidos",
     users: "Usuarios",
     hero_cta: "Crear mi libro",
     cta_story: "Crear mi historia",
@@ -2186,15 +2186,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                   <span className="khead-user" data-testid="landing-header-user">
                     {session.name}
                   </span>
+                  <a className="kutil" href="/pedidos" data-testid="landing-header-orders">
+                    {t.orders}
+                  </a>
                   {isOwner && (
-                    <>
-                      <a className="kutil" href="/pedidos" data-testid="landing-header-orders">
-                        {t.orders}
-                      </a>
-                      <a className="kutil" href="/usuarios" data-testid="landing-header-users">
-                        {t.users}
-                      </a>
-                    </>
+                    <a className="kutil" href="/usuarios" data-testid="landing-header-users">
+                      {t.users}
+                    </a>
                   )}
                   <Link to="/conta" className="kutil" data-testid="landing-header-account">
                     {t.account}
@@ -2278,15 +2276,13 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 <span className="khead-user" data-testid="landing-mobile-user">
                   {session.name}
                 </span>
+                <a className="kutil" href="/pedidos" data-testid="landing-mobile-orders" onClick={closeNav}>
+                  {t.orders}
+                </a>
                 {isOwner && (
-                  <>
-                    <a className="kutil" href="/pedidos" data-testid="landing-mobile-orders" onClick={closeNav}>
-                      {t.orders}
-                    </a>
-                    <a className="kutil" href="/usuarios" data-testid="landing-mobile-users" onClick={closeNav}>
-                      {t.users}
-                    </a>
-                  </>
+                  <a className="kutil" href="/usuarios" data-testid="landing-mobile-users" onClick={closeNav}>
+                    {t.users}
+                  </a>
                 )}
                 <Link to="/conta" className="kutil" data-testid="landing-mobile-account" onClick={closeNav}>
                   {t.account}

@@ -626,15 +626,15 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       {colorTheme === "dark" ? t.themeToLight : t.themeToDark}
                     </span>
                   </button>
+                  {onLogout && (
+                    <a className="kutil" href="/pedidos" data-testid="studio-orders">
+                      {t.orders}
+                    </a>
+                  )}
                   {isOwner && (
-                    <>
-                      <a className="kutil" href="/pedidos">
-                        Pedidos
-                      </a>
-                      <a className="kutil" href="/usuarios">
-                        Usuários
-                      </a>
-                    </>
+                    <a className="kutil" href="/usuarios" data-testid="studio-users">
+                      Usuários
+                    </a>
                   )}
                   {onLogout && (
                     <>

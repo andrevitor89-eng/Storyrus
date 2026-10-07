@@ -1,12 +1,15 @@
-import { FormEvent, useCallback, useEffect, useState } from "react";
+import { FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import logo from "./assets/logo.png";
 import { api, getToken } from "./api";
+import { OwnerAccessGate } from "./OwnerAccessGate";
 import { OwnerNav } from "./OwnerNav";
 import {
   OWNER_SESSION_TOKEN,
   apiOwnerPassword,
   canTryOwnerSession,
   clearOwnerSecret,
+  isOwnerAuthFailure,
+  isOwnerTransientFailure,
   ownerGateError,
   persistOwnerSecret,
   readOwnerSecret,
@@ -59,25 +62,31 @@ export function Usage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [sessionTried, setSessionTried] = useState(false);
+  const [lastStatus, setLastStatus] = useState<number | undefined>();
+  const autoRetryUsed = useRef(false);
 
   const load = useCallback(async (secret: string) => {
     setLoading(true);
     setError(null);
+    setLastStatus(undefined);
     try {
       const report = await api.usage(apiOwnerPassword(secret), "2026-09-01", "2026-09-30");
       setData(report);
       const next = apiOwnerPassword(secret) ? secret.trim() : OWNER_SESSION_TOKEN;
       persistOwnerSecret(next);
       setPassword(next);
+      autoRetryUsed.current = false;
     } catch (err) {
       const status = (err as Error & { status?: number }).status;
-      if (status === 401 || status === 429) {
+      const raw = err instanceof Error ? err.message : "Falha ao carregar gastos.";
+      setLastStatus(status);
+      if (isOwnerAuthFailure(status)) {
         clearOwnerSecret();
         setPassword("");
         setData(null);
       }
       setError(
-        ownerGateError(status, err instanceof Error ? err.message : "Falha ao carregar gastos.", {
+        ownerGateError(status, raw, {
           usedSession: !apiOwnerPassword(secret) && Boolean(getToken()),
         }),
       );
@@ -98,10 +107,21 @@ export function Usage() {
   }, [password, load, sessionTried]);
 
   useEffect(() => {
-    if (!password) return;
+    if (data !== null || loading || !error || autoRetryUsed.current) return;
+    if (!isOwnerTransientFailure(lastStatus, error)) return;
+    if (!canTryOwnerSession() && !password) return;
+    autoRetryUsed.current = true;
+    const id = window.setTimeout(() => {
+      void load(password || OWNER_SESSION_TOKEN);
+    }, 3500);
+    return () => window.clearTimeout(id);
+  }, [data, loading, error, lastStatus, password, load]);
+
+  useEffect(() => {
+    if (!password || data === null) return;
     const id = window.setInterval(() => void load(password), 20_000);
     return () => window.clearInterval(id);
-  }, [password, load]);
+  }, [password, load, data]);
 
   function onSubmit(ev: FormEvent) {
     ev.preventDefault();
@@ -109,35 +129,29 @@ export function Usage() {
     if (next) void load(next);
   }
 
-  if (!password || (error && !data)) {
+  const unlocked = data !== null;
+  const transient = Boolean(error && isOwnerTransientFailure(lastStatus, error));
+  const opening =
+    !unlocked &&
+    (loading ||
+      Boolean(password) ||
+      (!sessionTried && canTryOwnerSession()) ||
+      (transient && canTryOwnerSession()));
+
+  if (!unlocked) {
     return (
-      <div className="usage">
-        <div className="usage-gate card auth">
-          <img className="auth-logo" src={logo} alt="Story R Us" />
-          <h1>Gastos da plataforma</h1>
-          <p className="muted">
-            Painel admin. O caminho mais simples:{" "}
-            <a href="/entrar?next=%2Fgastos">entrar com a conta admin</a> — o painel abre sozinho.
-            Alternativa: senha do painel no Render (<code>USAGE_DASHBOARD_PASSWORD</code>), não a senha
-            da conta.
-          </p>
-          <form onSubmit={onSubmit}>
-            <label>
-              Senha do painel
-              <input
-                type="password"
-                autoComplete="current-password"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-              />
-            </label>
-            <button type="submit" disabled={!draft.trim() || loading}>
-              {loading ? "Entrando…" : "Entrar"}
-            </button>
-          </form>
-          {error && <p className="error">{error}</p>}
-        </div>
-      </div>
+      <OwnerAccessGate
+        title="Gastos da plataforma"
+        loginNext="/gastos"
+        draft={draft}
+        onDraftChange={setDraft}
+        onSubmitPassword={onSubmit}
+        onRetrySession={() => void load(password || OWNER_SESSION_TOKEN)}
+        loading={loading || (!sessionTried && canTryOwnerSession() && !error)}
+        error={error}
+        opening={opening && !isOwnerAuthFailure(lastStatus)}
+        transient={transient}
+      />
     );
   }
 

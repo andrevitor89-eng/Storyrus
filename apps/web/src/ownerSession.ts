@@ -53,12 +53,32 @@ export function canTryOwnerSession(): boolean {
   return Boolean(getToken());
 }
 
+/** 401/429 — credencial rejeitada; limpa sessão do painel. */
+export function isOwnerAuthFailure(status: number | undefined): boolean {
+  return status === 401 || status === 429;
+}
+
+/** Rede / cold start / 502–504 — não é senha errada; vale retry. */
+export function isOwnerTransientFailure(
+  status: number | undefined,
+  message?: string,
+): boolean {
+  if (status === 502 || status === 504 || status === 500) return true;
+  if (status != null) return false;
+  return /failed to fetch|networkerror|load failed|demorou demais|abort|indispon/i.test(
+    message || "",
+  );
+}
+
 export function ownerGateError(
   status: number | undefined,
   fallback: string,
   opts?: { usedSession?: boolean },
 ): string {
   const detail = (fallback || "").replace(/^\d{3}:\s*/i, "").trim();
+  if (isOwnerTransientFailure(status, fallback)) {
+    return "Servidor indisponível ou acordando (Render). Toque em Tentar de novo — pode levar cerca de um minuto.";
+  }
   if (status === 401 && /administrador/i.test(detail)) {
     return "Acesso restrito a administradores. Entre com a conta admin ou use a senha do painel (Render).";
   }
