@@ -325,6 +325,24 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     );
   }, [alsoName, artMode, bookSize, bookTitle, childName, gender, lang, themeText]);
 
+  const previewChainActive = jobs.some(
+    (j) =>
+      (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK" || j.type === "VIDEO") &&
+      (j.status === "PENDING" || j.status === "RUNNING") &&
+      Boolean(j.result?.payload?.preview_chain),
+  );
+  const previewFailedJob = jobs.find(
+    (j) =>
+      (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK") &&
+      j.status === "FAILED" &&
+      Boolean(j.result?.payload?.preview_chain),
+  );
+  const previewReady = Boolean(
+    project?.story_text?.trim() &&
+      (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
+  );
+  const previewFailed = Boolean(previewFailedJob) && !previewChainActive;
+
   useStudioPolling({
     project,
     jobs,
@@ -333,6 +351,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setAssets,
     refreshCredits,
     isDemo,
+    keepWatching: orderSent && !isDemo && !previewReady && !previewFailed && !error,
   });
 
   useEffect(() => {
@@ -433,8 +452,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       setPhotoNotes("");
       const brief = getStoryBrief().trim();
       await api.startPreview(p.id, brief ? { brief: brief.slice(0, 2000) } : {});
-      const js = await api.listJobs(p.id);
-      setJobs(js);
+      try {
+        setJobs(await api.listJobs(p.id));
+      } catch {
+        // A prévia já foi aceita. O polling busca os jobs sem mostrar 500.
+      }
       refreshCredits();
     } catch (e) {
       setError((e as Error).message);
@@ -444,21 +466,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     }
   }
 
-  const previewChainActive = jobs.some(
-    (j) =>
-      (j.type === "AVATAR" || j.type === "STORY" || j.type === "EBOOK" || j.type === "VIDEO") &&
-      (j.status === "PENDING" || j.status === "RUNNING") &&
-      Boolean(j.result?.payload?.preview_chain),
-  );
-  const previewReady = Boolean(
-    project?.story_text?.trim() &&
-      (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
-  );
-  // Se a prévia falhou (ex.: 500), não ficar preso em "montando sua prévia…".
+  // HTTP 500 ou job FAILED: não ficar preso em "montando sua prévia…".
   const showPreviewLoading =
-    orderSent && !isDemo && !error && (previewChainActive || !previewReady);
+    orderSent && !isDemo && !error && !previewFailed && (previewChainActive || !previewReady);
   const showPreviewRetry =
-    orderSent && !isDemo && Boolean(error) && !previewReady && !previewChainActive;
+    orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
 
   async function retryPreview() {
     if (!project || isDemo || busy) return;
@@ -467,8 +479,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     try {
       const brief = getStoryBrief().trim();
       await api.startPreview(project.id, brief ? { brief: brief.slice(0, 2000) } : {});
-      const js = await api.listJobs(project.id);
-      setJobs(js);
+      try {
+        setJobs(await api.listJobs(project.id));
+      } catch {
+        /* polling */
+      }
       refreshCredits();
     } catch (e) {
       setError((e as Error).message);
@@ -726,9 +741,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </button>
               </div>
             )}
-            {error && (
+            {(error || (previewFailed && previewFailedJob?.error)) && (
               <p className="studio-error" role="alert">
-                {error}
+                {error || previewFailedJob?.error}
               </p>
             )}
             {showPreviewRetry && (

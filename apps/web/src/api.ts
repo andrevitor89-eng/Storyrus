@@ -207,6 +207,16 @@ function isHttpErrorMessage(message: string): boolean {
   return /^\d{3}:/.test(message);
 }
 
+function httpStatus(message: string): number {
+  const match = /^(\d{3}):/.exec(message);
+  return match ? Number(match[1]) : 0;
+}
+
+/** 5xx: a prévia pode ter sido gravada. Mantém a Idempotency-Key e tenta de novo. */
+function isRetryableHttpStatus(status: number): boolean {
+  return status >= 500 && status <= 599;
+}
+
 /** Limpa estado de idempotência (só para testes). */
 export function resetStepIdempotencyState(): void {
   stepIdempotencyKeys.clear();
@@ -646,20 +656,35 @@ export const api = {
 
     const idempotencyKey = getOrCreateStepIdempotencyKey(id, step);
     const promise = (async () => {
+      const maxAttempts = 3;
       try {
-        const accepted = await req<JobAccepted>(`/v1/projects/${id}/preview`, {
-          method: "POST",
-          headers: { "Idempotency-Key": idempotencyKey },
-          body: JSON.stringify(body),
-        });
-        releaseStepIdempotencyKey(id, step);
-        return accepted;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : "";
-        if (isHttpErrorMessage(message)) {
-          releaseStepIdempotencyKey(id, step);
+        let lastError: unknown;
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          try {
+            const accepted = await req<JobAccepted>(`/v1/projects/${id}/preview`, {
+              method: "POST",
+              headers: { "Idempotency-Key": idempotencyKey },
+              body: JSON.stringify(body),
+            });
+            releaseStepIdempotencyKey(id, step);
+            return accepted;
+          } catch (err) {
+            lastError = err;
+            const message = err instanceof Error ? err.message : "";
+            const status = httpStatus(message);
+            const retryable = isRetryableHttpStatus(status);
+            if (!retryable || attempt === maxAttempts) {
+              // 4xx é definitivo. 5xx esgotado mantém a chave: o retry manual
+              // reencontra o job se o insert chegou a commitar.
+              if (isHttpErrorMessage(message) && !retryable) {
+                releaseStepIdempotencyKey(id, step);
+              }
+              throw err;
+            }
+            await new Promise((resolve) => window.setTimeout(resolve, 200 * attempt));
+          }
         }
-        throw err;
+        throw lastError;
       } finally {
         stepInFlight.delete(cacheKey);
       }

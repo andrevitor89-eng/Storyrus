@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import uuid
 
 from fastapi import APIRouter, Depends, File, Header, HTTPException, UploadFile, status
@@ -40,6 +41,8 @@ from app.services import jobs as jobs_svc
 from app.services import preview_chain
 
 from .common import accept_job, get_owned_project
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -150,7 +153,16 @@ def start_preview(
 
     project.character_approved_at = None
     project.book_approved_at = None
-    invalidate_print(db, project)
+    # Pedido impresso antigo não pode impedir a prévia. Falha aqui (tabela,
+    # linha ruim) era 500 "Erro interno" depois de "Projeto criado".
+    try:
+        invalidate_print(db, project)
+    except Exception:  # noqa: BLE001 - prévia segue mesmo se o impresso antigo falhar
+        logger.exception("invalidate_print falhou project=%s", project.id)
+        db.rollback()
+        project = get_owned_project(db, user, project_id)
+        project.character_approved_at = None
+        project.book_approved_at = None
 
     if project.character_ref:
         job_type = JobType.STORY

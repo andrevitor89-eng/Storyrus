@@ -118,6 +118,28 @@ describe("startStep Idempotency-Key", () => {
     expect(key2).toBe("00000000-0000-4000-8000-000000000002");
   });
 
+  it("retenta 500 da prévia com a mesma Idempotency-Key", async () => {
+    fetchMock
+      .mockImplementationOnce(() => jsonResponse({ detail: "Erro interno" }, 500))
+      .mockImplementationOnce(() =>
+        jsonResponse({
+          job_id: "preview-1",
+          status: "PENDING",
+          type: "AVATAR",
+          estimated_cost_credits: 1,
+        }),
+      );
+
+    await expect(api.startPreview("proj-1", { brief: "aventura" })).resolves.toMatchObject({
+      job_id: "preview-1",
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const key1 = new Headers(fetchMock.mock.calls[0][1].headers).get("Idempotency-Key");
+    const key2 = new Headers(fetchMock.mock.calls[1][1].headers).get("Idempotency-Key");
+    expect(key1).toBe(key2);
+  });
+
   it("isola chaves por projeto e por etapa", async () => {
     fetchMock.mockImplementation(() =>
       jsonResponse({ job_id: "j", estimated_cost_credits: 1 }),
