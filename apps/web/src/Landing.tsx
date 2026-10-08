@@ -367,7 +367,7 @@ const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compart
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "recem_nascidos", "casamento", "pets"],
-  ocasioes: ["christmas", "birthday"],
+  ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
 const NAV_CAT_META = [
