@@ -288,8 +288,13 @@ function catalogCoverChoice(cover?: string): CatalogCoverChoice {
 function catalogSizeChoice(size?: string): CatalogSizeChoice {
   return size === "P" ? "P" : "M";
 }
-const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
-const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
+const VIDEO_IMGS = ["capa-meupai-heroi.png", "mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_SRCS: (string | null)[] = [
+  "video-meupai-heroi-kling.mp4",
+  "video-mar.mp4",
+  "video-flor.mp4",
+  "video-dino.mp4",
+];
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
@@ -738,6 +743,7 @@ const I18N = {
     vid_title: "Vídeos Narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
+      { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
       { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
@@ -946,6 +952,7 @@ const I18N = {
     vid_title: "Narrated Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
+      { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
       { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
@@ -1154,6 +1161,7 @@ const I18N = {
     vid_title: "Videos Narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear mi video",
     videos: [
+      { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
       { t: "Lia y el Fondo del Mar", p: "Una aventura en el océano con narración encantadora." },
       { t: "Sofia y el Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
       { t: "Matteo y el Mundo de los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },

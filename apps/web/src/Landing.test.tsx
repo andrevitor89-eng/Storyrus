@@ -587,6 +587,19 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
   });
 
+  it("mostra Meu Pai na seção de vídeos narrados", async () => {
+    renderLanding();
+    await screen.findByTestId("landing-hero-cta");
+
+    const videos = document.getElementById("videos") as HTMLElement;
+    expect(videos).toBeTruthy();
+    const card = within(videos).getByRole("heading", { name: /^meu pai, meu herói$/i }).closest("figure");
+    expect(card).toBeTruthy();
+    expect(within(card as HTMLElement).getByText(/cada página ganha movimento/i)).toBeInTheDocument();
+    const poster = (card as HTMLElement).querySelector("video");
+    expect(poster).toHaveAttribute("poster", expect.stringContaining("capa-meupai-heroi"));
+  });
+
   it("ordena as seções e aponta o Instagram para storyr.us", async () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
