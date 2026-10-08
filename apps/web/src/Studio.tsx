@@ -175,6 +175,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const presetApplied = useRef(false);
   const [mediaConsent, setMediaConsent] = useState(false);
   const [busy, setBusy] = useState(false);
+  const startLock = useRef(false);
   const [colorTheme, setColorTheme] = useState<"light" | "dark">(() => {
     try {
       const s = localStorage.getItem("theme");
@@ -376,6 +377,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   }
 
   async function start(agreed = mediaConsent) {
+    if (startLock.current || busy) return;
     if (!formReady(agreed)) return;
     const signedIn = accountKind === "account";
     const buyerName = signedIn ? oneLine(accountName || clientName || accountEmail) : oneLine(clientName);
@@ -383,6 +385,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     const buyerPhone = oneLine(clientPhone);
     const buyerAddress = oneLine(clientAddress);
     const buyerNotes = oneLine(clientNotes);
+    startLock.current = true;
     setBusy(true);
     setError(null);
     try {
@@ -436,6 +439,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     } catch (e) {
       setError((e as Error).message);
     } finally {
+      startLock.current = false;
       setBusy(false);
     }
   }
@@ -450,7 +454,28 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     project?.story_text?.trim() &&
       (assets?.cover_url || assets?.page_images?.[0] || assets?.in_hand_url),
   );
-  const showPreviewLoading = orderSent && !isDemo && (previewChainActive || !previewReady);
+  // Se a prévia falhou (ex.: 500), não ficar preso em "montando sua prévia…".
+  const showPreviewLoading =
+    orderSent && !isDemo && !error && (previewChainActive || !previewReady);
+  const showPreviewRetry =
+    orderSent && !isDemo && Boolean(error) && !previewReady && !previewChainActive;
+
+  async function retryPreview() {
+    if (!project || isDemo || busy) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const brief = getStoryBrief().trim();
+      await api.startPreview(project.id, brief ? { brief: brief.slice(0, 2000) } : {});
+      const js = await api.listJobs(project.id);
+      setJobs(js);
+      refreshCredits();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function submitChanges() {
     if (!project || isDemo) return;
@@ -706,11 +731,22 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 {error}
               </p>
             )}
+            {showPreviewRetry && (
+              <button
+                type="button"
+                className="kbtn kbtn-primary studio-create"
+                disabled={busy}
+                data-testid="studio-retry-preview"
+                onClick={() => void retryPreview()}
+              >
+                {t.previewRetry}
+              </button>
+            )}
             {showPreviewLoading ? (
               <p className="studio-slogan" data-testid="studio-preview-building">
                 {t.previewBuilding}
               </p>
-            ) : (
+            ) : showPreviewRetry ? null : (
               <>
                 <p className="studio-slogan">{t.orderFollowup}</p>
 

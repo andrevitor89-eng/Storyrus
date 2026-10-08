@@ -18,12 +18,15 @@ cliente mostrar mensagem previsível:
 
 from __future__ import annotations
 
+import logging
 from typing import Any
 
 from fastapi import FastAPI, Request, status
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from starlette.exceptions import HTTPException as StarletteHTTPException
+
+logger = logging.getLogger("app.errors")
 
 # Códigos estáveis por família (não espelham o texto livre de cada rota).
 CODE_BY_STATUS: dict[int, str] = {
@@ -143,6 +146,7 @@ async def validation_exception_handler(
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     # Em prod não vaza stack; mensagem genérica estável.
+    logger.exception("unhandled %s %s", request.method, request.url.path)
     return error_response(
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         message="Erro interno",
