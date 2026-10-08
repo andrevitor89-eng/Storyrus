@@ -308,6 +308,19 @@ async def test_non_preview_avatar_does_not_chain(db, mem_storage, monkeypatch):
     assert stories == []
 
 
+def test_has_active_preview_ignores_unreadable_rows():
+    class Boom:
+        def scalars(self, *_a, **_k):
+            raise RuntimeError("json ilegivel")
+
+        def rollback(self):
+            self.rolled = True
+
+    session = Boom()
+    assert preview_chain.has_active_preview(session, uuid.uuid4()) is False
+    assert session.rolled is True
+
+
 def test_has_active_preview(db):
     _, p = _seed(db)
     assert preview_chain.has_active_preview(db, p.id) is False
@@ -319,3 +332,63 @@ def test_has_active_preview(db):
     db.commit()
     # ainda True por causa do AVATAR
     assert preview_chain.has_active_preview(db, p.id) is True
+
+
+def _project_with_photo(auth_client) -> str:
+    pid = auth_client.post("/v1/projects", json={"style": "cartoon"}).json()["id"]
+    assert (
+        auth_client.post(
+            f"/v1/projects/{pid}/photos", json={"content_type": "image/jpeg", "ext": "jpg"}
+        ).status_code
+        == 201
+    )
+    return pid
+
+
+def test_preview_not_500_when_spend_scan_crashes(auth_client, monkeypatch):
+    """Teto ligado e scan estourando não pode virar 500 na prévia."""
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "daily_spend_usd_ceiling", 10.0)
+    monkeypatch.setattr(settings, "daily_credits_ceiling", 0)
+
+    def boom(*_a, **_k):
+        raise RuntimeError("result json corrompido")
+
+    monkeypatch.setattr("app.services.spend_guard.day_spend", boom)
+    pid = _project_with_photo(auth_client)
+    r = auth_client.post(
+        f"/v1/projects/{pid}/preview",
+        json={"brief": "aventura"},
+        headers={"Idempotency-Key": "scan-crash"},
+    )
+    assert r.status_code == 202, r.text
+    assert r.json()["type"] == "AVATAR"
+
+
+def test_preview_not_500_when_invalidate_print_fails(auth_client, monkeypatch):
+    def boom(*_a, **_k):
+        raise RuntimeError("print_orders indisponivel")
+
+    monkeypatch.setattr("app.routers.projects.steps.invalidate_print", boom)
+    pid = _project_with_photo(auth_client)
+    r = auth_client.post(
+        f"/v1/projects/{pid}/preview",
+        json={"brief": "aventura"},
+        headers={"Idempotency-Key": "print-crash"},
+    )
+    assert r.status_code == 202, r.text
+
+
+def test_preview_strips_nul_from_brief(auth_client):
+    pid = _project_with_photo(auth_client)
+    r = auth_client.post(
+        f"/v1/projects/{pid}/preview",
+        json={"brief": "oi\x00mundo"},
+        headers={"Idempotency-Key": "nul-brief"},
+    )
+    assert r.status_code == 202, r.text
+    jobs = auth_client.get(f"/v1/projects/{pid}/jobs").json()
+    brief = jobs[0]["result"]["payload"]["brief"]
+    assert "\x00" not in brief
+    assert brief == "oimundo"

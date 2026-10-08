@@ -13,7 +13,7 @@ from collections.abc import Callable
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import DataError, IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -50,6 +50,26 @@ PROVIDER_BY_TYPE: dict[JobType, str] = {
 enqueue_fn: Callable[[uuid.UUID], None] = lambda job_id: None
 
 
+def _json_value(value: object) -> object:
+    """Payload persistível em JSON/Postgres (sem NUL nem surrogate solto)."""
+    if isinstance(value, str):
+        return value.replace("\x00", "").encode("utf-8", "replace").decode("utf-8")
+    if isinstance(value, dict):
+        return {str(_json_value(key)): _json_value(item) for key, item in value.items()}
+    if isinstance(value, list):
+        return [_json_value(item) for item in value]
+    if isinstance(value, (int, float, bool)) or value is None:
+        return value
+    return _json_value(str(value))
+
+
+def _clean_key(value: str | None, limit: int) -> str | None:
+    if not value:
+        return None
+    cleaned = str(_json_value(value)).strip()
+    return cleaned[:limit] or None
+
+
 def _active_jobs(db: Session, user: User) -> int:
     """Conta jobs ativos (PENDING/RUNNING) para o limite de backpressure.
 
@@ -79,7 +99,42 @@ def enqueue_job(
     """Cria (ou retorna) um job, debitando creditos atomicamente.
 
     Tudo numa transacao: idempotencia -> backpressure -> debito -> insert.
+    Blip de conexão retenta uma vez. Corrida de chave e falha de refresh
+    devolvem o job já gravado — não viram HTTP 500.
     """
+    key = _clean_key(idempotency_key, 255)
+    safe_payload = _json_value(payload) if payload else None
+    if safe_payload is not None and not isinstance(safe_payload, dict):
+        safe_payload = {"value": safe_payload}
+
+    last_operational: OperationalError | None = None
+    for attempt in range(2):
+        try:
+            return _enqueue_job_once(
+                db,
+                user=user,
+                project=project,
+                job_type=job_type,
+                idempotency_key=key,
+                payload=safe_payload,
+            )
+        except OperationalError as exc:
+            last_operational = exc
+            db.rollback()
+            logger.warning("enqueue operational error attempt=%s: %s", attempt + 1, exc)
+    assert last_operational is not None
+    raise last_operational
+
+
+def _enqueue_job_once(
+    db: Session,
+    *,
+    user: User,
+    project: Project,
+    job_type: JobType,
+    idempotency_key: str | None,
+    payload: dict | None,
+) -> Job:
     # 1) Idempotencia: mesma chave -> mesmo job (sem novo custo).
     if idempotency_key:
         existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
@@ -115,7 +170,7 @@ def enqueue_job(
         project_id=project.id,
         type=job_type.value,
         status=JobStatus.PENDING.value,
-        provider=PROVIDER_BY_TYPE.get(job_type),
+        provider=_clean_key(PROVIDER_BY_TYPE.get(job_type), 32),
         idempotency_key=idempotency_key,
         request_id=request_id,
         cost_credits=cost,
@@ -126,33 +181,58 @@ def enqueue_job(
         db.commit()
     except IntegrityError:
         # Corrida com a mesma Idempotency-Key: devolve o job que ganhou o insert.
+        return _job_after_conflict(db, idempotency_key)
+    except DataError as exc:
         db.rollback()
-        if idempotency_key:
-            existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
-            if existing is not None:
-                logger.info(
-                    "idempotent race job_type=%s job_id=%s key=%s",
-                    existing.type,
-                    existing.id,
-                    idempotency_key,
-                )
-                return existing
-        raise
-    db.refresh(job)
-
+        logger.exception("enqueue data error job_type=%s", job_type.value)
+        raise HTTPException(
+            status.HTTP_400_BAD_REQUEST,
+            "Não foi possível iniciar esta etapa. Tente de novo.",
+        ) from exc
+    job = _refreshed_job(db, job, idempotency_key)
     logger.info(
         "enqueued job_type=%s job_id=%s project_id=%s",
         job.type,
         job.id,
-        project.id,
+        job.project_id,
     )
-
     # 6) Sinaliza o broker (best-effort).
     try:
         enqueue_fn(job.id)
     except Exception:  # noqa: BLE001 - broker indisponivel nao deve quebrar a request
         pass
+    return job
 
+
+def _job_after_conflict(db: Session, idempotency_key: str | None) -> Job:
+    db.rollback()
+    if idempotency_key:
+        existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
+        if existing is not None:
+            logger.info(
+                "idempotent race job_id=%s key=%s",
+                existing.id,
+                idempotency_key,
+            )
+            return existing
+    raise HTTPException(
+        status.HTTP_409_CONFLICT,
+        "Não foi possível iniciar esta etapa agora. Tente de novo.",
+    )
+
+
+def _refreshed_job(db: Session, job: Job, idempotency_key: str | None) -> Job:
+    try:
+        db.refresh(job)
+    except Exception:  # noqa: BLE001 - insert já commitou; refresh não pode virar 500
+        # O insert já commitou. Refresh quebrado não pode virar 500.
+        logger.exception("refresh apos enqueue falhou key=%s", idempotency_key)
+        db.rollback()
+        if idempotency_key:
+            existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
+            if existing is not None:
+                return existing
+        raise
     return job
 
 

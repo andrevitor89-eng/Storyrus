@@ -94,9 +94,22 @@ def _persist_preview_asset(
     return key
 
 
+def _character_bytes(project) -> bytes:
+    """Bytes do avatar. Sem a chave, falha controlada — não TypeError no worker."""
+    ref = project.character_ref if isinstance(project.character_ref, dict) else {}
+    key = ref.get("storage_key")
+    if not key:
+        raise ProviderError("Personagem ausente: rode AVATAR antes", transient=False)
+    try:
+        data = storage.get_bytes(str(key))
+    except FileNotFoundError as exc:
+        raise ProviderError("Personagem indisponivel no storage", transient=True) from exc
+    return require_character_ref(data)
+
+
 async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
     """Prévia estilo landing: capa + 1 página + foto na mão (OpenAI GPT Image)."""
-    char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))
+    char_bytes = _character_bytes(project)
     photo_bytes = await _project_photo_bytes(db, project)
     image_provider = _pkg().get_image_provider()
     language = project.language or "pt-BR"
@@ -231,7 +244,7 @@ async def handle_ebook(db: Session, job: Job) -> None:
         await _handle_preview_ebook(db, job, project)
         return
 
-    char_bytes = require_character_ref(storage.get_bytes(project.character_ref["storage_key"]))
+    char_bytes = _character_bytes(project)
     photo_bytes = await _project_photo_bytes(db, project)
     image_provider = _pkg().get_image_provider()
 

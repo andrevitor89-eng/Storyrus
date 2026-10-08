@@ -11,6 +11,8 @@ type Args = {
   setAssets: Dispatch<SetStateAction<StudioAssets | null>>;
   refreshCredits: () => void;
   isDemo: boolean;
+  /** Continua buscando jobs enquanto a prévia ainda não está pronta. */
+  keepWatching?: boolean;
 };
 
 /** Polls project/jobs/assets while an active job exists (interval 2500ms). */
@@ -22,10 +24,12 @@ export function useStudioPolling({
   setAssets,
   refreshCredits,
   isDemo,
+  keepWatching = false,
 }: Args) {
   const pollRef = useRef<number | null>(null);
   const pollInFlightRef = useRef(false);
   const hasActiveJob = jobs.some((j) => j.status === "PENDING" || j.status === "RUNNING");
+  const shouldPoll = hasActiveJob || keepWatching;
 
   useEffect(() => {
     if (!project || isDemo) return;
@@ -54,7 +58,7 @@ export function useStudioPolling({
       }
     };
 
-    if (!hasActiveJob) {
+    if (!shouldPoll) {
       if (pollRef.current) window.clearInterval(pollRef.current);
       pollRef.current = null;
       api.getAssets(projectId).then(setAssets).catch(() => {});
@@ -71,5 +75,5 @@ export function useStudioPolling({
     };
     // Deps match the former inline effect (project identity via project?.id).
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setters are stable; poll on project id + active job only
-  }, [project?.id, hasActiveJob, refreshCredits, isDemo]);
+  }, [project?.id, shouldPoll, refreshCredits, isDemo]);
 }

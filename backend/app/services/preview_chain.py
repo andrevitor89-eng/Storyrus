@@ -36,15 +36,23 @@ def is_preview_chain(job: Job) -> bool:
 
 
 def has_active_preview(db: Session, project_id: uuid.UUID) -> bool:
-    """True se já há etapa da cadeia de prévia PENDING/RUNNING neste projeto."""
-    jobs = db.scalars(
-        select(Job).where(
-            Job.project_id == project_id,
-            Job.status.in_([JobStatus.PENDING.value, JobStatus.RUNNING.value]),
-            Job.type.in_(_CHAIN_TYPES),
-        )
-    ).all()
-    return any(is_preview_chain(j) for j in jobs)
+    """True se já há etapa da cadeia de prévia PENDING/RUNNING neste projeto.
+
+    Uma linha com JSON ilegível não pode derrubar POST /preview com 500.
+    """
+    try:
+        jobs = db.scalars(
+            select(Job).where(
+                Job.project_id == project_id,
+                Job.status.in_([JobStatus.PENDING.value, JobStatus.RUNNING.value]),
+                Job.type.in_(_CHAIN_TYPES),
+            )
+        ).all()
+        return any(is_preview_chain(j) for j in jobs)
+    except Exception:  # noqa: BLE001 - leitura da fila não pode virar HTTP 500
+        logger.exception("has_active_preview falhou project=%s", project_id)
+        db.rollback()
+        return False
 
 
 def _next_payload(source_job: Job, next_type: JobType) -> dict:
