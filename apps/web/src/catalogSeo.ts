@@ -2,9 +2,9 @@ import type { CatalogBookSeo } from "./pageMeta";
 
 /**
  * Índice fora da página de livro: `toCatalogCard` devolve null para o 13
- * (aniversário da Ester não entra na ficha /livro/:indice).
+ * (aniversário da Ester) e o 32 (Nossa Família).
  */
-export const SKIP_BOOK_INDEXES = new Set([13]);
+export const SKIP_BOOK_INDEXES = new Set([13, 32]);
 
 /** Lê o catálogo em português de Landing.tsx (primeiro array `catalog:`). */
 export function parsePtCatalog(source: string): CatalogBookSeo[] {

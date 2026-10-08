@@ -326,7 +326,7 @@ function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; sr
   return shots;
 }
 const CATALOG_THEMES = [
-  "adventure",
+  "sport",
   "princess",
   "adventure",
   "alfabetizacao_inicial",
@@ -367,11 +367,11 @@ const CATALOG_THEMES = [
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 33]);
+const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 34, 35, 36]);
-/** Primeiros da vitrine: livros novos, depois Meu Pai, Davi e Enzo. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 32, 33];
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36]);
+/** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -380,10 +380,9 @@ function catalogCoverChoice(cover?: string): CatalogCoverChoice {
 function catalogSizeChoice(size?: string): CatalogSizeChoice {
   return size === "P" ? "P" : "M";
 }
-const VIDEO_IMGS = ["capa-meupai-heroi.png", "mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_IMGS = ["capa-meupai-heroi.png", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = [
   "video-meupai-heroi-kling.mp4",
-  "video-mar.mp4",
   "video-flor.mp4",
   "video-dino.mp4",
 ];
@@ -409,7 +408,7 @@ const NAV_CAT_META = [
     ],
     feats: [
       { href: "/app?tema=princess", catalogI: 1 },
-      { href: "/app?tema=adventure", catalogI: 0 },
+      { href: "/app?tema=adventure", catalogI: 25 },
       { href: "/app?tema=sport", catalogI: 4 },
       { href: "/app?tema=adventure", catalogI: 10 },
     ],
@@ -500,10 +499,10 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   grandparents_love: [8],
   grandfather_love: [30],
   dia_do_idoso: [8, 30],
-  family_love: [32, 7, 29],
+  family_love: [7, 29],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
-  dia_da_familia: [32, 7, 19, 21],
+  dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29],
   christmas: [9],
   easter: [31],
@@ -561,21 +560,10 @@ export function nextOccasionDate(when: OccasionWhen, today: Date): Date {
   const next = new Date(start.getFullYear(), when.month - 1, when.day);
   return next >= start ? next : new Date(start.getFullYear() + 1, when.month - 1, when.day);
 }
-function shiftMonths(date: Date, months: number): Date {
-  const next = new Date(date);
-  next.setMonth(next.getMonth() + months);
-  return next;
-}
-/** A data entra no menu quando cai entre 6 meses atrás e 4 meses à frente. */
+/** A data entra no menu só se a próxima ocorrência ainda é neste ano. */
 export function occasionDue(when: OccasionWhen, today: Date): boolean {
   const start = startOfDay(today);
-  const past = shiftMonths(start, -6);
-  const future = shiftMonths(start, 4);
-  const year = start.getFullYear();
-  const dates = when === "easter"
-    ? [year - 1, year, year + 1].map(easterSunday)
-    : [year - 1, year, year + 1].map((y) => new Date(y, when.month - 1, when.day));
-  return dates.some((date) => date >= past && date <= future);
+  return nextOccasionDate(when, start).getFullYear() === start.getFullYear();
 }
 function SubLabel({ label }: { label: string }) {
   const [name, date] = label.split(" · ");
@@ -827,7 +815,6 @@ const I18N = {
     vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
-      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
     ],
@@ -1048,7 +1035,6 @@ const I18N = {
     vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
-      { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
     ],
@@ -1269,7 +1255,6 @@ const I18N = {
     vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
-      { t: "Lia Y El Fondo Del Mar", p: "Una aventura en el océano con narración encantadora." },
       { t: "Sofia Y El Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
       { t: "Matteo Y El Mundo De Los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
     ],
@@ -1800,7 +1785,7 @@ export function CatalogBookCard({
           {series.map((shot) => (
             <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
               <div className="book-series-frame">
-                <div className="cat-book">
+                <div className="cat-book" data-size={shot.key === "cover" ? size : "M"}>
                   <img src={exUrl(shot.src)} alt={`${book.t} — ${pageCopy[shot.key]}`} loading="lazy" />
                 </div>
               </div>
@@ -1828,7 +1813,7 @@ export function CatalogBookCard({
   return (
     <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
-        <div className="cat-book">
+        <div className="cat-book" data-size={size}>
           {linked ? <Link to={bookHref} className="cat-book-link">{image}</Link> : image}
         </div>
       </div>
@@ -1843,7 +1828,7 @@ export function CatalogBookCard({
   );
 }
 function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
-  if (index === 13) return null;
+  if (index === 13 || index === 32) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
   if (!book || !theme || !CATALOG_IMGS[index]) return null;
