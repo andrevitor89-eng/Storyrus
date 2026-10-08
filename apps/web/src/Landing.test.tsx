@@ -652,11 +652,12 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByText(/^carrossel de livros$/i)).not.toBeInTheDocument();
     const subs = panel.querySelector(".kcat-subs") as HTMLElement;
     const princesas = within(panel).getByRole("link", { name: /^princesas$/i });
-    expect(princesas).toHaveAttribute("href", "/livro/1");
+    expect(princesas).toHaveAttribute("href", "/catalogo#aventuras");
     expect(within(panel).getByRole("link", { name: /^esportes$/i })).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(within(panel).getByRole("link", { name: /^dinossauros$/i })).toHaveAttribute("href", "/catalogo#aventuras");
     const biblico = within(panel).getByRole("link", { name: /^bíblico$/i });
     expect(biblico.parentElement?.querySelector("a")).toBe(biblico);
-    expect(biblico).toHaveAttribute("href", "/livro/20");
+    expect(biblico).toHaveAttribute("href", "/catalogo#educativo");
     expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
     expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu");
     expect(within(panel).getByRole("link", { name: /^aventuras$/i })).toHaveAttribute("href", "/catalogo#aventuras");
@@ -692,7 +693,7 @@ describe("Landing — CTAs e links", () => {
     const recem = within(panel).getByRole("link", { name: /^recém-nascidos$/i });
     expect(recem).toHaveAttribute("href", "/catalogo#voce-e-eu");
     const vovo = within(panel).getByRole("link", { name: /^vovó e eu$/i });
-    expect(vovo).toHaveAttribute("href", "/livro/8");
+    expect(vovo).toHaveAttribute("href", "/catalogo#voce-e-eu");
     fireEvent.mouseEnter(vovo);
     expect(within(feats).getByRole("link", { name: /amor de bisavó/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /amor de avô/i })).not.toBeInTheDocument();
