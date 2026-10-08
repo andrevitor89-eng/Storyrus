@@ -62,6 +62,25 @@ function LangSwitch({ lang, setLang }: { lang: Lang; setLang: (lang: Lang) => vo
   );
 }
 
+function CatalogSectionTitle({
+  name,
+  color,
+  as: Tag = "h2",
+}: {
+  name: string;
+  color: string;
+  as?: "h1" | "h2";
+}) {
+  return (
+    <Tag className="catalog-section-title">
+      <span className="kcat-btn catalog-section-pill">
+        <span className="kcat-dot" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />
+        {name}
+      </span>
+    </Tag>
+  );
+}
+
 export function CatalogPage() {
   usePageMeta(staticPageMeta("/catalogo"));
   const [lang, setLang] = useSiteLang();
@@ -97,16 +116,20 @@ export function CatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
-        <SiteBackNav />
         <h1 className="ktitle">{copy.title}</h1>
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
-            <h2 className="catalog-section-title">{section.name}</h2>
-            <div className="cat-grid">
-              {section.books.map((book) => (
-                <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
-              ))}
-            </div>
+            <CatalogSectionTitle name={section.name} color={section.color} />
+            {section.subs.map((sub) => (
+              <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
+                <h3 className="catalog-sub-title">{sub.name}</h3>
+                <div className="cat-grid">
+                  {sub.books.map((book) => (
+                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </section>
         ))}
       </main>
@@ -129,15 +152,19 @@ export function CategoryCatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
-        <SiteBackNav />
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
-          <h1 className="catalog-section-title">{section.name}</h1>
-          {section.books.length > 0 ? (
-            <div className="cat-grid">
-              {section.books.map((book) => (
-                <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
-              ))}
-            </div>
+          <CatalogSectionTitle name={section.name} color={section.color} as="h1" />
+          {section.subs.length > 0 ? (
+            section.subs.map((sub) => (
+              <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
+                <h3 className="catalog-sub-title">{sub.name}</h3>
+                <div className="cat-grid">
+                  {sub.books.map((book) => (
+                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+                  ))}
+                </div>
+              </div>
+            ))
           ) : (
             <p className="kcat-empty">{copy.empty}</p>
           )}

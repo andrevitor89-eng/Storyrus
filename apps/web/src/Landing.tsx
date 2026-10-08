@@ -372,7 +372,7 @@ const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compart
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "family_love", "recem_nascidos", "casamento", "pets"],
-  ocasioes: ["christmas", "birthday"],
+  ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
 const NAV_CAT_META = [
@@ -1810,18 +1810,48 @@ export function catalogPageCopy(lang: Lang) {
     cartoon: t.cartoon_link,
   };
 }
-export function catalogCategory(lang: Lang, id: string) {
+/** Rótulo de subcategoria no catálogo: tira a data do menu ("Natal · 25 de dezembro" → "Natal"). */
+function catalogSubLabel(label: string): string {
+  const cut = label.indexOf(" · ");
+  return cut === -1 ? label : label.slice(0, cut);
+}
+function rankCatalogIndex(index: number): number {
+  const lead = CATALOG_LEAD.indexOf(index);
+  return lead === -1 ? CATALOG_LEAD.length + index : lead;
+}
+function sortCatalogBooks(books: CatalogCardBook[]): CatalogCardBook[] {
+  return [...books].sort(
+    (a, b) => rankCatalogIndex(a.catalogI ?? Number.MAX_SAFE_INTEGER) - rankCatalogIndex(b.catalogI ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+export type CatalogSubSection = {
+  id: string;
+  name: string;
+  books: CatalogCardBook[];
+};
+export type CatalogSection = {
+  id: string;
+  name: string;
+  color: string;
+  subs: CatalogSubSection[];
+  books: CatalogCardBook[];
+};
+export function catalogCategory(lang: Lang, id: string): CatalogSection | null {
   if (id === "sentimentos") {
     const name = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
-    return {
-      id,
-      name,
-      color: "#f0a0c0",
-      books: CATALOG_THEMES.flatMap((theme, index) => {
+    const books = sortCatalogBooks(
+      CATALOG_THEMES.flatMap((theme, index) => {
         if (!FEELING_THEMES.has(theme)) return [];
         const card = toCatalogCard(lang, index);
         return card ? [card] : [];
       }),
+    );
+    return {
+      id,
+      name,
+      color: "#f0a0c0",
+      subs: books.length ? [{ id: "sentimentos", name, books }] : [],
+      books,
     };
   }
   return catalogSections(lang).find((section) => section.id === id) ?? null;
@@ -1832,25 +1862,39 @@ export function catalogEntry(lang: Lang, index: number) {
   const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
   return { ...card, sectionId: section?.id ?? "aventuras" };
 }
-export function catalogSections(lang: Lang) {
+export function catalogSections(lang: Lang): CatalogSection[] {
   const names = I18N[lang].cats;
-  return NAV_CAT_META.map((meta, i) => ({
-    id: meta.id,
-    name: names[i]?.name ?? meta.id,
-    color: meta.color,
-    books: CATALOG_THEMES.flatMap((theme, index) => {
-      if (isCartoonOnlyCover(index)) return [];
-      if (!CATALOG_SECTION_THEMES[meta.id]?.includes(theme)) return [];
-      const card = toCatalogCard(lang, index);
-      return card ? [card] : [];
-    }).sort((a, b) => {
-      const rank = (i: number) => {
-        const lead = CATALOG_LEAD.indexOf(i);
-        return lead === -1 ? CATALOG_LEAD.length + i : lead;
-      };
-      return rank(a.catalogI ?? Number.MAX_SAFE_INTEGER) - rank(b.catalogI ?? Number.MAX_SAFE_INTEGER);
-    }),
-  }));
+  return NAV_CAT_META.map((meta, i) => {
+    const catCopy = names[i];
+    const sectionThemes = CATALOG_SECTION_THEMES[meta.id] ?? [];
+    const placed = new Set<number>();
+    const subs = meta.subs.flatMap((subMeta, j) => {
+      const theme = themeFromHref(subMeta.href);
+      if (!theme || !sectionThemes.includes(theme)) return [];
+      const books = sortCatalogBooks(
+        CATALOG_THEMES.flatMap((bookTheme, index) => {
+          if (bookTheme !== theme || placed.has(index) || isCartoonOnlyCover(index)) return [];
+          const card = toCatalogCard(lang, index);
+          if (!card) return [];
+          placed.add(index);
+          return [card];
+        }),
+      );
+      if (!books.length) return [];
+      return [{
+        id: theme,
+        name: catalogSubLabel(catCopy?.subs[j] ?? theme),
+        books,
+      }];
+    });
+    return {
+      id: meta.id,
+      name: catCopy?.name ?? meta.id,
+      color: meta.color,
+      subs,
+      books: subs.flatMap((sub) => sub.books),
+    };
+  });
 }
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
