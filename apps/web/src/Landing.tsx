@@ -152,6 +152,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   19: "cartoon-capa-amordetia.png",
   20: "cartoon-capa-davi.png",
   22: "cartoon-capa-enzo.jpg",
+  10: "cartoon-capa-nano.jpg",
   23: "cartoon-capa-lucas.png",
   30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
   33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
@@ -240,10 +241,13 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-heroi-policia.png", en: "capa-heroi-policia-en.png", es: "capa-heroi-policia-es.png" },
   { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
   { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
-  { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
+  { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" },
   { pt: "capa-pascoa.png", en: "capa-pascoa-en.png", es: "capa-pascoa-es.png" },
   "capa-nossa-familia.png",
   { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
+  { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
+  "capa-gael-economia.jpg",
+  "capa-mariajesus-hockey.jpg",
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -301,6 +305,12 @@ const CATALOG_SERIES: Record<number, CatalogSeriesShot> = {
   22: { cover: "capa-enzo-primo.png", page: "pagina-enzo-primo.png", photo: "foto-enzo-primo.png" },
   23: { cover: "capa-lucas-max.png", page: "pagina-lucas-max.png", photo: "foto-lucas-max.png" },
   24: { cover: "capa-esther-higiene.png", page: "pagina-esther-higiene.png", photo: "foto-esther-higiene.png" },
+  30: { cover: { pt: "capa-amor-de-avo.png", en: "capa-amor-de-avo-en.png", es: "capa-amor-de-avo-en.png" } },
+  34: {
+    cover: { pt: "capa-bruno-animais.png", en: "capa-bruno-animais-en.png", es: "capa-bruno-animais-es.png" },
+    page: "pagina-bruno-animais.jpg",
+  },
+  36: { cover: "capa-mariajesus-hockey.jpg", page: "pagina-mariajesus-hockey.jpg" },
 };
 type CatalogSeriesKind = "cover" | "page" | "photo";
 function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; src: string }[] {
@@ -317,7 +327,7 @@ function catalogSeriesShots(i: number, lang: Lang): { key: CatalogSeriesKind; sr
   return shots;
 }
 const CATALOG_THEMES = [
-  "adventure",
+  "sport",
   "princess",
   "adventure",
   "alfabetizacao_inicial",
@@ -351,15 +361,18 @@ const CATALOG_THEMES = [
   "easter",
   "family_love",
   "adventure",
+  "animais_sons",
+  "economia",
+  "sport",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 30, 33]);
+const CATALOG_CARTOON_INDEXES = new Set([1, 2, 3, 4, 13, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32]);
-/** Primeiros da vitrine: livros novos, depois Meu Pai, Davi e Enzo. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 32, 33];
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 35, 36]);
+/** Primeiros da vitrine: livros novos, depois Meu Pai, Davi, Enzo e o Martin. */
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 0, 33];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -368,10 +381,9 @@ function catalogCoverChoice(cover?: string): CatalogCoverChoice {
 function catalogSizeChoice(size?: string): CatalogSizeChoice {
   return size === "P" ? "P" : "M";
 }
-const VIDEO_IMGS = ["capa-meupai-heroi.png", "mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_IMGS = ["capa-meupai-heroi.png", "flor-2.jpg", "dino-2.jpg"];
 const VIDEO_SRCS: (string | null)[] = [
   "video-meupai-heroi-kling.mp4",
-  "video-mar.mp4",
   "video-flor.mp4",
   "video-dino.mp4",
 ];
@@ -380,7 +392,7 @@ const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "recem_nascidos", "casamento", "pets"],
   ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love", "easter"],
-  educativo: ["animais_sons", "higiene_desfralde", "biblico"],
+  educativo: ["animais_sons", "higiene_desfralde", "biblico", "economia"],
 };
 const NAV_CAT_META = [
   {
@@ -397,7 +409,7 @@ const NAV_CAT_META = [
     ],
     feats: [
       { href: "/app?tema=princess", catalogI: 1 },
-      { href: "/app?tema=adventure", catalogI: 0 },
+      { href: "/app?tema=adventure", catalogI: 25 },
       { href: "/app?tema=sport", catalogI: 4 },
       { href: "/app?tema=adventure", catalogI: 10 },
     ],
@@ -465,6 +477,7 @@ const NAV_CAT_META = [
       { href: "/app?tema=rotina_dormir" },
       { href: "/app?tema=compartilhar_revezar" },
       { href: "/app?tema=consciencia_corporal" },
+      { href: "/app?tema=economia" },
     ],
     feats: [
       { href: "/app?tema=animais_sons", catalogI: 23 },
@@ -481,23 +494,31 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   space: [16],
   princess: [1],
   superhero: [15, 26, 27],
-  sport: [0, 4],
+  sport: [0, 4, 36],
   mothers_day: [5, 6],
   fathers_day: [21, 14],
   grandparents_love: [8],
   grandfather_love: [30],
   dia_do_idoso: [8, 30],
-  family_love: [32, 7, 29],
+  family_love: [7, 29],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
-  dia_da_familia: [32, 7, 19, 21],
+  dia_da_familia: [7, 19, 21],
   tio_tia: [19, 29],
   christmas: [9],
   easter: [31],
-  animais_sons: [23],
+  animais_sons: [34],
+  economia: [35],
   higiene_desfralde: [24],
   biblico: [20],
 };
+function catalogSectionId(theme: string | null | undefined): string {
+  if (!theme) return "aventuras";
+  for (const [id, themes] of Object.entries(CATALOG_SECTION_THEMES)) {
+    if ((themes as readonly string[]).includes(theme)) return id;
+  }
+  return "aventuras";
+}
 function themeFromHref(href: string): string | null {
   // Links podem ser /app?tema=… ou /cadastro?next=%2Fapp%3Ftema%3D…
   let target = href;
@@ -540,21 +561,10 @@ export function nextOccasionDate(when: OccasionWhen, today: Date): Date {
   const next = new Date(start.getFullYear(), when.month - 1, when.day);
   return next >= start ? next : new Date(start.getFullYear() + 1, when.month - 1, when.day);
 }
-function shiftMonths(date: Date, months: number): Date {
-  const next = new Date(date);
-  next.setMonth(next.getMonth() + months);
-  return next;
-}
-/** A data entra no menu quando cai entre 6 meses atrás e 4 meses à frente. */
+/** A data entra no menu só se a próxima ocorrência ainda é neste ano. */
 export function occasionDue(when: OccasionWhen, today: Date): boolean {
   const start = startOfDay(today);
-  const past = shiftMonths(start, -6);
-  const future = shiftMonths(start, 4);
-  const year = start.getFullYear();
-  const dates = when === "easter"
-    ? [year - 1, year, year + 1].map(easterSunday)
-    : [year - 1, year, year + 1].map((y) => new Date(y, when.month - 1, when.day));
-  return dates.some((date) => date >= past && date <= future);
+  return nextOccasionDate(when, start).getFullYear() === start.getFullYear();
 }
 function SubLabel({ label }: { label: string }) {
   const [name, date] = label.split(" · ");
@@ -721,7 +731,7 @@ const I18N = {
     book_carousel: "Carrossel De Livros",
     cats: [
       {
-        name: "Aventuras",
+        name: "Temáticas",
         subs: ["Aventura", "Dinossauros", "Fundo do Mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
         feats: ["Princesas", "Aventura", "Cristobal E Seu Esporte Favorito", "Nano E Suas Aventuras"],
       },
@@ -756,7 +766,7 @@ const I18N = {
       },
       {
         name: "Educativo",
-        subs: ["Bíblico", "Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo"],
+        subs: ["Bíblico", "Cores", "Higiene", "Animais", "Sentimentos", "Hora de Dormir", "Compartilhar", "Corpo", "Economia"],
         feats: ["Animais", "Higiene", "Davi, O Menino Pastor"],
       },
     ],
@@ -806,7 +816,6 @@ const I18N = {
     vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
-      { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
     ],
@@ -872,6 +881,9 @@ const I18N = {
       { t: "Feliz Páscoa", p: "Ovos, flores e um coelhinho no jardim: a Páscoa da criança vira uma história para guardar.", cover: "Hard", size: "M", tag: "Páscoa", quote: "Páscoa é alegria para compartilhar." },
       { t: "Nossa Família", p: "Avós, pais e crianças juntos no gramado: o carinho de toda a família numa história só deles.", cover: "Hard", size: "M", tag: "Nossa família", quote: "Juntos, a família é o nosso lugar." },
       { t: "Minha Grande Aventura", p: "Um menino, seu cachorro e um castelo no horizonte: cada passo da trilha ensina a ver, ouvir e cuidar.", cover: "Hard", size: "M", tag: "Aventura", quote: "Com um amigo ao lado, o mundo encanta." },
+      { t: "Bruno Em Uma Aventura Animal", p: "Leão, girafa e zebra ao redor: Bruno descobre os animais e aprende a cuidar de cada um.", cover: "Hard", size: "M", tag: "Animais", quote: "Pequenas aventuras, grandes descobertas." },
+      { t: "Aprendendo Economia Com O Gael", p: "Cofrinho, moedas e um plano: Gael aprende a guardar hoje para realizar um sonho amanhã.", cover: "Hard", size: "M", tag: "Economia", quote: "Cada moedinha ajuda o sonho a crescer." },
+      { t: "Maria Jesus E A Disciplina No Hockey", p: "Patins, treino e um sorriso no gelo: disciplina e coragem para chegar ao gol.", cover: "Hard", size: "M", tag: "Esporte e coragem", quote: "Patinar, aprender e sorrir." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -939,7 +951,7 @@ const I18N = {
     book_carousel: "Book Carousel",
     cats: [
       {
-        name: "Adventures",
+        name: "Themes",
         subs: ["Adventure", "Dinosaurs", "Under the Sea", "Space", "Princesses", "Superheroes", "Sports"],
         feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport", "Nano and His Adventures"],
       },
@@ -974,7 +986,7 @@ const I18N = {
       },
       {
         name: "Educational",
-        subs: ["Biblical", "Colors", "Hygiene", "Animals", "Feelings", "Bedtime", "Sharing", "Body"],
+        subs: ["Biblical", "Colors", "Hygiene", "Animals", "Feelings", "Bedtime", "Sharing", "Body", "Savings"],
         feats: ["Animals", "Hygiene", "David, the Shepherd Boy"],
       },
     ],
@@ -1024,7 +1036,6 @@ const I18N = {
     vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
-      { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
     ],
@@ -1090,6 +1101,9 @@ const I18N = {
       { t: "Happy Easter", p: "Eggs, flowers and a little bunny in the garden: Easter becomes a story to keep.", cover: "Hard", size: "M", tag: "Easter", quote: "Easter is joy to share." },
       { t: "Our Family", p: "Grandparents, parents and children together on the grass: the whole family's love in one story.", cover: "Hard", size: "M", tag: "Our family", quote: "Together, family is our place." },
       { t: "My Great Adventure", p: "A boy, his dog and a castle on the horizon: every step on the trail teaches him to look, listen and care.", cover: "Hard", size: "M", tag: "Adventure", quote: "With a friend beside him, the world feels wonderful." },
+      { t: "Bruno On An Animal Adventure", p: "A lion, a giraffe and a zebra all around: Bruno meets the animals and learns to care for each one.", cover: "Hard", size: "M", tag: "Animals", quote: "Small adventures, big discoveries." },
+      { t: "Learning Savings With Gael", p: "A piggy bank, coins and a plan: Gael learns to save today so a dream can happen tomorrow.", cover: "Hard", size: "M", tag: "Savings", quote: "Every little coin helps the dream grow." },
+      { t: "Maria Jesus And Discipline In Hockey", p: "Skates, practice and a smile on the ice: discipline and courage to reach the goal.", cover: "Hard", size: "M", tag: "Sport and courage", quote: "Skate, learn and smile." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1157,7 +1171,7 @@ const I18N = {
     book_carousel: "Carrusel De Libros",
     cats: [
       {
-        name: "Aventuras",
+        name: "Temáticas",
         subs: ["Aventura", "Dinosaurios", "Fondo del Mar", "Espacio", "Princesas", "Superhéroes", "Deportes"],
         feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito", "Nano y sus aventuras"],
       },
@@ -1192,7 +1206,7 @@ const I18N = {
       },
       {
         name: "Educativo",
-        subs: ["Bíblico", "Colores", "Higiene", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo"],
+        subs: ["Bíblico", "Colores", "Higiene", "Animales", "Sentimientos", "Hora de Dormir", "Compartir", "Cuerpo", "Economía"],
         feats: ["Animales", "Higiene", "David, el Niño Pastor"],
       },
     ],
@@ -1242,7 +1256,6 @@ const I18N = {
     vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
-      { t: "Lia Y El Fondo Del Mar", p: "Una aventura en el océano con narración encantadora." },
       { t: "Sofia Y El Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
       { t: "Matteo Y El Mundo De Los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
     ],
@@ -1308,6 +1321,9 @@ const I18N = {
       { t: "Feliz Pascua", p: "Huevos, flores y un conejito en el jardín: la Pascua del niño se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Pascua", quote: "Pascua es alegría para compartir." },
       { t: "Nuestra Familia", p: "Abuelos, padres y niños juntos en el césped: el cariño de toda la familia en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Nuestra familia", quote: "Juntos, la familia es nuestro lugar." },
       { t: "Mi Gran Aventura", p: "Un niño, su perro y un castillo en el horizonte: cada paso del camino enseña a ver, oír y cuidar.", cover: "Hard", size: "M", tag: "Aventura", quote: "Con un amigo al lado, el mundo encanta." },
+      { t: "Bruno En Una Aventura Animal", p: "León, jirafa y cebra alrededor: Bruno conoce a los animales y aprende a cuidar de cada uno.", cover: "Hard", size: "M", tag: "Animales", quote: "Pequeñas aventuras, grandes descubrimientos." },
+      { t: "Aprendiendo Economía Con Gael", p: "Alcancía, monedas y un plan: Gael aprende a guardar hoy para cumplir un sueño mañana.", cover: "Hard", size: "M", tag: "Economía", quote: "Cada monedita ayuda a crecer el sueño." },
+      { t: "Maria Jesus Y La Disciplina En El Hockey", p: "Patines, entrenamiento y una sonrisa en el hielo: disciplina y coraje para llegar al gol.", cover: "Hard", size: "M", tag: "Deporte y coraje", quote: "Patinar, aprender y sonreír." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
@@ -1770,7 +1786,7 @@ export function CatalogBookCard({
           {series.map((shot) => (
             <figure key={shot.key} className={`book-series-shot is-${shot.key}`} data-testid={`book-series-${shot.key}`}>
               <div className="book-series-frame">
-                <div className="cat-book">
+                <div className="cat-book" data-size={shot.key === "cover" ? size : "M"}>
                   <img src={exUrl(shot.src)} alt={`${book.t} — ${pageCopy[shot.key]}`} loading="lazy" />
                 </div>
               </div>
@@ -1798,7 +1814,7 @@ export function CatalogBookCard({
   return (
     <div className="cat-card" data-testid="landing-catalog-card" data-format="catalog">
       <div className="cat-display">
-        <div className="cat-book">
+        <div className="cat-book" data-size={size}>
           {linked ? <Link to={bookHref} className="cat-book-link">{image}</Link> : image}
         </div>
       </div>
@@ -1813,7 +1829,7 @@ export function CatalogBookCard({
   );
 }
 function toCatalogCard(lang: Lang, index: number): CatalogCardBook | null {
-  if (index === 13) return null;
+  if (index === 13 || index === 32) return null;
   const book = I18N[lang].catalog[index];
   const theme = CATALOG_THEMES[index];
   if (!book || !theme || !CATALOG_IMGS[index]) return null;
@@ -1952,6 +1968,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
   const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
+  const [mobileSub, setMobileSub] = useState<{ cat: number; sub: number } | null>(null);
   const [lang, setLang] = useResolvedLang();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
@@ -2026,7 +2043,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const rawOnly = books.length === 1 ? books[0] : undefined;
       const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
-      // Tema do menu sempre abre o catálogo completo na categoria (capas à direita ainda vão ao livro).
+      // Tema e capa em destaque abrem o catálogo da categoria, não a ficha do livro.
       const href = `/catalogo#${NAV_CAT_META[i].id}`;
       return [{
         label,
@@ -2045,7 +2062,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       if (variant === "cartoon" && !CARTOON_COVER[meta.catalogI]) return [];
       return [{
         label,
-        href: `/livro/${meta.catalogI}`,
+        href: `/catalogo#${NAV_CAT_META[i].id}`,
         img: catalogCoverFile(meta.catalogI, lang, variant),
       }];
     }).slice(0, 4),
@@ -2065,7 +2082,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
     const book = t.catalog[i];
     const img = CATALOG_IMGS[i];
     if (!book || !img) return [];
-    return [{ label: book.t, href: `/livro/${i}`, img: catalogCoverFile(i, lang, variant) }];
+    return [{ label: book.t, href: `/catalogo#${catalogSectionId(theme)}`, img: catalogCoverFile(i, lang, variant) }];
   }).slice(0, 4);
 
   const featIcons = [IcSparkle, IcHeart, IcBook, IcGift];
@@ -2147,6 +2164,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       if (e.key === "Escape") {
         setNavOpen(false);
         setMobileCat(null);
+        setMobileSub(null);
         setOpenCat(null);
         setSubHover(null);
         setFeatCat(null);
@@ -2170,6 +2188,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       setFeatCat(null);
       setNavOpen(false);
       setMobileCat(null);
+      setMobileSub(null);
     };
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
@@ -2178,6 +2197,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const closeNav = () => {
     setNavOpen(false);
     setMobileCat(null);
+    setMobileSub(null);
     setOpenCat(null);
     setSubHover(null);
     setFeatCat(null);
@@ -2217,7 +2237,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     aria-expanded={openCat === 0}
                     aria-haspopup="true"
                     aria-controls="cat-panel"
-                    onClick={() => setOpenCat(openCat === 0 ? null : 0)}
+                    onClick={() => {
+                      const next = openCat === 0 ? null : 0;
+                      setOpenCat(next);
+                      if (next !== null) setFeatCat((cur) => cur ?? 0);
+                    }}
                   >
                     <span className="kcat-dot" style={{ background: "#9b8cff", boxShadow: "0 0 10px #9b8cff" }} />
                     {t.cats_label}
@@ -2410,16 +2434,62 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     aria-expanded={mobileCat === i}
                     aria-controls={`mobile-cat-${i}`}
                     aria-label={cat.name}
-                    onClick={() => setMobileCat(mobileCat === i ? null : i)}
+                    onClick={() => {
+                      setMobileCat(mobileCat === i ? null : i);
+                      setMobileSub(null);
+                    }}
                   >
                     <IcChevron className="faq-chev" />
                   </button>
                 </div>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
-                    {cat.subs.map((sub) => (
-                      <Link key={sub.label} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
-                    ))}
+                    {mobileCat === i && mobileSub?.cat !== i && cat.feats.length > 0 ? (
+                      <div className="kmobile-feats" data-testid={`landing-mobile-feats-${cat.id}`}>
+                        {cat.feats.map((feat) => (
+                          <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                            <span className="kcat-feat-cover">
+                              <img src={exUrl(feat.img)} alt="" />
+                            </span>
+                            <span>{feat.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
+                    {cat.subs.map((sub, j) => {
+                      const subName = sub.label.split(" · ")[0];
+                      const subOpen = mobileSub?.cat === i && mobileSub.sub === j;
+                      const subBooks = sub.theme ? menuBooks(sub.theme) : [];
+                      return (
+                        <div key={sub.label} className={`kmobile-sub${subOpen ? " on" : ""}`}>
+                          <div className="kmobile-sub-row">
+                            <Link to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
+                            <button
+                              type="button"
+                              className="kmobile-sub-toggle"
+                              aria-expanded={subOpen}
+                              aria-controls={`mobile-sub-${i}-${j}`}
+                              aria-label={subName}
+                              onClick={() => setMobileSub(subOpen ? null : { cat: i, sub: j })}
+                            >
+                              <IcChevron className="faq-chev" />
+                            </button>
+                          </div>
+                          {subOpen ? (
+                            <div className="kmobile-feats" id={`mobile-sub-${i}-${j}`} data-testid={`landing-mobile-feats-${cat.id}-${j}`}>
+                              {subBooks.length === 0 ? <p className="kmobile-empty">{t.cat_empty}</p> : subBooks.map((feat) => (
+                                <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                                  <span className="kcat-feat-cover">
+                                    <img src={exUrl(feat.img)} alt="" />
+                                  </span>
+                                  <span>{feat.label}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

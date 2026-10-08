@@ -39,7 +39,9 @@ describe("catálogo no sitemap", () => {
 
   it("acompanha as fichas públicas de livro", () => {
     expect(catalogEntry("pt", 13)).toBeNull();
+    expect(catalogEntry("pt", 32)).toBeNull();
     expect(books.some((book) => book.index === 13)).toBe(false);
+    expect(books.some((book) => book.index === 32 || book.title === "Nossa Família")).toBe(false);
     for (const book of books) {
       expect(catalogEntry("pt", book.index)?.t).toBe(book.title);
     }

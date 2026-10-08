@@ -507,9 +507,12 @@ a.kcat-group-name.is-chip:focus-visible {
   width: max-content;
   animation: rev-marquee 180s linear infinite;
 }
-.hero-carousel:hover .hero-carousel-track,
-.hero-carousel:focus-within .hero-carousel-track {
-  animation-play-state: paused;
+/* No toque, :hover e o foco do botão ficam presos e travavam a faixa. */
+@media (hover: hover) and (pointer: fine) {
+  .hero-carousel:hover .hero-carousel-track,
+  .hero-carousel:focus-within .hero-carousel-track {
+    animation-play-state: paused;
+  }
 }
 .hero-slide {
   height: 240px;
@@ -672,6 +675,12 @@ a.kcat-group-name.is-chip:focus-visible {
   height: 100%;
   overflow: hidden;
   filter: none;
+  transition: inset .18s ease;
+}
+#catalogo .cat-book[data-size="P"] {
+  inset: 12.5%;
+  width: auto;
+  height: auto;
 }
 #catalogo .cat-body { padding-left: 0; padding-right: 0; }
 #catalogo .cat-book img {
@@ -1487,9 +1496,11 @@ img.ex-tab-cover {
   width: max-content;
   animation: rev-marquee 90s linear infinite;
 }
-.rev-carousel:hover .rev-carousel-track,
-.rev-carousel:focus-within .rev-carousel-track {
-  animation-play-state: paused;
+@media (hover: hover) and (pointer: fine) {
+  .rev-carousel:hover .rev-carousel-track,
+  .rev-carousel:focus-within .rev-carousel-track {
+    animation-play-state: paused;
+  }
 }
 .rev-carousel .rev-photo {
   width: 168px;
@@ -1761,6 +1772,11 @@ img.ex-tab-cover {
   inset: 0;
   width: 100%;
   height: 100%;
+}
+#catalogo.book-page .book-series-shot .cat-book[data-size="P"] {
+  inset: 12.5%;
+  width: auto;
+  height: auto;
 }
 #catalogo.book-page .book-series-shot figcaption {
   margin: 0;
@@ -2172,7 +2188,22 @@ img.ex-tab-cover {
     box-shadow: 0 16px 40px rgba(31,53,104,.18);
     display: none; z-index: 50; color: #1f3568;
   }
-  .kmobile.open { display: flex; grid-column: 1 / -1; }
+  .kmobile.open {
+    display: flex; grid-column: 1 / -1;
+    max-height: min(70dvh, calc(100dvh - var(--khead-h, 100px) - 16px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .kcat-panel,
+  .kcat-panel-all {
+    grid-template-columns: 1fr;
+    left: 14px; right: 14px;
+    max-height: min(70dvh, calc(100dvh - var(--khead-h, 100px) - 16px));
+    overflow: auto;
+  }
+  .kcat-groups { grid-template-columns: 1fr; }
+  .kcat-subs { border-right: none; border-bottom: 1px solid #eef1f7; padding: 0 0 8px; }
+  .kcat-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kmobile-section {
     display: flex; flex-direction: column; gap: 6px;
     padding: 4px;
@@ -2242,17 +2273,37 @@ img.ex-tab-cover {
   .kmobile-cat-btn:focus-within,
   .kmobile-cat.open .kmobile-cat-btn { background: #eef4ff; }
   .kmobile-cat-btn .faq-chev { margin-left: auto; color: #1f3568; }
-  .kmobile-cat.open .faq-chev { transform: rotate(180deg); }
+  .kmobile-cat.open > .kmobile-cat-btn .faq-chev { transform: rotate(180deg); }
   .kmobile-subs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
   .kmobile-cat.open .kmobile-subs { grid-template-rows: 1fr; }
-  .kmobile-subs-inner { overflow: hidden; min-height: 0; display: flex; flex-direction: column; padding: 0 8px 8px 26px; }
-  .kmobile-subs-inner a {
+  .kmobile-subs-inner { overflow: hidden; min-height: 0; display: flex; flex-direction: column; padding: 0 8px 8px 18px; }
+  .kmobile-sub-row { display: flex; align-items: center; gap: 2px; }
+  .kmobile-sub-row > a {
+    flex: 1; min-width: 0;
     padding: 10px 10px; color: #3a4a78; text-decoration: none; font-weight: 700; font-size: .92rem;
     border-radius: 12px;
   }
-  .kmobile-subs-inner a:hover,
-  .kmobile-subs-inner a:focus-visible {
+  .kmobile-sub-row > a:hover,
+  .kmobile-sub-row > a:focus-visible {
     background: #eef4ff;
+  }
+  .kmobile-sub-toggle {
+    flex: none; border: none; background: none; color: #1f3568; cursor: pointer;
+    display: grid; place-items: center; padding: 6px;
+  }
+  .kmobile-sub.on .kmobile-sub-toggle .faq-chev { transform: rotate(180deg); }
+  .kmobile-feats {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+    padding: 2px 4px 10px;
+  }
+  .kmobile-feats .kcat-feat {
+    min-width: 0; color: #1f3568; font-size: .78rem; padding: 6px;
+  }
+  .kmobile-feats .kcat-feat > span:last-child {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .kmobile-empty {
+    grid-column: 1 / -1; margin: 4px 8px 8px; color: #6b6890; font-weight: 700; font-size: .9rem;
   }
   .klinks {
     position: absolute; top: calc(100% + 8px); right: 14px; left: 14px; flex-direction: column; align-items: stretch;
