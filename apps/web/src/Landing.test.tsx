@@ -832,7 +832,15 @@ describe("Catálogo e página do livro", () => {
     expect(daviLinks[0]).toHaveAttribute("href", "/livro/20");
     expect(screen.queryByRole("heading", { name: /o aniversário especial de ester/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /amor de avô/i })).not.toBeInTheDocument();
+    const aventuras = document.getElementById("aventuras") as HTMLElement;
+    expect(within(aventuras).getByRole("heading", { name: /^aventura$/i })).toBeInTheDocument();
+    expect(within(aventuras).getByRole("heading", { name: /^dinossauros$/i })).toBeInTheDocument();
+    expect(within(aventuras).getByRole("heading", { name: /^princesas$/i })).toBeInTheDocument();
     const ocasioes = document.getElementById("ocasioes") as HTMLElement;
+    expect(within(ocasioes).getByRole("heading", { name: /^natal$/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /^dia das mães$/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /^dia dos pais$/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /^dia dos avós$/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /natal com a meme e o tata/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /o amor de mãe/i })).toBeInTheDocument();
     expect(within(ocasioes).getByRole("heading", { name: /amor de bisavó/i })).toBeInTheDocument();
@@ -846,6 +854,8 @@ describe("Catálogo e página do livro", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole("heading", { name: /ocasiões especiais/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^natal$/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^dia das mães$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /natal com a meme e o tata/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /nicolas, meu primeiro amor/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /raquel e papai/i })).toBeInTheDocument();

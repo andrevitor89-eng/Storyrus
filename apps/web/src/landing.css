@@ -1696,6 +1696,16 @@ img.ex-tab-cover {
   width: 14px; height: 14px; border-radius: 50%; flex: none;
   background: var(--group, #5aa6e8);
 }
+.catalog-sub { scroll-margin-top: 24px; margin: 0 0 28px; }
+.catalog-sub:last-child { margin-bottom: 0; }
+.catalog-sub-title {
+  margin: 0 0 14px;
+  color: #c9d4ef;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+[data-theme="light"] .kid .catalog-sub-title { color: #3a4d7a; }
 .catalog-page .reveal,
 .book-page .reveal { opacity: 1; transform: none; }
 .book-page-card { max-width: 1040px; margin: 0 auto; text-align: left; }

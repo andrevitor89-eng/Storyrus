@@ -102,11 +102,16 @@ export function CatalogPage() {
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
             <h2 className="catalog-section-title">{section.name}</h2>
-            <div className="cat-grid">
-              {section.books.map((book) => (
-                <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
-              ))}
-            </div>
+            {section.subs.map((sub) => (
+              <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
+                <h3 className="catalog-sub-title">{sub.name}</h3>
+                <div className="cat-grid">
+                  {sub.books.map((book) => (
+                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+                  ))}
+                </div>
+              </div>
+            ))}
           </section>
         ))}
       </main>
@@ -132,12 +137,17 @@ export function CategoryCatalogPage() {
         <SiteBackNav />
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <h1 className="catalog-section-title">{section.name}</h1>
-          {section.books.length > 0 ? (
-            <div className="cat-grid">
-              {section.books.map((book) => (
-                <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
-              ))}
-            </div>
+          {section.subs.length > 0 ? (
+            section.subs.map((sub) => (
+              <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
+                <h3 className="catalog-sub-title">{sub.name}</h3>
+                <div className="cat-grid">
+                  {sub.books.map((book) => (
+                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+                  ))}
+                </div>
+              </div>
+            ))
           ) : (
             <p className="kcat-empty">{copy.empty}</p>
           )}
