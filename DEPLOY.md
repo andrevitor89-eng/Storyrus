@@ -69,6 +69,28 @@ A migration `0023_user_is_admin` cria `users.is_admin` (default false) e marca `
 
 > Free tier do Render hiberna após inatividade e o Postgres free expira em ~90 dias — ok para testes. Para produção/demos estáveis, veja **§ Beyond free (recomendado)**.
 
+### Se “Criar conta” trava / API fora do ar
+
+Sintoma no site: botão fica em **Aguarde…** e depois “servidor indisponível”.
+Causa típica: `https://storyrus-api.onrender.com/health` não responde (serviço down ou deploy *Failed*).
+
+1. Abra o serviço: [storyrus-api no Render](https://dashboard.render.com/web/srv-d98gm9taeets73fuarug).
+2. Confira **Events** → último deploy. Se estiver *Failed*, abra o log.
+3. Clique **Manual Deploy → Deploy latest commit** (branch `main`).
+4. Enquanto sobe, confira também o banco **storyrus-db**:
+   - Se o Postgres free estiver *Expired* / *Unavailable*, o boot da API falha nas migrations.
+   - Crie/atualize um Postgres disponível e garanta que `DATABASE_URL` aponta para ele.
+5. Quando o status for **Live**, teste:
+   ```bash
+   curl -sS https://storyrus-api.onrender.com/health
+   curl -sS -X POST https://storyrus.ai/v1/auth/signup \
+     -H 'Content-Type: application/json' \
+     -d '{"email":"teste@example.com","password":"TestPass123!"}'
+   ```
+6. Se o deploy falhar de novo, copie as **últimas ~40 linhas do log** (erro de build, migrate ou health-check) e cole no chat para corrigirmos o código/config.
+
+Opcional (para o agente poder redeployar sozinho): em Account Settings → API Keys, crie uma API Key e cole aqui como `RENDER_API_KEY` (ou Deploy Hook do serviço).
+
 ### Beyond free (recomendado)
 
 O Blueprint (`render.yaml`) continua em `plan: free` de propósito — **não** força upgrade pago no git. Em produção (ou demos que não podem “acordar frias”), suba os planos **no painel** do Render:
