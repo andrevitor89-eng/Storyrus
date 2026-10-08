@@ -155,7 +155,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const [askGender, setAskGender] = useState(true);
   const alsoHero = useRef<string | null>(null);
   const [orderSent, setOrderSent] = useState(false);
-  const [generateStep, setGenerateStep] = useState(false);
   const [artMode, setArtMode] = useState<"realista" | "cartoon">("realista");
   const [dedication, setDedication] = useState("");
   const [clientName, setClientName] = useState("");
@@ -375,11 +374,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     return true;
   }
 
-  function goToGenerate() {
-    if (!formReady()) return;
-    setGenerateStep(true);
-  }
-
   async function start(agreed = mediaConsent) {
     if (!formReady(agreed)) return;
     const signedIn = accountKind === "account";
@@ -484,7 +478,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       return [];
     });
     setOrderSent(false);
-    setGenerateStep(false);
     setExtraNames("");
     setMediaConsent(false);
     setChildName("");
@@ -933,26 +926,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             </div>
           )}
 
-          {showBook && generateStep && (
-            <div className="studio-generate-step" data-testid="studio-generate-step">
-              <h3 className="field-label">{t.createProject}</h3>
-              <p className="studio-slogan">{t.generateStepHint}</p>
-              <button type="button" className="kbtn kbtn-soft studio-create" onClick={() => setGenerateStep(false)}>
-                {t.backToForm}
-              </button>
-              <button
-                type="button"
-                className="kbtn kbtn-primary studio-create"
-                disabled={isDemo || busy}
-                data-testid="studio-generate-book"
-                onClick={() => void start()}
-              >
-                {t.createProject}
-              </button>
-            </div>
-          )}
-
-          {showBook && !generateStep && (
+          {showBook && (
           <>
           <div className="how" role="region" aria-labelledby="studio-how-heading">
             <h3 className="field-label" id="studio-how-heading">
@@ -1209,11 +1183,11 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               <button
                 type="button"
                 className="kbtn kbtn-primary studio-create"
-                disabled={isDemo}
-                data-testid="studio-next-page"
-                onClick={goToGenerate}
+                disabled={isDemo || busy}
+                data-testid="studio-generate-book"
+                onClick={() => void start()}
               >
-                {t.nextPage}
+                {t.createProject}
               </button>
             </>
           )}

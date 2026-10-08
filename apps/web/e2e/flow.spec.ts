@@ -267,7 +267,6 @@ test("estúdio → projeto → foto gera personagem → história", async ({ pag
     buffer: Buffer.from("x"),
   });
   await page.getByTestId("studio-media-consent").check();
-  await page.getByTestId("studio-next-page").click();
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
 });
@@ -288,7 +287,6 @@ test("após gerar o livro mostra Projeto criado sem botões de crédito", async 
     buffer: Buffer.from("x"),
   });
   await page.getByTestId("studio-media-consent").check();
-  await page.getByTestId("studio-next-page").click();
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();

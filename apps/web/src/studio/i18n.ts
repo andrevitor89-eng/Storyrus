@@ -76,9 +76,6 @@ export type StudioCopy = {
   clientNotesPh: string;
   clientContinue: string;
   errClient: string;
-  nextPage: string;
-  backToForm: string;
-  generateStepHint: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
@@ -389,9 +386,6 @@ const pt: StudioCopy = {
   clientNotesPh: "Ex.: entregar à tarde",
   clientContinue: "Continuar para o livro",
   errClient: "Preencha nome, e-mail, telefone e endereço.",
-  nextPage: "Próxima página",
-  backToForm: "Voltar aos dados",
-  generateStepHint: "Os dados e a foto já estão prontos. Agora é só gerar o livro.",
   createProject: "Gerar o livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
@@ -611,9 +605,6 @@ const en: StudioCopy = {
   clientNotesPh: "e.g. deliver in the afternoon",
   clientContinue: "Continue to the book",
   errClient: "Fill in name, email, phone, and address.",
-  nextPage: "Next page",
-  backToForm: "Back to the details",
-  generateStepHint: "The details and photo are ready. Generate the book.",
   createProject: "Generate the book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
@@ -833,9 +824,6 @@ const es: StudioCopy = {
   clientNotesPh: "Ej.: entregar por la tarde",
   clientContinue: "Continuar al libro",
   errClient: "Completa nombre, correo, teléfono y dirección.",
-  nextPage: "Página siguiente",
-  backToForm: "Volver a los datos",
-  generateStepHint: "Los datos y la foto ya están listos. Ahora solo falta generar el libro.",
   createProject: "Generar el libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",

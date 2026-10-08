@@ -98,7 +98,7 @@ describe("Studio — ordem dos campos", () => {
     const theme = screen.getByLabelText(/insira o tema desejado/i);
     const artStyle = screen.getByRole("group", { name: /estilo do livro/i });
     const photos = screen.getByTestId("studio-photo-drop");
-    const next = screen.getByTestId("studio-next-page");
+    const generate = screen.getByTestId("studio-generate-book");
 
     const earlier = (a: Node, b: Node) =>
       Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
@@ -109,7 +109,7 @@ describe("Studio — ordem dos campos", () => {
     expect(earlier(title, theme)).toBe(true);
     expect(earlier(theme, artStyle)).toBe(true);
     expect(earlier(artStyle, photos)).toBe(true);
-    expect(earlier(photos, next)).toBe(true);
+    expect(earlier(photos, generate)).toBe(true);
   });
 });
 
@@ -194,7 +194,6 @@ describe("Studio — tema do banner", () => {
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
     );
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
@@ -242,7 +241,6 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText(/2 fotos selecionadas/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     await screen.findByTestId("studio-order-sent");
@@ -359,7 +357,6 @@ describe("Studio a11y", () => {
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
@@ -385,7 +382,6 @@ describe("Polling do estúdio", () => {
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);
@@ -432,7 +428,6 @@ describe("Prévia automática", () => {
     );
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     await screen.findByTestId("studio-order-sent");
 
