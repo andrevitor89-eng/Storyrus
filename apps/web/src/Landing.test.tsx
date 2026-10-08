@@ -832,6 +832,26 @@ describe("Catálogo e página do livro", () => {
     expect(daviLinks[0]).toHaveAttribute("href", "/livro/20");
     expect(screen.queryByRole("heading", { name: /o aniversário especial de ester/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /amor de avô/i })).not.toBeInTheDocument();
+    const ocasioes = document.getElementById("ocasioes") as HTMLElement;
+    expect(within(ocasioes).getByRole("heading", { name: /natal com a meme e o tata/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /o amor de mãe/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /amor de bisavó/i })).toBeInTheDocument();
+    expect(within(ocasioes).getByRole("heading", { name: /meu pai, meu herói/i })).toBeInTheDocument();
+  });
+
+  it("abre a categoria ocasiões especiais com os livros das datas", async () => {
+    render(
+      <MemoryRouter initialEntries={["/catalogo/ocasioes"]}>
+        <AppRoutes />
+      </MemoryRouter>,
+    );
+    expect(await screen.findByRole("heading", { name: /ocasiões especiais/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /natal com a meme e o tata/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /nicolas, meu primeiro amor/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /raquel e papai/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /amor de bisavó/i })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /o aniversário especial de ester/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /nano e suas aventuras/i })).not.toBeInTheDocument();
   });
 
   it("mostra a descrição completa na página do livro", async () => {
