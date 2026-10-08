@@ -188,6 +188,9 @@ class Settings(BaseSettings):
     video_provider: str = "kling"
 
     # Workers
+    # True: o processo da API também consome a fila. No Render free o worker
+    # separado hiberna e a prévia ficaria PENDING para sempre.
+    embed_worker: bool = False
     worker_poll_interval_s: float = 2.0
     worker_batch_size: int = 5
     job_max_attempts: int = 5
