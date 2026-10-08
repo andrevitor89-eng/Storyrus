@@ -62,7 +62,7 @@ Tudo funciona offline para desenvolvimento, mas o pipeline real precisa de:
 |---|---|
 | `OPENAI_API_KEY` | GPT Image (avatar, cenas, ebook) + juiz de história |
 | `ANTHROPIC_API_KEY` | Claude (geração da história) |
-| `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` | Kling (único provedor de vídeo) |
+| `KLING_API_KEY` (ou `KLING_ACCESS_KEY`/`KLING_SECRET_KEY` legado) | Kling (único provedor de vídeo) |
 | `STORAGE_ACCESS_KEY` / `STORAGE_SECRET_KEY` / `STORAGE_BUCKET` / `STORAGE_ENDPOINT_URL` | R2/S3 (uploads e entregáveis) |
 | `JWT_SECRET` / `WEBHOOK_SIGNING_SECRET` | segredos da aplicação |
 

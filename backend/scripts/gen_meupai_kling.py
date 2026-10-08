@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """Anima cada página do Meu Pai, Meu Herói via Kling (image2video) e concatena.
 
-Requer KLING_ACCESS_KEY e KLING_SECRET_KEY no ambiente (ou backend/.env).
+Requer KLING_API_KEY (console novo) — ou o par legado
+KLING_ACCESS_KEY + KLING_SECRET_KEY — no ambiente (ou backend/.env).
 
 Uso:
   cd backend
-  export KLING_ACCESS_KEY=...
-  export KLING_SECRET_KEY=...
+  export KLING_API_KEY=...
   .venv/bin/python scripts/gen_meupai_kling.py
   .venv/bin/python scripts/gen_meupai_kling.py --limit 1          # smoke test
   .venv/bin/python scripts/gen_meupai_kling.py --concurrency 2
@@ -260,10 +260,12 @@ def _parse_args() -> argparse.Namespace:
 
 async def main() -> None:
     args = _parse_args()
-    if not (settings.kling_access_key and settings.kling_secret_key):
+    has_api_key = bool(settings.kling_api_key)
+    has_legacy = bool(settings.kling_access_key and settings.kling_secret_key)
+    if not (has_api_key or has_legacy):
         raise SystemExit(
-            "KLING_ACCESS_KEY / KLING_SECRET_KEY ausentes.\n"
-            "Defina no ambiente ou em backend/.env e rode de novo."
+            "KLING_API_KEY ausente (ou par legado KLING_ACCESS_KEY/SECRET_KEY).\n"
+            "Cole a API Key do console kling.ai/dev/api-key em backend/.env e rode de novo."
         )
 
     pages = PAGES[: args.limit] if args.limit and args.limit > 0 else PAGES

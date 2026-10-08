@@ -123,7 +123,7 @@ Handlers (`app/workers/handlers.py`):
 
 ## Demo: vídeo Kling do livro Meu Pai, Meu Herói
 
-Com `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` preenchidos:
+Com `KLING_API_KEY` (console moderno) — ou o par legado AK/SK — preenchido:
 
 ```bash
 # na raiz
@@ -135,3 +135,4 @@ cd backend && .venv/bin/python scripts/gen_meupai_kling.py
 ```
 
 Saída: `apps/web/public/exemplos/video-meupai-heroi-kling.mp4` (17 clips de 5s concatenados).
+A API Key única do console (`kling.ai/dev/api-key`) vai em `KLING_API_KEY`.

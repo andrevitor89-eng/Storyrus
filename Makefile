@@ -49,5 +49,5 @@ demo: ## Exercise API flow against running stack (needs make up)
 web: ## Run Vite web on host (API must already be up)
 	cd apps/web && npm install && npm run dev
 
-kling-meupai: ## Animate Meu Pai pages with Kling (needs KLING_* in backend/.env)
+kling-meupai: ## Animate Meu Pai pages with Kling (needs KLING_API_KEY in backend/.env)
 	cd backend && .venv/bin/python scripts/gen_meupai_kling.py $(ARGS)
