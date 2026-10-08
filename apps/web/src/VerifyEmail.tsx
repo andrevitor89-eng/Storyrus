@@ -4,6 +4,7 @@ import logo from "./assets/logo.png";
 import { api } from "./api";
 import { readAuthQueryEmail, readAuthQueryToken, safeNextPath } from "./Auth";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 /**
@@ -82,7 +83,8 @@ export function VerifyEmail() {
               <img src={logo} alt="Story R Us" />
             </Link>
           </div>
-          <h1>Confirmando e-mail</h1>
+          <SiteBackNav />
+          <h1>Confirmando E-mail</h1>
           {email ? (
             <p className="auth-lead" data-testid="verify-email-address">
               {email}
@@ -111,18 +113,18 @@ export function VerifyEmail() {
                     onClick={() => void onResend()}
                     data-testid="verify-email-resend"
                   >
-                    {resending ? "Enviando…" : "Reenviar e-mail de confirmação"}
+                    {resending ? "Enviando…" : "Reenviar E-mail De Confirmação"}
                   </button>
                 </p>
               ) : null}
               <p className="auth-foot">
                 <Link to="/cadastro" data-testid="verify-email-signup">
-                  Criar conta de novo
+                  Criar Conta De Novo
                 </Link>
               </p>
               <p className="auth-foot">
                 <Link to="/entrar" data-testid="verify-email-login">
-                  Já confirmei — entrar
+                  Já Confirmei — Entrar
                 </Link>
               </p>
             </>

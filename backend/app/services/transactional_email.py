@@ -18,6 +18,12 @@ logger = logging.getLogger(__name__)
 RESEND_API_URL = "https://api.resend.com/emails"
 _DEFAULT_FROM = "Story R Us <noreply@storyrus.ai>"
 
+# Paleta alinhada aos mockups Story R Us
+_COLOR_INK = "#1A2B3C"
+_COLOR_MUTED = "#6B7280"
+_COLOR_CTA = "#FF7F5E"
+_COLOR_BG = "#FFF9F3"
+
 
 def email_configured() -> bool:
     """True quando há chave Resend para envio real."""
@@ -54,8 +60,16 @@ def warn_if_email_unconfigured() -> None:
         logger.info("RESEND_API_KEY ausente: envio transacional desligado (dev ok)")
 
 
+def public_web_origin() -> str:
+    return (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
+
+
+def email_asset_url(filename: str) -> str:
+    return f"{public_web_origin()}/email/{filename}"
+
+
 def build_verify_email_url(token: str, email: str | None = None) -> str:
-    origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
+    origin = public_web_origin()
     query: dict[str, str] = {"token": token}
     if email:
         query["email"] = email.strip()
@@ -63,11 +77,78 @@ def build_verify_email_url(token: str, email: str | None = None) -> str:
 
 
 def build_password_reset_url(token: str, email: str | None = None) -> str:
-    origin = (settings.public_web_origin or "https://storyrus.ai").rstrip("/")
+    origin = public_web_origin()
     query: dict[str, str] = {"token": token}
     if email:
         query["email"] = email.strip()
     return f"{origin}/redefinir-senha?{urlencode(query)}"
+
+
+def _branded_html(
+    *,
+    hero_file: str,
+    hero_alt: str,
+    heading: str,
+    description_html: str,
+    cta_label: str,
+    cta_url: str,
+    disclaimer: str,
+) -> str:
+    hero_src = email_asset_url(hero_file)
+    footer_src = email_asset_url("email-footer.jpg")
+    site = "www.storyrus.ai"
+    return f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{heading}</title>
+</head>
+<body style="margin:0;padding:0;background:{_COLOR_BG};font-family:Arial,Helvetica,sans-serif;color:{_COLOR_INK};">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:{_COLOR_BG};">
+    <tr>
+      <td align="center" style="padding:24px 12px;">
+        <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#ffffff;border-radius:16px;overflow:hidden;">
+          <tr>
+            <td align="center" style="padding:0;">
+              <a href="{cta_url}" style="text-decoration:none;">
+                <img src="{hero_src}" width="600" alt="{hero_alt}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:28px 32px 8px 32px;">
+              <h1 style="margin:0;font-size:28px;line-height:1.25;font-weight:700;color:{_COLOR_INK};">{heading}</h1>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:12px 36px 8px 36px;">
+              <p style="margin:0;font-size:15px;line-height:1.55;color:{_COLOR_INK};font-weight:400;">{description_html}</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 32px 8px 32px;">
+              <a href="{cta_url}" style="display:inline-block;background:{_COLOR_CTA};color:#ffffff;text-decoration:none;font-size:16px;font-weight:700;padding:14px 28px;border-radius:999px;">
+                {cta_label}
+              </a>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:16px 36px 8px 36px;">
+              <p style="margin:0;font-size:12px;line-height:1.45;color:{_COLOR_MUTED};">{disclaimer}</p>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:12px 0 0 0;">
+              <img src="{footer_src}" width="600" alt="{site}" style="display:block;width:100%;max-width:600px;height:auto;border:0;" />
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>"""
 
 
 def send_email(*, to_email: str, subject: str, text: str, html: str) -> bool:
@@ -123,17 +204,30 @@ def send_verify_email(*, to_email: str, token: str) -> bool:
     url = build_verify_email_url(token, email=to_email)
     if not email_configured():
         logger.info("verify_email_link to=%s url=%s", to_email, url)
-    subject = "Confirme seu e-mail — Story R Us"
+    subject = "Confirme Seu E-mail — Story R Us"
     text = (
-        "Bem-vindo ao Story R Us!\n\n"
-        "Confirme seu e-mail para ativar a conta e criar livros:\n"
-        f"{url}\n\n"
-        f"O link vale por {settings.email_verify_ttl_min} minutos."
+        "Confirme Seu E-mail\n\n"
+        "Falta só um passo para começar sua jornada com a STORY R US. "
+        "Confirme seu e-mail para ativar sua conta e acompanhar a criação "
+        "de histórias personalizadas inesquecíveis.\n\n"
+        f"Confirmar Meu E-mail: {url}\n\n"
+        f"O link vale por {settings.email_verify_ttl_min} minutos.\n"
+        "Se você não criou esta conta, pode ignorar esta mensagem com segurança.\n\n"
+        "www.storyrus.ai"
     )
-    html = (
-        "<p>Bem-vindo ao <strong>Story R Us</strong>!</p>"
-        f'<p><a href="{url}">Clique aqui para confirmar seu e-mail</a> '
-        f"e ativar a conta (válido por {settings.email_verify_ttl_min} minutos).</p>"
+    html = _branded_html(
+        hero_file="confirm-hero.jpg",
+        hero_alt="Story R Us — Confirme Seu E-mail",
+        heading="Confirme Seu E-mail",
+        description_html=(
+            "Falta só um passo para começar sua jornada com a "
+            "<strong>STORY R US</strong>. Confirme seu e-mail para ativar "
+            "sua conta e acompanhar a criação de histórias personalizadas "
+            "inesquecíveis."
+        ),
+        cta_label="Confirmar Meu E-mail →",
+        cta_url=url,
+        disclaimer=("Se você não criou esta conta, pode ignorar esta mensagem com segurança."),
     )
     return send_email(to_email=to_email, subject=subject, text=text, html=html)
 
@@ -142,19 +236,30 @@ def send_password_reset_email(*, to_email: str, token: str) -> bool:
     url = build_password_reset_url(token, email=to_email)
     if not email_configured():
         logger.info("password_reset_link to=%s url=%s", to_email, url)
-    subject = "Redefinir senha — Story R Us"
+    subject = "Esqueceu Sua Senha? — Story R Us"
     text = (
-        "Recebemos um pedido para redefinir a senha da sua conta Story R Us.\n\n"
-        "Abra o link abaixo para escolher uma nova senha:\n"
-        f"{url}\n\n"
+        "Esqueceu Sua Senha?\n\n"
+        "Sem problemas! Clique no link abaixo para redefinir sua senha e "
+        "voltar a acessar sua conta na STORY R US com segurança.\n\n"
+        f"Redefinir Minha Senha: {url}\n\n"
         f"O link vale por {settings.password_reset_ttl_min} minutos. "
-        "Se você não pediu isso, ignore este e-mail."
+        "Se você não solicitou esta redefinição, pode ignorar esta mensagem "
+        "com segurança.\n\n"
+        "www.storyrus.ai"
     )
-    html = (
-        "<p>Recebemos um pedido para redefinir a senha da sua conta "
-        "<strong>Story R Us</strong>.</p>"
-        f'<p><a href="{url}">Clique aqui para escolher uma nova senha</a> '
-        f"(válido por {settings.password_reset_ttl_min} minutos).</p>"
-        "<p>Se você não pediu isso, ignore este e-mail.</p>"
+    html = _branded_html(
+        hero_file="reset-hero.jpg",
+        hero_alt="Story R Us — Esqueceu Sua Senha?",
+        heading="Esqueceu Sua Senha?",
+        description_html=(
+            "Sem problemas! Clique no botão abaixo para redefinir sua senha "
+            "e voltar a acessar sua conta na <strong>STORY R US</strong> "
+            "com segurança."
+        ),
+        cta_label="Redefinir Minha Senha →",
+        cta_url=url,
+        disclaimer=(
+            "Se você não solicitou esta redefinição, pode ignorar esta mensagem com segurança."
+        ),
     )
     return send_email(to_email=to_email, subject=subject, text=text, html=html)

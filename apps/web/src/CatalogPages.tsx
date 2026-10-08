@@ -1,25 +1,21 @@
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, type CSSProperties } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import logo from "./assets/logo.png";
 import "./landing.css";
 import { NotFound } from "./NotFound";
 import { bookPageMeta, categoryPageMeta, NOT_FOUND_PAGE, staticPageMeta, usePageMeta } from "./pageMeta";
+import { useResolvedLang, type Lang } from "./i18n/lang";
+import { SiteBackNav } from "./SiteBackNav";
 import {
   CatalogBookCard,
   catalogCategory,
   catalogEntry,
   catalogPageCopy,
   catalogSections,
-  readSiteLang,
-  type Lang,
 } from "./Landing";
 
 function useSiteLang() {
-  const [lang, setLang] = useState<Lang>(readSiteLang);
-  useEffect(() => {
-    document.documentElement.lang = lang === "en" ? "en" : lang === "es" ? "es" : "pt-BR";
-    try { localStorage.setItem("lang", lang); } catch { /* ignore */ }
-  }, [lang]);
+  const [lang, setLang] = useResolvedLang();
   useEffect(() => {
     try {
       const theme = localStorage.getItem("theme");
@@ -74,12 +70,24 @@ export function CatalogPage() {
   const { hash } = useLocation();
   useEffect(() => {
     const id = hash.replace("#", "");
-    const el = id ? document.getElementById(id) : null;
-    if (!el) return;
-    const header = document.querySelector(".catalog-knav");
-    const offset = header ? header.getBoundingClientRect().height + 12 : 0;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top });
+    if (!id) return;
+    const scrollToSection = () => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const header = document.querySelector(".catalog-knav");
+      const offset = header ? header.getBoundingClientRect().height + 12 : 0;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top });
+      return true;
+    };
+    // Retenta: capas/lazy-load mudam a altura depois do 1º paint.
+    scrollToSection();
+    const t1 = window.setTimeout(scrollToSection, 80);
+    const t2 = window.setTimeout(scrollToSection, 320);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [sections, hash]);
   return (
     <div className="kid">
@@ -89,6 +97,7 @@ export function CatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
+        <SiteBackNav />
         <h1 className="ktitle">{copy.title}</h1>
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
@@ -120,7 +129,7 @@ export function CategoryCatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
-        <p className="book-back"><Link to="/catalogo">{copy.back}</Link></p>
+        <SiteBackNav />
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <h1 className="catalog-section-title">{section.name}</h1>
           {section.books.length > 0 ? (
@@ -158,7 +167,7 @@ export function BookPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection book-page" id="catalogo">
-        <p className="book-back"><Link to={`/catalogo/${book.sectionId}`}>{copy.back}</Link></p>
+        <SiteBackNav />
         <div className="book-page-card">
           <CatalogBookCard book={book} lang={lang} personalize={copy.personalize} linkBook={false} layout="page" />
         </div>

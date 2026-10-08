@@ -3,13 +3,12 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { accountGateHref } from "./Auth";
 import { api, getToken, type MeUser, type ProfileUpdatePayload } from "./api";
-import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
+import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
-  applyDocumentLang,
   LANGS,
   type Lang,
   readStoredLang,
-  writeStoredLang,
+  useResolvedLang,
 } from "./i18n/lang";
 import {
   COUNTRY_GROUPS,
@@ -17,6 +16,7 @@ import {
   regionProfile,
   submitStreetNumber,
 } from "./signupRegions";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 type ProfileForm = {
@@ -63,23 +63,23 @@ const COPY: Record<
   }
 > = {
   pt: {
-    title: "Meu perfil",
+    title: "Meu Perfil",
     lead: "Atualize nome, telefone e endereço usados nos pedidos.",
-    accountSection: "Seus dados",
-    addressSection: "Endereço de entrega",
+    accountSection: "Seus Dados",
+    addressSection: "Endereço De Entrega",
     email: "E-mail",
     emailHint: "O e-mail não pode ser alterado por aqui.",
-    fullName: "Nome completo",
+    fullName: "Nome Completo",
     phone: "Telefone / WhatsApp",
     country: "País",
-    street: "Rua / avenida",
+    street: "Rua / Avenida",
     city: "Cidade",
-    save: "Salvar alterações",
+    save: "Salvar Alterações",
     busy: "Salvando…",
     saved: "Dados atualizados.",
-    studio: "Voltar ao estúdio",
+    studio: "Voltar Ao Estúdio",
     logout: "Sair",
-    changePassword: "Alterar senha",
+    changePassword: "Alterar Senha",
     loading: "Carregando…",
     loadError: "Não foi possível carregar seu perfil.",
     saveError: "Não foi possível salvar. Tente de novo.",
@@ -90,23 +90,23 @@ const COPY: Record<
     cepOk: "Endereço preenchido. Confira e informe o número.",
   },
   en: {
-    title: "My profile",
+    title: "My Profile",
     lead: "Update the name, phone, and address used for orders.",
-    accountSection: "Your details",
-    addressSection: "Shipping address",
+    accountSection: "Your Details",
+    addressSection: "Shipping Address",
     email: "Email",
     emailHint: "Email cannot be changed here.",
-    fullName: "Full name",
+    fullName: "Full Name",
     phone: "Phone / WhatsApp",
     country: "Country",
-    street: "Street address",
+    street: "Street Address",
     city: "City",
-    save: "Save changes",
+    save: "Save Changes",
     busy: "Saving…",
     saved: "Profile updated.",
-    studio: "Back to studio",
-    logout: "Log out",
-    changePassword: "Change password",
+    studio: "Back To Studio",
+    logout: "Log Out",
+    changePassword: "Change Password",
     loading: "Loading…",
     loadError: "Could not load your profile.",
     saveError: "Could not save. Please try again.",
@@ -117,23 +117,23 @@ const COPY: Record<
     cepOk: "Address filled. Check it and add the number.",
   },
   es: {
-    title: "Mi perfil",
+    title: "Mi Perfil",
     lead: "Actualiza nombre, teléfono y dirección usados en los pedidos.",
-    accountSection: "Tus datos",
-    addressSection: "Dirección de envío",
+    accountSection: "Tus Datos",
+    addressSection: "Dirección De Envío",
     email: "Correo",
     emailHint: "El correo no se puede cambiar aquí.",
-    fullName: "Nombre completo",
+    fullName: "Nombre Completo",
     phone: "Teléfono / WhatsApp",
     country: "País",
-    street: "Calle / avenida",
+    street: "Calle / Avenida",
     city: "Ciudad",
-    save: "Guardar cambios",
+    save: "Guardar Cambios",
     busy: "Guardando…",
     saved: "Datos actualizados.",
-    studio: "Volver al estudio",
+    studio: "Volver Al Estudio",
     logout: "Salir",
-    changePassword: "Cambiar contraseña",
+    changePassword: "Cambiar Contraseña",
     loading: "Cargando…",
     loadError: "No se pudo cargar tu perfil.",
     saveError: "No se pudo guardar. Inténtalo de nuevo.",
@@ -201,7 +201,7 @@ function LangSwitch({
 export function Conta() {
   const location = useLocation();
   const navigate = useNavigate();
-  const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
+  const [lang, setLang] = useResolvedLang();
   const t = COPY[lang];
 
   const [gate, setGate] = useState<"loading" | "ok" | "need-account">("loading");
@@ -224,9 +224,10 @@ export function Conta() {
 
   const region = regionProfile(form.country);
   const isUsLayout = region.layout === "us";
+  const postalLookupOn = gate === "ok" && supportsPostalLookup(form.country);
   const cepStatus = useCepLookup(
     form.postal_code,
-    gate === "ok" && form.country === "BR",
+    postalLookupOn,
     (addr) => {
       setForm((prev) => ({
         ...prev,
@@ -237,12 +238,13 @@ export function Conta() {
         state: addr.state || prev.state,
       }));
     },
+    form.country,
   );
 
   useEffect(() => {
     const previous = document.title;
     document.title =
-      lang === "en" ? "My profile — Story R Us" : lang === "es" ? "Mi perfil — Story R Us" : "Meu perfil — Story R Us";
+      lang === "en" ? "My Profile — Story R Us" : lang === "es" ? "Mi Perfil — Story R Us" : "Meu Perfil — Story R Us";
     return () => {
       document.title = previous;
     };
@@ -278,12 +280,6 @@ export function Conta() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function setLang(nextLang: Lang) {
-    setLangState(nextLang);
-    writeStoredLang(nextLang);
-    applyDocumentLang(nextLang);
-  }
-
   function onCountryChange(country: string) {
     setForm((prev) => ({ ...prev, country, state: "" }));
   }
@@ -291,7 +287,7 @@ export function Conta() {
   function onPostalCodeChange(value: string) {
     setForm((prev) => ({
       ...prev,
-      postal_code: prev.country === "BR" ? formatCep(value) : value,
+      postal_code: formatPostal(value, prev.country),
     }));
   }
 
@@ -361,6 +357,7 @@ export function Conta() {
             </Link>
             {langSwitch}
           </div>
+          <SiteBackNav />
           <header className="auth-hero">
             <h1>{t.title}</h1>
             <p className="auth-lead">{t.lead}</p>
@@ -500,14 +497,24 @@ export function Conta() {
                     <input
                       type="text"
                       required
-                      minLength={2}
-                      maxLength={16}
+                      minLength={form.country === "US" ? 5 : 2}
+                      maxLength={form.country === "US" ? 5 : 16}
+                      inputMode={form.country === "US" ? "numeric" : undefined}
                       autoComplete="postal-code"
                       placeholder={region.postalPlaceholder}
                       value={form.postal_code}
                       onChange={(e) => onPostalCodeChange(e.target.value)}
                       data-testid="conta-postal-code"
                     />
+                    {postalLookupOn && cepStatusText(cepStatus, t) && (
+                      <span
+                        className={`auth-cep-status is-${cepStatus}`}
+                        data-testid="conta-cep-status"
+                        role="status"
+                      >
+                        {cepStatusText(cepStatus, t)}
+                      </span>
+                    )}
                   </label>
                 </>
               ) : (
@@ -526,7 +533,7 @@ export function Conta() {
                       onChange={(e) => onPostalCodeChange(e.target.value)}
                       data-testid="conta-postal-code"
                     />
-                    {form.country === "BR" && cepStatusText(cepStatus, t) && (
+                    {postalLookupOn && cepStatusText(cepStatus, t) && (
                       <span
                         className={`auth-cep-status is-${cepStatus}`}
                         data-testid="conta-cep-status"

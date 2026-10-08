@@ -9,6 +9,9 @@ export type OwnerPanel = (typeof ITEMS)[number]["id"];
 export function OwnerNav({ current }: { current: OwnerPanel }) {
   return (
     <nav className="usage-owner-nav" aria-label="Painéis do dono" data-testid="owner-nav">
+      <a href="/" data-testid="owner-nav-home">
+        Início
+      </a>
       {ITEMS.map((item) => (
         <a
           key={item.id}

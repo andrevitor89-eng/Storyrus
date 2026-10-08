@@ -3,7 +3,9 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import logo from "./assets/logo.png";
 import { api } from "./api";
 import { readAuthQueryToken, safeNextPath } from "./Auth";
+import { PasswordField } from "./PasswordField";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 /**
@@ -24,7 +26,7 @@ export function ResetPassword() {
   async function onSubmit(e: FormEvent) {
     e.preventDefault();
     if (!token) {
-      setError("Link inválido. Solicite um novo em Esqueci a senha.");
+      setError("Link inválido. Solicite um novo em Esqueci A Senha.");
       return;
     }
     if (password !== passwordConfirm) {
@@ -62,45 +64,36 @@ export function ResetPassword() {
               <img src={logo} alt="Story R Us" />
             </Link>
           </div>
-          <h1>Nova senha</h1>
+          <SiteBackNav />
+          <h1>Nova Senha</h1>
           <p className="auth-lead">Escolha uma senha nova para a sua conta.</p>
           {!token ? (
             <>
               <p className="auth-error" role="alert" data-testid="reset-password-error">
-                Link inválido. Solicite um novo em Esqueci a senha.
+                Link inválido. Solicite um novo em Esqueci A Senha.
               </p>
               <p className="auth-foot">
                 <Link to="/esqueci-senha" data-testid="reset-password-forgot">
-                  Esqueci a senha
+                  Esqueci A Senha
                 </Link>
               </p>
             </>
           ) : (
             <form className="auth-form" onSubmit={onSubmit} data-testid="reset-password-form">
-              <label>
-                Nova senha (mín. 8)
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  data-testid="reset-password-password"
-                />
-              </label>
-              <label>
-                Confirmar senha
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  autoComplete="new-password"
-                  value={passwordConfirm}
-                  onChange={(e) => setPasswordConfirm(e.target.value)}
-                  data-testid="reset-password-confirm"
-                />
-              </label>
+              <PasswordField
+                label="Nova Senha (Mín. 8)"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                testId="reset-password-password"
+              />
+              <PasswordField
+                label="Confirmar Senha"
+                value={passwordConfirm}
+                onChange={(e) => setPasswordConfirm(e.target.value)}
+                autoComplete="new-password"
+                testId="reset-password-confirm"
+              />
               {error && (
                 <p className="auth-error" role="alert" data-testid="reset-password-error">
                   {error}
@@ -112,13 +105,18 @@ export function ResetPassword() {
                 disabled={busy}
                 data-testid="reset-password-submit"
               >
-                {busy ? "Aguarde…" : "Salvar senha"}
+                {busy ? "Aguarde…" : "Salvar Senha"}
               </button>
             </form>
           )}
           <p className="auth-foot">
             <Link to="/entrar" data-testid="reset-password-login">
-              Voltar ao login
+              Voltar Ao Login
+            </Link>
+          </p>
+          <p className="auth-foot">
+            <Link to="/" data-testid="reset-password-home">
+              Voltar Ao Início
             </Link>
           </p>
         </div>

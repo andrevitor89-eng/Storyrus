@@ -76,9 +76,6 @@ export type StudioCopy = {
   clientNotesPh: string;
   clientContinue: string;
   errClient: string;
-  nextPage: string;
-  backToForm: string;
-  generateStepHint: string;
   createProject: string;
   errMissingFields: string;
   errPhotoRequired: string;
@@ -95,6 +92,23 @@ export type StudioCopy = {
   photoSent: string;
   orderSent: string;
   orderFollowup: string;
+  previewCta: string;
+  previewHint: string;
+  previewCost: string;
+  previewRunning: string;
+  previewBuilding: string;
+  previewRetry: string;
+  previewTrioTitle: string;
+  previewTrioHint: string;
+  previewCover: string;
+  previewPage: string;
+  previewInHand: string;
+  changesTitle: string;
+  photoChanges: string;
+  photoChangesPh: string;
+  submitChanges: string;
+  changesReceived: string;
+  storyPagesTitle: string;
   otherCharacters: string;
   otherCharactersPh: string;
   otherCharactersHint: string;
@@ -302,16 +316,16 @@ const pt: StudioCopy = {
   themeToLight: "Claro",
   themeToDark: "Escuro",
   credits: "Créditos",
-  account: "Minha conta",
-  orders: "Meus pedidos",
+  account: "Minha Conta",
+  orders: "Meus Pedidos",
   logout: "Sair",
-  upgradeOpen: "Criar conta",
+  upgradeOpen: "Criar Conta",
   upgradeTitle: "Salvar esta sessão",
   upgradeHint:
     "Transforme o convidado em conta real. Seus projetos e créditos ficam no mesmo lugar.",
   upgradeEmail: "E-mail",
-  upgradePassword: "Senha (mín. 8)",
-  upgradeSubmit: "Criar conta",
+  upgradePassword: "Senha (Mín. 8)",
+  upgradeSubmit: "Criar Conta",
   upgradeSaving: "Salvando…",
   upgradeLater: "Agora não",
   demoBanner: "Você está vendo um exemplo pronto.",
@@ -373,9 +387,6 @@ const pt: StudioCopy = {
   clientNotesPh: "Ex.: entregar à tarde",
   clientContinue: "Continuar para o livro",
   errClient: "Preencha nome, e-mail, telefone e endereço.",
-  nextPage: "Próxima página",
-  backToForm: "Voltar aos dados",
-  generateStepHint: "Os dados e a foto já estão prontos. Agora é só gerar o livro.",
   createProject: "Gerar o livro",
   errMissingFields: "Preencha nome, título, tema e idade antes de continuar.",
   errPhotoRequired: "Selecione a foto do protagonista.",
@@ -395,8 +406,25 @@ const pt: StudioCopy = {
   consent:
     "Declaro ser o responsável legal e autorizo o uso da imagem enviada e, quando aplicável, da voz fornecida exclusivamente para a criação deste livro personalizado. Esses materiais não serão utilizados para divulgação ou publicidade.",
   photoSent: "Foto enviada ✓",
-  orderSent: "Pedido enviado.",
-  orderFollowup: "Nossa equipe entrará em contato.",
+  orderSent: "Projeto criado",
+  orderFollowup: "Revise a história e as imagens. Se quiser mudar algo, diga abaixo.",
+  previewCta: "Gerar prévia",
+  previewHint: "Gera personagem, história e o trio da prévia: capa, 1 página e foto na mão (OpenAI).",
+  previewCost: "(~3 créditos)",
+  previewRunning: "Gerando prévia…",
+  previewBuilding: "Estamos montando sua prévia…",
+  previewRetry: "Tentar prévia de novo",
+  previewTrioTitle: "Prévia do livro",
+  previewTrioHint: "Capa, página e foto na mão — como na vitrine.",
+  previewCover: "Capa",
+  previewPage: "Página",
+  previewInHand: "Na mão",
+  changesTitle: "Quer alterar algo?",
+  photoChanges: "Alterações nas fotos",
+  photoChangesPh: "Ex.: trocar a foto do protagonista, incluir o irmão…",
+  submitChanges: "Enviar alterações",
+  changesReceived: "Recebemos seu pedido de alterações.",
+  storyPagesTitle: "História",
   otherCharacters: "Outros personagens (opcional)",
   otherCharactersPh: "Ex.: mamãe, irmão, Totó",
   otherCharactersHint: "Nomes separados por vírgula. A criança já entra como protagonista.",
@@ -508,16 +536,16 @@ const en: StudioCopy = {
   themeToLight: "Light",
   themeToDark: "Dark",
   credits: "Credits",
-  account: "My account",
-  orders: "My orders",
-  logout: "Log out",
-  upgradeOpen: "Create account",
+  account: "My Account",
+  orders: "My Orders",
+  logout: "Log Out",
+  upgradeOpen: "Create Account",
   upgradeTitle: "Save this session",
   upgradeHint:
     "Turn the guest into a real account. Your projects and credits stay in the same place.",
   upgradeEmail: "Email",
-  upgradePassword: "Password (min. 8)",
-  upgradeSubmit: "Create account",
+  upgradePassword: "Password (Min. 8)",
+  upgradeSubmit: "Create Account",
   upgradeSaving: "Saving…",
   upgradeLater: "Not now",
   demoBanner: "You are viewing a ready-made example.",
@@ -579,9 +607,6 @@ const en: StudioCopy = {
   clientNotesPh: "e.g. deliver in the afternoon",
   clientContinue: "Continue to the book",
   errClient: "Fill in name, email, phone, and address.",
-  nextPage: "Next page",
-  backToForm: "Back to the details",
-  generateStepHint: "The details and photo are ready. Generate the book.",
   createProject: "Generate the book",
   errMissingFields: "Fill in name, title, theme, and age before continuing.",
   errPhotoRequired: "Select the hero photo.",
@@ -601,8 +626,25 @@ const en: StudioCopy = {
   consent:
     "I declare that I am the legal guardian and authorize the use of the submitted image and, when applicable, the provided voice exclusively to create this personalized book. These materials will not be used for promotion or advertising.",
   photoSent: "Photo uploaded ✓",
-  orderSent: "Request sent.",
-  orderFollowup: "Our team will be in touch.",
+  orderSent: "Project created",
+  orderFollowup: "Review the story and images. If you want changes, tell us below.",
+  previewCta: "Generate preview",
+  previewHint: "Builds character, story, and the preview trio: cover, 1 page, and in-hand photo (OpenAI).",
+  previewCost: "(~3 credits)",
+  previewRunning: "Generating preview…",
+  previewBuilding: "We're building your preview…",
+  previewRetry: "Retry preview",
+  previewTrioTitle: "Book preview",
+  previewTrioHint: "Cover, page, and in-hand shot — like the storefront.",
+  previewCover: "Cover",
+  previewPage: "Page",
+  previewInHand: "In hand",
+  changesTitle: "Want to change something?",
+  photoChanges: "Photo changes",
+  photoChangesPh: "e.g. swap the hero photo, include a sibling…",
+  submitChanges: "Send changes",
+  changesReceived: "We received your change request.",
+  storyPagesTitle: "Story",
   otherCharacters: "Other characters (optional)",
   otherCharactersPh: "e.g. mom, brother, Toto",
   otherCharactersHint: "Separate names with commas. The child is already the main character.",
@@ -714,16 +756,16 @@ const es: StudioCopy = {
   themeToLight: "Claro",
   themeToDark: "Oscuro",
   credits: "Créditos",
-  account: "Mi cuenta",
-  orders: "Mis pedidos",
+  account: "Mi Cuenta",
+  orders: "Mis Pedidos",
   logout: "Salir",
-  upgradeOpen: "Crear cuenta",
+  upgradeOpen: "Crear Cuenta",
   upgradeTitle: "Guardar esta sesión",
   upgradeHint:
     "Convierte el invitado en una cuenta real. Tus proyectos y créditos se quedan en el mismo lugar.",
   upgradeEmail: "Correo",
-  upgradePassword: "Contraseña (mín. 8)",
-  upgradeSubmit: "Crear cuenta",
+  upgradePassword: "Contraseña (Mín. 8)",
+  upgradeSubmit: "Crear Cuenta",
   upgradeSaving: "Guardando…",
   upgradeLater: "Ahora no",
   demoBanner: "Estás viendo un ejemplo listo.",
@@ -785,9 +827,6 @@ const es: StudioCopy = {
   clientNotesPh: "Ej.: entregar por la tarde",
   clientContinue: "Continuar al libro",
   errClient: "Completa nombre, correo, teléfono y dirección.",
-  nextPage: "Página siguiente",
-  backToForm: "Volver a los datos",
-  generateStepHint: "Los datos y la foto ya están listos. Ahora solo falta generar el libro.",
   createProject: "Generar el libro",
   errMissingFields: "Completa nombre, título, tema y edad antes de continuar.",
   errPhotoRequired: "Selecciona la foto del protagonista.",
@@ -807,8 +846,25 @@ const es: StudioCopy = {
   consent:
     "Declaro ser el responsable legal y autorizo el uso de la imagen enviada y, cuando corresponda, de la voz proporcionada exclusivamente para la creación de este libro personalizado. Estos materiales no se utilizarán para difusión ni publicidad.",
   photoSent: "Foto enviada ✓",
-  orderSent: "Pedido enviado.",
-  orderFollowup: "Nuestro equipo se pondrá en contacto.",
+  orderSent: "Proyecto creado",
+  orderFollowup: "Revisa la historia y las imágenes. Si quieres cambiar algo, escríbelo abajo.",
+  previewCta: "Generar vista previa",
+  previewHint: "Genera personaje, historia y el trío de vista previa: portada, 1 página y foto en mano (OpenAI).",
+  previewCost: "(~3 créditos)",
+  previewRunning: "Generando vista previa…",
+  previewBuilding: "Estamos preparando tu vista previa…",
+  previewRetry: "Reintentar vista previa",
+  previewTrioTitle: "Vista previa del libro",
+  previewTrioHint: "Portada, página y foto en mano — como en la vitrina.",
+  previewCover: "Portada",
+  previewPage: "Página",
+  previewInHand: "En mano",
+  changesTitle: "¿Quieres cambiar algo?",
+  photoChanges: "Cambios en las fotos",
+  photoChangesPh: "Ej.: cambiar la foto del protagonista, incluir al hermano…",
+  submitChanges: "Enviar cambios",
+  changesReceived: "Recibimos tu pedido de cambios.",
+  storyPagesTitle: "Historia",
   otherCharacters: "Otros personajes (opcional)",
   otherCharactersPh: "Ej.: mamá, hermano, Totó",
   otherCharactersHint: "Separa los nombres con comas. El niño ya entra como protagonista.",

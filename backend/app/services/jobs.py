@@ -13,6 +13,7 @@ from collections.abc import Callable
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.config import settings
@@ -104,7 +105,9 @@ def enqueue_job(
     try:
         credits.debit(db, user.id, cost)
     except credits.InsufficientCreditsError as exc:
-        raise HTTPException(status.HTTP_402_PAYMENT_REQUIRED, str(exc))
+        raise HTTPException(status.HTTP_402_PAYMENT_REQUIRED, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, str(exc)) from exc
 
     # 5) Persiste o job PENDING (request_id da request HTTP para correlacao).
     request_id = get_request_id()
@@ -119,7 +122,22 @@ def enqueue_job(
         result={"payload": payload} if payload else None,
     )
     db.add(job)
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Corrida com a mesma Idempotency-Key: devolve o job que ganhou o insert.
+        db.rollback()
+        if idempotency_key:
+            existing = db.scalar(select(Job).where(Job.idempotency_key == idempotency_key))
+            if existing is not None:
+                logger.info(
+                    "idempotent race job_type=%s job_id=%s key=%s",
+                    existing.type,
+                    existing.id,
+                    idempotency_key,
+                )
+                return existing
+        raise
     db.refresh(job)
 
     logger.info(

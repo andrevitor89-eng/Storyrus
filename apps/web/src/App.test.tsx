@@ -41,7 +41,7 @@ describe("Fluxo E2E (com conta)", () => {
     expect(screen.getByTestId("auth-submit")).toHaveTextContent(/criar conta/i);
   });
 
-  it("criar livro só confirma que o pedido foi enviado", async () => {
+  it("criar livro mostra tela Projeto criado com prévia automática", async () => {
     asRegistered();
     const user = userEvent.setup();
     const { container } = renderApp();
@@ -58,14 +58,13 @@ describe("Fluxo E2E (com conta)", () => {
     await user.upload(fileInput, file);
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
-    expect(sent).toHaveTextContent(/pedido enviado/i);
-    expect(sent).toHaveTextContent(/nossa equipe entrará em contato/i);
-    expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /^projeto$/i })).toBeInTheDocument();
+    expect(sent).toHaveTextContent(/projeto criado/i);
+    expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
   }, 15000);
 
   it("abre exemplo pronto sem criar projeto", async () => {
@@ -74,11 +73,11 @@ describe("Fluxo E2E (com conta)", () => {
     renderApp("/app?exemplo=dinosaurs");
 
     expect(await screen.findByText(/você está vendo um exemplo pronto/i)).toBeInTheDocument();
-    expect(await screen.findByDisplayValue("Matteo")).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: /^personagem$/i })).toBeInTheDocument();
-    expect(await screen.findByRole("heading", { name: /vídeo narrado/i })).toBeInTheDocument();
-    expect(screen.getByAltText(/página 1/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /montar ebook/i })).toBeDisabled();
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(await screen.findByTestId("studio-story-result")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
+    expect(screen.getByDisplayValue(/matteo e o vale dos dinossauros/i)).toBeInTheDocument();
     expect(create).not.toHaveBeenCalled();
   });
 });

@@ -110,7 +110,7 @@ describe("Auth", () => {
     await user.type(screen.getByTestId("auth-password"), "password123");
     await user.type(screen.getByTestId("auth-password-confirm"), "password123");
     await user.selectOptions(screen.getByTestId("auth-country"), "US");
-    expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("minLength", "2");
+    expect(screen.getByTestId("auth-postal-code")).toHaveAttribute("minLength", "5");
     expect(screen.queryByTestId("auth-district")).not.toBeInTheDocument();
     expect(screen.queryByTestId("auth-complement")).not.toBeInTheDocument();
     await user.type(screen.getByTestId("auth-postal-code"), "90210");
@@ -147,10 +147,21 @@ describe("Auth", () => {
     expect(screen.getByTestId("auth-street")).toHaveValue("");
   });
 
-  it("não busca CEP quando o país é EUA", async () => {
+  it("preenche cidade e estado automaticamente a partir do ZIP americano", async () => {
     const user = userEvent.setup();
     renderAuth("signup", "/app");
     await user.selectOptions(screen.getByTestId("auth-country"), "US");
+    await user.type(screen.getByTestId("auth-postal-code"), "90210");
+    expect(screen.getByTestId("auth-postal-code")).toHaveValue("90210");
+    expect(await screen.findByTestId("auth-cep-status")).toHaveTextContent(/endereço preenchido|address filled/i);
+    expect(screen.getByTestId("auth-city")).toHaveValue("Beverly Hills");
+    expect(screen.getByTestId("auth-state")).toHaveValue("CA");
+  });
+
+  it("não busca CEP quando o país é México", async () => {
+    const user = userEvent.setup();
+    renderAuth("signup", "/app");
+    await user.selectOptions(screen.getByTestId("auth-country"), "MX");
     await user.type(screen.getByTestId("auth-postal-code"), "01310100");
     expect(screen.queryByTestId("auth-cep-status")).not.toBeInTheDocument();
     expect(screen.getByTestId("auth-street")).toHaveValue("");
@@ -262,6 +273,19 @@ describe("Auth", () => {
       expect.stringContaining("/esqueci-senha"),
     );
     expect(link).toHaveAttribute("href", expect.stringContaining("next="));
+  });
+
+  it("mostra e oculta a senha pelo olho", async () => {
+    const user = userEvent.setup();
+    renderAuth("login");
+    const input = screen.getByTestId("auth-password");
+    expect(input).toHaveAttribute("type", "password");
+    await user.type(input, "segredo12");
+    await user.click(screen.getByTestId("auth-password-toggle"));
+    expect(input).toHaveAttribute("type", "text");
+    expect(input).toHaveValue("segredo12");
+    await user.click(screen.getByTestId("auth-password-toggle"));
+    expect(input).toHaveAttribute("type", "password");
   });
 
   it("não mostra Esqueci a senha no cadastro", () => {

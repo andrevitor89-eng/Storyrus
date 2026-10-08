@@ -95,7 +95,10 @@ export interface Job {
   attempts: number;
   error: string | null;
   created_at: string;
-  result?: { progress?: JobProgress } | null;
+  result?: {
+    progress?: JobProgress;
+    payload?: { preview_chain?: boolean; brief?: string; duration_s?: number };
+  } | null;
 }
 
 export interface JobAccepted {

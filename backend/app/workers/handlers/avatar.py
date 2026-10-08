@@ -20,12 +20,13 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.face_detect import identity_images
 from app.config import settings
-from app.models import Asset, AssetKind, Job, ProjectStatus
+from app.models import Asset, AssetKind, Job, JobType, ProjectStatus
 from app.observability.opik_trace import (
     job_metadata,
     log_feedback,
     update_trace,
 )
+from app.services import preview_chain
 from app.services.pricing import add_usd
 from app.services.usage_ledger import (
     flush_usage,
@@ -115,6 +116,8 @@ async def handle_avatar(db: Session, job: Job) -> None:
     if not settings.offline_fallback:
         flush_usage(db, job, lines_of(result))
     _set_status(db, project, ProjectStatus.AVATAR_READY)
+    # Prévia automática: aprova personagem e enfileira a história.
+    preview_chain.continue_preview_chain(db, project, job, JobType.STORY)
 
 
 async def _refine_identity(

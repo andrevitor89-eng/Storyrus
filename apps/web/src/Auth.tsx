@@ -1,15 +1,13 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
 import logo from "./assets/logo.png";
 import { api, getToken, type SignupPayload } from "./api";
-import { formatCep, useCepLookup, type CepStatus } from "./cepLookup";
+import { formatPostal, supportsPostalLookup, useCepLookup, type CepStatus } from "./cepLookup";
 import {
-  applyDocumentLang,
   LANGS,
   type Lang,
-  readStoredLang,
-  writeStoredLang,
+  useResolvedLang,
 } from "./i18n/lang";
 import {
   COUNTRY_GROUPS,
@@ -17,6 +15,8 @@ import {
   regionProfile,
   submitStreetNumber,
 } from "./signupRegions";
+import { PasswordField } from "./PasswordField";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 export type AuthMode = "login" | "signup";
@@ -72,36 +72,36 @@ const COPY: Record<
 > = {
   pt: {
     loginTitle: "Entrar",
-    signupTitle: "Criar conta",
+    signupTitle: "Criar Conta",
     loginLead: "Acesse sua conta para criar livros personalizados.",
     signupLead: "Cadastro pensado para Brasil, América Latina e EUA — usamos estes dados no envio.",
-    accountSection: "Sua conta",
-    addressSection: "Endereço de entrega",
+    accountSection: "Sua Conta",
+    addressSection: "Endereço De Entrega",
     email: "E-mail",
-    password: "Senha (mín. 8)",
-    passwordConfirm: "Confirmar senha",
-    fullName: "Nome completo",
+    password: "Senha (Mín. 8)",
+    passwordConfirm: "Confirmar Senha",
+    fullName: "Nome Completo",
     phone: "Telefone / WhatsApp",
     country: "País",
-    street: "Rua / avenida",
+    street: "Rua / Avenida",
     city: "Cidade",
     acceptTerms: "Li e aceito os",
     termsAnd: "e a",
-    terms: "Termos de uso",
-    privacy: "Política de privacidade",
+    terms: "Termos De Uso",
+    privacy: "Política De Privacidade",
     loginSubmit: "Entrar",
-    signupSubmit: "Criar conta",
+    signupSubmit: "Criar Conta",
     busy: "Aguarde…",
-    switchToSignup: "Criar uma conta",
-    switchToLogin: "Já tenho conta",
-    forgotPassword: "Esqueci a senha",
-    back: "Voltar ao início",
-    checkTitle: "Verifique seu e-mail",
+    switchToSignup: "Criar Uma Conta",
+    switchToLogin: "Já Tenho Conta",
+    forgotPassword: "Esqueci A Senha",
+    back: "Voltar Ao Início",
+    checkTitle: "Verifique Seu E-mail",
     checkLead: "Enviamos um link de confirmação. Ative a conta antes de entrar no estúdio.",
     checkHint: "Não recebeu? Confira o spam ou tente criar a conta de novo em alguns minutos.",
     passwordMismatch: "As senhas não coincidem.",
     mustAcceptTerms: "Aceite os termos e a política de privacidade.",
-    resend: "Reenviar e-mail de confirmação",
+    resend: "Reenviar E-mail De Confirmação",
     resendBusy: "Enviando…",
     resendOk: "Se a conta estiver pendente, enviamos um novo link.",
     langAria: "Idioma",
@@ -117,37 +117,37 @@ const COPY: Record<
     cepOk: "Endereço preenchido. Confira e informe o número.",
   },
   en: {
-    loginTitle: "Log in",
-    signupTitle: "Create account",
+    loginTitle: "Log In",
+    signupTitle: "Create Account",
     loginLead: "Sign in to create personalized books.",
     signupLead: "Built for the US and Latin America — we reuse this for orders and shipping.",
-    accountSection: "Your account",
-    addressSection: "Shipping address",
+    accountSection: "Your Account",
+    addressSection: "Shipping Address",
     email: "Email",
-    password: "Password (min. 8)",
-    passwordConfirm: "Confirm password",
-    fullName: "Full name",
+    password: "Password (Min. 8)",
+    passwordConfirm: "Confirm Password",
+    fullName: "Full Name",
     phone: "Phone / WhatsApp",
     country: "Country",
-    street: "Street address",
+    street: "Street Address",
     city: "City",
     acceptTerms: "I agree to the",
     termsAnd: "and the",
-    terms: "Terms of use",
-    privacy: "Privacy policy",
-    loginSubmit: "Log in",
-    signupSubmit: "Create account",
+    terms: "Terms Of Use",
+    privacy: "Privacy Policy",
+    loginSubmit: "Log In",
+    signupSubmit: "Create Account",
     busy: "Please wait…",
-    switchToSignup: "Create an account",
-    switchToLogin: "I already have an account",
-    forgotPassword: "Forgot password",
-    back: "Back to home",
-    checkTitle: "Check your email",
+    switchToSignup: "Create An Account",
+    switchToLogin: "I Already Have An Account",
+    forgotPassword: "Forgot Password",
+    back: "Back To Home",
+    checkTitle: "Check Your Email",
     checkLead: "We sent a confirmation link. Activate your account before opening the studio.",
     checkHint: "Didn't get it? Check spam or try signing up again in a few minutes.",
     passwordMismatch: "Passwords do not match.",
     mustAcceptTerms: "Please accept the terms and privacy policy.",
-    resend: "Resend confirmation email",
+    resend: "Resend Confirmation Email",
     resendBusy: "Sending…",
     resendOk: "If the account is still pending, we sent a new link.",
     langAria: "Language",
@@ -164,36 +164,36 @@ const COPY: Record<
   },
   es: {
     loginTitle: "Entrar",
-    signupTitle: "Crear cuenta",
+    signupTitle: "Crear Cuenta",
     loginLead: "Accede a tu cuenta para crear libros personalizados.",
     signupLead: "Pensado para Latinoamérica, Brasil y EE. UU. — usamos estos datos en el envío.",
-    accountSection: "Tu cuenta",
-    addressSection: "Dirección de envío",
+    accountSection: "Tu Cuenta",
+    addressSection: "Dirección De Envío",
     email: "Correo",
-    password: "Contraseña (mín. 8)",
-    passwordConfirm: "Confirmar contraseña",
-    fullName: "Nombre completo",
+    password: "Contraseña (Mín. 8)",
+    passwordConfirm: "Confirmar Contraseña",
+    fullName: "Nombre Completo",
     phone: "Teléfono / WhatsApp",
     country: "País",
-    street: "Calle / avenida",
+    street: "Calle / Avenida",
     city: "Ciudad",
     acceptTerms: "Acepto los",
     termsAnd: "y la",
-    terms: "Términos de uso",
-    privacy: "Política de privacidad",
+    terms: "Términos De Uso",
+    privacy: "Política De Privacidad",
     loginSubmit: "Entrar",
-    signupSubmit: "Crear cuenta",
+    signupSubmit: "Crear Cuenta",
     busy: "Espera…",
-    switchToSignup: "Crear una cuenta",
-    switchToLogin: "Ya tengo cuenta",
-    forgotPassword: "Olvidé la contraseña",
-    back: "Volver al inicio",
-    checkTitle: "Revisa tu correo",
+    switchToSignup: "Crear Una Cuenta",
+    switchToLogin: "Ya Tengo Cuenta",
+    forgotPassword: "Olvidé La Contraseña",
+    back: "Volver Al Inicio",
+    checkTitle: "Revisa Tu Correo",
     checkLead: "Enviamos un enlace de confirmación. Activa la cuenta antes de entrar al estudio.",
     checkHint: "¿No llegó? Revisa spam o vuelve a registrarte en unos minutos.",
     passwordMismatch: "Las contraseñas no coinciden.",
     mustAcceptTerms: "Acepta los términos y la política de privacidad.",
-    resend: "Reenviar correo de confirmación",
+    resend: "Reenviar Correo De Confirmación",
     resendBusy: "Enviando…",
     resendOk: "Si la cuenta está pendiente, enviamos un enlace nuevo.",
     langAria: "Idioma",
@@ -309,11 +309,11 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const next = useMemo(() => safeNextPath(params.get("next")), [params]);
-  const [lang, setLangState] = useState<Lang>(() => readStoredLang("pt"));
+  const [lang, setLangBase] = useResolvedLang();
   const t = COPY[lang];
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [signup, setSignup] = useState(() => emptySignup(readStoredLang("pt")));
+  const [signup, setSignup] = useState(() => emptySignup(lang));
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checkEmail, setCheckEmail] = useState(false);
@@ -321,9 +321,11 @@ export function Auth({ mode }: { mode: AuthMode }) {
 
   const region = regionProfile(signup.country);
   const isUsLayout = region.layout === "us";
+  const postalLookupOn =
+    mode === "signup" && supportsPostalLookup(signup.country);
   const cepStatus = useCepLookup(
     signup.postal_code,
-    mode === "signup" && signup.country === "BR",
+    postalLookupOn,
     (addr) => {
       setSignup((prev) => ({
         ...prev,
@@ -334,12 +336,13 @@ export function Auth({ mode }: { mode: AuthMode }) {
         state: addr.state || prev.state,
       }));
     },
+    signup.country,
   );
 
   function onPostalCodeChange(value: string) {
     setSignup((prev) => ({
       ...prev,
-      postal_code: prev.country === "BR" ? formatCep(value) : value,
+      postal_code: formatPostal(value, prev.country),
     }));
   }
 
@@ -347,18 +350,18 @@ export function Auth({ mode }: { mode: AuthMode }) {
   const altPath = altMode === "login" ? "/entrar" : "/cadastro";
   const altHref = `${altPath}?next=${encodeURIComponent(next)}`;
 
-  function setLang(nextLang: Lang) {
-    setLangState(nextLang);
-    writeStoredLang(nextLang);
-    applyDocumentLang(nextLang);
+  useEffect(() => {
     setSignup((prev) => {
-      const stillDefault =
-        prev.country === defaultCountry(lang) &&
-        !prev.street &&
-        !prev.city &&
-        !prev.postal_code;
-      return stillDefault ? { ...prev, country: defaultCountry(nextLang), state: "" } : prev;
+      const stillDefault = !prev.street && !prev.city && !prev.postal_code && !prev.state;
+      if (!stillDefault) return prev;
+      const nextCountry = defaultCountry(lang);
+      if (prev.country === nextCountry) return prev;
+      return { ...prev, country: nextCountry, state: "" };
     });
+  }, [lang]);
+
+  function setLang(nextLang: Lang) {
+    setLangBase(nextLang);
   }
 
   function onCountryChange(country: string) {
@@ -464,6 +467,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 <img src={logo} alt="Story R Us" />
               </Link>
             </div>
+            <SiteBackNav />
             <h1>{t.checkTitle}</h1>
             <p className="auth-lead">{t.checkLead}</p>
             <p className="auth-lead auth-check-hint">{t.checkHint}</p>
@@ -524,6 +528,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
               </div>
             </>
           )}
+          <SiteBackNav />
           <header className={isSignup ? "auth-hero" : undefined}>
             <h1>{isSignup ? t.signupTitle : t.loginTitle}</h1>
             <p className="auth-lead">{isSignup ? t.signupLead : t.loginLead}</p>
@@ -575,32 +580,24 @@ export function Auth({ mode }: { mode: AuthMode }) {
                 />
               </label>
             )}
-            <label>
-              {t.password}
-              <input
-                type="password"
-                required
-                minLength={8}
-                autoComplete={mode === "login" ? "current-password" : "new-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                data-testid="auth-password"
-              />
-            </label>
+            <PasswordField
+              label={t.password}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              autoComplete={mode === "login" ? "current-password" : "new-password"}
+              testId="auth-password"
+              lang={lang}
+            />
             {isSignup && (
               <>
-                <label>
-                  {t.passwordConfirm}
-                  <input
-                    type="password"
-                    required
-                    minLength={8}
-                    autoComplete="new-password"
-                    value={signup.password_confirm}
-                    onChange={(e) => setSignup({ ...signup, password_confirm: e.target.value })}
-                    data-testid="auth-password-confirm"
-                  />
-                </label>
+                <PasswordField
+                  label={t.passwordConfirm}
+                  value={signup.password_confirm}
+                  onChange={(e) => setSignup({ ...signup, password_confirm: e.target.value })}
+                  autoComplete="new-password"
+                  testId="auth-password-confirm"
+                  lang={lang}
+                />
                 <p className="auth-section-title auth-span-all">{t.addressSection}</p>
                 <div
                   className={`auth-address auth-span-all${isUsLayout ? " auth-address-us" : ""}`}
@@ -697,14 +694,24 @@ export function Auth({ mode }: { mode: AuthMode }) {
                         <input
                           type="text"
                           required
-                          minLength={2}
-                          maxLength={16}
+                          minLength={signup.country === "US" ? 5 : 2}
+                          maxLength={signup.country === "US" ? 5 : 16}
+                          inputMode={signup.country === "US" ? "numeric" : undefined}
                           autoComplete="postal-code"
                           placeholder={region.postalPlaceholder}
                           value={signup.postal_code}
                           onChange={(e) => onPostalCodeChange(e.target.value)}
                           data-testid="auth-postal-code"
                         />
+                        {postalLookupOn && cepStatusText(cepStatus, t) && (
+                          <span
+                            className={`auth-cep-status is-${cepStatus}`}
+                            data-testid="auth-cep-status"
+                            role="status"
+                          >
+                            {cepStatusText(cepStatus, t)}
+                          </span>
+                        )}
                       </label>
                     </>
                   ) : (
@@ -723,7 +730,7 @@ export function Auth({ mode }: { mode: AuthMode }) {
                           onChange={(e) => onPostalCodeChange(e.target.value)}
                           data-testid="auth-postal-code"
                         />
-                        {signup.country === "BR" && cepStatusText(cepStatus, t) && (
+                        {postalLookupOn && cepStatusText(cepStatus, t) && (
                           <span
                             className={`auth-cep-status is-${cepStatus}`}
                             data-testid="auth-cep-status"

@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import logo from "./assets/logo.png";
 import { staticPageMeta, usePageMeta } from "./pageMeta";
+import { SiteBackNav } from "./SiteBackNav";
 import "./landing.css";
 
 const CONTACT = "info@storyrus.ai";
@@ -23,7 +24,8 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
         </nav>
       </header>
       <main className="ksection" style={{ maxWidth: 720, margin: "0 auto", textAlign: "left" }}>
-        <h1 className="ktitle">{privacy ? "Política de privacidade" : "Termos de uso"}</h1>
+        <SiteBackNav />
+        <h1 className="ktitle">{privacy ? "Política De Privacidade" : "Termos De Uso"}</h1>
         <p className="ksub" style={{ textAlign: "left" }}>
           Última atualização: {UPDATED}.
         </p>
@@ -96,7 +98,7 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
               avisará antes da cobrança.
             </p>
 
-            <h2>Exemplos da página inicial</h2>
+            <h2>Exemplos Da Página Inicial</h2>
             <p>
               As fotos e vídeos de demonstração no site são materiais da plataforma, separados do que
               você envia no estúdio. A página <Link to="/exemplos">exemplos</Link> explica isso e
