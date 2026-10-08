@@ -1967,6 +1967,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const [subHover, setSubHover] = useState<{ cat: number; sub: number } | null>(null);
   const [featCat, setFeatCat] = useState<number | null>(null);
   const [mobileCat, setMobileCat] = useState<number | null>(null);
+  const [mobileSub, setMobileSub] = useState<{ cat: number; sub: number } | null>(null);
   const [lang, setLang] = useResolvedLang();
   const [theme, setTheme] = useState<"light" | "dark">(() => {
     try { const s = localStorage.getItem("theme"); if (s === "light" || s === "dark") return s; } catch { /* ignore */ }
@@ -2162,6 +2163,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       if (e.key === "Escape") {
         setNavOpen(false);
         setMobileCat(null);
+        setMobileSub(null);
         setOpenCat(null);
         setSubHover(null);
         setFeatCat(null);
@@ -2185,6 +2187,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       setFeatCat(null);
       setNavOpen(false);
       setMobileCat(null);
+      setMobileSub(null);
     };
     window.addEventListener("pointerdown", onPointerDown);
     return () => window.removeEventListener("pointerdown", onPointerDown);
@@ -2193,6 +2196,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
   const closeNav = () => {
     setNavOpen(false);
     setMobileCat(null);
+    setMobileSub(null);
     setOpenCat(null);
     setSubHover(null);
     setFeatCat(null);
@@ -2425,16 +2429,62 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     aria-expanded={mobileCat === i}
                     aria-controls={`mobile-cat-${i}`}
                     aria-label={cat.name}
-                    onClick={() => setMobileCat(mobileCat === i ? null : i)}
+                    onClick={() => {
+                      setMobileCat(mobileCat === i ? null : i);
+                      setMobileSub(null);
+                    }}
                   >
                     <IcChevron className="faq-chev" />
                   </button>
                 </div>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
-                    {cat.subs.map((sub) => (
-                      <Link key={sub.label} to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
-                    ))}
+                    {cat.subs.map((sub, j) => {
+                      const subName = sub.label.split(" · ")[0];
+                      const subOpen = mobileSub?.cat === i && mobileSub.sub === j;
+                      const subBooks = sub.theme ? menuBooks(sub.theme) : [];
+                      return (
+                        <div key={sub.label} className={`kmobile-sub${subOpen ? " on" : ""}`}>
+                          <div className="kmobile-sub-row">
+                            <Link to={sub.href} onClick={closeNav}><SubLabel label={sub.label} /></Link>
+                            <button
+                              type="button"
+                              className="kmobile-sub-toggle"
+                              aria-expanded={subOpen}
+                              aria-controls={`mobile-sub-${i}-${j}`}
+                              aria-label={subName}
+                              onClick={() => setMobileSub(subOpen ? null : { cat: i, sub: j })}
+                            >
+                              <IcChevron className="faq-chev" />
+                            </button>
+                          </div>
+                          {subOpen ? (
+                            <div className="kmobile-feats" id={`mobile-sub-${i}-${j}`} data-testid={`landing-mobile-feats-${cat.id}-${j}`}>
+                              {subBooks.length === 0 ? <p className="kmobile-empty">{t.cat_empty}</p> : subBooks.map((feat) => (
+                                <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                                  <span className="kcat-feat-cover">
+                                    <img src={exUrl(feat.img)} alt="" />
+                                  </span>
+                                  <span>{feat.label}</span>
+                                </Link>
+                              ))}
+                            </div>
+                          ) : null}
+                        </div>
+                      );
+                    })}
+                    {mobileCat === i && mobileSub?.cat !== i && cat.feats.length > 0 ? (
+                      <div className="kmobile-feats" data-testid={`landing-mobile-feats-${cat.id}`}>
+                        {cat.feats.map((feat) => (
+                          <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                            <span className="kcat-feat-cover">
+                              <img src={exUrl(feat.img)} alt="" />
+                            </span>
+                            <span>{feat.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
                   </div>
                 </div>
               </div>

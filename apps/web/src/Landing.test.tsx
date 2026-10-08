@@ -454,6 +454,33 @@ describe("Landing — menu mobile e abas do hero", () => {
     expect(within(siteMenu).getByRole("link", { name: /ver todos/i })).toHaveAttribute("href", "/catalogo");
   });
 
+  it("mostra no menu mobile as capas em destaque do menu desktop", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const siteMenu = screen.getByTestId("landing-site-menu");
+    await user.click(await screen.findByTestId("landing-menu"));
+    await user.click(within(siteMenu).getByRole("button", { name: /^temáticas$/i }));
+
+    const feats = within(siteMenu).getByTestId("landing-mobile-feats-aventuras");
+    const featLinks = within(feats).getAllByRole("link");
+    expect(featLinks.length).toBeGreaterThan(0);
+    featLinks.forEach((link) => {
+      expect(link.getAttribute("href")).toMatch(/^\/catalogo#/);
+    });
+
+    await user.click(within(siteMenu).getByRole("button", { name: /^dinossauros$/i }));
+    const noe = within(siteMenu).getByRole("link", { name: /noé/i });
+    expect(noe).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(noe.querySelector("img")).toHaveAttribute("src", expect.stringContaining("capa-noe.png"));
+
+    await user.click(within(siteMenu).getByRole("button", { name: /^você e eu$/i }));
+    await user.click(within(siteMenu).getByRole("button", { name: /^vovô e eu$/i }));
+    const avo = within(siteMenu).getByRole("link", { name: /amor de avô/i });
+    expect(avo).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    expect(avo.querySelector("img")).toHaveAttribute("src", expect.stringContaining("capa-amor-de-avo.png"));
+  });
+
   it("abre o hero em Meu Pai e duplica a faixa", async () => {
     const user = userEvent.setup();
     renderLanding();

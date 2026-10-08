@@ -2253,17 +2253,37 @@ img.ex-tab-cover {
   .kmobile-cat-btn:focus-within,
   .kmobile-cat.open .kmobile-cat-btn { background: #eef4ff; }
   .kmobile-cat-btn .faq-chev { margin-left: auto; color: #1f3568; }
-  .kmobile-cat.open .faq-chev { transform: rotate(180deg); }
+  .kmobile-cat.open > .kmobile-cat-btn .faq-chev { transform: rotate(180deg); }
   .kmobile-subs { display: grid; grid-template-rows: 0fr; transition: grid-template-rows .22s ease; }
   .kmobile-cat.open .kmobile-subs { grid-template-rows: 1fr; }
-  .kmobile-subs-inner { overflow: hidden; min-height: 0; display: flex; flex-direction: column; padding: 0 8px 8px 26px; }
-  .kmobile-subs-inner a {
+  .kmobile-subs-inner { overflow: hidden; min-height: 0; display: flex; flex-direction: column; padding: 0 8px 8px 18px; }
+  .kmobile-sub-row { display: flex; align-items: center; gap: 2px; }
+  .kmobile-sub-row > a {
+    flex: 1; min-width: 0;
     padding: 10px 10px; color: #3a4a78; text-decoration: none; font-weight: 700; font-size: .92rem;
     border-radius: 12px;
   }
-  .kmobile-subs-inner a:hover,
-  .kmobile-subs-inner a:focus-visible {
+  .kmobile-sub-row > a:hover,
+  .kmobile-sub-row > a:focus-visible {
     background: #eef4ff;
+  }
+  .kmobile-sub-toggle {
+    flex: none; border: none; background: none; color: #1f3568; cursor: pointer;
+    display: grid; place-items: center; padding: 6px;
+  }
+  .kmobile-sub.on .kmobile-sub-toggle .faq-chev { transform: rotate(180deg); }
+  .kmobile-feats {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px;
+    padding: 2px 4px 10px;
+  }
+  .kmobile-feats .kcat-feat {
+    min-width: 0; color: #1f3568; font-size: .78rem; padding: 6px;
+  }
+  .kmobile-feats .kcat-feat > span:last-child {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .kmobile-empty {
+    grid-column: 1 / -1; margin: 4px 8px 8px; color: #6b6890; font-weight: 700; font-size: .9rem;
   }
   .klinks {
     position: absolute; top: calc(100% + 8px); right: 14px; left: 14px; flex-direction: column; align-items: stretch;
