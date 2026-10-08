@@ -59,6 +59,11 @@ const PRESETS: Record<string, Record<StudioLang, Preset>> = {
     en: { title: "A Great-Grandparent Story", theme: "Grandma and me: hugs, warmth and stories that cross generations." },
     es: { title: "Una Historia de Bisabuela", theme: "Abuela y yo: abrazos, cariño e historias que cruzan generaciones." },
   },
+  grandfather_love: {
+    pt: { title: "Uma História de Avô", theme: "Vovô e eu: o colo do avô, o lago e um abraço que não acaba." },
+    en: { title: "A Grandpa Story", theme: "Grandpa and me: grandpa's arms, the lake and a hug that never ends." },
+    es: { title: "Una Historia de Abuelo", theme: "Abuelo y yo: los brazos del abuelo, el lago y un abrazo que no se acaba." },
+  },
   recem_nascidos: {
     pt: { title: "Uma História de Recém-nascido", theme: "Recém-nascidos: os primeiros dias, o colo e o carinho de quem acaba de chegar." },
     en: { title: "A Newborn Story", theme: "Newborns: the first days, a hug and the warmth of someone who has just arrived." },

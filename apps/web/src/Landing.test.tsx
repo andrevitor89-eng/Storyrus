@@ -720,6 +720,7 @@ describe("Landing — CTAs e links", () => {
     const youLinks = [...panel.querySelectorAll(".kcat-group")[1].querySelectorAll(".kcat-subs a")].map((link) => link.textContent);
     expect(youLinks).toContain("Recém-nascidos");
     expect(youLinks).toContain("Vovó e Eu");
+    expect(youLinks[youLinks.indexOf("Vovó e Eu") + 1]).toBe("Vovô e Eu");
     expect(youLinks).not.toContain("Vovó e Vovô");
     expect(youLinks[youLinks.indexOf("Pets") - 1]).toBe("Casamento");
     const recem = within(panel).getByRole("link", { name: /^recém-nascidos$/i });
@@ -729,6 +730,10 @@ describe("Landing — CTAs e links", () => {
     fireEvent.mouseEnter(vovo);
     expect(within(feats).getByRole("link", { name: /amor de bisavó/i })).toBeInTheDocument();
     expect(within(feats).queryByRole("link", { name: /amor de avô/i })).not.toBeInTheDocument();
+    const vovoH = within(panel).getByRole("link", { name: /^vovô e eu$/i });
+    expect(vovoH).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    fireEvent.mouseEnter(vovoH);
+    expect(within(feats).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
     const casamento = within(panel).getByRole("link", { name: /^casamento$/i });
     expect(casamento).toHaveAttribute("href", "/catalogo#voce-e-eu");
     const pets = within(panel).getByRole("link", { name: /^pets$/i });
@@ -791,6 +796,11 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByRole("heading", { name: /^sentimentos$/i })).not.toBeInTheDocument();
     const cartoonGroups = [...document.querySelectorAll("#cat-panel .kcat-group-name")].map((el) => el.textContent ?? "");
     expect(cartoonGroups).toEqual(["Aventuras", "Você e Eu", "Ocasiões Especiais", "Educativo"]);
+    const cartoonPanel = document.querySelector("#cat-panel") as HTMLElement;
+    const cartoonVovo = within(cartoonPanel).getByRole("link", { name: /^vovô e eu$/i });
+    expect(cartoonVovo).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    fireEvent.mouseEnter(cartoonVovo);
+    expect(within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /amor de avô/i })).toBeInTheDocument();
     const cartoonEducativo = document.querySelectorAll("#cat-panel .kcat-group")[3] as HTMLElement;
     expect(within(cartoonEducativo).getByRole("link", { name: /^sentimentos$/i })).toBeInTheDocument();
     expect(within(cartoonEducativo).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
