@@ -260,6 +260,7 @@ describe("Landing — catálogo", () => {
     expect(within(catalog).getByText("Meu Herói Favorito, A Aranha")).toBeInTheDocument();
     expect(within(catalog).getByText("Tia Especial, Não Existe Igual")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
+    expect(within(catalog).getByRole("img", { name: /amor de avô, meu porto seguro/i })).toHaveAttribute("src", expect.stringContaining("capa-amor-de-avo.png"));
     expect(within(catalog).getByText("Bruno Em Uma Aventura Animal")).toBeInTheDocument();
     expect(within(catalog).getByText("Aprendendo Economia Com O Gael")).toBeInTheDocument();
     expect(within(catalog).getByText("Maria Jesus E A Disciplina No Hockey")).toBeInTheDocument();
@@ -820,7 +821,9 @@ describe("Landing — CTAs e links", () => {
     const cartoonVovo = within(cartoonPanel).getByRole("link", { name: /^vovô e eu$/i });
     expect(cartoonVovo).toHaveAttribute("href", "/catalogo#voce-e-eu");
     fireEvent.mouseEnter(cartoonVovo);
-    expect(within(screen.getByTestId("landing-cat-feats")).getByText(/ainda não temos um exemplo neste tema/i)).toBeInTheDocument();
+    const cartoonAvo = within(screen.getByTestId("landing-cat-feats")).getByRole("link", { name: /amor de avô/i });
+    expect(cartoonAvo).toHaveAttribute("href", "/catalogo#voce-e-eu");
+    expect(cartoonAvo.querySelector("img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-avo.png"));
     const cartoonEducativo = document.querySelectorAll("#cat-panel .kcat-group")[3] as HTMLElement;
     expect(within(cartoonEducativo).getByRole("link", { name: /^sentimentos$/i })).toBeInTheDocument();
     expect(within(cartoonEducativo).getByRole("link", { name: /hora de dormir/i })).toBeInTheDocument();
@@ -836,22 +839,23 @@ describe("Landing — CTAs e links", () => {
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(cards).toHaveLength(12);
+    expect(cards).toHaveLength(13);
     expect(within(catalog).queryByText("Meu Pai, Meu Herói")).not.toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Tia")).toBeInTheDocument();
     expect(within(catalog).getByText("Lucas E Seu Amigo Max")).toBeInTheDocument();
-    expect(within(catalog).queryByText("Amor De Avô, Meu Porto Seguro")).not.toBeInTheDocument();
+    expect(within(catalog).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
     expect(within(catalog).queryByText(/esther/i)).not.toBeInTheDocument();
     expect(within(catalog).getByText("Nano E Suas Aventuras")).toBeInTheDocument();
     expect(within(catalog).queryByText(/meme e o tata/i)).not.toBeInTheDocument();
-    expect(within(cards[0]).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
+    expect(within(cards[0]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
     expect(within(catalog).getByText("Minha Grande Aventura")).toBeInTheDocument();
     expect(within(catalog).queryByText("Feliz Páscoa")).not.toBeInTheDocument();
     expect(within(catalog).queryByText("Nossa Família")).not.toBeInTheDocument();
-    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-davi.png"));
+    expect(cards[0].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-avo.png"));
+    expect(within(cards[1]).getByText("Davi, O Menino Pastor")).toBeInTheDocument();
+    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-davi.png"));
     expect(within(catalog).getByText("Enzo, Meu Primo Predileto")).toBeInTheDocument();
-    expect(cards[1].querySelector(".cat-book img")).toHaveAttribute("src", expect.stringContaining("cartoon-capa-enzo.jpg"));
     expect(within(catalog).getByText("Nicolas, Meu Primeiro Amor")).toBeInTheDocument();
     expect(within(catalog).getByRole("img", { name: /nicolas, meu primeiro amor/i })).toHaveAttribute("src", expect.stringContaining("cartoon-capa-nicolas.jpg"));
     expect(within(catalog).queryByText(/floresta encantada/i)).not.toBeInTheDocument();

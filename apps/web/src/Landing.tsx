@@ -154,6 +154,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   22: "cartoon-capa-enzo.jpg",
   10: "cartoon-capa-nano.jpg",
   23: "cartoon-capa-lucas.png",
+  30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
   33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
