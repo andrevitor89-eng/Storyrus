@@ -32,6 +32,8 @@ def _pkg():
 
 
 def _kling_configured() -> bool:
+    if settings.kling_api_key:
+        return True
     return bool(settings.kling_access_key and settings.kling_secret_key)
 
 

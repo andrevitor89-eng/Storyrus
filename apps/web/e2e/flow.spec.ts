@@ -10,6 +10,7 @@ type Job = {
   attempts: number;
   error: string | null;
   polls: number;
+  result?: { payload?: { preview_chain?: boolean; brief?: string } };
 };
 
 function makeState() {
@@ -211,6 +212,39 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     };
     state.jobs.push(job);
     return json(r, { job_id: job.id, status: "PENDING", type, estimated_cost_credits: cost }, 202);
+  });
+
+  // Cadeia automática do Studio (avatar → história → ebook → vídeo).
+  await page.route(/\/v1\/projects\/[^/]+\/preview$/, (r) => {
+    if (r.request().method() !== "POST") return r.continue();
+    const active = state.jobs.some(
+      (j) =>
+        (j.status === "PENDING" || j.status === "RUNNING") &&
+        Boolean(j.result?.payload?.preview_chain),
+    );
+    if (active) return json(r, { detail: "Já existe uma prévia em andamento para este projeto" }, 409);
+    let brief: string | undefined;
+    try {
+      brief = String((r.request().postDataJSON() as { brief?: string })?.brief || "").trim() || undefined;
+    } catch {
+      /* body vazio */
+    }
+    const cost = 1;
+    if (state.credits < cost) return json(r, { detail: "Creditos insuficientes" }, 402);
+    state.credits -= cost;
+    const job: Job = {
+      id: id(),
+      project_id: state.project.id,
+      type: "AVATAR",
+      status: "PENDING",
+      cost_credits: cost,
+      attempts: 1,
+      error: null,
+      polls: 0,
+      result: { payload: { preview_chain: true, ...(brief ? { brief } : {}) } },
+    };
+    state.jobs.push(job);
+    return json(r, { job_id: job.id, status: "PENDING", type: "AVATAR", estimated_cost_credits: cost }, 202);
   });
 
   await page.route(/\/v1\/projects\/[^/]+$/, (r) => {

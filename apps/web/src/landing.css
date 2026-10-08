@@ -956,7 +956,8 @@ a.kcat-group-name.is-chip:focus-visible {
 }
 
 /* ---------- Seção de Vídeos narrados ---------- */
-.vid-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
+.vid-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
+@media (min-width: 1100px) { .vid-grid { grid-template-columns: repeat(4, 1fr); } }
 .vid-card { display: flex; flex-direction: column; margin: 0; background: #172140; border: 2px solid #26315a; border-radius: 20px; overflow: hidden; box-shadow: 0 14px 32px rgba(0,0,0,.42); transition: transform .18s ease, border-color .2s; text-align: left; }
 .vid-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .vid-thumb { position: relative; aspect-ratio: var(--photo-ratio); overflow: hidden; }
@@ -1688,14 +1689,34 @@ img.ex-tab-cover {
 }
 .catalog-section { scroll-margin-top: 24px; margin: 48px 0 0; text-align: left; }
 .catalog-section-title {
-  display: flex; align-items: center; gap: 10px;
-  margin: 0 0 18px; color: #e9eefb; font-size: 1.6rem;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 0 22px;
 }
-.catalog-section-title::before {
-  content: "";
-  width: 14px; height: 14px; border-radius: 50%; flex: none;
-  background: var(--group, #5aa6e8);
+.catalog-section-title .catalog-section-pill {
+  pointer-events: none;
+  cursor: default;
+  font-size: .9rem;
+  padding: 10px 16px;
+  transform: none;
 }
+.catalog-section-title .catalog-section-pill:hover,
+.catalog-section-title .catalog-section-pill:focus-visible {
+  background: #182343;
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.35),
+    0 0 14px rgba(244,183,64,.22);
+  transform: none;
+}
+.catalog-sub { scroll-margin-top: 24px; margin: 0 0 28px; }
+.catalog-sub:last-child { margin-bottom: 0; }
+.catalog-sub-title {
+  margin: 0 0 14px;
+  color: #c9d4ef;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+}
+[data-theme="light"] .kid .catalog-sub-title { color: #3a4d7a; }
 .catalog-page .reveal,
 .book-page .reveal { opacity: 1; transform: none; }
 .book-page-card { max-width: 1040px; margin: 0 auto; text-align: left; }
@@ -1828,7 +1849,17 @@ img.ex-tab-cover {
 [data-theme="light"] .kid .site-back-nav a,
 [data-theme="light"] .kid .site-back-nav .site-back-prev { color: #1f3568; }
 [data-theme="light"] .kid .site-back-sep { color: #8a90a8; }
-[data-theme="light"] .kid .catalog-section-title { color: var(--ink); }
+[data-theme="light"] .kid .catalog-section-title .catalog-section-pill {
+  background: #fff;
+  color: var(--ink);
+  box-shadow:
+    0 0 0 1px rgba(244,183,64,.4),
+    0 0 14px rgba(244,183,64,.18);
+}
+[data-theme="light"] .kid .catalog-section-title .catalog-section-pill:hover,
+[data-theme="light"] .kid .catalog-section-title .catalog-section-pill:focus-visible {
+  background: #fff;
+}
 .cat-cover-type, .cat-size {
   font-family: 'Baloo 2', cursive; font-weight: 800; font-size: .74rem; letter-spacing: .3px;
   text-transform: uppercase; color: #1f3568; background: var(--yellow); padding: 3px 9px; border-radius: 999px;

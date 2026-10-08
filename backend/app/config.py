@@ -161,7 +161,9 @@ class Settings(BaseSettings):
 
     # Provedores de IA
     anthropic_api_key: str | None = None  # historia (Claude)
-    kling_access_key: str | None = None  # video (image2video) — unico provedor
+    # Video Kling: preferir KLING_API_KEY (Bearer novo). AK/SK = legado JWT.
+    kling_api_key: str | None = None
+    kling_access_key: str | None = None
     kling_secret_key: str | None = None
     elevenlabs_api_key: str | None = None  # TTS video narrado
     elevenlabs_voice_id: str | None = None  # voz ElevenLabs (default interno se vazio)

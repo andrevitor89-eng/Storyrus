@@ -37,7 +37,8 @@ Vercel (frontend Vite/React)  ──/v1/* (proxy)──►  Render (API FastAPI)
 3. Em cada serviço (api e worker), preencha as variáveis marcadas como *secret* em **Environment**:
    - `OPENAI_API_KEY` — GPT Image (`gpt-image-1`) + juiz de história; obrigatório (`IMAGE_PROVIDER=openai`)
    - `ANTHROPIC_API_KEY` — `sk-ant-...`
-   - `KLING_ACCESS_KEY` / `KLING_SECRET_KEY` — (só se for usar vídeo)
+   - `KLING_API_KEY` — API Key Bearer do console Kling (só se for usar vídeo).
+     Alternativa legada: `KLING_ACCESS_KEY` / `KLING_SECRET_KEY`.
    - `ELEVENLABS_API_KEY` / `ELEVENLABS_VOICE_ID` — TTS narrado (opcional; sem chave usa edge-tts)
    - `CREDIT_GRANT_SECRET` — só a API; vazio = `POST /v1/credits/grant` recusa. **Nunca** no frontend
    - `RESEND_API_KEY` — **obrigatório em prod** para confirmação de cadastro e esqueci-senha (ver **§ E-mail transacional**). Sem chave a UI ainda diz que enviou, mas **não sai e-mail**.

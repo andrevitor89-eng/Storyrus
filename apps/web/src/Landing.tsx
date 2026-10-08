@@ -361,13 +361,18 @@ function catalogCoverChoice(cover?: string): CatalogCoverChoice {
 function catalogSizeChoice(size?: string): CatalogSizeChoice {
   return size === "P" ? "P" : "M";
 }
-const VIDEO_IMGS = ["mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
-const VIDEO_SRCS: (string | null)[] = ["video-mar.mp4", "video-flor.mp4", "video-dino.mp4"];
+const VIDEO_IMGS = ["capa-meupai-heroi.png", "mar-2.jpg", "flor-2.jpg", "dino-2.jpg"];
+const VIDEO_SRCS: (string | null)[] = [
+  "video-meupai-heroi-kling.mp4",
+  "video-mar.mp4",
+  "video-flor.mp4",
+  "video-dino.mp4",
+];
 const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compartilhar_revezar", "consciencia_corporal"]);
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "recem_nascidos", "casamento", "pets"],
-  ocasioes: ["christmas", "birthday"],
+  ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
 const NAV_CAT_META = [
@@ -789,9 +794,10 @@ const I18N = {
       "Maria Jesus E A Disciplina No Hockey",
       "Facundo E O Motocross Com Cuidado",
     ],
-    vid_title: "Vídeos Narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
+    vid_title: "Vídeos", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar Meu Vídeo",
     videos: [
+      { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
       { t: "Lia e o Fundo do Mar", p: "Uma aventura no oceano com narração encantadora." },
       { t: "Sofia e a Floresta Encantada", p: "Bichinhos gentis e luzes de vaga-lume, com trilha suave." },
       { t: "Matteo e o Mundo dos Dinossauros", p: "Uma viagem ao vale dos dinossauros, com voz e trilha." },
@@ -879,6 +885,12 @@ const I18N = {
       { q: "Enviei uma foto e recebi um livro lindo. Virou o presente de aniversário da vovó.", name: "Rafael M." },
       { q: "A ilustração ficou idêntica ao meu bebê. Vamos guardar para sempre.", name: "Juliana P." },
       { q: "O vídeo narrado fez a família toda se emocionar. Vale cada segundo.", name: "Marcos e Bia" },
+      { q: "A vovó se viu no livro com a neta e chorou de alegria. Guardamos na estante da sala.", name: "Camila R." },
+      { q: "Vi a prévia da capa e das páginas antes de finalizar. Ficou com o rostinho da minha filha.", name: "Pedro L." },
+      { q: "No aniversário, minha filha abriu o livro e não largou mais. Virou a história da noite.", name: "Fernanda S." },
+      { q: "Coloquei o cachorro na aventura e meu filho mostrou para a família inteira.", name: "Helena V." },
+      { q: "Todo domingo o pai lê com ele. Os dois se reconhecem em cada página.", name: "Thiago A." },
+      { q: "Fizemos o livro dos primos. Eles riram ao se ver juntos na mesma história.", name: "Larissa M." },
     ],
     features: ["Histórias Personalizadas", "Conexão Em Família", "Memórias Que Ficam Para Sempre", "Um Presente Inesquecível"],
     band_title: "Pronto para Virar Protagonista?",
@@ -997,9 +1009,10 @@ const I18N = {
       "Maria Jesus And Hockey Discipline",
       "Facundo And Careful Motocross",
     ],
-    vid_title: "Narrated Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
+    vid_title: "Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create My Video",
     videos: [
+      { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
       { t: "Lia and the Deep Sea", p: "An ocean adventure with enchanting narration." },
       { t: "Sofia and the Enchanted Forest", p: "Gentle little creatures and firefly lights, with a soft soundtrack." },
       { t: "Matteo and the Dinosaur World", p: "A journey through the dinosaur valley, with voice and music." },
@@ -1087,6 +1100,12 @@ const I18N = {
       { q: "I sent a photo and got a beautiful book. It became grandma's birthday gift.", name: "Rafael M." },
       { q: "The illustration looks just like my baby. We'll keep it forever.", name: "Juliana P." },
       { q: "The narrated video moved the whole family. Worth every second.", name: "Marcos & Bia" },
+      { q: "Grandma saw herself in the book with her granddaughter and cried happy tears. It lives on our shelf.", name: "Camila R." },
+      { q: "I saw the cover and pages in the preview before finishing. It has my daughter's face.", name: "Pedro L." },
+      { q: "On her birthday, my daughter opened the book and wouldn't put it down. It became the bedtime story.", name: "Fernanda S." },
+      { q: "I put the dog in the adventure and my son showed it to the whole family.", name: "Helena V." },
+      { q: "Every Sunday his dad reads it with him. They recognize themselves on every page.", name: "Thiago A." },
+      { q: "We made the cousins' book. They laughed seeing themselves in the same story.", name: "Larissa M." },
     ],
     features: ["Personalized Stories", "Family Connection", "Memories That Last Forever", "An Unforgettable Gift"],
     band_title: "Ready to Become the Hero?",
@@ -1205,9 +1224,10 @@ const I18N = {
       "Maria Jesus Y La Disciplina En El Hockey",
       "Facundo Y El Motocross Con Cuidado",
     ],
-    vid_title: "Videos Narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
+    vid_title: "Videos", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear Mi Video",
     videos: [
+      { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },
       { t: "Lia Y El Fondo Del Mar", p: "Una aventura en el océano con narración encantadora." },
       { t: "Sofia Y El Bosque Encantado", p: "Animalitos gentiles y luces de luciérnaga, con una banda suave." },
       { t: "Matteo Y El Mundo De Los Dinosaurios", p: "Un viaje al valle de los dinosaurios, con voz y música." },
@@ -1295,6 +1315,12 @@ const I18N = {
       { q: "Envié una foto y recibí un libro hermoso. Se volvió el regalo de cumpleaños de la abuela.", name: "Rafael M." },
       { q: "La ilustración quedó idéntica a mi bebé. Lo vamos a guardar para siempre.", name: "Juliana P." },
       { q: "El video narrado emocionó a toda la familia. Vale cada segundo.", name: "Marcos y Bia" },
+      { q: "La abuela se vio en el libro con su nieta y lloró de alegría. Lo guardamos en la estantería.", name: "Camila R." },
+      { q: "Vi la portada y las páginas en la vista previa antes de finalizar. Quedó con la carita de mi hija.", name: "Pedro L." },
+      { q: "En el cumpleaños, mi hija abrió el libro y no lo soltó. Se volvió la historia de la noche.", name: "Fernanda S." },
+      { q: "Puse al perro en la aventura y mi hijo se lo mostró a toda la familia.", name: "Helena V." },
+      { q: "Cada domingo el papá lo lee con él. Los dos se reconocen en cada página.", name: "Thiago A." },
+      { q: "Hicimos el libro de los primos. Se rieron al verse juntos en la misma historia.", name: "Larissa M." },
     ],
     features: ["Historias Personalizadas", "Conexión En Familia", "Recuerdos Que Quedan Para Siempre", "Un Regalo Inolvidable"],
     band_title: "¿Listo Para Ser El Protagonista?",
@@ -1804,18 +1830,48 @@ export function catalogPageCopy(lang: Lang) {
     cartoon: t.cartoon_link,
   };
 }
-export function catalogCategory(lang: Lang, id: string) {
+/** Rótulo de subcategoria no catálogo: tira a data do menu ("Natal · 25 de dezembro" → "Natal"). */
+function catalogSubLabel(label: string): string {
+  const cut = label.indexOf(" · ");
+  return cut === -1 ? label : label.slice(0, cut);
+}
+function rankCatalogIndex(index: number): number {
+  const lead = CATALOG_LEAD.indexOf(index);
+  return lead === -1 ? CATALOG_LEAD.length + index : lead;
+}
+function sortCatalogBooks(books: CatalogCardBook[]): CatalogCardBook[] {
+  return [...books].sort(
+    (a, b) => rankCatalogIndex(a.catalogI ?? Number.MAX_SAFE_INTEGER) - rankCatalogIndex(b.catalogI ?? Number.MAX_SAFE_INTEGER),
+  );
+}
+export type CatalogSubSection = {
+  id: string;
+  name: string;
+  books: CatalogCardBook[];
+};
+export type CatalogSection = {
+  id: string;
+  name: string;
+  color: string;
+  subs: CatalogSubSection[];
+  books: CatalogCardBook[];
+};
+export function catalogCategory(lang: Lang, id: string): CatalogSection | null {
   if (id === "sentimentos") {
     const name = lang === "en" ? "Feelings" : lang === "es" ? "Sentimientos" : "Sentimentos";
-    return {
-      id,
-      name,
-      color: "#f0a0c0",
-      books: CATALOG_THEMES.flatMap((theme, index) => {
+    const books = sortCatalogBooks(
+      CATALOG_THEMES.flatMap((theme, index) => {
         if (!FEELING_THEMES.has(theme)) return [];
         const card = toCatalogCard(lang, index);
         return card ? [card] : [];
       }),
+    );
+    return {
+      id,
+      name,
+      color: "#f0a0c0",
+      subs: books.length ? [{ id: "sentimentos", name, books }] : [],
+      books,
     };
   }
   return catalogSections(lang).find((section) => section.id === id) ?? null;
@@ -1826,25 +1882,39 @@ export function catalogEntry(lang: Lang, index: number) {
   const section = NAV_CAT_META.find((meta) => CATALOG_SECTION_THEMES[meta.id]?.includes(card.theme));
   return { ...card, sectionId: section?.id ?? "aventuras" };
 }
-export function catalogSections(lang: Lang) {
+export function catalogSections(lang: Lang): CatalogSection[] {
   const names = I18N[lang].cats;
-  return NAV_CAT_META.map((meta, i) => ({
-    id: meta.id,
-    name: names[i]?.name ?? meta.id,
-    color: meta.color,
-    books: CATALOG_THEMES.flatMap((theme, index) => {
-      if (isCartoonOnlyCover(index)) return [];
-      if (!CATALOG_SECTION_THEMES[meta.id]?.includes(theme)) return [];
-      const card = toCatalogCard(lang, index);
-      return card ? [card] : [];
-    }).sort((a, b) => {
-      const rank = (i: number) => {
-        const lead = CATALOG_LEAD.indexOf(i);
-        return lead === -1 ? CATALOG_LEAD.length + i : lead;
-      };
-      return rank(a.catalogI ?? Number.MAX_SAFE_INTEGER) - rank(b.catalogI ?? Number.MAX_SAFE_INTEGER);
-    }),
-  }));
+  return NAV_CAT_META.map((meta, i) => {
+    const catCopy = names[i];
+    const sectionThemes = CATALOG_SECTION_THEMES[meta.id] ?? [];
+    const placed = new Set<number>();
+    const subs = meta.subs.flatMap((subMeta, j) => {
+      const theme = themeFromHref(subMeta.href);
+      if (!theme || !sectionThemes.includes(theme)) return [];
+      const books = sortCatalogBooks(
+        CATALOG_THEMES.flatMap((bookTheme, index) => {
+          if (bookTheme !== theme || placed.has(index) || isCartoonOnlyCover(index)) return [];
+          const card = toCatalogCard(lang, index);
+          if (!card) return [];
+          placed.add(index);
+          return [card];
+        }),
+      );
+      if (!books.length) return [];
+      return [{
+        id: theme,
+        name: catalogSubLabel(catCopy?.subs[j] ?? theme),
+        books,
+      }];
+    });
+    return {
+      id: meta.id,
+      name: catCopy?.name ?? meta.id,
+      color: meta.color,
+      subs,
+      books: subs.flatMap((sub) => sub.books),
+    };
+  });
 }
 
 export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" } = {}) {
