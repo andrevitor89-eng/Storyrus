@@ -2236,7 +2236,11 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                     aria-expanded={openCat === 0}
                     aria-haspopup="true"
                     aria-controls="cat-panel"
-                    onClick={() => setOpenCat(openCat === 0 ? null : 0)}
+                    onClick={() => {
+                      const next = openCat === 0 ? null : 0;
+                      setOpenCat(next);
+                      if (next !== null) setFeatCat((cur) => cur ?? 0);
+                    }}
                   >
                     <span className="kcat-dot" style={{ background: "#9b8cff", boxShadow: "0 0 10px #9b8cff" }} />
                     {t.cats_label}
@@ -2439,6 +2443,18 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                 </div>
                 <div className="kmobile-subs" id={`mobile-cat-${i}`}>
                   <div className="kmobile-subs-inner">
+                    {mobileCat === i && mobileSub?.cat !== i && cat.feats.length > 0 ? (
+                      <div className="kmobile-feats" data-testid={`landing-mobile-feats-${cat.id}`}>
+                        {cat.feats.map((feat) => (
+                          <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
+                            <span className="kcat-feat-cover">
+                              <img src={exUrl(feat.img)} alt="" />
+                            </span>
+                            <span>{feat.label}</span>
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
                     {cat.subs.map((sub, j) => {
                       const subName = sub.label.split(" · ")[0];
                       const subOpen = mobileSub?.cat === i && mobileSub.sub === j;
@@ -2473,18 +2489,6 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
                         </div>
                       );
                     })}
-                    {mobileCat === i && mobileSub?.cat !== i && cat.feats.length > 0 ? (
-                      <div className="kmobile-feats" data-testid={`landing-mobile-feats-${cat.id}`}>
-                        {cat.feats.map((feat) => (
-                          <Link key={`${feat.href}-${feat.label}`} className="kcat-feat" to={feat.href} onClick={closeNav}>
-                            <span className="kcat-feat-cover">
-                              <img src={exUrl(feat.img)} alt="" />
-                            </span>
-                            <span>{feat.label}</span>
-                          </Link>
-                        ))}
-                      </div>
-                    ) : null}
                   </div>
                 </div>
               </div>

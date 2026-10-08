@@ -2183,7 +2183,22 @@ img.ex-tab-cover {
     box-shadow: 0 16px 40px rgba(31,53,104,.18);
     display: none; z-index: 50; color: #1f3568;
   }
-  .kmobile.open { display: flex; grid-column: 1 / -1; }
+  .kmobile.open {
+    display: flex; grid-column: 1 / -1;
+    max-height: min(70dvh, calc(100dvh - var(--khead-h, 100px) - 16px));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .kcat-panel,
+  .kcat-panel-all {
+    grid-template-columns: 1fr;
+    left: 14px; right: 14px;
+    max-height: min(70dvh, calc(100dvh - var(--khead-h, 100px) - 16px));
+    overflow: auto;
+  }
+  .kcat-groups { grid-template-columns: 1fr; }
+  .kcat-subs { border-right: none; border-bottom: 1px solid #eef1f7; padding: 0 0 8px; }
+  .kcat-feats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .kmobile-section {
     display: flex; flex-direction: column; gap: 6px;
     padding: 4px;
