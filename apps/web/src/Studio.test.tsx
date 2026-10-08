@@ -438,6 +438,31 @@ describe("Prévia automática", () => {
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
   });
 
+  it("mostra retry quando a prévia falha com 500", async () => {
+    state.credits = 20;
+    vi.spyOn(api, "startPreview").mockRejectedValue(new Error("500: Erro interno"));
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    await user.type(screen.getByLabelText(/nome do protagonista/i), "Lila");
+    await user.type(screen.getByLabelText(/^idade$/i), "5");
+    await user.type(screen.getByLabelText(/título do livro/i), "Lila e as estrelas");
+    await user.type(screen.getByLabelText(/insira o tema desejado/i), "Aventura no espaço");
+    await user.upload(
+      screen.getByTestId("studio-photo-input"),
+      new File(["x"], "foto.jpg", { type: "image/jpeg" }),
+    );
+    await user.click(screen.getByRole("button", { name: /^feminino$/i }));
+    await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
+    await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
+
+    expect(await screen.findByTestId("studio-order-sent")).toBeInTheDocument();
+    expect(await screen.findByText(/500: Erro interno/i)).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
+    expect(screen.getByTestId("studio-retry-preview")).toBeInTheDocument();
+  });
+
   it("MSW encadeia avatar → story → ebook e monta o trio (sem vídeo)", async () => {
     state.credits = 20;
     const p = {

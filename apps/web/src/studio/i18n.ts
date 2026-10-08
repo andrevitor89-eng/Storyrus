@@ -97,6 +97,7 @@ export type StudioCopy = {
   previewCost: string;
   previewRunning: string;
   previewBuilding: string;
+  previewRetry: string;
   previewTrioTitle: string;
   previewTrioHint: string;
   previewCover: string;
@@ -412,6 +413,7 @@ const pt: StudioCopy = {
   previewCost: "(~3 créditos)",
   previewRunning: "Gerando prévia…",
   previewBuilding: "Estamos montando sua prévia…",
+  previewRetry: "Tentar prévia de novo",
   previewTrioTitle: "Prévia do livro",
   previewTrioHint: "Capa, página e foto na mão — como na vitrine.",
   previewCover: "Capa",
@@ -631,6 +633,7 @@ const en: StudioCopy = {
   previewCost: "(~3 credits)",
   previewRunning: "Generating preview…",
   previewBuilding: "We're building your preview…",
+  previewRetry: "Retry preview",
   previewTrioTitle: "Book preview",
   previewTrioHint: "Cover, page, and in-hand shot — like the storefront.",
   previewCover: "Cover",
@@ -850,6 +853,7 @@ const es: StudioCopy = {
   previewCost: "(~3 créditos)",
   previewRunning: "Generando vista previa…",
   previewBuilding: "Estamos preparando tu vista previa…",
+  previewRetry: "Reintentar vista previa",
   previewTrioTitle: "Vista previa del libro",
   previewTrioHint: "Portada, página y foto en mano — como en la vitrina.",
   previewCover: "Portada",
