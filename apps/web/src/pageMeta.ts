@@ -35,7 +35,7 @@ export const NOT_FOUND_PAGE: HtmlPage = {
 };
 
 export const CATALOG_CATEGORIES: readonly { id: string; name: string }[] = [
-  { id: "aventuras", name: "Aventuras" },
+  { id: "aventuras", name: "Temáticas" },
   { id: "voce-e-eu", name: "Você e Eu" },
   { id: "ocasioes", name: "Ocasiões Especiais" },
   { id: "educativo", name: "Educativo" },

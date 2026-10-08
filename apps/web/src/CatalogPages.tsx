@@ -119,7 +119,6 @@ export function CatalogPage() {
         <h1 className="ktitle">{copy.title}</h1>
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
-            <CatalogSectionTitle name={section.name} color={section.color} />
             {section.subs.map((sub) => (
               <div key={sub.id} id={`${section.id}-${sub.id}`} className="catalog-sub">
                 <h3 className="catalog-sub-title">{sub.name}</h3>

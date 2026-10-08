@@ -698,7 +698,7 @@ describe("Landing — CTAs e links", () => {
     expect(biblico).toHaveAttribute("href", "/catalogo#educativo");
     expect(within(panel).getByRole("link", { name: /^educativo$/i })).toHaveAttribute("href", "/catalogo#educativo");
     expect(within(panel).getByRole("link", { name: /^você e eu$/i })).toHaveAttribute("href", "/catalogo#voce-e-eu");
-    expect(within(panel).getByRole("link", { name: /^aventuras$/i })).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(within(panel).getByRole("link", { name: /^temáticas$/i })).toHaveAttribute("href", "/catalogo#aventuras");
     expect(within(panel).queryByRole("link", { name: /^transporte$/i })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("link", { name: /^transportes$/i })).not.toBeInTheDocument();
     expect(within(panel).queryByRole("link", { name: /^ano novo$/i })).not.toBeInTheDocument();
@@ -803,7 +803,7 @@ describe("Landing — CTAs e links", () => {
     expect(screen.queryByRole("heading", { name: /^educativo$/i })).not.toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /^sentimentos$/i })).not.toBeInTheDocument();
     const cartoonGroups = [...document.querySelectorAll("#cat-panel .kcat-group-name")].map((el) => el.textContent ?? "");
-    expect(cartoonGroups).toEqual(["Aventuras", "Você e Eu", "Ocasiões Especiais", "Educativo"]);
+    expect(cartoonGroups).toEqual(["Temáticas", "Você e Eu", "Ocasiões Especiais", "Educativo"]);
     const cartoonPanel = document.querySelector("#cat-panel") as HTMLElement;
     const cartoonVovo = within(cartoonPanel).getByRole("link", { name: /^vovô e eu$/i });
     expect(cartoonVovo).toHaveAttribute("href", "/catalogo#voce-e-eu");
@@ -879,7 +879,8 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
     expect(screen.getByRole("link", { name: /avaliações/i })).toHaveAttribute("href", "/#reviews");
     expect(screen.getByRole("link", { name: /livros cartoon/i })).toHaveAttribute("href", "/cartoon");
-    expect(screen.getByRole("link", { name: /^aventuras$/i })).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(screen.getByRole("link", { name: /^temáticas$/i })).toHaveAttribute("href", "/catalogo#aventuras");
+    expect(screen.queryByRole("heading", { name: /^temáticas$/i })).not.toBeInTheDocument();
     expect(document.getElementById("educativo")).toBeTruthy();
     expect(document.getElementById("ocasioes")).toBeTruthy();
     const daviLinks = screen.getAllByRole("link", { name: /davi, o menino pastor/i });
@@ -958,7 +959,7 @@ describe("Catálogo e página do livro", () => {
         <AppRoutes />
       </MemoryRouter>,
     );
-    expect(await screen.findByRole("heading", { name: /^aventuras$/i })).toBeInTheDocument();
+    expect(await screen.findByRole("heading", { name: /^temáticas$/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /nano e suas aventuras/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /emilia e os primeiros passos da bailarina/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /meu pai, meu herói/i })).not.toBeInTheDocument();

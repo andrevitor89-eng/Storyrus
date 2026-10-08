@@ -742,7 +742,7 @@ const I18N = {
     book_carousel: "Carrossel De Livros",
     cats: [
       {
-        name: "Aventuras",
+        name: "Temáticas",
         subs: ["Aventura", "Dinossauros", "Fundo do Mar", "Espaço", "Princesas", "Super-heróis", "Esportes"],
         feats: ["Princesas", "Aventura", "Cristobal E Seu Esporte Favorito", "Nano E Suas Aventuras"],
       },
@@ -963,7 +963,7 @@ const I18N = {
     book_carousel: "Book Carousel",
     cats: [
       {
-        name: "Adventures",
+        name: "Themes",
         subs: ["Adventure", "Dinosaurs", "Under the Sea", "Space", "Princesses", "Superheroes", "Sports"],
         feats: ["Princesses", "Adventure", "Cristobal and His Favorite Sport", "Nano and His Adventures"],
       },
@@ -1184,7 +1184,7 @@ const I18N = {
     book_carousel: "Carrusel De Libros",
     cats: [
       {
-        name: "Aventuras",
+        name: "Temáticas",
         subs: ["Aventura", "Dinosaurios", "Fondo del Mar", "Espacio", "Princesas", "Superhéroes", "Deportes"],
         feats: ["Princesas", "Aventura", "Cristobal y su deporte favorito", "Nano y sus aventuras"],
       },
