@@ -168,6 +168,26 @@ describe("Landing — avaliações", () => {
     expect(within(reviews).getByTestId("landing-review-name-18")).toHaveTextContent(/^Noé$/);
     expect(within(reviews).queryByTestId("landing-review-cover-19")).not.toBeInTheDocument();
     expect(within(reviews).queryByText(/o Grande Goleiro do Chile/i)).not.toBeInTheDocument();
+    const quotes = within(reviews).getAllByRole("blockquote");
+    expect(quotes).toHaveLength(10);
+    expect(within(reviews).getByText("Camila R.")).toBeInTheDocument();
+    expect(within(reviews).getByText(/a vovó se viu no livro com a neta/i)).toBeInTheDocument();
+    expect(within(reviews).getByText("Larissa M.")).toBeInTheDocument();
+  });
+
+  it("traduz os depoimentos novos ao trocar para EN e ES", async () => {
+    const user = userEvent.setup();
+    renderLanding();
+
+    const reviews = (await screen.findByRole("heading", { name: /o que as famílias dizem/i })).closest("section") as HTMLElement;
+    await user.click(screen.getByTestId("landing-lang-en"));
+    expect(within(reviews).getByText(/grandma saw herself in the book/i)).toBeInTheDocument();
+    expect(within(reviews).getByText("Helena V.")).toBeInTheDocument();
+    expect(within(reviews).queryByText(/a vovó se viu no livro/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByTestId("landing-lang-es"));
+    expect(within(reviews).getByText(/la abuela se vio en el libro/i)).toBeInTheDocument();
+    expect(within(reviews).getByText(/hicimos el libro de los primos/i)).toBeInTheDocument();
   });
 });
 
