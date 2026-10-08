@@ -740,7 +740,7 @@ const I18N = {
       "Maria Jesus e a Disciplina no Hockey",
       "Facundo e o Motocross com Cuidado",
     ],
-    vid_title: "Vídeos Narrados", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
+    vid_title: "Vídeos", vid_sub: "A mesma história ganha voz, trilha e movimento — perfeita para assistir em família.",
     vid_dur: "~2 min", vid_cta: "Criar meu vídeo",
     videos: [
       { t: "Meu Pai, Meu Herói", p: "Papai e o bebê lado a lado — cada página ganha movimento suave." },
@@ -949,7 +949,7 @@ const I18N = {
       "Maria Jesus and Hockey Discipline",
       "Facundo and Careful Motocross",
     ],
-    vid_title: "Narrated Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
+    vid_title: "Videos", vid_sub: "The same story gains voice, music and motion — perfect to watch together.",
     vid_dur: "~2 min", vid_cta: "Create my video",
     videos: [
       { t: "My Dad, My Hero", p: "Dad and baby side by side — each page comes gently to life." },
@@ -1158,7 +1158,7 @@ const I18N = {
       "Maria Jesus y la disciplina en el hockey",
       "Facundo y el motocross con cuidado",
     ],
-    vid_title: "Videos Narrados", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
+    vid_title: "Videos", vid_sub: "La misma historia gana voz, música y movimiento — perfecta para ver en familia.",
     vid_dur: "~2 min", vid_cta: "Crear mi video",
     videos: [
       { t: "Mi Papá, Mi Héroe", p: "Papá y el bebé lado a lado — cada página cobra movimiento suave." },

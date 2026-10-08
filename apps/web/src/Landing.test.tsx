@@ -587,7 +587,7 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getByTestId("landing-header-cta")).toHaveAttribute("href", "/cadastro");
   });
 
-  it("mostra Meu Pai na seção de vídeos narrados", async () => {
+  it("mostra Meu Pai na seção de vídeos", async () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
