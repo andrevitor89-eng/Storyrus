@@ -169,7 +169,7 @@ const CARTOON_REVIEW_PHOTOS = [
 ] as const;
 
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
-const HOW_IMGS = ["cartoon-foto-bisavo.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
+const HOW_IMGS = ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [

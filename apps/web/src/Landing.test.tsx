@@ -830,7 +830,7 @@ describe("Landing — CTAs e links", () => {
     expect(within(cartoonComo).getByRole("heading", { name: "Preencha os Dados" })).toBeInTheDocument();
     expect(within(cartoonComo).queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
     expect(cartoonComo.querySelector(".howex-card figcaption")?.textContent).toMatch(/fotos nítidas relacionadas à história/i);
-    for (const file of ["cartoon-foto-bisavo.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"]) {
+    for (const file of ["cartoon-como-dados.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"]) {
       expect(cartoonComo.querySelector(`img[src*="${file}"]`)).toBeTruthy();
     }
 
