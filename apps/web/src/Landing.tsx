@@ -1937,8 +1937,8 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
       const rawOnly = books.length === 1 ? books[0] : undefined;
       const only = rawOnly !== undefined && (variant !== "cartoon" || CARTOON_COVER[rawOnly]) ? rawOnly : undefined;
       const bookTheme = only !== undefined ? CATALOG_THEMES[only] ?? theme : theme;
-      // Um livro → ficha; vários/nenhum → catálogo completo na categoria do tema.
-      const href = only !== undefined ? `/livro/${only}` : `/catalogo#${NAV_CAT_META[i].id}`;
+      // Tema do menu sempre abre o catálogo completo na categoria (capas à direita ainda vão ao livro).
+      const href = `/catalogo#${NAV_CAT_META[i].id}`;
       return [{
         label,
         href,
