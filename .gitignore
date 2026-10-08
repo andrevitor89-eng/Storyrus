@@ -274,6 +274,9 @@ apps/web/public/exemplos/*
 !apps/web/public/exemplos/capa-meupai-heroi.png
 !apps/web/public/exemplos/pagina-meupai-heroi.png
 !apps/web/public/exemplos/foto-meupai-heroi.png
+!apps/web/public/exemplos/meupai-heroi/
+!apps/web/public/exemplos/meupai-heroi/**
+apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/capa-enzo-primo.png
 !apps/web/public/exemplos/pagina-enzo-primo.png
 !apps/web/public/exemplos/foto-enzo-primo.png
