@@ -116,7 +116,6 @@ export function CatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
-        <SiteBackNav />
         <h1 className="ktitle">{copy.title}</h1>
         {sections.map((section) => (
           <section key={section.id} id={section.id} className="catalog-section" style={{ "--group": section.color } as CSSProperties}>
@@ -153,7 +152,6 @@ export function CategoryCatalogPage() {
         <CatalogBannerNav lang={lang} />
       </header>
       <main className="ksection catalog-page" id="catalogo">
-        <SiteBackNav />
         <section className="catalog-section" id={section.id} style={{ "--group": section.color } as CSSProperties}>
           <CatalogSectionTitle name={section.name} color={section.color} as="h1" />
           {section.subs.length > 0 ? (

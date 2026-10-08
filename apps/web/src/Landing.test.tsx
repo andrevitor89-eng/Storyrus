@@ -820,6 +820,7 @@ describe("Catálogo e página do livro", () => {
       </MemoryRouter>,
     );
     expect(await screen.findByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
+    expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /como funciona/i })).toHaveAttribute("href", "/#como");
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
     expect(screen.getByRole("link", { name: /avaliações/i })).toHaveAttribute("href", "/#reviews");
@@ -904,8 +905,7 @@ describe("Catálogo e página do livro", () => {
     expect(screen.getByRole("heading", { name: /nano e suas aventuras/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /emilia e os primeiros passos da bailarina/i })).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: /meu pai, meu herói/i })).not.toBeInTheDocument();
-    expect(screen.getByTestId("site-back-home")).toHaveAttribute("href", "/");
-    expect(screen.getByTestId("site-back-prev")).toBeInTheDocument();
+    expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
   });
 
   it("abre o catálogo completo com hash da categoria", async () => {
@@ -917,7 +917,7 @@ describe("Catálogo e página do livro", () => {
     );
     expect(await screen.findByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
     expect(document.getElementById("educativo")).toBeTruthy();
-    expect(screen.getByTestId("site-back-nav")).toBeInTheDocument();
+    expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
     scrollTo.mockRestore();
   });
 
