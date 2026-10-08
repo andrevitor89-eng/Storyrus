@@ -75,6 +75,44 @@ describe("ProgressList", () => {
   });
 });
 
+describe("Studio — gênero padrão", () => {
+  it("abre com Feminino já acionado", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+    expect(screen.getByRole("button", { name: /^feminino$/i, pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /^masculino$/i, pressed: false })).toBeInTheDocument();
+  });
+});
+
+describe("Studio — ordem dos campos", () => {
+  it("mostra personagens, dedicatória, título, tema, tipo, fotos e gerar nessa ordem", async () => {
+    const user = userEvent.setup();
+    render(<Studio />);
+    await openBook(user);
+
+    const name = screen.getByLabelText(/nome do protagonista/i);
+    const extras = screen.getByTestId("studio-extra-names");
+    const dedication = screen.getByLabelText(/dedicatória/i);
+    const title = screen.getByLabelText(/título do livro/i);
+    const theme = screen.getByLabelText(/insira o tema desejado/i);
+    const artStyle = screen.getByRole("group", { name: /estilo do livro/i });
+    const photos = screen.getByTestId("studio-photo-drop");
+    const generate = screen.getByTestId("studio-generate-book");
+
+    const earlier = (a: Node, b: Node) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+
+    expect(earlier(name, extras)).toBe(true);
+    expect(earlier(extras, dedication)).toBe(true);
+    expect(earlier(dedication, title)).toBe(true);
+    expect(earlier(title, theme)).toBe(true);
+    expect(earlier(theme, artStyle)).toBe(true);
+    expect(earlier(artStyle, photos)).toBe(true);
+    expect(earlier(photos, generate)).toBe(true);
+  });
+});
+
 describe("Studio — tema do banner", () => {
   it("preenche título e história e troca o nome do exemplo pelo da criança", async () => {
     window.history.replaceState(
@@ -156,14 +194,13 @@ describe("Studio — tema do banner", () => {
       new File(["x"], "foto.jpg", { type: "image/jpeg" }),
     );
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);
-    expect(sent).toHaveTextContent(/prévia/i);
-    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
-    expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/nome do pai/i)).not.toBeInTheDocument();
     expect(upload).toHaveBeenCalledWith(
       expect.any(String),
@@ -204,7 +241,6 @@ describe("Studio — tema do banner", () => {
     expect(screen.getByText(/2 fotos selecionadas/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     await screen.findByTestId("studio-order-sent");
@@ -321,13 +357,13 @@ describe("Studio a11y", () => {
     await user.upload(fileInput, new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
 
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);
-    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
-    expect(screen.getByTestId("studio-generate-story")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
+    expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("studio-generate-story")).not.toBeInTheDocument();
   });
 });
 
@@ -346,20 +382,36 @@ describe("Polling do estúdio", () => {
     await user.upload(screen.getByTestId("studio-photo-input"), new File(["x"], "foto.jpg", { type: "image/jpeg" }));
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);
-    expect(screen.getByTestId("studio-generate-preview")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /gerar história com ia/i })).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
 
     const pollTimers = spy.mock.calls.filter((c) => c[1] === 2500);
     expect(pollTimers.length).toBeLessThanOrEqual(2);
   }, 20000);
 });
 
+describe("Revisão do projeto", () => {
+  it("mostra história, trio e formulário de alterações no exemplo pronto", async () => {
+    window.history.replaceState({}, "", "/app?exemplo=dinosaurs");
+    render(<Studio />);
+
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(screen.getByTestId("studio-story-result")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/matteo/i);
+    expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-review-title")).toBeDisabled();
+    expect(screen.getByTestId("studio-review-theme")).toBeDisabled();
+    expect(screen.getByTestId("studio-review-story")).toBeDisabled();
+    expect(screen.getByTestId("studio-submit-changes")).toBeDisabled();
+    expect(screen.queryByText(/crédito/i)).not.toBeInTheDocument();
+  });
+});
+
 describe("Prévia automática", () => {
-  it("dispara startPreview com brief ao clicar Gerar prévia", async () => {
+  it("dispara startPreview com brief ao gerar o livro", async () => {
     state.credits = 20;
     const preview = vi.spyOn(api, "startPreview");
     const user = userEvent.setup();
@@ -376,16 +428,14 @@ describe("Prévia automática", () => {
     );
     await user.click(screen.getByRole("button", { name: /^feminino$/i }));
     await user.click(screen.getByRole("checkbox", { name: /responsável legal/i }));
-    await user.click(screen.getByRole("button", { name: /próxima página/i }));
     await user.click(screen.getByRole("button", { name: /gerar o livro/i }));
     await screen.findByTestId("studio-order-sent");
 
-    await user.click(screen.getByTestId("studio-generate-preview"));
     expect(preview).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({ brief: expect.stringMatching(/Lila|estrelas|espaço/i) }),
     );
-    expect(await screen.findByText("AVATAR")).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
   });
 
   it("MSW encadeia avatar → story → ebook e monta o trio (sem vídeo)", async () => {

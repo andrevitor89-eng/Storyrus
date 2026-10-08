@@ -408,12 +408,179 @@
   margin-bottom: 0.6rem;
 }
 
-.studio-app .studio-card.studio-order p {
+.studio-app .studio-card.studio-order > p,
+.studio-app .studio-card.studio-order > .studio-slogan {
   margin: 0 auto;
   max-width: 28rem;
   font-size: 1.2rem;
   line-height: 1.5;
   color: var(--studio-muted);
+}
+
+.studio-app .studio-card.studio-review {
+  text-align: left;
+}
+
+.studio-app .studio-card.studio-review > h2 {
+  text-align: center;
+}
+
+.studio-app .studio-card.studio-review > .studio-slogan {
+  text-align: center;
+}
+
+.studio-app .studio-review-story,
+.studio-app .studio-review-changes {
+  margin-top: 1.5rem;
+}
+
+.studio-app .studio-review-story {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  text-align: left;
+}
+
+.studio-app .studio-review-story > .field-label {
+  display: block;
+  width: 100%;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+
+.studio-app .studio-story-book {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  width: 100%;
+  max-width: 36rem;
+  margin: 0.85rem auto 0;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.studio-app .studio-story-page {
+  position: relative;
+  display: block;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 1.4rem 1.55rem 1.55rem;
+  border-radius: 16px;
+  background:
+    linear-gradient(160deg, rgba(255, 248, 235, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(12, 22, 44, 0.55);
+  border: 1px solid rgba(232, 196, 140, 0.28);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  /* Never inherit meta-style label/value grids from parent cards */
+  grid-template-columns: none;
+  grid-template-rows: none;
+}
+
+.studio-app .studio-story-page.is-title {
+  background:
+    linear-gradient(160deg, rgba(255, 214, 150, 0.14), rgba(255, 255, 255, 0.02)),
+    rgba(18, 28, 52, 0.7);
+  border-color: rgba(240, 180, 90, 0.4);
+}
+
+.studio-app .studio-story-page-head {
+  display: block;
+  width: 100%;
+  margin: 0 0 0.75rem;
+  text-align: left;
+}
+
+.studio-app .studio-story-page-num {
+  display: inline-block;
+  font-family: "Baloo 2", system-ui, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #f0c27a;
+}
+
+.studio-app .studio-story-verse {
+  display: block;
+  margin: 0;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
+  font-size: 1.1rem;
+  line-height: 1.75;
+  color: #f4efe6;
+  grid-template-columns: none;
+  grid-template-rows: none;
+}
+
+.studio-app .studio-card.studio-review .studio-story-verse p {
+  display: block;
+  width: 100%;
+  max-width: none;
+  margin: 0 0 0.7em;
+  padding: 0;
+  font-size: inherit;
+  line-height: inherit;
+  color: inherit;
+  text-align: justify;
+  text-justify: inter-word;
+  text-align-last: left;
+  /* Auto-hyphenation looks harsh on short kids-book lines; keep whole words */
+  hyphens: none;
+  -webkit-hyphens: none;
+  -ms-hyphens: none;
+  overflow-wrap: normal;
+  word-break: normal;
+  white-space: normal;
+  grid-column: auto;
+  grid-row: auto;
+}
+
+.studio-app .studio-story-verse p:last-child {
+  margin-bottom: 0;
+}
+
+.studio-app .studio-story-page.is-title .studio-story-verse {
+  font-size: 1.32rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.studio-app .studio-card.studio-review .studio-story-page.is-title .studio-story-verse p {
+  text-align: center;
+  text-align-last: center;
+}
+
+[data-theme="light"] .studio-app .studio-story-page {
+  background:
+    linear-gradient(160deg, #fff8eb, #fffdf7);
+  border-color: rgba(180, 130, 70, 0.28);
+  box-shadow: 0 10px 28px rgba(40, 28, 10, 0.08);
+}
+
+[data-theme="light"] .studio-app .studio-story-page.is-title {
+  background: linear-gradient(160deg, #ffe8c4, #fff7e8);
+}
+
+[data-theme="light"] .studio-app .studio-story-page-num {
+  color: #9a6a22;
+}
+
+[data-theme="light"] .studio-app .studio-story-verse {
+  color: #2a2118;
+}
+
+.studio-app .studio-review-changes .studio-field {
+  margin-top: 0.85rem;
+}
+
+.studio-app .studio-review-changes .studio-create {
+  margin-top: 1.25rem;
 }
 
 .studio-app .how ol {
@@ -591,17 +758,18 @@
   color: var(--purple);
 }
 
-.studio-order {
+/* Pedido/meta summary only — keep scoped so story pages never get the 9rem label grid */
+.studio-order-meta {
   margin: 0.75rem 0 0;
   padding: 0.9rem 1rem;
   border: 1px solid var(--line-soft);
   border-radius: 12px;
 }
-.studio-order h3 { margin: 0 0 0.65rem; font-size: 1rem; }
-.studio-order dl { margin: 0; display: grid; gap: 0.35rem; }
-.studio-order div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 0.4rem; }
-.studio-order dt { color: var(--muted); font-weight: 700; }
-.studio-order dd { margin: 0; }
+.studio-order-meta h3 { margin: 0 0 0.65rem; font-size: 1rem; }
+.studio-order-meta dl { margin: 0; display: grid; gap: 0.35rem; }
+.studio-order-meta dl > div { display: grid; grid-template-columns: 9rem minmax(0, 1fr); gap: 0.4rem; }
+.studio-order-meta dt { color: var(--muted); font-weight: 700; }
+.studio-order-meta dd { margin: 0; }
 @media (max-width: 720px) {
-  .studio-order div { grid-template-columns: 1fr; }
+  .studio-order-meta dl > div { grid-template-columns: 1fr; }
 }

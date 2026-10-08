@@ -680,6 +680,14 @@ export const handlers = [
     const p = state.projects.get(params.pid as string);
     return p ? HttpResponse.json(p) : new HttpResponse(null, { status: 404 });
   }),
+  http.post("*/v1/projects/:pid/story/text", async ({ params, request }) => {
+    const p = state.projects.get(params.pid as string);
+    if (!p) return new HttpResponse(null, { status: 404 });
+    const body = (await request.json()) as { story_text?: string };
+    p.story_text = (body.story_text ?? "").trim() || null;
+    if (p.story_text) p.status = "STORY_READY";
+    return HttpResponse.json(p);
+  }),
   http.get("*/v1/projects/:pid/assets", ({ params }) => {
     const pid = params.pid as string;
     const p = state.projects.get(pid);
