@@ -293,6 +293,10 @@ apps/web/public/exemplos/meupai-heroi/kling-clips/
 !apps/web/public/exemplos/capa-tia-especial.png
 !apps/web/public/exemplos/capa-tia-especial-en.png
 !apps/web/public/exemplos/capa-tia-especial-es.png
+!apps/web/public/exemplos/capa-pascoa.png
+!apps/web/public/exemplos/capa-pascoa-en.png
+!apps/web/public/exemplos/capa-pascoa-es.png
+!apps/web/public/exemplos/capa-nossa-familia.png
 
 .vercel
 .env*

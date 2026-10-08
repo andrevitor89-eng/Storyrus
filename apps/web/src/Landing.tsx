@@ -154,6 +154,7 @@ const CARTOON_COVER: Record<number, string | Record<Lang, string>> = {
   22: "cartoon-capa-enzo.jpg",
   23: "cartoon-capa-lucas.png",
   30: { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
+  33: { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
 };
 /** Faixa do /cartoon: cenas diferentes lado a lado, não só família lendo no sofá. */
 const CARTOON_REVIEW_PHOTOS = [
@@ -240,6 +241,9 @@ const CATALOG_IMGS: CatalogImg[] = [
   { pt: "capa-heroi-aranha.png", en: "capa-heroi-aranha-en.png", es: "capa-heroi-aranha-es.png" },
   { pt: "capa-tia-especial.png", en: "capa-tia-especial-en.png", es: "capa-tia-especial-es.png" },
   { pt: "cartoon-capa-avo.png", en: "cartoon-capa-avo-en.png", es: "cartoon-capa-avo-en.png" },
+  { pt: "capa-pascoa.png", en: "capa-pascoa-en.png", es: "capa-pascoa-es.png" },
+  "capa-nossa-familia.png",
+  { pt: "cartoon-capa-aventura.png", en: "cartoon-capa-aventura-en.png", es: "cartoon-capa-aventura-es.png" },
 ];
 type CatalogSeriesShot = { cover: CatalogImg; page?: CatalogImg; photo?: CatalogImg };
 /** Série capa / página / foto por índice do catálogo (quando existir em /exemplos). */
@@ -344,15 +348,18 @@ const CATALOG_THEMES = [
   "pets",
   "family_love",
   "grandfather_love",
+  "easter",
+  "family_love",
+  "adventure",
 ];
 /** Janela da vitrine. Era 15; desceu 1 quando o Bruno saiu do meio da lista. */
 const CATALOG_LIMIT = 14;
 /** Índices fora do catálogo realista: capas em desenho e o aniversário da Ester. */
-const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 30]);
+const CATALOG_CARTOON_INDEXES = new Set([0, 1, 2, 3, 4, 13, 30, 33]);
 /** Livros novos em português, depois do limite dos 15 primeiros. */
-const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29]);
+const CATALOG_NEW_INDEXES = new Set([19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 31, 32]);
 /** Primeiros da vitrine: livros novos, depois Meu Pai, Davi e Enzo. */
-const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22];
+const CATALOG_LEAD = [25, 26, 27, 28, 29, 30, 21, 20, 22, 31, 32, 33];
 type CatalogCoverChoice = "soft" | "hard";
 type CatalogSizeChoice = "M" | "P";
 function catalogCoverChoice(cover?: string): CatalogCoverChoice {
@@ -372,7 +379,7 @@ const FEELING_THEMES = new Set(["literacia_emocional", "rotina_dormir", "compart
 const CATALOG_SECTION_THEMES: Record<string, readonly string[]> = {
   aventuras: ["adventure", "princess", "sport", "dinosaurs", "underwater", "space", "superhero"],
   "voce-e-eu": ["mothers_day", "fathers_day", "grandparents_love", "grandfather_love", "family_love", "recem_nascidos", "casamento", "pets"],
-  ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love"],
+  ocasioes: ["christmas", "birthday", "mothers_day", "fathers_day", "grandparents_love", "easter"],
   educativo: ["animais_sons", "higiene_desfralde", "biblico"],
 };
 const NAV_CAT_META = [
@@ -468,7 +475,7 @@ const NAV_CAT_META = [
 ] as const;
 /** Livros reais de cada tema do menu. O painel troca esta lista ao passar o mouse no subtema. */
 const MENU_BOOKS: Record<string, readonly number[]> = {
-  adventure: [2, 10, 25],
+  adventure: [33, 2, 10, 25],
   dinosaurs: [18],
   underwater: [17],
   space: [16],
@@ -480,12 +487,13 @@ const MENU_BOOKS: Record<string, readonly number[]> = {
   grandparents_love: [8],
   grandfather_love: [30],
   dia_do_idoso: [8, 30],
-  family_love: [7, 29],
+  family_love: [32, 7, 29],
   pets: [11, 12, 23, 28],
   dia_da_mulher: [6, 5, 8, 19],
-  dia_da_familia: [7, 19, 21, 22],
+  dia_da_familia: [32, 7, 19, 21],
   tio_tia: [19, 29],
   christmas: [9],
+  easter: [31],
   animais_sons: [23],
   higiene_desfralde: [24],
   biblico: [20],
@@ -861,6 +869,9 @@ const I18N = {
       { t: "Meu Herói Favorito, A Aranha", p: "Uma teia no jardim e uma amizade miúda: descobrir a natureza com cuidado e encanto.", cover: "Hard", size: "M", tag: "Natureza e amizade", quote: "Até o menor amigo pode ser um herói." },
       { t: "Tia Especial, Não Existe Igual", p: "Passeio, colo e risada: a tia que transforma qualquer dia numa memória para guardar.", cover: "Hard", size: "M", tag: "Amor de tia", quote: "Com a tia, todo dia vira passeio." },
       { t: "Amor De Avô, Meu Porto Seguro", p: "O colo do avô, o lago e um abraço que não acaba: um porto seguro só da família.", cover: "Hard", size: "M", tag: "Amor de avô", quote: "No colo do avô, encontro meu porto seguro." },
+      { t: "Feliz Páscoa", p: "Ovos, flores e um coelhinho no jardim: a Páscoa da criança vira uma história para guardar.", cover: "Hard", size: "M", tag: "Páscoa", quote: "Páscoa é alegria para compartilhar." },
+      { t: "Nossa Família", p: "Avós, pais e crianças juntos no gramado: o carinho de toda a família numa história só deles.", cover: "Hard", size: "M", tag: "Nossa família", quote: "Juntos, a família é o nosso lugar." },
+      { t: "Minha Grande Aventura", p: "Um menino, seu cachorro e um castelo no horizonte: cada passo da trilha ensina a ver, ouvir e cuidar.", cover: "Hard", size: "M", tag: "Aventura", quote: "Com um amigo ao lado, o mundo encanta." },
     ],
     promise_title: "Um Presente Personalizado Para Eternizar Momentos Inesquecíveis.",
     promise_sub: "Da foto à prévia final, cada detalhe é criado com carinho, dando vida a um presente único para toda a vida.",
@@ -1076,6 +1087,9 @@ const I18N = {
       { t: "My Favorite Hero, The Spider", p: "A web in the garden and a tiny friendship: discovering nature with care and wonder.", cover: "Hard", size: "M", tag: "Nature and friendship", quote: "Even the smallest friend can be a hero." },
       { t: "A Special Aunt, One Of A Kind", p: "A walk, a hug and a laugh: the aunt who turns any day into a memory to keep.", cover: "Hard", size: "M", tag: "Aunt's love", quote: "With aunt, every day becomes an outing." },
       { t: "Grandpa's Love, My Safe Harbor", p: "Grandpa's arms, the lake and a hug that never ends: a safe harbor just for the family.", cover: "Hard", size: "M", tag: "Grandpa's love", quote: "In grandpa's arms, I find my safe harbor." },
+      { t: "Happy Easter", p: "Eggs, flowers and a little bunny in the garden: Easter becomes a story to keep.", cover: "Hard", size: "M", tag: "Easter", quote: "Easter is joy to share." },
+      { t: "Our Family", p: "Grandparents, parents and children together on the grass: the whole family's love in one story.", cover: "Hard", size: "M", tag: "Our family", quote: "Together, family is our place." },
+      { t: "My Great Adventure", p: "A boy, his dog and a castle on the horizon: every step on the trail teaches him to look, listen and care.", cover: "Hard", size: "M", tag: "Adventure", quote: "With a friend beside him, the world feels wonderful." },
     ],
     promise_title: "Every Detail Crafted to Feel Special",
     promise_sub: "From the photo to the preview, everything is made so the book is ready to gift.",
@@ -1291,6 +1305,9 @@ const I18N = {
       { t: "Mi Héroe Favorito, La Araña", p: "Una tela en el jardín y una amistad pequeña: descubrir la naturaleza con cuidado y encanto.", cover: "Hard", size: "M", tag: "Naturaleza y amistad", quote: "Hasta el amigo más pequeño puede ser un héroe." },
       { t: "Una Tía Especial, No Hay Otra Igual", p: "Paseo, abrazo y risa: la tía que convierte cualquier día en un recuerdo para guardar.", cover: "Hard", size: "M", tag: "Amor de tía", quote: "Con la tía, todo día se vuelve paseo." },
       { t: "El Amor Del Abuelo, Mi Puerto Seguro", p: "Los brazos del abuelo, el lago y un abrazo que no se acaba: un puerto seguro solo de la familia.", cover: "Hard", size: "M", tag: "Amor de abuelo", quote: "En los brazos del abuelo, encuentro mi puerto seguro." },
+      { t: "Feliz Pascua", p: "Huevos, flores y un conejito en el jardín: la Pascua del niño se vuelve una historia para guardar.", cover: "Hard", size: "M", tag: "Pascua", quote: "Pascua es alegría para compartir." },
+      { t: "Nuestra Familia", p: "Abuelos, padres y niños juntos en el césped: el cariño de toda la familia en una historia solo de ellos.", cover: "Hard", size: "M", tag: "Nuestra familia", quote: "Juntos, la familia es nuestro lugar." },
+      { t: "Mi Gran Aventura", p: "Un niño, su perro y un castillo en el horizonte: cada paso del camino enseña a ver, oír y cuidar.", cover: "Hard", size: "M", tag: "Aventura", quote: "Con un amigo al lado, el mundo encanta." },
     ],
     promise_title: "Cada Detalle Pensado Para Ser Especial",
     promise_sub: "Del envío de la foto a la vista previa, todo está hecho para que el libro quede listo para regalar.",
