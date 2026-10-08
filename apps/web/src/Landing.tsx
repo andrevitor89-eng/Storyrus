@@ -170,6 +170,7 @@ const CARTOON_REVIEW_PHOTOS = [
 /* ------- exemplos reais em apps/web/public/exemplos/ ------- */
 const HOW_IMGS = ["cartoon-foto-bisavo.jpg", "cartoon-pagina-bisavo.jpg", "cartoon-capa-bisavo.jpg"];
 const HOW_SCENE_IMGS = ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"];
+const PASSO_IMGS = ["foto-meupai-heroi.png", "pagina-meupai-heroi.png", "capa-meupai-heroi.png"];
 /** Reviews strip: one lifestyle photo per book (PT/default), never EN/ES duplicates of the same scene. */
 const REVIEW_PHOTOS = [
   { tab: "foto-martin-goleiro.jpg", name: "Martin" },
@@ -764,6 +765,12 @@ const I18N = {
       { t: "Acompanhe a Criação", p: "Criamos o personagem ilustrado com base nas fotos enviadas. Desenvolvemos uma história única e envolvente. Você confere e aprova antes de avançarmos." },
       { t: "Revise e Aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
     ],
+    passo_title: "Passo a Passo",
+    passo: [
+      { t: "Envie foto do protagonista", p: "Envie fotos nítidas do personagem, protagonista da sua história." },
+      { t: "Envie fotos do personagem adicional", p: "Adicione fotos de um ou mais personagens relacionadas à história que deseja criar." },
+      { t: "Revise e aprove", p: "Revise a prévia, capa e páginas para aprovação. Após sua confirmação, o livro é enviado para produção." },
+    ],
     hiw_foot: [
       { t: "Envie a Foto e Defina os Detalhes", p: "Escolha o tema e o formato do livro." },
       { t: "Criamos o Personagem e a História", p: "História, capa e páginas com o mesmo rosto da criança." },
@@ -972,6 +979,12 @@ const I18N = {
       { t: "Follow The Creation", p: "We create the illustrated character from the photos you send. We develop a unique, engaging story. You review and approve it before we continue." },
       { t: "Review And Approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book goes to production." },
     ],
+    passo_title: "Step by Step",
+    passo: [
+      { t: "Send the protagonist's photo", p: "Send clear photos of the character, the protagonist of your story." },
+      { t: "Send photos of the additional character", p: "Add photos of one or more characters related to the story you want to create." },
+      { t: "Review and approve", p: "Review the preview, cover, and pages for approval. After you confirm, the book is sent to production." },
+    ],
     hiw_foot: [
       { t: "Send The Photo And Set The Details", p: "Choose the theme and the book format." },
       { t: "We Create The Character And The Story", p: "Story, cover, and pages with the same face as the child." },
@@ -1179,6 +1192,12 @@ const I18N = {
       { t: "Completa Los Datos", p: "Envía la información, elige el tema de la historia y envía fotos nítidas relacionadas con la historia que quieres crear." },
       { t: "Acompaña La Creación", p: "Creamos el personaje ilustrado a partir de las fotos enviadas. Desarrollamos una historia única y envolvente. Tú revisas y apruebas antes de que avancemos." },
       { t: "Revisa Y Aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
+    ],
+    passo_title: "Paso a Paso",
+    passo: [
+      { t: "Envía la foto del protagonista", p: "Envía fotos nítidas del personaje, protagonista de tu historia." },
+      { t: "Envía fotos del personaje adicional", p: "Agrega fotos de uno o más personajes relacionadas con la historia que quieres crear." },
+      { t: "Revisa y aprueba", p: "Revisa la vista previa, la portada y las páginas para aprobar. Tras tu confirmación, el libro se envía a producción." },
     ],
     hiw_foot: [
       { t: "Envía La Foto Y Define Los Detalles", p: "Elige el tema y el formato del libro." },
@@ -2479,6 +2498,31 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               </Fragment>
               );
             })}
+          </div>
+        </div>
+      </section>
+
+      <section className="ksection ksection-passo" id="passos">
+        <div className="como-panel reveal">
+          <h2 className="ktitle">{t.passo_title}</h2>
+          <div className="howex passo">
+            {t.passo.map((h, i) => (
+              <Fragment key={h.t}>
+                <figure className="howex-card howex-card-scene">
+                  <div className="howex-lead">
+                    <h3>{h.t}</h3>
+                  </div>
+                  <div className="howex-media">
+                    <img src={exUrl(PASSO_IMGS[i])} alt={h.t} loading="lazy" />
+                    <span className="howex-num">{i + 1}</span>
+                  </div>
+                  <figcaption>
+                    <p>{h.p}</p>
+                  </figcaption>
+                </figure>
+                {i < t.passo.length - 1 && <span className="howex-arrow" aria-hidden><IcArrow /></span>}
+              </Fragment>
+            ))}
           </div>
         </div>
       </section>

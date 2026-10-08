@@ -606,7 +606,7 @@ describe("Landing — CTAs e links", () => {
     renderLanding();
     await screen.findByTestId("landing-hero-cta");
 
-    const order = ["como", "catalogo", "promessa", "videos", "reviews", "faq"];
+    const order = ["como", "passos", "catalogo", "promessa", "videos", "reviews", "faq"];
     const nodes = order.map((id) => document.getElementById(id));
     expect(nodes.every(Boolean)).toBe(true);
     for (let i = 0; i < nodes.length - 1; i++) {
@@ -621,7 +621,7 @@ describe("Landing — CTAs e links", () => {
     expect(screen.getAllByRole("heading", { name: "Preencha os Dados" })).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /^dados do livro$/i })).not.toBeInTheDocument();
     expect(screen.getAllByRole("heading", { name: /acompanhe a criação/i })).toHaveLength(1);
-    expect(screen.getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(1);
+    expect(within(document.getElementById("como") as HTMLElement).getAllByRole("heading", { name: /revise e aprove/i })).toHaveLength(1);
     expect(screen.queryByRole("heading", { name: /envie a foto e defina os detalhes/i })).not.toBeInTheDocument();
     const como = document.getElementById("como") as HTMLElement;
     const firstHow = como.querySelector(".howex-card") as HTMLElement;
@@ -630,6 +630,20 @@ describe("Landing — CTAs e links", () => {
     for (const file of ["como-envia.jpg", "como-cria.jpg", "como-recebe.jpg"]) {
       expect(como.querySelector(`img[alt][src*="${file}"]`)).toBeTruthy();
     }
+    const passos = document.getElementById("passos") as HTMLElement;
+    expect(within(passos).getByRole("heading", { name: /^passo a passo$/i })).toBeInTheDocument();
+    expect(within(passos).getByRole("heading", { name: /envie foto do protagonista/i })).toBeInTheDocument();
+    expect(within(passos).getByText(/fotos nítidas do personagem, protagonista da sua história/i)).toBeInTheDocument();
+    expect(within(passos).getByRole("heading", { name: /envie fotos do personagem adicional/i })).toBeInTheDocument();
+    expect(within(passos).getByText(/adicione fotos de um ou mais personagens relacionadas à história/i)).toBeInTheDocument();
+    expect(within(passos).getByRole("heading", { name: /^revise e aprove$/i })).toBeInTheDocument();
+    expect(within(passos).getByText(/após sua confirmação, o livro é enviado para produção/i)).toBeInTheDocument();
+    const passoImgs = [...passos.querySelectorAll(".howex-card img")];
+    expect(passoImgs.map((img) => img.getAttribute("src"))).toEqual([
+      expect.stringContaining("foto-meupai-heroi.png"),
+      expect.stringContaining("pagina-meupai-heroi.png"),
+      expect.stringContaining("capa-meupai-heroi.png"),
+    ]);
   });
 
   it("mostra os livros do tema ao passar o mouse no submenu", () => {
@@ -809,6 +823,7 @@ describe("Landing — CTAs e links", () => {
     });
     expect(screen.queryByTestId("landing-review-cover-8")).not.toBeInTheDocument();
     expect(within(document.getElementById("como") as HTMLElement).getAllByRole("heading", { name: "Preencha os Dados" })).toHaveLength(1);
+    expect(within(document.getElementById("passos") as HTMLElement).getByRole("heading", { name: /^passo a passo$/i })).toBeInTheDocument();
   });
 });
 

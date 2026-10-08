@@ -1082,8 +1082,9 @@ a.kcat-group-name.is-chip:focus-visible {
 /* ---------- seções ---------- */
 .ksection { position: relative; z-index: 1; max-width: var(--page-max); margin: 0 auto; padding: 50px var(--page-gutter); text-align: center; scroll-margin-top: 150px; }
 #como { padding-top: 24px; padding-bottom: 0; }
+#passos { padding-top: 28px; padding-bottom: 8px; }
 #catalogo { padding-top: 56px; }
-#reviews, #catalogo, #promessa, #como, #videos, #faq { scroll-margin-top: 150px; }
+#reviews, #catalogo, #promessa, #como, #passos, #videos, #faq { scroll-margin-top: 150px; }
 .soft-wrap { background: rgba(255,255,255,.6); border-radius: 40px; margin: 16px auto; }
 .ktitle { font-size: clamp(2rem, 4.6vw, 3rem); margin: 0 0 8px; color: var(--ink); }
 .ksub { color: #6b6890; font-size: 1.25rem; margin: 0 0 34px; }
@@ -1905,6 +1906,8 @@ img.ex-tab-cover {
   .howex { grid-template-columns: 1fr; grid-template-rows: none; justify-items: stretch; }
   .howex > .howex-card,
   .howex > .howex-arrow { grid-column: auto; grid-row: auto; }
+  .passo.howex > .howex-card:nth-child(n),
+  .passo.howex > .howex-arrow:nth-child(n) { grid-column: auto; grid-row: auto; }
   .howex-card { display: flex; flex-direction: column; grid-template-rows: none; }
   .howex-arrow { transform: rotate(90deg); justify-self: center; animation-name: nudgeDown; }
   .fmt-grid { grid-template-columns: 1fr; max-width: 100%; }
