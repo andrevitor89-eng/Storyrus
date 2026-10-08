@@ -70,12 +70,24 @@ export function CatalogPage() {
   const { hash } = useLocation();
   useEffect(() => {
     const id = hash.replace("#", "");
-    const el = id ? document.getElementById(id) : null;
-    if (!el) return;
-    const header = document.querySelector(".catalog-knav");
-    const offset = header ? header.getBoundingClientRect().height + 12 : 0;
-    const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top });
+    if (!id) return;
+    const scrollToSection = () => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const header = document.querySelector(".catalog-knav");
+      const offset = header ? header.getBoundingClientRect().height + 12 : 0;
+      const top = el.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({ top });
+      return true;
+    };
+    // Retenta: capas/lazy-load mudam a altura depois do 1º paint.
+    scrollToSection();
+    const t1 = window.setTimeout(scrollToSection, 80);
+    const t2 = window.setTimeout(scrollToSection, 320);
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [sections, hash]);
   return (
     <div className="kid">
