@@ -866,14 +866,14 @@ describe("Landing — CTAs e links", () => {
 
     const catalog = (screen.getByRole("heading", { name: /nossos livros/i })).closest("section") as HTMLElement;
     const cards = within(catalog).getAllByTestId("landing-catalog-card");
-    expect(cards).toHaveLength(13);
+    expect(cards).toHaveLength(12);
     expect(within(catalog).queryByText("Meu Pai, Meu Herói")).not.toBeInTheDocument();
     expect(within(catalog).getByText("Mako, Meu Amigo Fiel")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Tia")).toBeInTheDocument();
     expect(within(catalog).getByText("Lucas E Seu Amigo Max")).toBeInTheDocument();
     expect(within(catalog).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
     expect(within(catalog).queryByText(/esther/i)).not.toBeInTheDocument();
-    expect(within(catalog).getByText("Nano E Suas Aventuras")).toBeInTheDocument();
+    expect(within(catalog).queryByText("Nano E Suas Aventuras")).not.toBeInTheDocument();
     expect(within(catalog).queryByText(/meme e o tata/i)).not.toBeInTheDocument();
     expect(within(cards[0]).getByText("Amor De Avô, Meu Porto Seguro")).toBeInTheDocument();
     expect(within(catalog).getByText("Minha Grande Aventura")).toBeInTheDocument();
