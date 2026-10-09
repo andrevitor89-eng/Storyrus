@@ -430,8 +430,14 @@
   text-align: center;
 }
 
+.studio-app .studio-preview-building > .preview-eta {
+  margin-top: 1.15rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
 .studio-app .studio-preview-building > .preview-stay {
-  margin-top: 1.25rem;
+  margin-top: 0.85rem;
 }
 
 .studio-app .studio-preview-building > .preview-ready-cue {

@@ -440,6 +440,7 @@ describe("Prévia automática", () => {
     );
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /projeto criado/i })).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-eta")).toHaveTextContent(/previsão: cerca de \d/i);
     expect(screen.getByText(/fique nesta tela/i)).toBeInTheDocument();
     expect(
       screen.getByText(/ficou pronto quando o título mudar para prévia pronta/i),

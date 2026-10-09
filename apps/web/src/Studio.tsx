@@ -16,7 +16,7 @@ import logo from "./assets/logo.png";
 import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
 import { PreviewTrio } from "./studio/PreviewTrio";
-import { previewChainSteps, type PreviewStepId } from "./studio/previewSteps";
+import { previewChainSteps, previewEtaMinutes, type PreviewStepId } from "./studio/previewSteps";
 import { useStudioPolling } from "./studio/useStudioPolling";
 import type { StudioCopy } from "./studio/i18n";
 import {
@@ -486,6 +486,14 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
   const showPreviewRetry =
     orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
   const previewSteps = previewChainSteps(jobs);
+  const imageJob = [...jobs].reverse().find((job) => job.type === "EBOOK" && job.result?.payload?.preview_chain);
+  const imageProgress = imageJob?.result?.progress;
+  const previewEta = previewEtaMinutes(
+    previewSteps,
+    imageProgress && typeof imageProgress.done === "number" && typeof imageProgress.total === "number"
+      ? { done: imageProgress.done, total: imageProgress.total }
+      : null,
+  );
   const previewHeadline = previewReady && !showPreviewLoading && !showPreviewRetry
     ? t.previewReadyTitle
     : t.orderSent;
@@ -811,6 +819,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                     </li>
                   ))}
                 </ol>
+                <p className="studio-slogan preview-eta" data-testid="studio-preview-eta">
+                  {t.previewEta(previewEta.min, previewEta.max)}
+                </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
                 <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
               </div>

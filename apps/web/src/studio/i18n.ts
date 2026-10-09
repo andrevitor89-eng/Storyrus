@@ -98,6 +98,7 @@ export type StudioCopy = {
   previewRunning: string;
   previewBuilding: string;
   previewStay: string;
+  previewEta: (min: number, max: number) => string;
   previewReadyCue: string;
   previewReadyTitle: string;
   previewStepCharacter: string;
@@ -423,6 +424,10 @@ const pt: StudioCopy = {
   previewRunning: "Gerando prévia…",
   previewBuilding: "Estamos montando sua prévia…",
   previewStay: "Fique nesta tela. Ela atualiza sozinha.",
+  previewEta: (min, max) =>
+    min === max
+      ? `Previsão: cerca de ${min} ${min === 1 ? "minuto" : "minutos"}.`
+      : `Previsão: cerca de ${min} a ${max} minutos.`,
   previewReadyCue: "Ficou pronto quando o título mudar para Prévia pronta e a história e as imagens aparecerem aqui.",
   previewReadyTitle: "Prévia pronta",
   previewStepCharacter: "Personagem",
@@ -652,6 +657,10 @@ const en: StudioCopy = {
   previewRunning: "Generating preview…",
   previewBuilding: "We're building your preview…",
   previewStay: "Stay on this screen. It updates on its own.",
+  previewEta: (min, max) =>
+    min === max
+      ? `Estimate: about ${min} ${min === 1 ? "minute" : "minutes"}.`
+      : `Estimate: about ${min} to ${max} minutes.`,
   previewReadyCue: "It's ready when the title changes to Preview ready and the story and images show up here.",
   previewReadyTitle: "Preview ready",
   previewStepCharacter: "Character",
@@ -881,6 +890,10 @@ const es: StudioCopy = {
   previewRunning: "Generando vista previa…",
   previewBuilding: "Estamos preparando tu vista previa…",
   previewStay: "Quédate en esta pantalla. Se actualiza sola.",
+  previewEta: (min, max) =>
+    min === max
+      ? `Previsión: unos ${min} ${min === 1 ? "minuto" : "minutos"}.`
+      : `Previsión: unos ${min} a ${max} minutos.`,
   previewReadyCue: "Está lista cuando el título cambie a Vista previa lista y aparezcan aquí la historia y las imágenes.",
   previewReadyTitle: "Vista previa lista",
   previewStepCharacter: "Personaje",

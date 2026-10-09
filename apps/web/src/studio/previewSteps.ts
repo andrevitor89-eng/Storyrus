@@ -17,6 +17,47 @@ function isChainJob(job: Job): boolean {
   );
 }
 
+/** Minutos típicos de cada etapa ainda aberta.
+ * Personagem: uma imagem e o ajuste de rosto. História: o texto.
+ * Imagens: capa, página e foto na mão, uma depois da outra.
+ * Fila e nova tentativa alongam; o texto na tela diz "cerca de".
+ */
+const STEP_MINUTES: Record<PreviewStepId, [number, number]> = {
+  AVATAR: [1, 2],
+  STORY: [1, 1],
+  EBOOK: [2, 3],
+};
+
+export function previewEtaMinutes(
+  steps: PreviewStep[],
+  imageProgress?: { done: number; total: number } | null,
+): { min: number; max: number } {
+  let min = 0;
+  let max = 0;
+  for (const step of steps) {
+    if (step.state === "done") continue;
+    let [lo, hi] = STEP_MINUTES[step.id];
+    const progress = imageProgress;
+    if (
+      step.id === "EBOOK" &&
+      step.state === "now" &&
+      progress &&
+      progress.total > 0 &&
+      progress.done > 0 &&
+      progress.done < progress.total
+    ) {
+      const left = progress.total - progress.done;
+      lo = Math.max(1, left);
+      hi = lo;
+    }
+    min += lo;
+    max += hi;
+  }
+  if (min < 1) min = 1;
+  if (max < min) max = min;
+  return { min, max };
+}
+
 /** Etapas da prévia, na ordem em que o Studio as monta. */
 export function previewChainSteps(jobs: Job[]): PreviewStep[] {
   const chain = jobs.filter(isChainJob);

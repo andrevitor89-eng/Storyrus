@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Job } from "../types";
-import { previewChainSteps } from "./previewSteps";
+import { previewChainSteps, previewEtaMinutes } from "./previewSteps";
 
 function job(type: Job["type"], status: Job["status"]): Job {
   return {
@@ -33,6 +33,14 @@ describe("previewChainSteps", () => {
       ["STORY", "done"],
       ["EBOOK", "now"],
     ]);
+  });
+
+  it("começa em cerca de 4 a 6 minutos e encolhe conforme as etapas fecham", () => {
+    expect(previewEtaMinutes(previewChainSteps([]))).toEqual({ min: 4, max: 6 });
+    const mid = previewChainSteps([job("AVATAR", "DONE"), job("STORY", "RUNNING")]);
+    expect(previewEtaMinutes(mid)).toEqual({ min: 3, max: 4 });
+    const images = previewChainSteps([job("EBOOK", "RUNNING")]);
+    expect(previewEtaMinutes(images, { done: 2, total: 3 })).toEqual({ min: 1, max: 1 });
   });
 
   it("trata etapa anterior ausente como pronta se a seguinte já começou", () => {
