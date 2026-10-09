@@ -18,8 +18,16 @@ function job(type: Job["type"], status: Job["status"]): Job {
 }
 
 describe("previewChainSteps", () => {
-  it("começa no personagem quando ainda não há jobs", () => {
-    expect(previewChainSteps([]).map((step) => step.state)).toEqual(["now", "wait", "wait"]);
+  it("começa na fila quando ainda não há jobs", () => {
+    expect(previewChainSteps([]).map((step) => step.state)).toEqual(["queued", "wait", "wait"]);
+  });
+
+  it("não chama de agora um personagem que ainda está pendente", () => {
+    expect(previewChainSteps([job("AVATAR", "PENDING")]).map((step) => step.state)).toEqual([
+      "queued",
+      "wait",
+      "wait",
+    ]);
   });
 
   it("marca a etapa em andamento e as anteriores como prontas", () => {
@@ -47,7 +55,7 @@ describe("previewChainSteps", () => {
     expect(previewChainSteps([job("EBOOK", "PENDING")]).map((step) => step.state)).toEqual([
       "done",
       "done",
-      "now",
+      "queued",
     ]);
   });
 });

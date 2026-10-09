@@ -105,8 +105,10 @@ export type StudioCopy = {
   previewStepStory: string;
   previewStepImages: string;
   previewStepWait: string;
+  previewStepQueued: string;
   previewStepNow: string;
   previewStepDone: string;
+  previewElapsed: (totalSeconds: number) => string;
   previewRetry: string;
   previewTrioTitle: string;
   previewTrioHint: string;
@@ -434,8 +436,14 @@ const pt: StudioCopy = {
   previewStepStory: "História",
   previewStepImages: "Imagens",
   previewStepWait: "Aguardando",
+  previewStepQueued: "Na fila",
   previewStepNow: "Agora",
   previewStepDone: "Pronto",
+  previewElapsed: (totalSeconds) => {
+    const min = Math.floor(totalSeconds / 60);
+    const sec = String(totalSeconds % 60).padStart(2, "0");
+    return `Já se passaram ${min}:${sec}.`;
+  },
   previewRetry: "Tentar prévia de novo",
   previewTrioTitle: "Prévia do livro",
   previewTrioHint: "Capa, página e foto na mão — como na vitrine.",
@@ -667,8 +675,14 @@ const en: StudioCopy = {
   previewStepStory: "Story",
   previewStepImages: "Images",
   previewStepWait: "Waiting",
+  previewStepQueued: "Queued",
   previewStepNow: "Now",
   previewStepDone: "Done",
+  previewElapsed: (totalSeconds) => {
+    const min = Math.floor(totalSeconds / 60);
+    const sec = String(totalSeconds % 60).padStart(2, "0");
+    return `${min}:${sec} elapsed.`;
+  },
   previewRetry: "Retry preview",
   previewTrioTitle: "Book preview",
   previewTrioHint: "Cover, page, and in-hand shot — like the storefront.",
@@ -900,8 +914,14 @@ const es: StudioCopy = {
   previewStepStory: "Historia",
   previewStepImages: "Imágenes",
   previewStepWait: "En espera",
+  previewStepQueued: "En cola",
   previewStepNow: "Ahora",
   previewStepDone: "Listo",
+  previewElapsed: (totalSeconds) => {
+    const min = Math.floor(totalSeconds / 60);
+    const sec = String(totalSeconds % 60).padStart(2, "0");
+    return `Ya pasaron ${min}:${sec}.`;
+  },
   previewRetry: "Reintentar vista previa",
   previewTrioTitle: "Vista previa del libro",
   previewTrioHint: "Portada, página y foto en mano — como en la vitrina.",

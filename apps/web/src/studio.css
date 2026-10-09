@@ -436,6 +436,11 @@
   font-weight: 700;
 }
 
+.studio-app .studio-preview-building > .preview-elapsed {
+  margin-top: 0.35rem;
+  font-variant-numeric: tabular-nums;
+}
+
 .studio-app .studio-preview-building > .preview-stay {
   margin-top: 0.85rem;
 }

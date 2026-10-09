@@ -37,9 +37,10 @@ function previewStepLabel(t: StudioCopy, id: PreviewStepId): string {
   return t.previewStepImages;
 }
 
-function previewStepStateLabel(t: StudioCopy, state: "wait" | "now" | "done"): string {
+function previewStepStateLabel(t: StudioCopy, state: "wait" | "queued" | "now" | "done"): string {
   if (state === "done") return t.previewStepDone;
   if (state === "now") return t.previewStepNow;
+  if (state === "queued") return t.previewStepQueued;
   return t.previewStepWait;
 }
 
@@ -498,6 +499,19 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     ? t.previewReadyTitle
     : t.orderSent;
 
+  const [previewWaitedSec, setPreviewWaitedSec] = useState(0);
+  useEffect(() => {
+    if (!showPreviewLoading) {
+      setPreviewWaitedSec(0);
+      return;
+    }
+    const started = Date.now();
+    const id = window.setInterval(() => {
+      setPreviewWaitedSec(Math.floor((Date.now() - started) / 1000));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [showPreviewLoading, project?.id]);
+
   useEffect(() => {
     if (!orderSent) return;
     const title = `${previewHeadline} — Story R Us`;
@@ -821,6 +835,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                 </ol>
                 <p className="studio-slogan preview-eta" data-testid="studio-preview-eta">
                   {t.previewEta(previewEta.min, previewEta.max)}
+                </p>
+                <p className="studio-slogan preview-elapsed" data-testid="studio-preview-elapsed">
+                  {t.previewElapsed(previewWaitedSec)}
                 </p>
                 <p className="studio-slogan preview-stay">{t.previewStay}</p>
                 <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>

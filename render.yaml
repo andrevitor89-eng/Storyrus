@@ -25,6 +25,9 @@ services:
         value: prod
       - key: LOG_FORMAT
         value: json
+      # Worker free dorme. A API processa a fila enquanto o estúdio faz polling.
+      - key: API_JOB_PUMP
+        value: "true"
       - key: DATABASE_URL
         fromDatabase:
           name: storyrus-db
