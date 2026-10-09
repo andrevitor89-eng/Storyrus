@@ -369,7 +369,7 @@ test("path inexistente mostra 404", async ({ page }) => {
 
 test("landing sem preço e EN atualiza lang", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByTestId("landing-personalize").first()).toBeVisible();
+  await expect(page.locator("#catalogo .cat-cover-only").first()).toBeVisible();
   await expect(page.locator("body")).not.toContainText("US$ 39,99");
   await expect(page.locator("body")).not.toContainText("$39.99");
   await expect(page.locator("body")).not.toContainText("ECONOMIZE 33%");

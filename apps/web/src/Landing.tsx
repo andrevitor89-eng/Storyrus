@@ -2667,6 +2667,7 @@ export function Landing({ variant = "photo" }: { variant?: "photo" | "cartoon" }
               lang={lang}
               personalize={t.personalize}
               modo={variant === "cartoon" ? "cartoon" : "realista"}
+              layout="cover"
             />
           ))}
         </div>
