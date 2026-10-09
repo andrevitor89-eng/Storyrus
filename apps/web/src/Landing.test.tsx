@@ -918,6 +918,9 @@ describe("Catálogo e página do livro", () => {
     );
     expect(await screen.findByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
     expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
+    expect(document.querySelectorAll("#catalogo .cat-cover-only").length).toBeGreaterThan(0);
+    expect(screen.queryByRole("button", { name: "HARD" })).not.toBeInTheDocument();
+    expect(screen.queryByTestId("landing-personalize")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /como funciona/i })).toHaveAttribute("href", "/#como");
     expect(screen.getByRole("link", { name: /^vídeos$/i })).toHaveAttribute("href", "/#videos");
     expect(screen.getByRole("link", { name: /avaliações/i })).toHaveAttribute("href", "/#reviews");

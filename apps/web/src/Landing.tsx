@@ -1703,7 +1703,7 @@ export function CatalogBookCard({
   modo?: "realista" | "cartoon";
   linkBook?: boolean;
   showStory?: boolean;
-  layout?: "card" | "page";
+  layout?: "card" | "page" | "cover";
 }) {
   const [cover, setCover] = useState<CatalogCoverChoice>(catalogCoverChoice(book.cover));
   const [size, setSize] = useState<CatalogSizeChoice>(catalogSizeChoice(book.size));
@@ -1711,6 +1711,18 @@ export function CatalogBookCard({
   const bookHref = book.catalogI != null ? `/livro/${book.catalogI}` : null;
   const linked = linkBook && bookHref != null;
   const image = <img src={exUrl(book.img)} alt={book.t} loading="lazy" />;
+  if (layout === "cover") {
+    return (
+      <article className="cat-card cat-cover-only" data-testid="landing-catalog-card" data-format="catalog">
+        <div className="cat-display">
+          <div className="cat-book">
+            {linked ? <Link to={bookHref} className="cat-book-link" aria-label={book.t}>{image}</Link> : image}
+          </div>
+        </div>
+        <h3 title={book.t}>{linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : book.t}</h3>
+      </article>
+    );
+  }
   const notes = (
     <div className="cat-notes">
       <div className="cat-notes-sizes">
