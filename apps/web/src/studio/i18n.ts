@@ -97,6 +97,15 @@ export type StudioCopy = {
   previewCost: string;
   previewRunning: string;
   previewBuilding: string;
+  previewStay: string;
+  previewReadyCue: string;
+  previewReadyTitle: string;
+  previewStepCharacter: string;
+  previewStepStory: string;
+  previewStepImages: string;
+  previewStepWait: string;
+  previewStepNow: string;
+  previewStepDone: string;
   previewRetry: string;
   previewTrioTitle: string;
   previewTrioHint: string;
@@ -413,6 +422,15 @@ const pt: StudioCopy = {
   previewCost: "(~3 créditos)",
   previewRunning: "Gerando prévia…",
   previewBuilding: "Estamos montando sua prévia…",
+  previewStay: "Fique nesta tela. Ela atualiza sozinha.",
+  previewReadyCue: "Ficou pronto quando o título mudar para Prévia pronta e a história e as imagens aparecerem aqui.",
+  previewReadyTitle: "Prévia pronta",
+  previewStepCharacter: "Personagem",
+  previewStepStory: "História",
+  previewStepImages: "Imagens",
+  previewStepWait: "Aguardando",
+  previewStepNow: "Agora",
+  previewStepDone: "Pronto",
   previewRetry: "Tentar prévia de novo",
   previewTrioTitle: "Prévia do livro",
   previewTrioHint: "Capa, página e foto na mão — como na vitrine.",
@@ -633,6 +651,15 @@ const en: StudioCopy = {
   previewCost: "(~3 credits)",
   previewRunning: "Generating preview…",
   previewBuilding: "We're building your preview…",
+  previewStay: "Stay on this screen. It updates on its own.",
+  previewReadyCue: "It's ready when the title changes to Preview ready and the story and images show up here.",
+  previewReadyTitle: "Preview ready",
+  previewStepCharacter: "Character",
+  previewStepStory: "Story",
+  previewStepImages: "Images",
+  previewStepWait: "Waiting",
+  previewStepNow: "Now",
+  previewStepDone: "Done",
   previewRetry: "Retry preview",
   previewTrioTitle: "Book preview",
   previewTrioHint: "Cover, page, and in-hand shot — like the storefront.",
@@ -853,6 +880,15 @@ const es: StudioCopy = {
   previewCost: "(~3 créditos)",
   previewRunning: "Generando vista previa…",
   previewBuilding: "Estamos preparando tu vista previa…",
+  previewStay: "Quédate en esta pantalla. Se actualiza sola.",
+  previewReadyCue: "Está lista cuando el título cambie a Vista previa lista y aparezcan aquí la historia y las imágenes.",
+  previewReadyTitle: "Vista previa lista",
+  previewStepCharacter: "Personaje",
+  previewStepStory: "Historia",
+  previewStepImages: "Imágenes",
+  previewStepWait: "En espera",
+  previewStepNow: "Ahora",
+  previewStepDone: "Listo",
   previewRetry: "Reintentar vista previa",
   previewTrioTitle: "Vista previa del libro",
   previewTrioHint: "Portada, página y foto en mano — como en la vitrina.",

@@ -417,6 +417,102 @@
   color: var(--studio-muted);
 }
 
+.studio-app .studio-preview-building {
+  max-width: 28rem;
+  margin: 0 auto;
+}
+
+.studio-app .studio-preview-building > .studio-slogan {
+  margin: 0;
+  font-size: 1.2rem;
+  line-height: 1.5;
+  color: var(--studio-muted);
+  text-align: center;
+}
+
+.studio-app .studio-preview-building > .preview-stay {
+  margin-top: 1.25rem;
+}
+
+.studio-app .studio-preview-building > .preview-ready-cue {
+  margin-top: 0.65rem;
+  font-size: 1.05rem;
+}
+
+.studio-app .preview-steps {
+  list-style: none;
+  margin: 1.35rem 0 0;
+  padding: 0;
+  display: grid;
+  gap: 0.55rem;
+  text-align: left;
+}
+
+.studio-app .preview-step {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0.72rem 0.9rem;
+  border-radius: 12px;
+  background: var(--studio-input-bg);
+  border: 1px solid var(--studio-input-border);
+  color: var(--studio-muted);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.studio-app .preview-step.is-now,
+.studio-app .preview-step.is-done {
+  color: var(--ink);
+}
+
+.studio-app .preview-step.is-now {
+  border-color: #3f8f7d;
+}
+
+.studio-app .preview-step-mark {
+  width: 1.35rem;
+  height: 1.35rem;
+  border-radius: 999px;
+  border: 2px solid currentColor;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+.studio-app .preview-step.is-now .preview-step-mark {
+  background: #3f8f7d;
+  border-color: #3f8f7d;
+  box-shadow: 0 0 0 4px rgba(63, 143, 125, 0.28);
+  animation: preview-step-pulse 1.6s ease-out infinite;
+}
+
+.studio-app .preview-step.is-done .preview-step-mark {
+  color: #14352c;
+  background: #8fd0b8;
+  border-color: #8fd0b8;
+}
+
+.studio-app .preview-step-state {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+@keyframes preview-step-pulse {
+  70% { box-shadow: 0 0 0 8px rgba(63, 143, 125, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .studio-app .preview-step.is-now .preview-step-mark {
+    animation: none;
+  }
+}
+
 .studio-app .studio-card.studio-review {
   text-align: left;
 }

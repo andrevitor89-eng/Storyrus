@@ -336,7 +336,27 @@ test("após gerar o livro mostra Projeto criado sem botões de crédito", async 
   await page.getByTestId("studio-generate-book").click();
   await expect(page.getByTestId("studio-order-sent")).toBeVisible();
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Projeto criado" })).toBeVisible();
+  await expect(page.getByText("Fique nesta tela. Ela atualiza sozinha.")).toBeVisible();
+  await expect(page.getByText(/título mudar para Prévia pronta/)).toBeVisible();
+  await expect(page.getByTestId("studio-preview-step-AVATAR")).toBeVisible();
   await expect(page.getByTestId("studio-generate-preview")).toHaveCount(0);
+});
+
+test("exemplo pronto mostra Prévia pronta", async ({ page }) => {
+  await page.addInitScript(() => {
+    try {
+      localStorage.setItem("lang", "pt");
+    } catch {
+      /* ignore */
+    }
+  });
+  await page.goto("/app?exemplo=dinosaurs");
+  await expect(page.getByRole("heading", { name: "Prévia pronta" })).toBeVisible();
+  await expect(page.getByTestId("studio-preview-building")).toHaveCount(0);
+  await expect(page.getByTestId("studio-story-result")).toBeVisible();
+  await expect(page.getByTestId("studio-preview-trio")).toBeVisible();
+  await expect(page).toHaveTitle("Prévia pronta — Story R Us");
 });
 
 test("path inexistente mostra 404", async ({ page }) => {

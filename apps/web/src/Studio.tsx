@@ -16,7 +16,9 @@ import logo from "./assets/logo.png";
 import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
 import { PreviewTrio } from "./studio/PreviewTrio";
+import { previewChainSteps, type PreviewStepId } from "./studio/previewSteps";
 import { useStudioPolling } from "./studio/useStudioPolling";
+import type { StudioCopy } from "./studio/i18n";
 import {
   StudioLangProvider,
   useStudioI18n,
@@ -28,6 +30,18 @@ import "./studio.css";
 export { ProgressList } from "./studio/ProgressList";
 
 const PHOTO_LIMIT = 8;
+
+function previewStepLabel(t: StudioCopy, id: PreviewStepId): string {
+  if (id === "AVATAR") return t.previewStepCharacter;
+  if (id === "STORY") return t.previewStepStory;
+  return t.previewStepImages;
+}
+
+function previewStepStateLabel(t: StudioCopy, state: "wait" | "now" | "done"): string {
+  if (state === "done") return t.previewStepDone;
+  if (state === "now") return t.previewStepNow;
+  return t.previewStepWait;
+}
 
 type StoryPageBlock = { kind: "title" | "page" | "body"; label: string; lines: string[] };
 
@@ -471,6 +485,25 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     orderSent && !isDemo && !error && !previewFailed && (previewChainActive || !previewReady);
   const showPreviewRetry =
     orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
+  const previewSteps = previewChainSteps(jobs);
+  const previewHeadline = previewReady && !showPreviewLoading && !showPreviewRetry
+    ? t.previewReadyTitle
+    : t.orderSent;
+
+  useEffect(() => {
+    if (!orderSent) return;
+    const title = `${previewHeadline} — Story R Us`;
+    const apply = () => {
+      document.title = title;
+    };
+    // O meta da rota /app roda no efeito do pai e sobrescreve o título.
+    apply();
+    const id = window.setTimeout(apply, 0);
+    return () => {
+      window.clearTimeout(id);
+      document.title = "Estúdio — Story R Us";
+    };
+  }, [orderSent, previewHeadline]);
 
   async function retryPreview() {
     if (!project || isDemo || busy) return;
@@ -732,7 +765,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
             data-testid="studio-order-sent"
             aria-busy={showPreviewLoading || undefined}
           >
-            <h2>{t.orderSent}</h2>
+            <h2 data-testid={previewHeadline === t.previewReadyTitle ? "studio-preview-ready" : undefined}>
+              {previewHeadline}
+            </h2>
             {isDemo && (
               <div className="demo-banner" role="status" aria-live="polite">
                 <p>{t.demoBanner}</p>
@@ -758,9 +793,27 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
               </button>
             )}
             {showPreviewLoading ? (
-              <p className="studio-slogan" data-testid="studio-preview-building">
-                {t.previewBuilding}
-              </p>
+              <div className="studio-preview-building" data-testid="studio-preview-building">
+                <p className="studio-slogan">{t.previewBuilding}</p>
+                <ol className="preview-steps" aria-label={t.ariaProgress}>
+                  {previewSteps.map((step) => (
+                    <li
+                      key={step.id}
+                      className={`preview-step is-${step.state}`}
+                      data-testid={`studio-preview-step-${step.id}`}
+                      data-step-state={step.state}
+                    >
+                      <span className="preview-step-mark" aria-hidden="true">
+                        {step.state === "done" ? "✓" : ""}
+                      </span>
+                      <span>{previewStepLabel(t, step.id)}</span>
+                      <span className="preview-step-state">{previewStepStateLabel(t, step.state)}</span>
+                    </li>
+                  ))}
+                </ol>
+                <p className="studio-slogan preview-stay">{t.previewStay}</p>
+                <p className="studio-slogan preview-ready-cue">{t.previewReadyCue}</p>
+              </div>
             ) : showPreviewRetry ? null : (
               <>
                 <p className="studio-slogan">{t.orderFollowup}</p>
