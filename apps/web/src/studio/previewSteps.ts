@@ -58,6 +58,14 @@ export function previewEtaMinutes(
   return { min, max };
 }
 
+/** Qual figura a etapa Imagens está gerando. `done` é o progresso 0–3 do job. */
+export function previewImageActivity(done?: number | null): "cover" | "page" | "hand" | "book" {
+  if (done === 1) return "page";
+  if (done === 2) return "hand";
+  if (typeof done === "number" && done >= 3) return "book";
+  return "cover";
+}
+
 /** Etapas da prévia, na ordem em que o Studio as monta. */
 export function previewChainSteps(jobs: Job[]): PreviewStep[] {
   const chain = jobs.filter(isChainJob);

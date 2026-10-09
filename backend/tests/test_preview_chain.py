@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 import pytest
@@ -9,6 +10,7 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.ai_clients.base import ImageResult, ProviderError
 from app.database import Base
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, User
 from app.services import preview_chain
@@ -306,6 +308,76 @@ async def test_non_preview_avatar_does_not_chain(db, mem_storage, monkeypatch):
         select(Job).where(Job.project_id == p.id, Job.type == JobType.STORY.value)
     ).all()
     assert stories == []
+
+
+def _preview_project(db, mem_storage):
+    _, p = _seed(db, credits=20)
+    p.character_ref = {"storage_key": "char1", "mime": "image/png"}
+    p.story_text = "Título: Teste\n\nPágina 1: Uma aventura.\n\nPágina 2: Continua."
+    db.commit()
+    mem_storage["char1"] = b"CHAR"
+    return p
+
+
+@pytest.mark.asyncio
+async def test_preview_ebook_fecha_com_capa_se_as_outras_imagens_travam(
+    db, mem_storage, monkeypatch
+):
+    """A última figura não pode segurar o livro. Capa gravada + timeout segue até Prévia pronta."""
+    monkeypatch.setattr("app.workers.handlers.ebook.settings.offline_fallback", False)
+    monkeypatch.setattr("app.workers.handlers.ebook.settings.preview_image_timeout_s", 0.05)
+
+    calls = {"n": 0}
+
+    class SlowAfterCover:
+        async def generate_scene(self, **_kwargs):
+            calls["n"] += 1
+            if calls["n"] == 1:
+                return ImageResult(image_bytes=b"COVER", mime_type="image/png", cost_usd=0.01)
+            await asyncio.sleep(30)
+            return ImageResult(image_bytes=b"LATE", mime_type="image/png", cost_usd=0.01)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: SlowAfterCover())
+    p = _preview_project(db, mem_storage)
+    j = _job(db, p, "EBOOK", payload={"preview_chain": True})
+    await runner.process_job(db, j)
+    db.refresh(j)
+    db.refresh(p)
+    assert j.status == JobStatus.DONE.value
+    assert p.status == ProjectStatus.EBOOK_READY.value
+    assert p.book_approved_at is not None
+    covers = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.COVER.value)
+    ).all()
+    pages = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.PAGE_IMAGE.value)
+    ).all()
+    hands = db.scalars(
+        select(Asset).where(Asset.project_id == p.id, Asset.kind == AssetKind.IN_HAND.value)
+    ).all()
+    assert len(covers) == 1
+    assert pages == []
+    assert hands == []
+
+
+@pytest.mark.asyncio
+async def test_preview_ebook_falha_uma_vez_se_nenhuma_imagem_sai(db, mem_storage, monkeypatch):
+    monkeypatch.setattr("app.workers.handlers.ebook.settings.offline_fallback", False)
+    monkeypatch.setattr("app.workers.handlers.ebook.settings.preview_image_timeout_s", 0.05)
+
+    class AlwaysSlow:
+        async def generate_scene(self, **_kwargs):
+            await asyncio.sleep(30)
+            raise ProviderError("nao devia chegar", transient=True)
+
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: AlwaysSlow())
+    p = _preview_project(db, mem_storage)
+    j = _job(db, p, "EBOOK", payload={"preview_chain": True})
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.FAILED.value
+    assert j.attempts == 1
+    assert "imagens" in (j.error or "").lower()
 
 
 def test_has_active_preview_ignores_unreadable_rows():

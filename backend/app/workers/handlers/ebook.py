@@ -15,6 +15,7 @@ from app.ai_clients.book_prompts import (
 )
 from app.ai_clients.book_prompts import (
     book_art_direction,
+    build_scene_prompt,
     costume_extras_for_theme,
     identity_shot,
     name_scene_extras_for_template,
@@ -72,28 +73,6 @@ def _clear_kind(db: Session, project, kind: str) -> None:
     db.flush()
 
 
-def _persist_preview_asset(
-    db: Session,
-    project,
-    *,
-    kind: str,
-    result: ImageResult,
-    meta: dict | None = None,
-) -> str:
-    ext = "png" if "png" in (result.mime_type or "") else "jpg"
-    key = storage.new_key(project.id, kind, ext)
-    storage.put_bytes(key, result.image_bytes, result.mime_type or "image/png")
-    db.add(
-        Asset(
-            project_id=project.id,
-            kind=kind,
-            storage_key=key,
-            meta={"mime": result.mime_type, **(meta or {})},
-        )
-    )
-    return key
-
-
 def _character_bytes(project) -> bytes:
     """Bytes do avatar. Sem a chave, falha controlada — não TypeError no worker."""
     ref = project.character_ref if isinstance(project.character_ref, dict) else {}
@@ -107,10 +86,82 @@ def _character_bytes(project) -> bytes:
     return require_character_ref(data)
 
 
+def _character_bytes_from_key(key: str) -> bytes:
+    """Storage fora do event loop. Não recebe o Project (sessão não é thread-safe)."""
+    try:
+        data = storage.get_bytes(key)
+    except FileNotFoundError as exc:
+        raise ProviderError("Personagem indisponivel no storage", transient=True) from exc
+    return require_character_ref(data)
+
+
+async def _bounded_preview_image(factory):
+    """Uma figura da prévia. Estourar o tempo ou falhar não derruba as outras."""
+    timeout = float(settings.preview_image_timeout_s)
+    try:
+        if timeout > 0:
+            return await asyncio.wait_for(factory(), timeout=timeout)
+        return await factory()
+    except TimeoutError:
+        logger.warning("preview image excedeu %.0fs", timeout)
+        return None
+    except ProviderError as exc:
+        logger.warning("preview image falhou: %s", exc)
+        return None
+    except Exception:
+        logger.exception("preview image erro")
+        return None
+
+
+def _commit_preview_progress(db: Session, job: Job, done: int) -> None:
+    _set_job_progress(job, stage="pages", done=done, total=3)
+    db.commit()
+
+
+async def _store_preview_bytes(key: str, data: bytes, mime: str) -> None:
+    await asyncio.to_thread(storage.put_bytes, key, data, mime)
+
+
+async def _save_preview_image(db: Session, project, *, kind: str, result: ImageResult, page: int | None = None) -> None:
+    """Grava a figura e só então substitui a anterior. Falha de storage não apaga o que já está no banco."""
+    mime = result.mime_type or "image/png"
+    ext = "png" if "png" in mime else "jpg"
+    key = storage.new_key(project.id, kind, ext)
+    await _store_preview_bytes(key, result.image_bytes, mime)
+    if kind == AssetKind.PAGE_IMAGE.value:
+        _clear_page_images(db, project)
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind=kind,
+                storage_key=key,
+                meta={"page": page or 1, "mime": mime},
+            )
+        )
+        return
+    _clear_kind(db, project, kind)
+    db.add(
+        Asset(
+            project_id=project.id,
+            kind=kind,
+            storage_key=key,
+            meta={"mime": mime},
+        )
+    )
+
+
 async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
-    """Prévia estilo landing: capa + 1 página + foto na mão (OpenAI GPT Image)."""
-    char_bytes = _character_bytes(project)
-    photo_bytes = await _project_photo_bytes(db, project)
+    """Prévia estilo landing: capa + 1 página + foto na mão (OpenAI GPT Image).
+
+    Cada figura é gravada assim que fica pronta. Se uma estoura o tempo, as
+    outras seguem e o livro fecha com o que já existe — a tela não fica em
+    Imagens até a última chamada voltar.
+    """
+    ref = project.character_ref if isinstance(project.character_ref, dict) else {}
+    char_key = ref.get("storage_key")
+    if not char_key:
+        raise ProviderError("Personagem ausente: rode AVATAR antes", transient=False)
+    char_bytes = await asyncio.to_thread(_character_bytes_from_key, str(char_key))
     image_provider = _pkg().get_image_provider()
     language = project.language or "pt-BR"
     child_name = (project.child_name or "").strip()
@@ -127,12 +178,6 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
         else (f"A Grande Aventura de {child_name}" if child_name else "A Minha Grande Aventura")
     )
 
-    _clear_page_images(db, project)
-    _clear_kind(db, project, AssetKind.COVER.value)
-    _clear_kind(db, project, AssetKind.IN_HAND.value)
-    _set_job_progress(job, stage="pages", done=0, total=3)
-    db.commit()
-
     cover_prompt = preview_cover_prompt(
         title=title,
         child_name=child_name or None,
@@ -141,6 +186,16 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
     )
     page_brief = _scene_to_brief({}, page_text, page_index=0, layout="story")
     page_brief["shot"] = identity_shot(page_brief.get("shot"), layout="story")
+    page_prompt = build_scene_prompt(
+        page=1,
+        text=page_text[:260],
+        scene=(page_brief.get("scene") or page_text)[:900],
+        expression=page_brief.get("expression"),
+        extras=costume_extras_for_theme(project.theme),
+        child_name=child_name,
+        shot=page_brief.get("shot") or "",
+        text_band=page_brief.get("text_band") or "",
+    )
     in_hand_prompt = preview_in_hand_prompt(language=language)
 
     if settings.offline_fallback:
@@ -163,68 +218,89 @@ async def _handle_preview_ebook(db: Session, job: Job, project) -> None:
             cost_usd=0.0,
         )
     else:
-        cover = await image_provider.generate_scene(
-            prompt=cover_prompt,
-            character_ref=char_bytes,
-            style=art_style,
-            photo=photo_bytes,
+        _commit_preview_progress(db, job, 0)
+        cover = await _bounded_preview_image(
+            lambda: image_provider.generate_scene(
+                prompt=cover_prompt,
+                character_ref=char_bytes,
+                style=art_style,
+            )
         )
-        _set_job_progress(job, stage="pages", done=1, total=3)
-        db.commit()
-        page = await _illustrate_page(
-            image_provider,
-            idx=1,
-            caption=page_text[:260],
-            brief=page_brief,
-            extras=costume_extras_for_theme(project.theme),
-            child_name=child_name,
-            char_bytes=char_bytes,
-            photo_bytes=photo_bytes,
-            bible={},
-            style_lock=asyncio.Lock(),
-            good_style=[],
-            art_style=art_style,
+        if cover is not None:
+            await _save_preview_image(db, project, kind=AssetKind.COVER.value, result=cover)
+        _commit_preview_progress(db, job, 1)
+        page = await _bounded_preview_image(
+            lambda: image_provider.generate_scene(
+                prompt=page_prompt,
+                character_ref=char_bytes,
+                style=art_style,
+            )
         )
-        _set_job_progress(job, stage="pages", done=2, total=3)
-        db.commit()
-        in_hand = await image_provider.generate_scene(
-            prompt=in_hand_prompt,
-            character_ref=cover.image_bytes,
-            style="photoreal lifestyle product photo",
-            extra_refs=[char_bytes],
+        if page is not None:
+            await _save_preview_image(
+                db, project, kind=AssetKind.PAGE_IMAGE.value, result=page, page=1
+            )
+        _commit_preview_progress(db, job, 2)
+        hand_ref = cover.image_bytes if cover is not None else char_bytes
+        hand_extra = [char_bytes] if cover is not None else None
+        in_hand = await _bounded_preview_image(
+            lambda: image_provider.generate_scene(
+                prompt=in_hand_prompt,
+                character_ref=hand_ref,
+                style="photoreal lifestyle product photo",
+                extra_refs=hand_extra,
+            )
         )
+        if in_hand is not None:
+            await _save_preview_image(db, project, kind=AssetKind.IN_HAND.value, result=in_hand)
 
-    _persist_preview_asset(db, project, kind=AssetKind.COVER.value, result=cover)
-    _persist_page_image(db, project, 1, page)
-    _persist_preview_asset(db, project, kind=AssetKind.IN_HAND.value, result=in_hand)
-    _set_job_progress(job, stage="pages", done=3, total=3)
+    made = [img for img in (cover, page, in_hand) if img is not None]
+    if not made:
+        raise ProviderError("Nao foi possivel gerar as imagens da previa", transient=False)
 
-    # PDF leve (capa ilustrada + 1 página) para o link "Abrir e-book".
-    blob = ebook_builder.build_pdf(
-        title=title,
-        pages=[{"text": page_text[:400], "image": page.image_bytes, "mime": page.mime_type}],
-        dedication=(project.dedication or None),
-        cover=cover.image_bytes,
-        portrait=char_bytes,
-        child_name=(child_name or None),
-        language=language,
-        preview_pages=1,
-        cover_palette=ebook_builder.cover_palette_for(None, project.theme),
-        page_cm=20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
-    )
-    ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
-    storage.put_bytes(ebook_key, blob, "application/pdf")
-    db.add(
-        Asset(
-            project_id=project.id,
-            kind=AssetKind.EBOOK.value,
-            storage_key=ebook_key,
-            meta={"mime": "application/pdf", "preview_trio": True},
+    if settings.offline_fallback:
+        await _save_preview_image(db, project, kind=AssetKind.COVER.value, result=cover)
+        await _save_preview_image(db, project, kind=AssetKind.PAGE_IMAGE.value, result=page, page=1)
+        await _save_preview_image(db, project, kind=AssetKind.IN_HAND.value, result=in_hand)
+
+    _commit_preview_progress(db, job, 3)
+    cover_bytes = cover.image_bytes if cover is not None else made[0].image_bytes
+    page_for_pdf = page or cover or in_hand
+    try:
+        blob = await asyncio.to_thread(
+            ebook_builder.build_pdf,
+            title,
+            [{"text": page_text[:400], "image": page_for_pdf.image_bytes, "mime": page_for_pdf.mime_type}],
+            cover_bytes,
+            (project.dedication or None),
+            char_bytes,
+            (child_name or None),
+            language,
+            None,
+            1,
+            ebook_builder.cover_palette_for(None, project.theme),
+            20.0 if project.book_size == "M" else 15.0 if project.book_size == "P" else None,
         )
-    )
-    project.ebook_url = ebook_key
-    job.cost_usd = add_usd(cover.cost_usd, page.cost_usd, in_hand.cost_usd)
-    flush_usage(db, job, [*lines_of(cover), *lines_of(page), *lines_of(in_hand)])
+        ebook_key = storage.new_key(project.id, AssetKind.EBOOK.value, "pdf")
+        await _store_preview_bytes(ebook_key, blob, "application/pdf")
+        _clear_kind(db, project, AssetKind.EBOOK.value)
+        db.add(
+            Asset(
+                project_id=project.id,
+                kind=AssetKind.EBOOK.value,
+                storage_key=ebook_key,
+                meta={"mime": "application/pdf", "preview_trio": True},
+            )
+        )
+        project.ebook_url = ebook_key
+    except Exception:
+        logger.exception("preview pdf falhou; a previa segue com as imagens gravadas")
+
+    job.cost_usd = add_usd(*(img.cost_usd for img in made))
+    usage: list = []
+    for img in made:
+        usage.extend(lines_of(img))
+    flush_usage(db, job, usage)
     _set_status(db, project, ProjectStatus.EBOOK_READY)
     preview_chain.finalize_preview_ebook(db, project, job)
 
