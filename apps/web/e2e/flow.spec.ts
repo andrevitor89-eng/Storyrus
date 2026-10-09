@@ -338,6 +338,7 @@ test("após gerar o livro mostra Projeto criado sem botões de crédito", async 
   await expect(page.getByTestId("studio-preview-building")).toBeVisible();
   await expect(page.getByRole("heading", { name: "Projeto criado" })).toBeVisible();
   await expect(page.getByTestId("studio-preview-eta")).toContainText("Previsão: cerca de");
+  await expect(page.getByTestId("studio-preview-must-move")).toContainText("Não fica parado");
   await expect(page.getByText("Fique nesta tela. Ela atualiza sozinha.")).toBeVisible();
   await expect(page.getByText(/título mudar para Prévia pronta/)).toBeVisible();
   await expect(page.getByTestId("studio-preview-step-AVATAR")).toBeVisible();

@@ -183,6 +183,29 @@ def test_reclaim_stale_running_jobs(db, monkeypatch):
     assert j.result and "reclaimed_at" in j.result
 
 
+def test_reclaim_preview_job_antes_do_timeout_geral(db, monkeypatch):
+    """Prévia RUNNING sem pulso volta em 3 min; um job comum espera a janela longa."""
+    from datetime import datetime, timedelta
+
+    monkeypatch.setattr(runner.settings, "job_stale_timeout_s", 900.0)
+    monkeypatch.setattr(runner.settings, "preview_stale_timeout_s", 180.0)
+    _, project = _seed(db)
+    preview = _job(db, project, "AVATAR")
+    preview.status = JobStatus.RUNNING.value
+    preview.updated_at = datetime.now(UTC) - timedelta(seconds=200)
+    preview.result = {"payload": {"preview_chain": True}}
+    other = _job(db, project, "STORY")
+    other.status = JobStatus.RUNNING.value
+    other.updated_at = datetime.now(UTC) - timedelta(seconds=200)
+    db.commit()
+
+    assert runner.reclaim_stale_jobs(db) == 1
+    db.refresh(preview)
+    db.refresh(other)
+    assert preview.status == JobStatus.PENDING.value
+    assert other.status == JobStatus.RUNNING.value
+
+
 def test_reclaim_skips_fresh_running_jobs(db, monkeypatch):
     from datetime import datetime
 

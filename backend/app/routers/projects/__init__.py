@@ -194,9 +194,17 @@ def list_jobs(
     db: Session = Depends(get_db),
 ) -> list[Job]:
     get_owned_project(db, user, project_id)
-    return list(
+    jobs = list(
         db.scalars(select(Job).where(Job.project_id == project_id).order_by(Job.created_at.asc()))
     )
+    if any(job.status in ("PENDING", "RUNNING") for job in jobs):
+        try:
+            from app.workers.api_pump import kick
+
+            kick()
+        except Exception:  # noqa: BLE001 - listar jobs nao pode falhar se o pump nao acordar
+            pass
+    return jobs
 
 
 # Ordem de include preserva o monolito: photos → steps → approvals → print.

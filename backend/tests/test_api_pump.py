@@ -15,6 +15,14 @@ def test_job_pump_ligado_em_prod_e_desligado_em_dev():
     assert prod.job_pump_enabled() is True
 
 
+def test_kick_acorda_o_pump():
+    from app.workers import api_pump
+
+    api_pump._wake.clear()
+    api_pump.kick()
+    assert api_pump._wake.is_set()
+
+
 def test_job_pump_respeita_override():
     forced_off = Settings(
         app_env="prod",

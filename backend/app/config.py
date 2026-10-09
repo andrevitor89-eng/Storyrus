@@ -195,6 +195,8 @@ class Settings(BaseSettings):
     retry_backoff_max_s: float = 60.0
     # Sem heartbeat por este tempo => RUNNING volta a PENDING (worker morreu).
     job_stale_timeout_s: float = 900.0
+    # Prévia parada em RUNNING (worker que morreu) volta bem antes das 15 min.
+    preview_stale_timeout_s: float = 180.0
     job_heartbeat_interval_s: float = 30.0
     # None = ligado só em prod. O worker free do Render dorme; a API acorda
     # com o polling da tela e precisa ela mesma tirar a prévia da fila.

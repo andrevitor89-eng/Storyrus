@@ -43,9 +43,10 @@ jobs_svc.enqueue_fn = queue.notify
 async def lifespan(_app: FastAPI):
     task: asyncio.Task[None] | None = None
     if settings.job_pump_enabled():
-        from app.workers.api_pump import pump_forever
+        from app.workers.api_pump import bind, pump_forever
 
         task = asyncio.create_task(pump_forever())
+        bind(asyncio.get_running_loop(), task)
     try:
         yield
     finally:
