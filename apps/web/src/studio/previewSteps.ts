@@ -75,7 +75,7 @@ export function previewChainSteps(jobs: Job[]): PreviewStep[] {
     }
   }
 
-  if (states.every((state) => state === "wait")) states[0] = "now";
+  states[0] = states.every((state) => state === "wait") ? "now" : states[0];
 
   return CHAIN.map((id, index) => ({ id, state: states[index] }));
 }
