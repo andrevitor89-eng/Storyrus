@@ -196,6 +196,9 @@ class Settings(BaseSettings):
     # Sem heartbeat por este tempo => RUNNING volta a PENDING (worker morreu).
     job_stale_timeout_s: float = 900.0
     job_heartbeat_interval_s: float = 30.0
+    # None = ligado só em prod. O worker free do Render dorme; a API acorda
+    # com o polling da tela e precisa ela mesma tirar a prévia da fila.
+    api_job_pump: bool | None = None
     ebook_pages: int = 6
     # Fichas turnaround/expressao/figurino antes das paginas (custo extra).
     ebook_character_bible: bool = False
@@ -224,6 +227,12 @@ class Settings(BaseSettings):
     opik_project_name: str = "storyrus"
     opik_url_override: str | None = None
     opik_eval_story: bool = True
+
+    def job_pump_enabled(self) -> bool:
+        """Processa a fila dentro da API quando o worker separado está dormindo."""
+        if self.api_job_pump is not None:
+            return self.api_job_pump
+        return self.app_env == "prod"
 
     def resolved_log_format(self) -> Literal["text", "json"]:
         """JSON em staging/prod por padrao; texto em dev (sobrescrevivel)."""

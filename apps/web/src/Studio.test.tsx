@@ -448,8 +448,9 @@ describe("Prévia automática", () => {
     const stepStates = ["AVATAR", "STORY", "EBOOK"].map((id) =>
       screen.getByTestId(`studio-preview-step-${id}`).getAttribute("data-step-state"),
     );
-    expect(stepStates.filter((state) => state === "now")).toHaveLength(1);
+    expect(stepStates.filter((state) => state === "now" || state === "queued")).toHaveLength(1);
     expect(stepStates[0]).not.toBe("wait");
+    expect(screen.getByTestId("studio-preview-elapsed")).toHaveTextContent(/já se passaram 0:0/i);
     expect(document.title).toBe("Projeto criado — Story R Us");
   });
 

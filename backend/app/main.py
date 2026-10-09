@@ -1,5 +1,8 @@
 """Entrypoint da API."""
 
+import asyncio
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -35,10 +38,30 @@ warn_if_email_unconfigured()
 # Ao enfileirar um job, notifica o worker via Redis (best-effort; degrada p/ polling).
 jobs_svc.enqueue_fn = queue.notify
 
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    task: asyncio.Task[None] | None = None
+    if settings.job_pump_enabled():
+        from app.workers.api_pump import pump_forever
+
+        task = asyncio.create_task(pump_forever())
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            try:
+                await task
+            except asyncio.CancelledError:
+                pass
+
+
 app = FastAPI(
     title="Story R Us — API",
     version="0.1.0",
     description="Foto -> personagem -> ebook -> video. Pipeline assincrono com creditos.",
+    lifespan=lifespan,
 )
 
 register_exception_handlers(app)

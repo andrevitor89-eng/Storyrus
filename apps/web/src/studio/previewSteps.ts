@@ -3,7 +3,7 @@ import type { Job } from "../types";
 const CHAIN = ["AVATAR", "STORY", "EBOOK"] as const;
 
 export type PreviewStepId = (typeof CHAIN)[number];
-export type PreviewStepState = "wait" | "now" | "done";
+export type PreviewStepState = "wait" | "queued" | "now" | "done";
 
 export type PreviewStep = {
   id: PreviewStepId;
@@ -65,7 +65,8 @@ export function previewChainSteps(jobs: Job[]): PreviewStep[] {
   const states: PreviewStepState[] = CHAIN.map((type) => {
     const job = latest(type);
     if (job?.status === "DONE") return "done";
-    if (job && (job.status === "PENDING" || job.status === "RUNNING")) return "now";
+    if (job?.status === "RUNNING") return "now";
+    if (job?.status === "PENDING") return "queued";
     return "wait";
   });
 
@@ -75,7 +76,7 @@ export function previewChainSteps(jobs: Job[]): PreviewStep[] {
     }
   }
 
-  states[0] = states.every((state) => state === "wait") ? "now" : states[0];
+  states[0] = states.every((state) => state === "wait") ? "queued" : states[0];
 
   return CHAIN.map((id, index) => ({ id, state: states[index] }));
 }
