@@ -6,6 +6,7 @@ import { api, getToken } from "./api";
 import { readStoredLang, useResolvedLang, type Lang as SiteLang } from "./i18n/lang";
 import { SiteBackNav } from "./SiteBackNav";
 import logo from "./assets/logo.png";
+import { coverFitStyle } from "./coverFit";
 import "./landing.css";
 import "./landing-flip-fold.css";
 
@@ -1712,11 +1713,12 @@ export function CatalogBookCard({
   const linked = linkBook && bookHref != null;
   const image = <img src={exUrl(book.img)} alt={book.t} loading="lazy" />;
   if (layout === "cover") {
+    const framed = <img src={exUrl(book.img)} alt={book.t} loading="lazy" style={coverFitStyle(book.img)} />;
     return (
       <article className="cat-card cat-cover-only" data-testid="landing-catalog-card" data-format="catalog">
         <div className="cat-display">
           <div className="cat-book">
-            {linked ? <Link to={bookHref} className="cat-book-link" aria-label={book.t}>{image}</Link> : image}
+            {linked ? <Link to={bookHref} className="cat-book-link" aria-label={book.t}>{framed}</Link> : framed}
           </div>
         </div>
         <h3 title={book.t}>{linked ? <Link to={bookHref} title={book.t}>{book.t}</Link> : book.t}</h3>

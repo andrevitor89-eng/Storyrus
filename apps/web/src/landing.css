@@ -1610,6 +1610,10 @@ img.ex-tab-cover {
   background: transparent;
   box-shadow: none;
 }
+#catalogo.catalog-page .cat-cover-only .cat-book img {
+  transform: scale(var(--cover-fit, 1));
+  transform-origin: var(--cover-ox, 50%) var(--cover-oy, 50%);
+}
 #catalogo.catalog-page .cat-cover-only h3 {
   margin: 0;
   padding: 0 4px;

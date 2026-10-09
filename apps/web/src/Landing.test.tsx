@@ -919,6 +919,8 @@ describe("Catálogo e página do livro", () => {
     expect(await screen.findByRole("heading", { name: /nossos livros/i })).toBeInTheDocument();
     expect(screen.queryByTestId("site-back-nav")).not.toBeInTheDocument();
     expect(document.querySelectorAll("#catalogo .cat-cover-only").length).toBeGreaterThan(0);
+    expect(screen.getByRole("img", { name: /noé na terra dos dinossauros/i }).style.getPropertyValue("--cover-fit")).toBe("1.082");
+    expect(screen.getByRole("img", { name: /martin, o grande goleiro/i }).getAttribute("style")).toBeNull();
     expect(screen.queryByRole("button", { name: "HARD" })).not.toBeInTheDocument();
     expect(screen.queryByTestId("landing-personalize")).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: /como funciona/i })).toHaveAttribute("href", "/#como");
