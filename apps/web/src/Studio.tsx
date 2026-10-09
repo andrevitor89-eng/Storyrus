@@ -16,7 +16,12 @@ import logo from "./assets/logo.png";
 import { SiteBackNav } from "./SiteBackNav";
 import type { StudioAssets } from "./studio/assets";
 import { PreviewTrio } from "./studio/PreviewTrio";
-import { previewChainSteps, previewEtaMinutes, type PreviewStepId } from "./studio/previewSteps";
+import {
+  previewChainSteps,
+  previewEtaMinutes,
+  previewImageActivity,
+  type PreviewStepId,
+} from "./studio/previewSteps";
 import { useStudioPolling } from "./studio/useStudioPolling";
 import type { StudioCopy } from "./studio/i18n";
 import {
@@ -37,9 +42,17 @@ function previewStepLabel(t: StudioCopy, id: PreviewStepId): string {
   return t.previewStepImages;
 }
 
-function previewStepHint(t: StudioCopy, id: PreviewStepId): string {
+function previewStepHint(
+  t: StudioCopy,
+  id: PreviewStepId,
+  imageActivity: ReturnType<typeof previewImageActivity> | null,
+): string {
   if (id === "AVATAR") return t.previewStepCharacterHint;
   if (id === "STORY") return t.previewStepStoryHint;
+  if (imageActivity === "cover") return t.previewImageCover;
+  if (imageActivity === "page") return t.previewImagePage;
+  if (imageActivity === "hand") return t.previewImageHand;
+  if (imageActivity === "book") return t.previewImageBook;
   return t.previewStepImagesHint;
 }
 
@@ -494,6 +507,10 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     orderSent && !isDemo && !previewReady && !previewChainActive && (Boolean(error) || previewFailed);
   const previewSteps = previewChainSteps(jobs);
   const imageJob = [...jobs].reverse().find((job) => job.type === "EBOOK" && job.result?.payload?.preview_chain);
+  const imageActivity =
+    previewSteps.find((step) => step.id === "EBOOK")?.state === "now"
+      ? previewImageActivity(imageJob?.result?.progress?.done)
+      : null;
   const imageProgress = imageJob?.result?.progress;
   const previewEta = previewEtaMinutes(
     previewSteps,
@@ -836,7 +853,9 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       </span>
                       <span className="preview-step-copy">
                         <span>{previewStepLabel(t, step.id)}</span>
-                        <span className="preview-step-hint">{previewStepHint(t, step.id)}</span>
+                        <span className="preview-step-hint">
+                          {previewStepHint(t, step.id, step.id === "EBOOK" ? imageActivity : null)}
+                        </span>
                       </span>
                       <span className="preview-step-state">{previewStepStateLabel(t, step.state)}</span>
                     </li>

@@ -107,6 +107,10 @@ export type StudioCopy = {
   previewStepStoryHint: string;
   previewStepImages: string;
   previewStepImagesHint: string;
+  previewImageCover: string;
+  previewImagePage: string;
+  previewImageHand: string;
+  previewImageBook: string;
   previewMustMove: string;
   previewStepWait: string;
   previewStepQueued: string;
@@ -442,6 +446,10 @@ const pt: StudioCopy = {
   previewStepStoryHint: "O texto do livro é escrito com o nome e o tema.",
   previewStepImages: "Imagens",
   previewStepImagesHint: "Saem a capa, uma página e o livro na mão.",
+  previewImageCover: "Gerando a capa.",
+  previewImagePage: "Gerando a página.",
+  previewImageHand: "Gerando o livro na mão.",
+  previewImageBook: "Montando o livro.",
   previewMustMove: "Não fica parado. Cada etapa gera a próxima até o livro aparecer.",
   previewStepWait: "Aguardando",
   previewStepQueued: "Na fila",
@@ -685,6 +693,10 @@ const en: StudioCopy = {
   previewStepStoryHint: "The book text is written with the name and theme.",
   previewStepImages: "Images",
   previewStepImagesHint: "The cover, one page, and the book in hand are created.",
+  previewImageCover: "Creating the cover.",
+  previewImagePage: "Creating the page.",
+  previewImageHand: "Creating the book in hand.",
+  previewImageBook: "Putting the book together.",
   previewMustMove: "It does not sit idle. Each step starts the next until the book appears.",
   previewStepWait: "Waiting",
   previewStepQueued: "Queued",
@@ -928,6 +940,10 @@ const es: StudioCopy = {
   previewStepStoryHint: "El texto del libro se escribe con el nombre y el tema.",
   previewStepImages: "Imágenes",
   previewStepImagesHint: "Salen la portada, una página y el libro en la mano.",
+  previewImageCover: "Generando la portada.",
+  previewImagePage: "Generando la página.",
+  previewImageHand: "Generando el libro en la mano.",
+  previewImageBook: "Armando el libro.",
   previewMustMove: "No se queda parado. Cada etapa genera la siguiente hasta que aparece el libro.",
   previewStepWait: "En espera",
   previewStepQueued: "En cola",

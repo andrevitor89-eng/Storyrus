@@ -27,7 +27,12 @@ def _client(endpoint: str | None = None):
         region_name=settings.storage_region,
         aws_access_key_id=settings.storage_access_key,
         aws_secret_access_key=settings.storage_secret_key,
-        config=Config(signature_version="s3v4"),
+        config=Config(
+            signature_version="s3v4",
+            connect_timeout=10,
+            read_timeout=60,
+            retries={"max_attempts": 2, "mode": "standard"},
+        ),
     )
 
 
