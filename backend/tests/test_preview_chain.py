@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import uuid
 
 import pytest
@@ -9,7 +10,9 @@ from sqlalchemy import create_engine, select
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.config import settings
 from app.database import Base
+from app.main import _lifespan, app
 from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, User
 from app.services import preview_chain
 from app.workers import handlers, runner
@@ -306,6 +309,53 @@ async def test_non_preview_avatar_does_not_chain(db, mem_storage, monkeypatch):
         select(Job).where(Job.project_id == p.id, Job.type == JobType.STORY.value)
     ).all()
     assert stories == []
+
+
+@pytest.mark.asyncio
+async def test_embed_worker_loop_runs_preview_to_next_step(db, mem_storage, monkeypatch):
+    """Com a flag ligada, o loop da API tira o job PENDING e enfileira o próximo."""
+    monkeypatch.setattr(settings, "embed_worker", True)
+    monkeypatch.setattr(settings, "worker_batch_size", 1)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    _, project = _seed(db, credits=20)
+    db.add(Asset(project_id=project.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+    job = _job(db, project, "AVATAR", payload={"preview_chain": True, "brief": "espaço"})
+
+    done = asyncio.Event()
+
+    async def one_pass() -> None:
+        await runner.run_once(db)
+        done.set()
+
+    monkeypatch.setattr("app.workers.runner.run_forever", one_pass)
+    async with _lifespan(app):
+        await done.wait()
+
+    db.refresh(job)
+    assert job.status == JobStatus.DONE.value
+    stories = db.scalars(
+        select(Job).where(Job.project_id == project.id, Job.type == JobType.STORY.value)
+    ).all()
+    assert len(stories) == 1
+    assert stories[0].status == JobStatus.PENDING.value
+    assert preview_chain.is_preview_chain(stories[0])
+    assert stories[0].result["payload"]["brief"] == "espaço"
+
+
+@pytest.mark.asyncio
+async def test_lifespan_does_not_consume_queue_when_flag_off(monkeypatch):
+    monkeypatch.setattr(settings, "embed_worker", False)
+    called = {"n": 0}
+
+    async def boom() -> None:
+        called["n"] += 1
+
+    monkeypatch.setattr("app.workers.runner.run_forever", boom)
+    async with _lifespan(app):
+        pass
+    assert called["n"] == 0
+    assert settings.embed_worker is False
 
 
 def test_has_active_preview_ignores_unreadable_rows():

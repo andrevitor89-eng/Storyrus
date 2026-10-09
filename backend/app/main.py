@@ -1,5 +1,11 @@
 """Entrypoint da API."""
 
+import asyncio
+import contextlib
+import logging
+from collections.abc import AsyncIterator
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -35,10 +41,32 @@ warn_if_email_unconfigured()
 # Ao enfileirar um job, notifica o worker via Redis (best-effort; degrada p/ polling).
 jobs_svc.enqueue_fn = queue.notify
 
+logger = logging.getLogger("api")
+
+
+@asynccontextmanager
+async def _lifespan(_app: FastAPI) -> AsyncIterator[None]:
+    """Com EMBED_WORKER, a API consome a fila no mesmo processo do clique."""
+    task: asyncio.Task[None] | None = None
+    if settings.embed_worker:
+        from app.workers.runner import run_forever
+
+        task = asyncio.create_task(run_forever(), name="embed-worker")
+        logger.info("embed_worker ligado: a API também consome a fila")
+    try:
+        yield
+    finally:
+        if task is not None:
+            task.cancel()
+            with contextlib.suppress(asyncio.CancelledError):
+                await task
+
+
 app = FastAPI(
     title="Story R Us — API",
     version="0.1.0",
     description="Foto -> personagem -> ebook -> video. Pipeline assincrono com creditos.",
+    lifespan=_lifespan,
 )
 
 register_exception_handlers(app)
