@@ -965,9 +965,9 @@ a.kcat-group-name.is-chip:focus-visible {
 }
 
 /* ---------- Seção de Vídeos narrados ---------- */
-.vid-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; max-width: 100%; margin: 0 auto; align-items: stretch; }
-@media (min-width: 1100px) { .vid-grid { grid-template-columns: repeat(4, 1fr); } }
-.vid-card { display: flex; flex-direction: column; margin: 0; background: #172140; border: 2px solid #26315a; border-radius: 20px; overflow: hidden; box-shadow: 0 14px 32px rgba(0,0,0,.42); transition: transform .18s ease, border-color .2s; text-align: left; }
+.vid-grid { display: flex; flex-wrap: wrap; justify-content: center; gap: 22px; max-width: 100%; margin: 0 auto; }
+.vid-card { display: flex; flex-direction: column; width: calc((100% - 22px) / 2); margin: 0; background: #172140; border: 2px solid #26315a; border-radius: 20px; overflow: hidden; box-shadow: 0 14px 32px rgba(0,0,0,.42); transition: transform .18s ease, border-color .2s; text-align: left; }
+@media (min-width: 1100px) { .vid-card { width: calc((100% - 44px) / 3); } }
 .vid-card:hover { transform: translateY(-6px); border-color: var(--yellow); }
 .vid-thumb { position: relative; aspect-ratio: var(--photo-ratio); overflow: hidden; }
 .vid-thumb img,
@@ -991,7 +991,7 @@ a.kcat-group-name.is-chip:focus-visible {
 [data-theme="light"] .kid .vid-card { background: #fff; border-color: #e6ebf5; box-shadow: 0 12px 28px rgba(31,53,104,.08); }
 [data-theme="light"] .kid .vid-card figcaption h3 { color: var(--ink); }
 [data-theme="light"] .kid .vid-card figcaption p { color: #6b6890; }
-@media (max-width: 820px) { .vid-grid { grid-template-columns: 1fr; max-width: 420px; } }
+@media (max-width: 820px) { .vid-grid { max-width: 420px; } .vid-card { width: 100%; } }
 @media (max-width: 480px) { .vid-cta .kbtn.big { width: 100%; text-align: center; } }
 /* trava rolagem horizontal em telas estreitas */
 @media (max-width: 760px) { .kid { overflow-x: clip; } }
