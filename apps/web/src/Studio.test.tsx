@@ -451,6 +451,8 @@ describe("Prévia automática", () => {
     expect(stepStates.filter((state) => state === "now" || state === "queued")).toHaveLength(1);
     expect(stepStates[0]).not.toBe("wait");
     expect(screen.getByTestId("studio-preview-elapsed")).toHaveTextContent(/já se passaram 0:0/i);
+    expect(screen.getByTestId("studio-preview-must-move")).toHaveTextContent(/não fica parado/i);
+    expect(screen.getByText(/a foto vira o personagem ilustrado/i)).toBeInTheDocument();
     expect(document.title).toBe("Projeto criado — Story R Us");
   });
 

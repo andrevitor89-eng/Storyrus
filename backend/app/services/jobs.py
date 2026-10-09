@@ -201,6 +201,12 @@ def _enqueue_job_once(
         enqueue_fn(job.id)
     except Exception:  # noqa: BLE001 - broker indisponivel nao deve quebrar a request
         pass
+    try:
+        from app.workers.api_pump import kick
+
+        kick()
+    except Exception:  # noqa: BLE001 - a fila no banco segue se o pump nao acordar
+        logger.exception("kick do pump falhou job_id=%s", job.id)
     return job
 
 

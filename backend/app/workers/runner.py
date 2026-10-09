@@ -68,11 +68,18 @@ def is_transient_exception(exc: BaseException) -> bool:
 
 
 def reclaim_stale_jobs(db: Session) -> int:
-    """RUNNING sem heartbeat recente -> PENDING (retryavel)."""
-    timeout = float(settings.job_stale_timeout_s)
-    if timeout <= 0:
+    """RUNNING sem heartbeat recente -> PENDING (retryavel).
+
+    A prévia usa uma janela menor: um worker morto não pode deixar o livro
+    parado em Personagem por quinze minutos.
+    """
+    general = float(settings.job_stale_timeout_s)
+    preview = float(settings.preview_stale_timeout_s)
+    windows = [w for w in (general, preview) if w > 0]
+    if not windows:
         return 0
-    cutoff = datetime.now(UTC) - timedelta(seconds=timeout)
+    now = datetime.now(UTC)
+    cutoff = now - timedelta(seconds=min(windows))
     stmt = select(Job).where(
         Job.status == JobStatus.RUNNING.value,
         Job.updated_at < cutoff,
@@ -81,21 +88,37 @@ def reclaim_stale_jobs(db: Session) -> int:
         stmt = stmt.with_for_update(skip_locked=True)
 
     stale = list(db.scalars(stmt).all())
+    reclaimed: list[Job] = []
     for job in stale:
+        limit = preview if _is_preview_job(job) else general
+        if limit <= 0 or job.updated_at is None:
+            continue
+        updated = job.updated_at
+        if updated.tzinfo is None:
+            updated = updated.replace(tzinfo=UTC)
+        if updated >= now - timedelta(seconds=limit):
+            continue
         job.status = JobStatus.PENDING.value
         # Preserva result (progresso); so anota o reclaim. Handlers sao idempotentes.
         meta = dict(job.result or {})
-        meta["reclaimed_at"] = datetime.now(UTC).isoformat()
+        meta["reclaimed_at"] = now.isoformat()
         job.result = meta
+        reclaimed.append(job)
         logger.warning(
             "job %s (%s) stale RUNNING -> PENDING (updated_at=%s)",
             job.id,
             job.type,
             job.updated_at,
         )
-    if stale:
+    if reclaimed:
         db.commit()
-    return len(stale)
+    return len(reclaimed)
+
+
+def _is_preview_job(job: Job) -> bool:
+    result = job.result if isinstance(job.result, dict) else {}
+    payload = result.get("payload") if isinstance(result, dict) else None
+    return bool(isinstance(payload, dict) and payload.get("preview_chain"))
 
 
 def _touch_heartbeat(job_id: uuid.UUID) -> None:

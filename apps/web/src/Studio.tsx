@@ -37,6 +37,12 @@ function previewStepLabel(t: StudioCopy, id: PreviewStepId): string {
   return t.previewStepImages;
 }
 
+function previewStepHint(t: StudioCopy, id: PreviewStepId): string {
+  if (id === "AVATAR") return t.previewStepCharacterHint;
+  if (id === "STORY") return t.previewStepStoryHint;
+  return t.previewStepImagesHint;
+}
+
 function previewStepStateLabel(t: StudioCopy, state: "wait" | "queued" | "now" | "done"): string {
   if (state === "done") return t.previewStepDone;
   if (state === "now") return t.previewStepNow;
@@ -828,11 +834,17 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
                       <span className="preview-step-mark" aria-hidden="true">
                         {step.state === "done" ? "✓" : ""}
                       </span>
-                      <span>{previewStepLabel(t, step.id)}</span>
+                      <span className="preview-step-copy">
+                        <span>{previewStepLabel(t, step.id)}</span>
+                        <span className="preview-step-hint">{previewStepHint(t, step.id)}</span>
+                      </span>
                       <span className="preview-step-state">{previewStepStateLabel(t, step.state)}</span>
                     </li>
                   ))}
                 </ol>
+                <p className="studio-slogan preview-must-move" data-testid="studio-preview-must-move">
+                  {t.previewMustMove}
+                </p>
                 <p className="studio-slogan preview-eta" data-testid="studio-preview-eta">
                   {t.previewEta(previewEta.min, previewEta.max)}
                 </p>

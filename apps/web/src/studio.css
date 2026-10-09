@@ -430,8 +430,27 @@
   text-align: center;
 }
 
-.studio-app .studio-preview-building > .preview-eta {
+.studio-app .preview-step-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.studio-app .preview-step-hint {
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--studio-muted);
+}
+
+.studio-app .studio-preview-building > .preview-must-move {
   margin-top: 1.15rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.studio-app .studio-preview-building > .preview-eta {
+  margin-top: 0.85rem;
   color: var(--ink);
   font-weight: 700;
 }
