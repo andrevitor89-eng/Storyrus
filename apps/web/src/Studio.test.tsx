@@ -397,7 +397,10 @@ describe("Revisão do projeto", () => {
     window.history.replaceState({}, "", "/app?exemplo=dinosaurs");
     render(<Studio />);
 
-    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
+    expect(screen.getByRole("heading", { name: /prévia pronta/i })).toBeInTheDocument();
+    expect(document.title).toBe("Prévia pronta — Story R Us");
+    expect(screen.queryByTestId("studio-preview-building")).not.toBeInTheDocument();
     expect(screen.getByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-story-text")).toHaveTextContent(/matteo/i);
     expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
@@ -436,6 +439,18 @@ describe("Prévia automática", () => {
       expect.objectContaining({ brief: expect.stringMatching(/Lila|estrelas|espaço/i) }),
     );
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /projeto criado/i })).toBeInTheDocument();
+    expect(screen.getByTestId("studio-preview-eta")).toHaveTextContent(/previsão: cerca de \d/i);
+    expect(screen.getByText(/fique nesta tela/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/ficou pronto quando o título mudar para prévia pronta/i),
+    ).toBeInTheDocument();
+    const stepStates = ["AVATAR", "STORY", "EBOOK"].map((id) =>
+      screen.getByTestId(`studio-preview-step-${id}`).getAttribute("data-step-state"),
+    );
+    expect(stepStates.filter((state) => state === "now")).toHaveLength(1);
+    expect(stepStates[0]).not.toBe("wait");
+    expect(document.title).toBe("Projeto criado — Story R Us");
   });
 
   it("mostra retry quando a prévia falha com 500", async () => {

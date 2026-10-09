@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { App } from "./App";
@@ -63,6 +63,9 @@ describe("Fluxo E2E (com conta)", () => {
     const sent = await screen.findByTestId("studio-order-sent");
     expect(sent).toHaveTextContent(/projeto criado/i);
     expect(screen.getByTestId("studio-preview-building")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(document.title).toBe("Projeto criado — Story R Us");
+    });
     expect(screen.queryByTestId("studio-generate-preview")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /gerar história com ia/i })).not.toBeInTheDocument();
   }, 15000);
@@ -73,7 +76,10 @@ describe("Fluxo E2E (com conta)", () => {
     renderApp("/app?exemplo=dinosaurs");
 
     expect(await screen.findByText(/você está vendo um exemplo pronto/i)).toBeInTheDocument();
-    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/projeto criado/i);
+    expect(await screen.findByTestId("studio-order-sent")).toHaveTextContent(/prévia pronta/i);
+    await waitFor(() => {
+      expect(document.title).toBe("Prévia pronta — Story R Us");
+    });
     expect(await screen.findByTestId("studio-story-result")).toBeInTheDocument();
     expect(screen.getByTestId("studio-review-changes")).toBeInTheDocument();
     expect(screen.getByTestId("studio-preview-trio")).toBeInTheDocument();
