@@ -6,7 +6,6 @@ export type StudioCopy = {
   theme: string;
   themeToLight: string;
   themeToDark: string;
-  credits: string;
   account: string;
   orders: string;
   logout: string;
@@ -94,7 +93,6 @@ export type StudioCopy = {
   orderFollowup: string;
   previewCta: string;
   previewHint: string;
-  previewCost: string;
   previewRunning: string;
   previewBuilding: string;
   previewStay: string;
@@ -143,14 +141,12 @@ export type StudioCopy = {
   add: string;
   extrasAdded: (n: number) => string;
   generateExtras: string;
-  creditEach: string;
   storyTitle: string;
   inventAi: string;
   writeMine: string;
   sendFile: string;
   readyStories: string;
   generateStory: string;
-  oneCredit: string;
   loadingCatalog: string;
   needChildName: string;
   catalogMeta: (tematica: string, idade: string, paginas: number, genero?: string) => string;
@@ -217,13 +213,10 @@ export type StudioCopy = {
   illustrating: (done: number, total: number) => string;
   attempt: string;
   stepEbook: string;
-  stepEbookCost: string;
   stepEbookHint: string;
   stepVideo: string;
-  stepVideoCost: string;
   stepVideoHint: string;
   stepNarrated: string;
-  stepNarratedCost: string;
   stepNarratedHint: string;
   themes: Record<Theme, string>;
 };
@@ -335,14 +328,13 @@ const pt: StudioCopy = {
   theme: "Tema",
   themeToLight: "Claro",
   themeToDark: "Escuro",
-  credits: "Créditos",
   account: "Minha Conta",
   orders: "Meus Pedidos",
   logout: "Sair",
   upgradeOpen: "Criar Conta",
   upgradeTitle: "Salvar esta sessão",
   upgradeHint:
-    "Transforme o convidado em conta real. Seus projetos e créditos ficam no mesmo lugar.",
+    "Transforme o convidado em conta real. Seus projetos ficam no mesmo lugar.",
   upgradeEmail: "E-mail",
   upgradePassword: "Senha (Mín. 8)",
   upgradeSubmit: "Criar Conta",
@@ -430,7 +422,6 @@ const pt: StudioCopy = {
   orderFollowup: "Revise a história e as imagens. Se quiser mudar algo, diga abaixo.",
   previewCta: "Gerar prévia",
   previewHint: "Gera personagem, história e o trio da prévia: capa, 1 página e foto na mão (OpenAI).",
-  previewCost: "(~3 créditos)",
   previewRunning: "Gerando prévia…",
   previewBuilding: "Estamos montando sua prévia…",
   previewStay: "Fique nesta tela. Ela atualiza sozinha.",
@@ -487,14 +478,12 @@ const pt: StudioCopy = {
   add: "Adicionar",
   extrasAdded: (n) => `${n} personagem(ns) extra(s) adicionado(s)`,
   generateExtras: "Gerar ilustrações dos extras",
-  creditEach: "(1 crédito cada)",
   storyTitle: "História",
   inventAi: "✨ Inventar com IA",
   writeMine: "✍️ Escrever a minha",
   sendFile: "📄 Enviar arquivo",
   readyStories: "📚 Histórias prontas",
   generateStory: "Gerar história com IA",
-  oneCredit: "(1 crédito)",
   loadingCatalog: "Carregando catálogo…",
   needChildName: "Defina o nome da criança ao criar o projeto — ele entra no título e no texto.",
   catalogMeta: (tematica, idade, paginas, genero) =>
@@ -566,13 +555,10 @@ const pt: StudioCopy = {
   illustrating: (done, total) => `Ilustrando ${done}/${total}`,
   attempt: "tent.",
   stepEbook: "Montar ebook",
-  stepEbookCost: "1 crédito",
   stepEbookHint: "E-book ilustrado (precisa de personagem aprovado + história).",
   stepVideo: "Gerar animação",
-  stepVideoCost: "5 créditos",
   stepVideoHint: "Clipe curto (5–10s) com movimento — não é o vídeo narrado.",
   stepNarrated: "Gerar vídeo narrado",
-  stepNarratedCost: "8 créditos",
   stepNarratedHint: "História com narração (~1–2 min) a partir do storyboard.",
   themes: THEMES_PT,
 };
@@ -582,14 +568,13 @@ const en: StudioCopy = {
   theme: "Theme",
   themeToLight: "Light",
   themeToDark: "Dark",
-  credits: "Credits",
   account: "My Account",
   orders: "My Orders",
   logout: "Log Out",
   upgradeOpen: "Create Account",
   upgradeTitle: "Save this session",
   upgradeHint:
-    "Turn the guest into a real account. Your projects and credits stay in the same place.",
+    "Turn the guest into a real account. Your projects stay in the same place.",
   upgradeEmail: "Email",
   upgradePassword: "Password (Min. 8)",
   upgradeSubmit: "Create Account",
@@ -677,7 +662,6 @@ const en: StudioCopy = {
   orderFollowup: "Review the story and images. If you want changes, tell us below.",
   previewCta: "Generate preview",
   previewHint: "Builds character, story, and the preview trio: cover, 1 page, and in-hand photo (OpenAI).",
-  previewCost: "(~3 credits)",
   previewRunning: "Generating preview…",
   previewBuilding: "We're building your preview…",
   previewStay: "Stay on this screen. It updates on its own.",
@@ -734,14 +718,12 @@ const en: StudioCopy = {
   add: "Add",
   extrasAdded: (n) => `${n} extra character(s) added`,
   generateExtras: "Generate extra illustrations",
-  creditEach: "(1 credit each)",
   storyTitle: "Story",
   inventAi: "✨ Invent with AI",
   writeMine: "✍️ Write my own",
   sendFile: "📄 Upload file",
   readyStories: "📚 Ready-made stories",
   generateStory: "Generate story with AI",
-  oneCredit: "(1 credit)",
   loadingCatalog: "Loading catalog…",
   needChildName: "Set the child's name when creating the project — it goes into the title and text.",
   catalogMeta: (tematica, idade, paginas, genero) =>
@@ -813,13 +795,10 @@ const en: StudioCopy = {
   illustrating: (done, total) => `Illustrating ${done}/${total}`,
   attempt: "att.",
   stepEbook: "Build ebook",
-  stepEbookCost: "1 credit",
   stepEbookHint: "Illustrated e-book (needs approved character + story).",
   stepVideo: "Generate animation",
-  stepVideoCost: "5 credits",
   stepVideoHint: "Short clip (5–10s) with motion — not the narrated video.",
   stepNarrated: "Generate narrated video",
-  stepNarratedCost: "8 credits",
   stepNarratedHint: "Story with narration (~1–2 min) from the storyboard.",
   themes: THEMES_EN,
 };
@@ -829,14 +808,13 @@ const es: StudioCopy = {
   theme: "Tema",
   themeToLight: "Claro",
   themeToDark: "Oscuro",
-  credits: "Créditos",
   account: "Mi Cuenta",
   orders: "Mis Pedidos",
   logout: "Salir",
   upgradeOpen: "Crear Cuenta",
   upgradeTitle: "Guardar esta sesión",
   upgradeHint:
-    "Convierte el invitado en una cuenta real. Tus proyectos y créditos se quedan en el mismo lugar.",
+    "Convierte el invitado en una cuenta real. Tus proyectos se quedan en el mismo lugar.",
   upgradeEmail: "Correo",
   upgradePassword: "Contraseña (Mín. 8)",
   upgradeSubmit: "Crear Cuenta",
@@ -924,7 +902,6 @@ const es: StudioCopy = {
   orderFollowup: "Revisa la historia y las imágenes. Si quieres cambiar algo, escríbelo abajo.",
   previewCta: "Generar vista previa",
   previewHint: "Genera personaje, historia y el trío de vista previa: portada, 1 página y foto en mano (OpenAI).",
-  previewCost: "(~3 créditos)",
   previewRunning: "Generando vista previa…",
   previewBuilding: "Estamos preparando tu vista previa…",
   previewStay: "Quédate en esta pantalla. Se actualiza sola.",
@@ -981,14 +958,12 @@ const es: StudioCopy = {
   add: "Añadir",
   extrasAdded: (n) => `${n} personaje(s) extra(s) añadido(s)`,
   generateExtras: "Generar ilustraciones de los extras",
-  creditEach: "(1 crédito cada uno)",
   storyTitle: "Historia",
   inventAi: "✨ Inventar con IA",
   writeMine: "✍️ Escribir la mía",
   sendFile: "📄 Enviar archivo",
   readyStories: "📚 Historias listas",
   generateStory: "Generar historia con IA",
-  oneCredit: "(1 crédito)",
   loadingCatalog: "Cargando catálogo…",
   needChildName: "Define el nombre del niño/a al crear el proyecto — entra en el título y el texto.",
   catalogMeta: (tematica, idade, paginas, genero) =>
@@ -1060,13 +1035,10 @@ const es: StudioCopy = {
   illustrating: (done, total) => `Ilustrando ${done}/${total}`,
   attempt: "int.",
   stepEbook: "Montar ebook",
-  stepEbookCost: "1 crédito",
   stepEbookHint: "E-book ilustrado (necesita personaje aprobado + historia).",
   stepVideo: "Generar animación",
-  stepVideoCost: "5 créditos",
   stepVideoHint: "Clip corto (5–10s) con movimiento — no es el video narrado.",
   stepNarrated: "Generar video narrado",
-  stepNarratedCost: "8 créditos",
   stepNarratedHint: "Historia con narración (~1–2 min) a partir del storyboard.",
   themes: THEMES_ES,
 };

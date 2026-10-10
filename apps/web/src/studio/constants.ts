@@ -18,26 +18,22 @@ export const resolveThemeName = (
 export function studioSteps(t: StudioCopy): {
   key: "ebook" | "video" | "narrated-video";
   label: string;
-  cost: string;
   hint: string;
 }[] {
   return [
     {
       key: "ebook",
       label: t.stepEbook,
-      cost: t.stepEbookCost,
       hint: t.stepEbookHint,
     },
     {
       key: "video",
       label: t.stepVideo,
-      cost: t.stepVideoCost,
       hint: t.stepVideoHint,
     },
     {
       key: "narrated-video",
       label: t.stepNarrated,
-      cost: t.stepNarratedCost,
       hint: t.stepNarratedHint,
     },
   ];

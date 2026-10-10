@@ -168,7 +168,6 @@ export function Usuarios() {
     try {
       const next = await api.updateUser(ownerSecret, detail.id, {
         email: detail.email.trim(),
-        credits: Number(detail.credits) || 0,
         email_verified: Boolean(detail.email_verified),
         full_name: (detail.full_name ?? "").trim() || null,
         phone: (detail.phone ?? "").trim() || null,
@@ -311,7 +310,6 @@ export function Usuarios() {
                       </div>
                       <p className="usage-user-meta">
                         <span>{user.phone || "Sem telefone"}</span>
-                        <span>{user.credits} crédito{user.credits === 1 ? "" : "s"}</span>
                         <span>
                           {user.project_count} projeto{user.project_count === 1 ? "" : "s"}
                         </span>
@@ -358,16 +356,6 @@ export function Usuarios() {
                       value={form.phone ?? ""}
                       onChange={(e) => setField("phone", e.target.value)}
                       data-testid="owner-user-phone"
-                    />
-                  </label>
-                  <label>
-                    Créditos
-                    <input
-                      type="number"
-                      min={0}
-                      value={form.credits}
-                      onChange={(e) => setField("credits", Number(e.target.value))}
-                      data-testid="owner-user-credits"
                     />
                   </label>
                   <label className="usage-check">

@@ -11,6 +11,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from app.ai_clients.base import ImageResult, ProviderError
+from app.config import settings
 from app.database import Base
 from app.models import (
     Asset,
@@ -105,7 +106,7 @@ def test_preview_enqueues_avatar_with_chain_flag(auth_client):
     body = r.json()
     assert body["type"] == "AVATAR"
     assert body["status"] == "PENDING"
-    assert auth_client.get("/v1/credits").json()["credits"] == before - 1
+    assert auth_client.get("/v1/credits").json()["credits"] == before
 
     jobs = auth_client.get(f"/v1/projects/{pid}/jobs").json()
     assert len(jobs) == 1
@@ -113,7 +114,7 @@ def test_preview_enqueues_avatar_with_chain_flag(auth_client):
     assert jobs[0]["result"]["payload"]["preview_chain"] is True
     assert jobs[0]["result"]["payload"]["brief"] == "aventura espacial com Lila"
 
-    # Mesma Idempotency-Key: sem novo débito.
+    # Mesma Idempotency-Key: o mesmo job, saldo intacto.
     r2 = auth_client.post(
         f"/v1/projects/{pid}/preview",
         json={"brief": "outro"},
@@ -121,7 +122,7 @@ def test_preview_enqueues_avatar_with_chain_flag(auth_client):
     )
     assert r2.status_code == 202
     assert r2.json()["job_id"] == body["job_id"]
-    assert auth_client.get("/v1/credits").json()["credits"] == before - 1
+    assert auth_client.get("/v1/credits").json()["credits"] == before
 
 
 def test_preview_conflict_while_active(auth_client):
@@ -210,7 +211,7 @@ async def test_avatar_preview_chains_to_story(db, mem_storage, monkeypatch):
     assert next_jobs[0].result["payload"]["brief"] == "espaço"
     assert next_jobs[0].status == JobStatus.PENDING.value
     db.refresh(u)
-    assert u.credits == 19  # debitou 1 do STORY encadeado
+    assert u.credits == 20
 
 
 @pytest.mark.asyncio
@@ -236,7 +237,7 @@ async def test_story_preview_chains_to_ebook(db, mem_storage, monkeypatch):
     ).all()
     assert sb == []
     db.refresh(u)
-    assert u.credits == 19
+    assert u.credits == 20
 
 
 @pytest.mark.asyncio
@@ -287,10 +288,33 @@ async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, mo
 
 
 @pytest.mark.asyncio
-async def test_preview_chain_stops_on_insufficient_credits(db, mem_storage, monkeypatch):
+async def test_preview_chain_runs_with_zero_credits(db, mem_storage, monkeypatch):
     monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
-    u, p = _seed(db, credits=0)  # avatar job já criado sem débito; próximo falha
-    # Dar 0 créditos: o AVATAR job já existe com cost; continue tenta debitar STORY
+    u, p = _seed(db, credits=0)
+    db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
+    db.commit()
+
+    j = _job(db, p, "AVATAR", cost=0, payload={"preview_chain": True})
+    await runner.process_job(db, j)
+    db.refresh(j)
+    assert j.status == JobStatus.DONE.value
+
+    story = db.scalars(
+        select(Job).where(Job.project_id == p.id, Job.type == JobType.STORY.value)
+    ).all()
+    assert len(story) == 1
+    assert story[0].status == JobStatus.PENDING.value
+    db.refresh(u)
+    assert u.credits == 0
+
+
+@pytest.mark.asyncio
+async def test_preview_chain_stops_on_insufficient_credits_when_enabled(
+    db, mem_storage, monkeypatch
+):
+    monkeypatch.setattr(settings, "credits_enabled", True)
+    monkeypatch.setattr(handlers, "get_image_provider", lambda *a, **k: FakeImage())
+    u, p = _seed(db, credits=0)
     db.add(Asset(project_id=p.id, kind=AssetKind.PHOTO.value, storage_key="photo1"))
     db.commit()
 

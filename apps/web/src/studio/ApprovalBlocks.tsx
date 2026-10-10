@@ -42,7 +42,7 @@ export function CharacterApprovalBlock({
           </button>
         )}
         <button type="button" disabled={locked} onClick={onRegenerate}>
-          {t.regenerateCharacter} <span className="muted">{t.oneCredit}</span>
+          {t.regenerateCharacter}
         </button>
       </div>
     </div>
@@ -117,7 +117,7 @@ export function BookApprovalBlock({
           </button>
         )}
         <button type="button" disabled={locked || !canMountEbook} onClick={onRegenerate}>
-          {t.regeneratePages} <span className="muted">{t.oneCredit}</span>
+          {t.regeneratePages}
         </button>
       </div>
       {bookApproved && (

@@ -85,7 +85,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
     path: "/termos",
     title: "Termos De Uso — Story R Us",
     description:
-      "Regras de uso da Story R Us para criar livros ilustrados personalizados, créditos e impressão.",
+      "Regras de uso da Story R Us para criar livros ilustrados personalizados e pedir a impressão.",
     sitemap: true,
   },
   {
@@ -101,7 +101,7 @@ export const STATIC_PAGES: readonly HtmlPage[] = [
     path: "/terms",
     title: "Termos De Uso — Story R Us",
     description:
-      "Regras de uso da Story R Us para criar livros ilustrados personalizados, créditos e impressão.",
+      "Regras de uso da Story R Us para criar livros ilustrados personalizados e pedir a impressão.",
     canonicalPath: "/termos",
     robots: "noindex, nofollow",
     sitemap: false,

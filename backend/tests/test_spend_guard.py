@@ -74,6 +74,7 @@ def test_enqueue_blocked_by_daily_usd_ceiling(auth_client, monkeypatch):
 
 
 def test_enqueue_blocked_by_daily_credits_ceiling(auth_client, monkeypatch):
+    monkeypatch.setattr(settings, "credits_enabled", True)
     monkeypatch.setattr(settings, "daily_spend_usd_ceiling", 0.0)
     monkeypatch.setattr(settings, "daily_credits_ceiling", 1)
     _seed_measured(auth_client, cost_usd=0.01, credits=1)

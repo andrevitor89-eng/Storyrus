@@ -61,7 +61,7 @@ async def lifespan(_app: FastAPI):
 app = FastAPI(
     title="Story R Us — API",
     version="0.1.0",
-    description="Foto -> personagem -> ebook -> video. Pipeline assincrono com creditos.",
+    description="Foto -> personagem -> ebook -> video. Pipeline assincrono.",
     lifespan=lifespan,
 )
 
