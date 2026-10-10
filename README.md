@@ -1,8 +1,9 @@
 # Story R Us
 
 Transforma uma foto em um personagem ilustrado, gera uma história, monta um ebook
-e (opcional) um vídeo animado. Pipeline assíncrono de IA com créditos, jobs
+e (opcional) um vídeo animado. Pipeline assíncrono de IA com jobs
 idempotentes, moderação/segurança e provedores reais (Nano Banana Pro, Claude, Kling).
+A cobrança é a ordem de serviço do livro impresso.
 
 ## Monorepo
 
@@ -67,8 +68,8 @@ Tudo funciona offline para desenvolvimento, mas o pipeline real precisa de:
 | `JWT_SECRET` / `WEBHOOK_SIGNING_SECRET` | segredos da aplicação |
 
 Sem as chaves de IA/storage, a API e os workers sobem e o fluxo de
-créditos/jobs/idempotência roda; as chamadas de geração falham de forma controlada
-(estado `FAILED` + estorno).
+jobs/idempotência roda; as chamadas de geração falham de forma controlada
+(estado `FAILED`).
 
 Storage local: configure `STORAGE_*` apontando para **Cloudflare R2** (ou outro
 S3-compatible). O compose **não** sobe MinIO — veja `DEPLOY.md`.
@@ -81,9 +82,9 @@ S3-compatible). O compose **não** sobe MinIO — veja `DEPLOY.md`.
    rejeitam convidados (`403 Cadastro necessario`).
 3. Cria projeto e escolhe o estilo.
 4. Envia a foto (URL assinada).
-5. Dispara as etapas (avatar → história → ebook → vídeo). Cada uma debita créditos,
-   enfileira um job e responde **202**; o worker processa e o front acompanha o
-   progresso ao vivo.
+5. Dispara as etapas (avatar → história → ebook → vídeo). Cada uma enfileira um
+   job e responde **202**; o worker processa e o front acompanha o progresso ao
+   vivo. Gerar o livro não gasta créditos. O impresso se fatura na OS do pedido.
 
 Guest (`POST /v1/auth/guest`) e upgrade (`/upgrade`) permanecem na API para
 compatibilidade, mas não liberam criação de livros.

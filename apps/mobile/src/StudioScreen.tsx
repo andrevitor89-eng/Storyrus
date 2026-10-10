@@ -16,12 +16,12 @@ import { THEMES, THEME_GROUP_LABEL, themeLabel } from "./themes";
 import { VoicePanel } from "./VoicePanel";
 import type { Job, Project, ProjectAssets, StudioStep, Theme, ThemeGroup, UserVoice } from "./types";
 
-const STEPS: { key: StudioStep; label: string; cost: number }[] = [
-  { key: "avatar", label: "Gerar personagem", cost: 1 },
-  { key: "story", label: "Escrever história", cost: 1 },
-  { key: "ebook", label: "Montar ebook", cost: 1 },
-  { key: "video", label: "Gerar vídeo", cost: 5 },
-  { key: "narrated-video", label: "Vídeo narrado", cost: 8 },
+const STEPS: { key: StudioStep; label: string }[] = [
+  { key: "avatar", label: "Gerar personagem" },
+  { key: "story", label: "Escrever história" },
+  { key: "ebook", label: "Montar ebook" },
+  { key: "video", label: "Gerar vídeo" },
+  { key: "narrated-video", label: "Vídeo narrado" },
 ];
 
 const DOT: Record<string, string> = {
@@ -40,7 +40,6 @@ export function StudioScreen({
   onLogout: () => void | Promise<void>;
   bootError?: string | null;
 }) {
-  const [credits, setCredits] = useState<number | null>(null);
   const [project, setProject] = useState<Project | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [assets, setAssets] = useState<ProjectAssets | null>(null);
@@ -63,14 +62,6 @@ export function StudioScreen({
   const characterApproved = !!project?.character_approved_at;
   const bookApproved = !!project?.book_approved_at;
   const printRequested = !!project?.print_requested_at;
-
-  const refreshCredits = useCallback(async () => {
-    try {
-      setCredits((await api.credits()).credits);
-    } catch {
-      /* ignore */
-    }
-  }, []);
 
   const refreshVoices = useCallback(async () => {
     try {
@@ -96,9 +87,8 @@ export function StudioScreen({
   }, []);
 
   useEffect(() => {
-    refreshCredits();
     refreshVoices();
-  }, [refreshCredits, refreshVoices]);
+  }, [refreshVoices]);
 
   useEffect(() => {
     if (!project) return;
@@ -113,7 +103,6 @@ export function StudioScreen({
         const [p, js] = await Promise.all([api.getProject(project.id), api.listJobs(project.id)]);
         setProject(p);
         setJobs(js);
-        refreshCredits();
         const stillActive = js.some((j) => j.status === "PENDING" || j.status === "RUNNING");
         if (!stillActive) void refreshAssets(project.id);
       } catch {
@@ -123,7 +112,7 @@ export function StudioScreen({
     return () => {
       if (poll.current) clearInterval(poll.current);
     };
-  }, [project, jobs, refreshCredits, refreshAssets]);
+  }, [project, jobs, refreshAssets]);
 
   function toggleTheme(id: Theme) {
     setSelectedThemes((prev) => {
@@ -194,7 +183,6 @@ export function StudioScreen({
       if (step === "narrated-video" && selectedVoiceId) body = { voice_id: selectedVoiceId };
       await api.startStep(project.id, step, body);
       setJobs(await api.listJobs(project.id));
-      refreshCredits();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -274,7 +262,6 @@ export function StudioScreen({
       <View style={s.header}>
         <Text style={s.brand}>Story R Us</Text>
         <View style={{ flex: 1 }} />
-        <Text style={s.muted}>Créditos: {credits ?? "…"}</Text>
         <Pressable onPress={() => void onLogout()}>
           <Text style={s.link}>  Sair</Text>
         </Pressable>
@@ -385,9 +372,7 @@ export function StudioScreen({
                 onPress={() => runStep(st.key)}
                 disabled={disabled}
               >
-                <Text style={s.btnText}>
-                  {st.label} ({st.cost} créd.)
-                </Text>
+                <Text style={s.btnText}>{st.label}</Text>
               </Pressable>
             );
           })}

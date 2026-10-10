@@ -1,7 +1,8 @@
 """Orquestracao de jobs: enfileirar etapas pesadas de forma idempotente.
 
 Regras (do documento de arquitetura):
-- Toda etapa paga debita creditos ANTES de enfileirar.
+- Com credits_enabled, a etapa debita creditos ANTES de enfileirar.
+- Com o sistema de creditos desligado (padrao), o custo da etapa e zero.
 - Idempotency-Key evita duplicar job/custo: repetir a chamada retorna o job existente.
 - Limite de jobs simultaneos por usuario (backpressure).
 - Em SQLite/dev nao ha broker; expomos `enqueue_fn` para o worker real (RQ/Celery/Temporal).
@@ -141,7 +142,7 @@ def _enqueue_job_once(
         if existing is not None:
             return existing
 
-    cost = COST_BY_TYPE.get(job_type, 0)
+    cost = COST_BY_TYPE.get(job_type, 0) if settings.credits_enabled else 0
 
     # 2) Backpressure por usuario.
     if _active_jobs(db, user) >= settings.max_concurrent_jobs_per_user:

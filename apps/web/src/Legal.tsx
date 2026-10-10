@@ -169,11 +169,12 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
               para criar este livro personalizado.
             </p>
 
-            <h2>Créditos e pagamentos</h2>
+            <h2>Pagamento do livro impresso</h2>
             <p>
-              Etapas pagas consomem créditos da conta. O livro impresso é cobrado à parte, conforme
-              tamanho, acabamento, quantidade e frete. O parcelamento no cartão depende do gateway de
-              pagamento estar ativo; até lá, o pedido de impresso pode seguir como cotação.
+              Gerar a história e as imagens entra no pedido. O que se fatura é o livro impresso,
+              na ordem de serviço, conforme tamanho, acabamento, quantidade e frete. O parcelamento
+              no cartão depende do gateway de pagamento estar ativo; até lá, o pedido de impresso
+              pode seguir como cotação.
             </p>
 
             <h2>Impressão e envio</h2>
@@ -181,7 +182,7 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
               Quando a impressão estiver disponível, o endereço de entrega deve estar completo e
               válido. Entregas físicas podem estar restritas a países ou regiões atendidos pelos
               parceiros logísticos (com prioridade atual ao Brasil). Fora dessas áreas, o conteúdo
-              digital (ebook/vídeo) permanece disponível conforme o plano de créditos.
+              livro digital (PDF) continua disponível no pedido.
             </p>
 
             <h2>Usuários internacionais</h2>
@@ -203,8 +204,8 @@ export function Legal({ kind }: { kind: "privacy" | "terms" }) {
             <p>
               O serviço é oferecido “como está”. Na medida permitida pela lei, não garantimos
               disponibilidade ininterrupta nem resultado artístico específico. Em caso de falha
-              imputável a nós, a responsabilidade limita-se, em regra, à reposição de créditos ou ao
-              reprocessamento do pedido afetado.
+              imputável a nós, a responsabilidade limita-se, em regra, a refazer o livro ou o pedido
+              afetado.
             </p>
 
             <h2>Alterações e vigência</h2>

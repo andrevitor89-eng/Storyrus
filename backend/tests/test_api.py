@@ -125,7 +125,7 @@ def _add_photo(auth_client, pid):
     )
 
 
-def test_full_flow_debits_credits_and_is_idempotent(auth_client):
+def test_full_flow_does_not_debit_and_is_idempotent(auth_client):
     pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
     assert _add_photo(auth_client, pid).status_code == 201
 
@@ -137,9 +137,9 @@ def test_full_flow_debits_credits_and_is_idempotent(auth_client):
     job_id = r1.json()["job_id"]
 
     after = auth_client.get("/v1/credits").json()["credits"]
-    assert after == before - 1  # debitou 1 credito (avatar)
+    assert after == before
 
-    # Repetir com a mesma chave: mesmo job, sem novo debito.
+    # Repetir com a mesma chave: mesmo job, saldo intacto.
     r2 = auth_client.post(f"/v1/projects/{pid}/avatar", headers={"Idempotency-Key": key})
     assert r2.status_code == 202
     assert r2.json()["job_id"] == job_id
@@ -219,7 +219,21 @@ def test_video_jobs_count_towards_backpressure(auth_client, monkeypatch):
     assert r5.json()["error"]["code"] == "too_many_requests"
 
 
-def test_insufficient_credits(auth_client):
+def test_generation_does_not_spend_credits(auth_client):
+    pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
+    _add_photo(auth_client, pid)
+    before = auth_client.get("/v1/credits").json()["credits"]
+    r1 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v1"})
+    r2 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v2"})
+    r3 = auth_client.post(f"/v1/projects/{pid}/video", json={}, headers={"Idempotency-Key": "v3"})
+    assert r1.status_code == 202 and r2.status_code == 202 and r3.status_code == 202
+    assert auth_client.get("/v1/credits").json()["credits"] == before
+
+
+def test_insufficient_credits_when_enabled(auth_client, monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "credits_enabled", True)
     pid = auth_client.post("/v1/projects", json={"style": "realistic"}).json()["id"]
     _add_photo(auth_client, pid)
     # Video custa 5; usuario tem 10. Dois videos cabem no teto de concorrencia (4)

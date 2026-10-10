@@ -1,7 +1,7 @@
 # Story R Us — API (núcleo)
 
 MVP do backend: **foto → personagem → ebook → vídeo animado**. Pipeline assíncrono com
-créditos, jobs idempotentes, moderação/segurança e clients reais de IA (OpenAI GPT Image, Claude, Kling). FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
+jobs idempotentes, moderação/segurança e clients reais de IA (OpenAI GPT Image, Claude, Kling). A geração não debita créditos; o impresso se fatura na OS. FastAPI + SQLAlchemy 2 + Alembic + PostgreSQL.
 
 ## Estrutura
 
@@ -71,7 +71,7 @@ pytest            # usa SQLite em memória; não chama provedores externos
 
 ## Fluxo da API (resumo)
 
-1. `POST /v1/auth/signup` → token JWT (+ créditos de bônus).
+1. `POST /v1/auth/signup` → token JWT.
    Convidado: `POST /v1/auth/guest`; `refresh` / `resume` / `upgrade` (STO-26).
 2. `POST /v1/projects` → cria projeto (`style`: realistic|cartoon|anime).
 3. `POST /v1/projects/{id}/photos` → URL assinada para upload da foto.
@@ -83,7 +83,7 @@ pytest            # usa SQLite em memória; não chama provedores externos
 
 ## Decisões de engenharia
 
-- **Crédito debitado antes** da etapa paga; **estorno automático** em falha definitiva.
+- **Geração sem débito de créditos** (`CREDITS_ENABLED=false`). Com o flag ligado, o débito volta a ocorrer antes da etapa e a falha definitiva estorna.
 - **Idempotência** por `Idempotency-Key` única em `jobs`.
 - **Backpressure**: `MAX_CONCURRENT_JOBS_PER_USER` (default 4) conta todos os tipos
   PENDING/RUNNING, inclusive VIDEO e NARRATED_VIDEO.
@@ -110,7 +110,7 @@ Runner (`app/workers/runner.py`):
 - **claim** do próximo `PENDING` com `FOR UPDATE SKIP LOCKED` (vários workers em paralelo).
 - **retry** com backoff exponencial em erro transitório (`ProviderError(transient=True)`
   e Exceptions de rede/timeout/429/5xx — STO-36).
-- ao esgotar `JOB_MAX_ATTEMPTS` → `FAILED` + **estorno** de créditos.
+- ao esgotar `JOB_MAX_ATTEMPTS` → `FAILED` (estorna o custo só se o job tiver sido debitado).
 
 Handlers (`app/workers/handlers.py`):
 

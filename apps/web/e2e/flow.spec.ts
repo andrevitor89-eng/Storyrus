@@ -197,21 +197,18 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
   await page.route(/\/v1\/projects\/[^/]+\/(avatar|story|ebook|video|narrated-video)$/, (r) => {
     const last = r.request().url().split("/").pop()!.split("?")[0];
     const type = last === "narrated-video" ? "NARRATED_VIDEO" : last.toUpperCase();
-    const cost = type === "VIDEO" ? 5 : type === "NARRATED_VIDEO" ? 8 : 1;
-    if (state.credits < cost) return json(r, { detail: "Creditos insuficientes" }, 402);
-    state.credits -= cost;
     const job: Job = {
       id: id(),
       project_id: state.project.id,
       type,
       status: "PENDING",
-      cost_credits: cost,
+      cost_credits: 0,
       attempts: 1,
       error: null,
       polls: 0,
     };
     state.jobs.push(job);
-    return json(r, { job_id: job.id, status: "PENDING", type, estimated_cost_credits: cost }, 202);
+    return json(r, { job_id: job.id, status: "PENDING", type, estimated_cost_credits: 0 }, 202);
   });
 
   // Cadeia automática do Studio (avatar → história → ebook → vídeo).
@@ -229,22 +226,19 @@ async function mockApi(page: Page, state: ReturnType<typeof makeState>) {
     } catch {
       /* body vazio */
     }
-    const cost = 1;
-    if (state.credits < cost) return json(r, { detail: "Creditos insuficientes" }, 402);
-    state.credits -= cost;
     const job: Job = {
       id: id(),
       project_id: state.project.id,
       type: "AVATAR",
       status: "PENDING",
-      cost_credits: cost,
+      cost_credits: 0,
       attempts: 1,
       error: null,
       polls: 0,
       result: { payload: { preview_chain: true, ...(brief ? { brief } : {}) } },
     };
     state.jobs.push(job);
-    return json(r, { job_id: job.id, status: "PENDING", type: "AVATAR", estimated_cost_credits: cost }, 202);
+    return json(r, { job_id: job.id, status: "PENDING", type: "AVATAR", estimated_cost_credits: 0 }, 202);
   });
 
   await page.route(/\/v1\/projects\/[^/]+$/, (r) => {

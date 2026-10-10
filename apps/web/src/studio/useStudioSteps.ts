@@ -12,7 +12,6 @@ type Args = {
   setBusy: Dispatch<SetStateAction<boolean>>;
   setError: Dispatch<SetStateAction<string | null>>;
   setJobs: Dispatch<SetStateAction<Job[]>>;
-  refreshCredits: () => void;
 };
 
 /** Starts generation steps (avatar/story/ebook/video/narrated-video). */
@@ -24,7 +23,6 @@ export function useStudioSteps({
   setBusy,
   setError,
   setJobs,
-  refreshCredits,
 }: Args) {
   async function runStep(step: StudioStep) {
     if (!project || isDemo) return;
@@ -41,7 +39,6 @@ export function useStudioSteps({
       await api.startStep(project.id, step, body);
       const js = await api.listJobs(project.id);
       setJobs(js);
-      refreshCredits();
     } catch (e) {
       setError((e as Error).message);
     } finally {

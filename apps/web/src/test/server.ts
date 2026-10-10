@@ -58,15 +58,6 @@ type OwnerUserMock = {
   terms_accepted_at: string;
 };
 
-const COST: Record<string, number> = {
-  AVATAR: 1,
-  REALISTIC: 1,
-  STORY: 1,
-  EBOOK: 1,
-  VIDEO: 5,
-  NARRATED_VIDEO: 8,
-};
-
 export const state = {
   credits: 0,
   isGuest: true,
@@ -171,25 +162,6 @@ function enqueuePreviewNext(project: Project, fromType: string, payload: Job["re
   const nextType = fromType === "AVATAR" ? "STORY" : fromType === "STORY" ? "EBOOK" : null;
   if (!nextType) return;
   if (fromType === "AVATAR") project.character_approved_at = new Date().toISOString();
-  const cost = COST[nextType] ?? 1;
-  if (state.credits < cost) {
-    const failed: Job = {
-      id: id(),
-      project_id: project.id,
-      type: nextType,
-      status: "FAILED",
-      provider: null,
-      cost_credits: 0,
-      attempts: 1,
-      error: `Creditos insuficientes: requer ${cost}, disponivel ${state.credits}`,
-      created_at: new Date().toISOString(),
-      result: { payload: { preview_chain: true, ...(payload?.payload?.brief ? { brief: payload.payload.brief } : {}) } },
-      _polls: 0,
-    };
-    state.jobs.get(project.id)?.push(failed);
-    return;
-  }
-  state.credits -= cost;
   const nextPayload: Job["result"] = {
     payload: {
       preview_chain: true,
@@ -202,7 +174,7 @@ function enqueuePreviewNext(project: Project, fromType: string, payload: Job["re
     type: nextType,
     status: "PENDING",
     provider: null,
-    cost_credits: cost,
+    cost_credits: 0,
     attempts: 1,
     error: null,
     created_at: new Date().toISOString(),
@@ -743,10 +715,6 @@ export const handlers = [
     http.post(`*/v1/projects/:pid/${step}`, async ({ params, request }) => {
       const pid = params.pid as string;
       const type = step === "narrated-video" ? "NARRATED_VIDEO" : step.toUpperCase();
-      const cost = COST[type];
-      if (state.credits < cost) {
-        return HttpResponse.json({ detail: "Creditos insuficientes" }, { status: 402 });
-      }
       let payload: Job["result"] = null;
       try {
         const body = (await request.json()) as { brief?: string; duration_s?: number };
@@ -756,14 +724,13 @@ export const handlers = [
       } catch {
         /* body vazio */
       }
-      state.credits -= cost;
       const job: Job = {
         id: id(),
         project_id: pid,
         type,
         status: "PENDING",
         provider: null,
-        cost_credits: cost,
+        cost_credits: 0,
         attempts: 1,
         error: null,
         created_at: new Date().toISOString(),
@@ -772,7 +739,7 @@ export const handlers = [
       };
       state.jobs.get(pid)?.push(job);
       return HttpResponse.json(
-        { job_id: job.id, status: "PENDING", type, estimated_cost_credits: cost },
+        { job_id: job.id, status: "PENDING", type, estimated_cost_credits: 0 },
         { status: 202 },
       );
     }),
@@ -800,11 +767,6 @@ export const handlers = [
       /* body vazio */
     }
     const type = "AVATAR";
-    const cost = COST[type];
-    if (state.credits < cost) {
-      return HttpResponse.json({ detail: "Creditos insuficientes" }, { status: 402 });
-    }
-    state.credits -= cost;
     project.character_approved_at = null;
     project.book_approved_at = null;
     const job: Job = {
@@ -813,7 +775,7 @@ export const handlers = [
       type,
       status: "PENDING",
       provider: null,
-      cost_credits: cost,
+      cost_credits: 0,
       attempts: 1,
       error: null,
       created_at: new Date().toISOString(),
@@ -822,7 +784,7 @@ export const handlers = [
     };
     state.jobs.get(pid)?.push(job);
     return HttpResponse.json(
-      { job_id: job.id, status: "PENDING", type, estimated_cost_credits: cost },
+      { job_id: job.id, status: "PENDING", type, estimated_cost_credits: 0 },
       { status: 202 },
     );
   }),

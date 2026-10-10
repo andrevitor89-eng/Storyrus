@@ -139,7 +139,7 @@ describe("Painel /usuarios", () => {
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
     expect(screen.getByText("Ana Souza")).toBeInTheDocument();
-    expect(screen.getByText("12 créditos")).toBeInTheDocument();
+    expect(screen.queryByText(/crédito/i)).not.toBeInTheDocument();
     expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
     expect(screen.getByTestId("owner-user-placeholder")).toHaveTextContent(/clique numa conta na lista/i);
     expect(screen.queryByTestId("owner-user-detail")).not.toBeInTheDocument();
@@ -160,17 +160,15 @@ describe("Painel /usuarios", () => {
     expect(screen.queryByTestId("owner-user-placeholder")).not.toBeInTheDocument();
     expect(await screen.findByTestId("owner-user-street")).toHaveValue("Avenida Paulista");
     expect(screen.getByTestId("owner-user-city")).toHaveValue("Sao Paulo");
-    expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
+    expect(screen.queryByTestId("owner-user-credits")).not.toBeInTheDocument();
 
     await user.clear(screen.getByTestId("owner-user-full-name"));
     await user.type(screen.getByTestId("owner-user-full-name"), "Ana Silva");
-    await user.clear(screen.getByTestId("owner-user-credits"));
-    await user.type(screen.getByTestId("owner-user-credits"), "40");
     await user.click(screen.getByTestId("owner-user-save"));
 
     expect(await screen.findByTestId("owner-user-saved")).toHaveTextContent(/salvas/i);
     expect(screen.getByText("Ana Silva")).toBeInTheDocument();
-    expect(screen.getByText("40 créditos")).toBeInTheDocument();
+    expect(screen.queryByText(/crédito/i)).not.toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
     expect(screen.getByRole("list", { name: /lista de usuários/i })).toBeInTheDocument();
   });
@@ -195,7 +193,7 @@ describe("Painel /usuarios", () => {
     expect(screen.getByText("ana@example.com")).toBeInTheDocument();
     expect(screen.getByText("bruno@example.com")).toBeInTheDocument();
     expect(screen.getByTestId("owner-user-full-name")).toHaveValue("Ana Souza");
-    expect(screen.getByTestId("owner-user-credits")).toHaveValue(12);
+    expect(screen.queryByTestId("owner-user-credits")).not.toBeInTheDocument();
     expect(screen.queryByText(/falha ao abrir/i)).not.toBeInTheDocument();
   });
 

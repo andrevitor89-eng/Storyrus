@@ -275,14 +275,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     if (heroi && titulo) titlePreset.current = { hero: heroi, title: titulo };
   }, [isDemo, lang]);
 
-  const refreshCredits = useCallback(async () => {
-    try {
-      await api.credits();
-    } catch {
-      /* ignore */
-    }
-  }, []);
-
   const refreshMe = useCallback(async () => {
     try {
       const me = await api.me();
@@ -317,8 +309,7 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
 
   useEffect(() => {
     void refreshMe();
-    void refreshCredits();
-  }, [refreshMe, refreshCredits]);
+  }, [refreshMe]);
 
   const getStoryBrief = useCallback(() => {
     const name = childName.trim();
@@ -383,7 +374,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
     setProject,
     setJobs,
     setAssets,
-    refreshCredits,
     isDemo,
     keepWatching: orderSent && !isDemo && !previewReady && !previewFailed && !error,
   });
@@ -491,7 +481,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       } catch {
         // A prévia já foi aceita. O polling busca os jobs sem mostrar 500.
       }
-      refreshCredits();
     } catch (e) {
       setError((e as Error).message);
     } finally {
@@ -562,7 +551,6 @@ function StudioInner({ onLogout }: { onLogout?: () => void }) {
       } catch {
         /* polling */
       }
-      refreshCredits();
     } catch (e) {
       setError((e as Error).message);
     } finally {

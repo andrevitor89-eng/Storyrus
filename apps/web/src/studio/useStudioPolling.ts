@@ -9,7 +9,6 @@ type Args = {
   setProject: Dispatch<SetStateAction<Project | null>>;
   setJobs: Dispatch<SetStateAction<Job[]>>;
   setAssets: Dispatch<SetStateAction<StudioAssets | null>>;
-  refreshCredits: () => void;
   isDemo: boolean;
   /** Continua buscando jobs enquanto a prévia ainda não está pronta. */
   keepWatching?: boolean;
@@ -22,7 +21,6 @@ export function useStudioPolling({
   setProject,
   setJobs,
   setAssets,
-  refreshCredits,
   isDemo,
   keepWatching = false,
 }: Args) {
@@ -50,7 +48,6 @@ export function useStudioPolling({
             setAssets((prev) => (stillActive ? mergeStudioAssets(prev, next) : next));
           })
           .catch(() => {});
-        refreshCredits();
       } catch {
         /* ignore */
       } finally {
@@ -75,5 +72,5 @@ export function useStudioPolling({
     };
     // Deps match the former inline effect (project identity via project?.id).
     // eslint-disable-next-line react-hooks/exhaustive-deps -- setters are stable; poll on project id + active job only
-  }, [project?.id, shouldPoll, refreshCredits, isDemo]);
+  }, [project?.id, shouldPoll, isDemo]);
 }

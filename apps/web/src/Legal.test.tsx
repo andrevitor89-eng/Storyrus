@@ -37,7 +37,7 @@ describe("Legal", () => {
     expect(screen.getByRole("heading", { name: /o serviço/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /cadastro e conta/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /responsável legal/i })).toBeInTheDocument();
-    expect(screen.getByRole("heading", { name: /créditos e pagamentos/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /pagamento do livro impresso/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /impressão e envio/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /usuários internacionais/i })).toBeInTheDocument();
     expect(screen.getByRole("heading", { name: /propriedade e uso/i })).toBeInTheDocument();

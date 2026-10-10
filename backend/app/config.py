@@ -91,6 +91,8 @@ class Settings(BaseSettings):
     # Kling image2video aceita só 5s ou 10s; default alinhado ao provedor.
     default_video_duration_s: int = 5
     signup_bonus_credits: int = 10
+    # false = gerar o livro não debita nem bloqueia por saldo. A cobrança é a OS do impresso.
+    credits_enabled: bool = False
     offline_fallback: bool = True
 
     # Custo estimado por etapa (creditos = 1 credito ~ 1 unidade de custo)

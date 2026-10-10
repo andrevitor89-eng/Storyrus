@@ -90,8 +90,9 @@ def continue_preview_chain(
 ) -> Job | None:
     """Se o job concluído é de prévia, auto-aprova e enfileira a próxima etapa.
 
-    Em falta de créditos / backpressure / teto de gasto: cria um job FAILED
-    (sem débito) para a UI mostrar o erro — não falha o job já concluído.
+    Em backpressure / teto de gasto (e em falta de créditos, se o sistema
+    estiver ligado): cria um job FAILED (sem débito) para a UI mostrar o erro
+    — não falha o job já concluído.
     """
     if not is_preview_chain(source_job):
         return None
