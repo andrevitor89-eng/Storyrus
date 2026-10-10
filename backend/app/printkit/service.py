@@ -156,7 +156,36 @@ def prepare_files(db: Session, project: Project, order: PrintOrder) -> None:
     _sync(project, order)
 
 
-def open_print_order(db: Session, project: Project) -> PrintOrder:
+def _seed_delivery(order: PrintOrder, project: Project) -> None:
+    """Copia o cadastro da conta para a OS quando o endereço ainda está vazio."""
+    if (order.recipient_name or "").strip():
+        return
+    user = project.user
+    if user is None:
+        return
+    name = (user.full_name or "").strip() or (user.email or "").strip()
+    if name:
+        order.recipient_name = name[:120]
+    postal = "".join(ch for ch in (user.postal_code or "") if ch.isdigit())
+    if len(postal) == 8:
+        order.postal_code = postal
+    if (user.street or "").strip():
+        order.street = user.street.strip()[:160]
+    if (user.number or "").strip():
+        order.number = user.number.strip()[:20]
+    if (user.complement or "").strip():
+        order.complement = user.complement.strip()[:80]
+    if (user.district or "").strip():
+        order.district = user.district.strip()[:80]
+    if (user.city or "").strip():
+        order.city = user.city.strip()[:80]
+    state = (user.state or "").strip().upper()
+    if len(state) == 2:
+        order.state = state
+
+
+def open_print_order(db: Session, project: Project, *, requested: bool = True) -> PrintOrder:
+    """Abre a OS do livro. `requested` marca o impresso pedido pela família."""
     order = get_print_order(db, project.id)
     if order is None:
         order_id = uuid.uuid4()
@@ -170,11 +199,28 @@ def open_print_order(db: Session, project: Project) -> PrintOrder:
         )
         db.add(order)
         db.flush()
-    if project.print_requested_at is None:
+    if requested and project.print_requested_at is None:
         project.print_requested_at = _now()
+    _seed_delivery(order, project)
     prepare_files(db, project, order)
     _sync(project, order)
     return order
+
+
+def attach_service_orders(db: Session, projects: list[Project]) -> None:
+    """Garante uma OS por pedido e atualiza o pacote quando as páginas chegam."""
+    changed = False
+    for project in projects:
+        order = get_print_order(db, project.id)
+        if order is None:
+            open_print_order(db, project, requested=False)
+            changed = True
+            continue
+        if order.status == "awaiting_pages":
+            prepare_files(db, project, order)
+            changed = True
+    if changed:
+        db.commit()
 
 
 def package_zip(order: PrintOrder) -> bytes:

@@ -12,7 +12,17 @@ from sqlalchemy.pool import StaticPool
 
 from app.ai_clients.base import ImageResult, ProviderError
 from app.database import Base
-from app.models import Asset, AssetKind, Job, JobStatus, JobType, Project, ProjectStatus, User
+from app.models import (
+    Asset,
+    AssetKind,
+    Job,
+    JobStatus,
+    JobType,
+    PrintOrder,
+    Project,
+    ProjectStatus,
+    User,
+)
 from app.services import preview_chain
 from app.workers import handlers, runner
 from tests.test_workers import FakeImage, FakeText
@@ -268,6 +278,10 @@ async def test_ebook_preview_makes_openai_trio_without_video(db, mem_storage, mo
         select(Job).where(Job.project_id == p.id, Job.type == JobType.VIDEO.value)
     ).all()
     assert videos == []
+    service_order = db.scalar(select(PrintOrder).where(PrintOrder.project_id == p.id))
+    assert service_order is not None
+    assert service_order.code.startswith("SR-")
+    assert p.print_requested_at is None
     db.refresh(u)
     assert u.credits == 20  # EBOOK job já existia; não debitou VIDEO
 

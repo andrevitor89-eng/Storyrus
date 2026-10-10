@@ -149,9 +149,14 @@ def register_order_ticket(
     if existing is not None:
         existing.summary = summary
         db.add(existing)
-        return existing
-    ticket = OrderTicket(project_id=project.id, summary=summary)
-    db.add(ticket)
+        ticket = existing
+    else:
+        ticket = OrderTicket(project_id=project.id, summary=summary)
+        db.add(ticket)
+        db.flush()
+    from app.printkit.service import open_print_order
+
+    open_print_order(db, project, requested=False)
     return ticket
 
 

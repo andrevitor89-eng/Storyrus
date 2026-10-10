@@ -148,6 +148,11 @@ export interface UsageEvent {
   created_at: string;
 }
 
+export interface OrderBookFile {
+  label: string;
+  url: string;
+}
+
 export interface OrderTicket {
   id: string;
   project_id: string;
@@ -158,11 +163,15 @@ export interface OrderTicket {
   cover_type?: string | null;
   style?: string | null;
   photo_urls?: string[];
+  has_story?: boolean;
+  book_files?: OrderBookFile[];
   print_order_id?: string | null;
   print_code?: string | null;
   print_status?: string | null;
+  block_reason?: string | null;
   tracking_code?: string | null;
   payment_status?: string | null;
+  amount_cents?: number | null;
 }
 
 export interface FreightOption {

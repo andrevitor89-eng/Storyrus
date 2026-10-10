@@ -205,6 +205,30 @@
   color: var(--muted);
 }
 .usage-order-detail dd { margin: 0; color: var(--navy); font-size: 1rem; }
+.order-os {
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--line-soft);
+}
+.order-os h3 {
+  margin: 0 0 0.45rem;
+  font-size: 1rem;
+  color: var(--navy);
+}
+.order-os ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+.order-os-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem 1rem;
+  margin: 0.7rem 0 0;
+  padding: 0;
+  list-style: none;
+}
 .usage-order-photos {
   display: flex;
   flex-wrap: wrap;

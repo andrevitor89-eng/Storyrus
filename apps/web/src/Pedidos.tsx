@@ -55,7 +55,7 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
       value: order.style === "cartoon" ? "Cartoon" : "Realista",
     });
   }
-  if (order.print_code) rows.push({ label: "Código do impresso", value: order.print_code });
+  if (order.print_code) rows.push({ label: "OS", value: order.print_code });
   if (order.print_status) {
     const labels: Record<string, string> = {
       awaiting_spec: "Aguardando especificação",
@@ -68,7 +68,20 @@ function fieldsOf(order: OrderTicket): { label: string; value: string }[] {
     };
     rows.push({ label: "Produção", value: labels[order.print_status] ?? order.print_status });
   }
-  if (order.payment_status) rows.push({ label: "Pagamento", value: order.payment_status });
+  if (order.payment_status) {
+    const payment: Record<string, string> = {
+      unpaid: "A faturar",
+      pending: "Fatura em aberto",
+      paid: "Faturado",
+    };
+    rows.push({ label: "Faturamento", value: payment[order.payment_status] ?? order.payment_status });
+  }
+  if (order.amount_cents != null) {
+    rows.push({
+      label: "Valor",
+      value: (order.amount_cents / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" }),
+    });
+  }
   if (order.tracking_code) rows.push({ label: "Rastreio", value: order.tracking_code });
   return rows;
 }
@@ -190,7 +203,10 @@ export function Pedidos() {
         <img className="hdr-logo" src={logo} alt="Story R Us" />
         <div>
           <h1>Pedidos</h1>
-          <p className="muted">Cada livro enviado com foto. Abra um item para ver o pedido inteiro.</p>
+          <p className="muted">
+            Cada pedido abre uma OS para faturar e mandar para a gráfica. O livro gerado fica
+            guardado nesse pedido.
+          </p>
         </div>
         <OwnerNav current="pedidos" />
         <button
@@ -265,6 +281,46 @@ export function Pedidos() {
                   ))}
                 </div>
               )}
+              <section className="order-os" data-testid="order-os">
+                <h3>Ordem de serviço {current.print_code || "—"}</h3>
+                <ol>
+                  <li>Pedido aberto com os dados da família e a foto.</li>
+                  <li>
+                    {current.has_story || (current.book_files ?? []).length > 0
+                      ? "Livro guardado neste pedido."
+                      : "Livro ainda sendo gerado. Personagem, história e imagens entram aqui."}
+                  </li>
+                  <li>
+                    Faturar
+                    {current.payment_status === "paid"
+                      ? " — faturado."
+                      : current.payment_status === "pending"
+                        ? " — fatura em aberto."
+                        : " — ainda a faturar."}
+                  </li>
+                  <li>
+                    Gráfica
+                    {current.print_status === "files_ready" || current.print_status === "approved"
+                      ? " — pacote pronto para envio."
+                      : current.print_status === "sent_for_validation"
+                        ? " — pacote em validação."
+                        : current.block_reason
+                          ? ` — ${current.block_reason}`
+                          : " — aguardando o livro para montar o pacote."}
+                  </li>
+                </ol>
+                {(current.book_files ?? []).length > 0 && (
+                  <ul className="order-os-files" data-testid="order-book-files">
+                    {(current.book_files ?? []).map((file) => (
+                      <li key={`${file.label}-${file.url}`}>
+                        <a href={file.url} target="_blank" rel="noreferrer">
+                          {file.label}
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
               <p className="muted">
                 {when(current.created_at)} · Projeto {current.project_id}
               </p>

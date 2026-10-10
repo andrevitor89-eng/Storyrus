@@ -409,6 +409,13 @@ class UsageAnomalyOut(BaseModel):
     message: str
 
 
+class OrderFileOut(BaseModel):
+    """Arquivo do livro guardado no storage e ligado à OS."""
+
+    label: str
+    url: str
+
+
 class OrderTicketOut(BaseModel):
     """Resumo do pedido. As fotos vão como links assinados, gerados na hora da leitura."""
 
@@ -421,11 +428,15 @@ class OrderTicketOut(BaseModel):
     cover_type: str | None = None
     style: str | None = None
     photo_urls: list[str] = []
+    has_story: bool = False
+    book_files: list[OrderFileOut] = []
     print_order_id: uuid.UUID | None = None
     print_code: str | None = None
     print_status: str | None = None
+    block_reason: str | None = None
     tracking_code: str | None = None
     payment_status: str | None = None
+    amount_cents: int | None = None
 
 
 class FreightOptionOut(BaseModel):
