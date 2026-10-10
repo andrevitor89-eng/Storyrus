@@ -69,6 +69,15 @@ def finalize_preview_ebook(db: Session, project: Project, source_job: Job) -> No
     if not is_preview_chain(source_job):
         return
     project.book_approved_at = _now()
+    nested = db.begin_nested()
+    try:
+        from app.printkit.service import open_print_order
+
+        open_print_order(db, project, requested=False)
+        nested.commit()
+    except Exception:
+        nested.rollback()
+        logger.exception("os da previa falhou project=%s", project.id)
     db.commit()
     logger.info("preview_chain finalized at EBOOK project=%s", project.id)
 

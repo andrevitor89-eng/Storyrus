@@ -197,6 +197,10 @@ def test_photo_upload_opens_one_order_for_the_owner(auth_client, monkeypatch):
     assert "foto.jpg" not in orders[0]["summary"]
     assert orders[0]["photo_urls"]
     assert orders[0]["photo_urls"][0].startswith("https://fotos.test/")
+    assert orders[0]["print_code"].startswith("SR-")
+    assert orders[0]["print_order_id"]
+    assert orders[0]["payment_status"] == "unpaid"
+    assert orders[0]["book_files"] == []
 
 
 def test_realista_order_uses_typed_theme_and_site_language(auth_client, monkeypatch):
