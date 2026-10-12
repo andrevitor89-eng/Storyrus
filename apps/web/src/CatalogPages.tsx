@@ -125,7 +125,7 @@ export function CatalogPage() {
                 <h3 className="catalog-sub-title">{sub.name}</h3>
                 <div className="cat-grid">
                   {sub.books.map((book) => (
-                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} layout="cover" />
                   ))}
                 </div>
               </div>
@@ -160,7 +160,7 @@ export function CategoryCatalogPage() {
                 <h3 className="catalog-sub-title">{sub.name}</h3>
                 <div className="cat-grid">
                   {sub.books.map((book) => (
-                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} />
+                    <CatalogBookCard key={book.catalogI} book={book} lang={lang} personalize={copy.personalize} layout="cover" />
                   ))}
                 </div>
               </div>
